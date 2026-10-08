@@ -1,0 +1,24 @@
+{
+  "name": "self-storage-facility-rental-system",
+  "version": "2.0.0",
+  "description": "Hệ thống Quản lý và Cho thuê Kho Lưu trữ Tự phục vụ (Self-Storage Management System) - 5 Actors RBAC & UI Prototype",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx serve -l 3000 .",
+    "start": "npx serve -l 3000 .",
+    "preview": "npx serve -l 3000 ."
+  },
+  "keywords": [
+    "self-storage",
+    "swp391",
+    "capstone",
+    "prototype",
+    "figma-spec"
+  ],
+  "author": "SWP-Project-Team",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
+  }
+}

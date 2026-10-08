@@ -1,0 +1,287 @@
+
+    <!DOCTYPE html>
+    <html lang="vi">
+    <head>
+      <meta charset="UTF-8">
+      <title>SCR-04: Đặt Giữ Chỗ Phòng Kho Trực Tuyến</title>
+      <style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1440px;
+    height: 900px;
+    overflow: hidden;
+    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    background: #f8fafc;
+    color: #0f172a;
+    display: flex;
+    flex-direction: column;
+  }
+  .app-header {
+    height: 68px;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    flex-shrink: 0;
+  }
+  .app-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 800;
+    font-size: 20px;
+    color: #0f172a;
+  }
+  .logo-box {
+    width: 36px;
+    height: 36px;
+    background: #1e40af;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 900;
+  }
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .nav-link {
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+  }
+  .nav-link.active {
+    color: #1e40af;
+    background: #eff6ff;
+  }
+  .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #dbeafe;
+    color: #1e40af;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    border: 2px solid #3b82f6;
+  }
+  .content-body {
+    flex: 1;
+    padding: 32px 40px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .badge-success { background: #ecfdf5; color: #047857; }
+  .badge-warning { background: #fffbeb; color: #b45309; }
+  .badge-danger { background: #fef2f2; color: #b91c1c; }
+  .badge-primary { background: #eff6ff; color: #1d4ed8; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+    text-decoration: none;
+  }
+  .btn-primary { background: #1e40af; color: white; }
+  .btn-outline { background: white; border: 1px solid #cbd5e1; color: #334155; }
+  .btn-success { background: #10b981; color: white; }
+  .btn-danger { background: #ef4444; color: white; }
+  .ui-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .form-group { margin-bottom: 16px; }
+  .form-label { display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px; }
+  .form-control {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    background: white;
+  }
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .data-table th {
+    background: #f8fafc;
+    padding: 12px 16px;
+    font-weight: 700;
+    color: #475569;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+  }
+  .data-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+</style>
+    </head>
+    <body>
+      
+      
+    <header class="app-header">
+      <div class="app-logo">
+        <div class="logo-box">S</div>
+        <span>SelfStorage <span style="color:#2563eb;">PRO</span></span>
+      </div>
+      <nav class="nav-links">
+        <span class="nav-link ">Tìm kho & Bảng giá</span>
+        <span class="nav-link active">Đặt giữ chỗ</span>
+        <span class="nav-link ">Thanh toán cọc/phí</span>
+        <span class="nav-link ">Thẻ Check-in</span>
+        <span class="nav-link ">Kho đang thuê</span>
+        <span class="nav-link ">Hỗ trợ kỹ thuật</span>
+      </nav>
+      <div class="user-profile">
+        <div style="text-align:right;">
+          <div style="font-weight:700; font-size:14px;">Trần Văn Bảo</div>
+          <div style="font-size:12px; color:#64748b;">Storage Customer</div>
+        </div>
+        <div class="avatar">TB</div>
+      </div>
+    </header>
+  
+      <main class="content-body">
+        <div style="margin-bottom:24px;">
+          <span class="badge badge-primary">BƯỚC 1 / 3: THIẾT LẬP THỜI HẠN THUÊ</span>
+          <h1 style="font-size:24px; font-weight:800; margin-top:6px;">Đặt Giữ Chỗ Kho Tự Phục Vụ Trực Tuyến</h1>
+          <p style="font-size:14px; color:#64748b;">Hệ thống giữ chỗ trong 24 giờ để Quản lý cơ sở gán số phòng cụ thể và gửi thẻ hẹn Check-in.</p>
+        </div>
+
+        <div class="grid-2">
+          <!-- FORM -->
+          <div class="ui-card">
+            <h3 style="font-size:16px; font-weight:700; margin-bottom:18px; color:#1e40af; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">
+              1. Thông tin thuê kho & Lịch hẹn tiếp đón
+            </h3>
+            <div class="form-group">
+              <label class="form-label">Cơ sở chi nhánh tiếp nhận</label>
+              <input type="text" class="form-control" value="Hà Nội - Cơ sở Cầu Giấy (120 Duy Tân)" readonly style="background:#f8fafc; font-weight:700;">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Loại phòng kho lựa chọn</label>
+              <input type="text" class="form-control" value="Kho M-Premium (5.0 m² - Dài 2.5m x Rộng 2.0m x Cao 2.5m)" readonly style="background:#f8fafc; font-weight:700;">
+            </div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label">Ngày bắt đầu thuê</label>
+                <input type="date" class="form-control" value="2026-09-24" style="font-weight:600;">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Thời hạn thuê</label>
+                <select class="form-control" style="font-weight:600;">
+                  <option>1 Tháng (Giá gốc)</option>
+                  <option selected>3 Tháng (Chiết khấu 5%)</option>
+                  <option>6 Tháng (Chiết khấu 10%)</option>
+                  <option>12 Tháng (Chiết khấu 15%)</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Khung giờ hẹn đến check-in nhận kho</label>
+              <select class="form-control" style="font-weight:600;">
+                <option selected>Hôm nay: 14:00 - 15:00 (Nhân viên ca trực đón tiếp)</option>
+                <option>Hôm nay: 15:30 - 16:30</option>
+                <option>Ngày mai: 09:00 - 10:00</option>
+              </select>
+            </div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label">Họ tên người nhận kho</label>
+                <input type="text" class="form-control" value="Trần Văn Bảo" style="font-weight:600;">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Số CCCD / Hộ chiếu</label>
+                <input type="text" class="form-control" value="001202019988" style="font-weight:600;">
+              </div>
+            </div>
+          </div>
+
+          <!-- SUMMARY -->
+          <div class="ui-card" style="background:#f8fafc; border:1px solid #cbd5e1; display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              <h3 style="font-size:16px; font-weight:700; margin-bottom:18px; color:#0f172a; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">
+                2. Tóm tắt chi phí & Quy định đặt cọc
+              </h3>
+              <div style="display:flex; flex-direction:column; gap:12px; font-size:14px; margin-bottom:24px;">
+                <div style="display:flex; justify-content:space-between;">
+                  <span style="color:#64748b;">Đơn giá niêm yết:</span>
+                  <span style="font-weight:700;">1.500.000 đ / tháng</span>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                  <span style="color:#64748b;">Thời hạn thuê:</span>
+                  <span style="font-weight:700;">3 Tháng</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; color:#10b981;">
+                  <span>Chiết khấu 3 tháng (5%):</span>
+                  <span style="font-weight:700;">- 225.000 đ</span>
+                </div>
+                <div style="border-top:1px dashed #cbd5e1; padding-top:12px; display:flex; justify-content:space-between;">
+                  <span style="color:#64748b;">Tiền cọc giữ chỗ (Deposit - 1 tháng):</span>
+                  <span style="font-weight:800; color:#1e40af;">1.500.000 đ</span>
+                </div>
+                <div style="font-size:12px; color:#64748b; line-height:1.5;">
+                  * Tiền cọc được hoàn lại 100% khi thanh lý hợp đồng và nghiệm thu kho nguyên vẹn.
+                </div>
+              </div>
+
+              <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:18px; margin-bottom:24px;">
+                <div style="font-size:13px; color:#1e40af; font-weight:600;">Số tiền cần thanh toán ngay để giữ kho:</div>
+                <div style="font-size:28px; font-weight:800; color:#1e40af; margin-top:4px;">1.500.000 VNĐ</div>
+                <div style="font-size:12px; color:#3b82f6; margin-top:4px;">(Tiền thuê tháng đầu có thể trả lúc đến nhận kho tại quầy)</div>
+              </div>
+            </div>
+
+            <button class="btn btn-primary" style="padding:16px; font-size:15px; font-weight:700;">
+              Xác Nhận Đặt Giữ Chỗ & Sang Thanh Toán Cọc ➔
+            </button>
+          </div>
+        </div>
+      </main>
+    
+    </body>
+    </html>
+  

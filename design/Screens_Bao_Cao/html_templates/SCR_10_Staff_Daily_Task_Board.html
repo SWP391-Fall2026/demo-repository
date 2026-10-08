@@ -1,0 +1,287 @@
+
+    <!DOCTYPE html>
+    <html lang="vi">
+    <head>
+      <meta charset="UTF-8">
+      <title>SCR-10: Bàn Làm Việc Theo Dõi Lịch Công Việc Ca Trực Hàng Ngày</title>
+      <style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1440px;
+    height: 900px;
+    overflow: hidden;
+    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    background: #f8fafc;
+    color: #0f172a;
+    display: flex;
+    flex-direction: column;
+  }
+  .app-header {
+    height: 68px;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    flex-shrink: 0;
+  }
+  .app-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 800;
+    font-size: 20px;
+    color: #0f172a;
+  }
+  .logo-box {
+    width: 36px;
+    height: 36px;
+    background: #1e40af;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 900;
+  }
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .nav-link {
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+  }
+  .nav-link.active {
+    color: #1e40af;
+    background: #eff6ff;
+  }
+  .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #dbeafe;
+    color: #1e40af;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    border: 2px solid #3b82f6;
+  }
+  .content-body {
+    flex: 1;
+    padding: 32px 40px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .badge-success { background: #ecfdf5; color: #047857; }
+  .badge-warning { background: #fffbeb; color: #b45309; }
+  .badge-danger { background: #fef2f2; color: #b91c1c; }
+  .badge-primary { background: #eff6ff; color: #1d4ed8; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+    text-decoration: none;
+  }
+  .btn-primary { background: #1e40af; color: white; }
+  .btn-outline { background: white; border: 1px solid #cbd5e1; color: #334155; }
+  .btn-success { background: #10b981; color: white; }
+  .btn-danger { background: #ef4444; color: white; }
+  .ui-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .form-group { margin-bottom: 16px; }
+  .form-label { display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px; }
+  .form-control {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    background: white;
+  }
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .data-table th {
+    background: #f8fafc;
+    padding: 12px 16px;
+    font-weight: 700;
+    color: #475569;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+  }
+  .data-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+</style>
+    </head>
+    <body>
+      
+      
+    <header class="app-header" style="background:#0f172a; border-bottom:1px solid #1e293b; color:white;">
+      <div class="app-logo" style="color:white;">
+        <div class="logo-box" style="background:#2563eb;">⚡</div>
+        <span>SelfStorage <span style="color:#60a5fa;">STAFF</span></span>
+      </div>
+      <nav class="nav-links">
+        <span class="nav-link active" style="color:#60a5fa; background:rgba(37,99,235,0.2);">Bàn làm việc ca trực</span>
+        <span class="nav-link " style="color:#94a3b8;">Tra cứu đơn đặt</span>
+        <span class="nav-link " style="color:#94a3b8;">Bàn giao kho</span>
+        <span class="nav-link " style="color:#94a3b8;">Sơ đồ mặt bằng kho</span>
+        <span class="nav-link " style="color:#94a3b8;">Nghiệm thu trả kho</span>
+        <span class="nav-link " style="color:#94a3b8;">Sự cố tại chỗ</span>
+      </nav>
+      <div class="user-profile">
+        <div style="text-align:right;">
+          <div style="font-weight:700; font-size:14px; color:white;">Nguyễn Văn Tuấn</div>
+          <div style="font-size:12px; color:#94a3b8;">Staff • Chi nhánh Cầu Giấy</div>
+        </div>
+        <div class="avatar" style="background:#1e293b; color:#60a5fa; border-color:#2563eb;">NT</div>
+      </div>
+    </header>
+  
+      <main class="content-body">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+          <div>
+            <span class="badge badge-primary">CA TRỰC: 08:00 - 17:00</span>
+            <h1 style="font-size:24px; font-weight:800; margin-top:6px;">Bàn Làm Việc Ca Trực Hàng Ngày (Daily Operations)</h1>
+            <p style="font-size:14px; color:#64748b;">Chi nhánh: <strong>Hà Nội - Cơ sở Cầu Giấy</strong> • Ngày làm việc: <strong>24/09/2026</strong></p>
+          </div>
+          <button class="btn btn-outline" style="border-color:#334155; color:#cbd5e1; background:#0f172a;">
+            🔍 Tra cứu đơn đặt mới
+          </button>
+        </div>
+
+        <!-- 4 CARDS -->
+        <div class="grid-4" style="margin-bottom:24px;">
+          <div class="ui-card" style="border-left:4px solid #3b82f6;">
+            <div style="font-size:12px; color:#64748b; font-weight:700;">HẸN CHECK-IN HÔM NAY</div>
+            <div style="font-size:28px; font-weight:900; color:#0f172a; margin:4px 0;">05 Khách</div>
+            <div style="font-size:12px; color:#10b981; font-weight:600;">🟢 02 Đã nhận • 03 Đang đợi</div>
+          </div>
+          <div class="ui-card" style="border-left:4px solid #f59e0b;">
+            <div style="font-size:12px; color:#64748b; font-weight:700;">HẸN TRẢ KHO & NGHIỆM THU</div>
+            <div style="font-size:28px; font-weight:900; color:#0f172a; margin:4px 0;">02 Lịch</div>
+            <div style="font-size:12px; color:#d97706; font-weight:600;">🟡 Cần kiểm tra hoàn cọc</div>
+          </div>
+          <div class="ui-card" style="border-left:4px solid #ef4444;">
+            <div style="font-size:12px; color:#64748b; font-weight:700;">SỰ CỐ CẦN XỬ LÝ TẠI CHỖ</div>
+            <div style="font-size:28px; font-weight:900; color:#ef4444; margin:4px 0;">03 Ticket</div>
+            <div style="font-size:12px; color:#ef4444; font-weight:600;">🔴 01 Khẩn cấp kẹt mã PIN</div>
+          </div>
+          <div class="ui-card" style="border-left:4px solid #10b981;">
+            <div style="font-size:12px; color:#64748b; font-weight:700;">TỶ LỆ LẤP ĐẦY KHO</div>
+            <div style="font-size:28px; font-weight:900; color:#10b981; margin:4px 0;">102 / 120</div>
+            <div style="font-size:12px; color:#64748b; font-weight:600;">Còn trống 18 phòng kho (15%)</div>
+          </div>
+        </div>
+
+        <!-- TABLE -->
+        <div class="ui-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <h3 style="font-size:16px; font-weight:800;">Danh sách khách hẹn tiếp đón & nhận kho hôm nay</h3>
+            <span class="badge badge-primary">3 Khách trong hàng đợi</span>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Giờ hẹn</th>
+                <th>Mã đơn</th>
+                <th>Khách hàng</th>
+                <th>Số điện thoại</th>
+                <th>Phòng kho gán</th>
+                <th>Tiền cọc</th>
+                <th>Trạng thái</th>
+                <th style="text-align:right;">Thao tác ca trực</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background:#eff6ff;">
+                <td><strong style="color:#1e40af; font-size:15px;">14:00</strong></td>
+                <td><span style="font-family:'JetBrains Mono'; font-weight:800;">RSV-8821</span></td>
+                <td><strong>Trần Văn Bảo</strong></td>
+                <td>0987.654.321</td>
+                <td><span class="badge badge-primary">UNIT A-102</span></td>
+                <td><span style="color:#10b981; font-weight:700;">Đã nộp 1.500.000đ</span></td>
+                <td><span class="badge badge-warning">Đang đến quầy</span></td>
+                <td style="text-align:right;">
+                  <button class="btn btn-primary" style="padding:6px 14px; font-size:13px;">Tiếp Đón & Bàn Giao Kho</button>
+                </td>
+              </tr>
+              <tr>
+                <td>14:30</td>
+                <td><span style="font-family:'JetBrains Mono';">RSV-8825</span></td>
+                <td>Nguyễn Thu Thủy</td>
+                <td>0912.111.222</td>
+                <td><span class="badge badge-primary">UNIT A-105</span></td>
+                <td><span style="color:#10b981; font-weight:700;">Đã nộp 800.000đ</span></td>
+                <td><span class="badge badge-success">Đã chuẩn bị kho</span></td>
+                <td style="text-align:right;">
+                  <button class="btn btn-outline" style="padding:6px 14px; font-size:13px;">Xem hồ sơ</button>
+                </td>
+              </tr>
+              <tr>
+                <td>16:00</td>
+                <td><span style="font-family:'JetBrains Mono';">RSV-8830</span></td>
+                <td>Cty TNHH Ánh Dương</td>
+                <td>024.3999.8888</td>
+                <td><span class="badge badge-primary">UNIT B-101</span></td>
+                <td><span style="color:#10b981; font-weight:700;">Đã nộp 3.200.000đ</span></td>
+                <td><span class="badge badge-warning">Chờ gán xe nâng</span></td>
+                <td style="text-align:right;">
+                  <button class="btn btn-outline" style="padding:6px 14px; font-size:13px;">Xem hồ sơ</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
+    
+    </body>
+    </html>
+  

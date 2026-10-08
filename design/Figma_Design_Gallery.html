@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bộ Ảnh Giao Diện Phần Mềm Figma - Self Storage System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #131c2e;
+      --border: #1e2e4a;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 30px 20px;
+    }
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 36px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .badge {
+      display: inline-block;
+      background: #2563eb;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 15px;
+      max-width: 750px;
+      margin: 0 auto;
+    }
+    .section-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 36px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      background: #1e293b;
+      padding: 3px 8px;
+      border-radius: 4px;
+      color: #38bdf8;
+    }
+    .img-wrap {
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #334155;
+      background: #000;
+    }
+    .img-wrap img {
+      width: 100%;
+      height: auto;
+      display: block;
+      transition: transform 0.3s ease;
+    }
+    .img-wrap img:hover {
+      transform: scale(1.01);
+    }
+    .screen-desc-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .screen-item {
+      background: #0d1524;
+      border: 1px solid #1e2e4a;
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .screen-item-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: #38bdf8;
+      margin-bottom: 4px;
+    }
+    .screen-item-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 4px;
+    }
+    .screen-item-body {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+    .btn-download {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #2563eb;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .btn-download:hover {
+      background: #1d4ed8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <span class="badge">FIGMA DESIGN EXPORT - SWP391 CAPSTONE</span>
+      <h1>Bộ Ảnh Giao Diện Trên Phần Mềm Figma (Figma Workspace Mockups)</h1>
+      <p class="subtitle">Ảnh chụp độ phân giải cao toàn bộ không gian làm việc (Canvas, Artboard Frames, Layers Panel, Prototype Wires) trên phần mềm Figma cho 2 Actors: Storage Customer & Facility Staff.</p>
+    </div>
+
+    <!-- ACTOR 1 -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-title">
+          <span>1. Phân hệ Storage Customer (Khách hàng thuê kho) trên Figma</span>
+          <span class="tag">6 Artboards Desktop</span>
+        </div>
+        <a href="Figma_Screens_Images/01_Figma_Storage_Customer_Portal_6_Screens.jpg" download class="btn-download">
+          ⬇ Tải ảnh gốc (HD)
+        </a>
+      </div>
+      <div class="img-wrap">
+        <img src="Figma_Screens_Images/01_Figma_Storage_Customer_Portal_6_Screens.jpg" alt="Figma Storage Customer Portal">
+      </div>
+      <div class="screen-desc-grid">
+        <div class="screen-item">
+          <div class="screen-item-code"># SCR-C01</div>
+          <div class="screen-item-title">Catalog & Explorer</div>
+          <div class="screen-item-body">Xem cơ sở, loại kho S/M/L, bảng giá & số kho khả dụng thời gian thực.</div>
+        </div>
+        <div class="screen-item">
+          <div class="screen-item-code"># SCR-C02</div>
+          <div class="screen-item-title">Unit Reservation</div>
+          <div class="screen-item-body">Chọn chi nhánh, ngày bắt đầu, thời hạn thuê & tính toán tiền cọc.</div>
+        </div>
+        <div class="screen-item">
+          <div class="screen-item-code"># SCR-C03</div>
+          <div class="screen-item-title">Payment & VietQR</div>
+          <div class="screen-item-body">Thanh toán cọc, tiền thuê, gia hạn & phụ phí qua mã QR VietQR.</div>
+        </div>
+        <div class="screen-item">
+          <div class="screen-item-code"># SCR-C04</div>
+          <div class="screen-item-title">Check-in Pass</div>
+          <div class="screen-item-body">Thẻ tiếp đón hẹn giờ, mã QR và hiển thị phòng gán UNIT A-102.</div>
+        </div>
+        <div class="screen-item">
+          <div class="screen-item-code"># SCR-C05</div>
+          <div class="screen-item-title">My Rented Units</div>
+          <div class="screen-item-body">Bảng điều khiển đa kho, bàn phím mã PIN điện tử, nút gia hạn & trả kho.</div>
+        </div>
+        <div class="screen-item">
+          <div class="screen-item-code"># SCR-C06</div>
+          <div class="screen-item-title">Support Ticket</div>
+          <div class="screen-item-body">Gửi báo cáo sự cố đa danh mục (mã PIN, ổ khóa, thẻ từ, thấm ẩm).</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTOR 2 -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-title">
+          <span>2. Phân hệ Facility Staff (Nhân viên quản lý cơ sở) trên Figma</span>
+          <span class="tag">6 Artboards Desktop</span>
+        </div>
+        <a href="Figma_Screens_Images/02_Figma_Facility_Staff_Portal_6_Screens.jpg" download class="btn-download">
+          ⬇ Tải ảnh gốc (HD)
+        </a>
+      </div>
+      <div class="img-wrap">
+        <img src="Figma_Screens_Images/02_Figma_Facility_Staff_Portal_6_Screens.jpg" alt="Figma Facility Staff Portal">
+      </div>
+      <div class="screen-desc-grid">
+        <div class="screen-item">
+          <div class="screen-item-code"># SCR-S01</div>
+          <div class="screen-item-title">Daily Task Board</div>
+          <div class="screen-item-body">Theo dõi lịch ca trực: khách nhận kho, khách trả kho, sự cố khẩn.</div>
+        </div>
+        <div class="screen-item">
+          <div class="screen-item-code"># SCR-S02</div>
+          <div class="screen-item-title">Reservation Lookup</div>
+          <div class="screen-item-body">Tra cứu & xác thực đơn đặt chỗ RSV-8821 khi khách đến nhận kho.</div>
+        </div>
+        <div class="screen-item">
+          <div class="screen-item-code"># SCR-S03</div>
+          <div class="screen-item-title">Check-in & Handover</div>
+          <div class="screen-item-body">Checklist hiện trường, cấp khóa cơ, thẻ từ, mã PIN & ký biên bản.</div>
+        </div>
+        <div class="screen-item">
+          <div class="screen-item-code"># SCR-S04</div>
+          <div class="screen-item-title">Unit Status Matrix</div>
+          <div class="screen-item-body">Sơ đồ mặt bằng kho theo tầng và cập nhật trạng thái thời gian thực.</div>
+        </div>
+        <div class="screen-item">
+          <div class="screen-item-code"># SCR-S05</div>
+          <div class="screen-item-title">Return Inspection</div>
+          <div class="screen-item-body">Nghiệm thu trả kho, kiểm tra đồ đạc, tính phí hư hại & hoàn cọc.</div>
+        </div>
+        <div class="screen-item">
+          <div class="screen-item-code"># SCR-S06</div>
+          <div class="screen-item-title">On-site Incident Desk</div>
+          <div class="screen-item-body">Xử lý sự cố tại chỗ: mất chìa, reset PIN tạm thời, báo bảo trì.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROTOTYPE WIRES -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-title">
+          <span>3. Sơ đồ Luồng Tương tác Prototype (Figma Prototype Wire Connections)</span>
+          <span class="tag">Smart Animate Wires</span>
+        </div>
+        <a href="Figma_Screens_Images/03_Figma_Interactive_Prototype_Connections.jpg" download class="btn-download">
+          ⬇ Tải ảnh gốc (HD)
+        </a>
+      </div>
+      <div class="img-wrap">
+        <img src="Figma_Screens_Images/03_Figma_Interactive_Prototype_Connections.jpg" alt="Figma Prototype Connections">
+      </div>
+      <p style="font-size:13px; color:var(--text-muted); margin-top:14px;">
+        Thể hiện chi tiết các đường nối dây tương tác (blue connector noodles) từ các nút bấm (Button CTA) sang các Modal và màn hình đích, dùng cho bài thuyết trình demo luồng người dùng trên Figma.
+      </p>
+    </div>
+
+  </div>
+</body>
+</html>

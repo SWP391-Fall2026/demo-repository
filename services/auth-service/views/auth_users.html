@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Auth & User Service View</title>
+  <link rel="stylesheet" href="../../css/style.css">
+</head>
+<body style="padding:24px; background:#f8fafc;">
+  <div class="ui-card">
+    <div class="ui-card-header">
+      <h3 class="ui-card-title">🔐 Auth & User Management Service</h3>
+      <span class="badge badge-primary">Module 1: Authentication & Authorization</span>
+    </div>
+    <p style="font-size:13px; color:#64748b; margin-bottom:16px;">
+      Service quản lý tài khoản người dùng, phân vai trò theo 5 Actors (RBAC) và kiểm soát đăng nhập.
+    </p>
+    <div id="usersTableContainer">Đang tải danh sách tài khoản...</div>
+  </div>
+
+  <script>
+    fetch('/api/auth/users')
+      .then(res => res.json())
+      .then(data => {
+        const rows = data.data.map(u => `
+          <tr>
+            <td><span class="code-display">${u.id}</span></td>
+            <td><strong>${u.name}</strong><br><small>${u.email}</small></td>
+            <td><span class="badge badge-primary">${u.role}</span></td>
+            <td>${u.facility}</td>
+            <td><span class="badge ${u.status === 'ACTIVE' ? 'badge-success' : 'badge-danger'}">${u.status}</span></td>
+          </tr>
+        `).join('');
+        document.getElementById('usersTableContainer').innerHTML = `
+          <table class="data-table">
+            <thead><tr><th>Mã</th><th>Tên & Email</th><th>Vai trò</th><th>Chi nhánh</th><th>Trạng thái</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        `;
+      });
+  </script>
+</body>
+</html>

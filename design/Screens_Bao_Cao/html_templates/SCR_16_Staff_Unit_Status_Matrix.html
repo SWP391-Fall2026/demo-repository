@@ -1,0 +1,280 @@
+
+    <!DOCTYPE html>
+    <html lang="vi">
+    <head>
+      <meta charset="UTF-8">
+      <title>SCR-16: Sơ Đồ Mặt Bằng Phòng Kho & Cập Nhật Trạng Thái Thời Gian Thực</title>
+      <style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1440px;
+    height: 900px;
+    overflow: hidden;
+    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    background: #f8fafc;
+    color: #0f172a;
+    display: flex;
+    flex-direction: column;
+  }
+  .app-header {
+    height: 68px;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    flex-shrink: 0;
+  }
+  .app-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 800;
+    font-size: 20px;
+    color: #0f172a;
+  }
+  .logo-box {
+    width: 36px;
+    height: 36px;
+    background: #1e40af;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 900;
+  }
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .nav-link {
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+  }
+  .nav-link.active {
+    color: #1e40af;
+    background: #eff6ff;
+  }
+  .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #dbeafe;
+    color: #1e40af;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    border: 2px solid #3b82f6;
+  }
+  .content-body {
+    flex: 1;
+    padding: 32px 40px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .badge-success { background: #ecfdf5; color: #047857; }
+  .badge-warning { background: #fffbeb; color: #b45309; }
+  .badge-danger { background: #fef2f2; color: #b91c1c; }
+  .badge-primary { background: #eff6ff; color: #1d4ed8; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+    text-decoration: none;
+  }
+  .btn-primary { background: #1e40af; color: white; }
+  .btn-outline { background: white; border: 1px solid #cbd5e1; color: #334155; }
+  .btn-success { background: #10b981; color: white; }
+  .btn-danger { background: #ef4444; color: white; }
+  .ui-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .form-group { margin-bottom: 16px; }
+  .form-label { display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px; }
+  .form-control {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    background: white;
+  }
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .data-table th {
+    background: #f8fafc;
+    padding: 12px 16px;
+    font-weight: 700;
+    color: #475569;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+  }
+  .data-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+</style>
+    </head>
+    <body>
+      
+      
+    <header class="app-header" style="background:#0f172a; border-bottom:1px solid #1e293b; color:white;">
+      <div class="app-logo" style="color:white;">
+        <div class="logo-box" style="background:#2563eb;">⚡</div>
+        <span>SelfStorage <span style="color:#60a5fa;">STAFF</span></span>
+      </div>
+      <nav class="nav-links">
+        <span class="nav-link " style="color:#94a3b8;">Bàn làm việc ca trực</span>
+        <span class="nav-link " style="color:#94a3b8;">Tra cứu đơn đặt</span>
+        <span class="nav-link " style="color:#94a3b8;">Bàn giao kho</span>
+        <span class="nav-link active" style="color:#60a5fa; background:rgba(37,99,235,0.2);">Sơ đồ mặt bằng kho</span>
+        <span class="nav-link " style="color:#94a3b8;">Nghiệm thu trả kho</span>
+        <span class="nav-link " style="color:#94a3b8;">Sự cố tại chỗ</span>
+      </nav>
+      <div class="user-profile">
+        <div style="text-align:right;">
+          <div style="font-weight:700; font-size:14px; color:white;">Nguyễn Văn Tuấn</div>
+          <div style="font-size:12px; color:#94a3b8;">Staff • Chi nhánh Cầu Giấy</div>
+        </div>
+        <div class="avatar" style="background:#1e293b; color:#60a5fa; border-color:#2563eb;">NT</div>
+      </div>
+    </header>
+  
+      <main class="content-body">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+          <div>
+            <span class="badge badge-primary">MẶT BẰNG CHI NHÁNH CẦU GIẤY</span>
+            <h1 style="font-size:24px; font-weight:800; margin-top:6px;">Sơ Đồ Mặt Bằng & Cập Nhật Trạng Thái Phòng Kho</h1>
+            <p style="font-size:14px; color:#64748b;">Nhấp vào ô kho để cập nhật: Trống (Available), Đã đặt (Reserved), Đang dùng (Occupied), Bảo trì (Maintenance).</p>
+          </div>
+          <div style="display:flex; gap:16px; font-size:13px;">
+            <span style="display:flex; align-items:center; gap:6px;"><span style="width:14px; height:14px; background:#10b981; border-radius:4px;"></span> Trống (Available): 18</span>
+            <span style="display:flex; align-items:center; gap:6px;"><span style="width:14px; height:14px; background:#f59e0b; border-radius:4px;"></span> Đã đặt (Reserved): 6</span>
+            <span style="display:flex; align-items:center; gap:6px;"><span style="width:14px; height:14px; background:#ef4444; border-radius:4px;"></span> Đang thuê (Occupied): 92</span>
+            <span style="display:flex; align-items:center; gap:6px;"><span style="width:14px; height:14px; background:#64748b; border-radius:4px;"></span> Bảo trì (Maintenance): 4</span>
+          </div>
+        </div>
+
+        <div class="ui-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:12px; margin-bottom:20px;">
+            <div style="font-weight:800; color:#1e40af; font-size:16px;">TẦNG 1 - KHU VỰC A (KHO MINI & TIÊU CHUẨN)</div>
+            <select class="form-control" style="width:180px; font-weight:600;">
+              <option>Tầng 1 (Khu A)</option>
+              <option>Tầng 2 (Khu B)</option>
+              <option>Tầng 3 (Khu C)</option>
+            </select>
+          </div>
+
+          <!-- 18 UNITS GRID -->
+          <div style="display:grid; grid-template-columns:repeat(6, 1fr); gap:16px;">
+            <div style="background:#ecfdf5; border:2px solid #10b981; border-radius:10px; padding:16px; color:#065f46;">
+              <div style="font-weight:800; font-size:16px;">A-101</div>
+              <div style="font-size:12px;">Kho S (2.0 m²)</div>
+              <div style="font-size:11px; font-weight:800; margin-top:8px;">AVAILABLE</div>
+            </div>
+            <div style="background:#fef2f2; border:2px solid #ef4444; border-radius:10px; padding:16px; color:#991b1b;">
+              <div style="font-weight:800; font-size:16px;">A-102</div>
+              <div style="font-size:12px;">Kho M (5.0 m²)</div>
+              <div style="font-size:11px; font-weight:800; margin-top:8px;">OCCUPIED (Trần Văn Bảo)</div>
+            </div>
+            <div style="background:#ecfdf5; border:2px solid #10b981; border-radius:10px; padding:16px; color:#065f46;">
+              <div style="font-weight:800; font-size:16px;">A-103</div>
+              <div style="font-size:12px;">Kho S (2.5 m²)</div>
+              <div style="font-size:11px; font-weight:800; margin-top:8px;">AVAILABLE</div>
+            </div>
+            <div style="background:#fffbeb; border:2px solid #f59e0b; border-radius:10px; padding:16px; color:#92400e;">
+              <div style="font-weight:800; font-size:16px;">A-104</div>
+              <div style="font-size:12px;">Kho M (5.0 m²)</div>
+              <div style="font-size:11px; font-weight:800; margin-top:8px;">RESERVED</div>
+            </div>
+            <div style="background:#ecfdf5; border:2px solid #10b981; border-radius:10px; padding:16px; color:#065f46;">
+              <div style="font-weight:800; font-size:16px;">A-105</div>
+              <div style="font-size:12px;">Kho M (5.0 m²)</div>
+              <div style="font-size:11px; font-weight:800; margin-top:8px;">AVAILABLE</div>
+            </div>
+            <div style="background:#fef2f2; border:2px solid #ef4444; border-radius:10px; padding:16px; color:#991b1b;">
+              <div style="font-weight:800; font-size:16px;">A-106</div>
+              <div style="font-size:12px;">Kho L (10.0 m²)</div>
+              <div style="font-size:11px; font-weight:800; margin-top:8px;">OCCUPIED</div>
+            </div>
+            <div style="background:#f1f5f9; border:2px solid #64748b; border-radius:10px; padding:16px; color:#334155;">
+              <div style="font-weight:800; font-size:16px;">A-107</div>
+              <div style="font-size:12px;">Kho S (2.0 m²)</div>
+              <div style="font-size:11px; font-weight:800; margin-top:8px;">MAINTENANCE (Thay bóng đèn)</div>
+            </div>
+            <div style="background:#fef2f2; border:2px solid #ef4444; border-radius:10px; padding:16px; color:#991b1b;">
+              <div style="font-weight:800; font-size:16px;">A-108</div>
+              <div style="font-size:12px;">Kho M (5.0 m²)</div>
+              <div style="font-size:11px; font-weight:800; margin-top:8px;">OCCUPIED (Hẹn trả 15:30)</div>
+            </div>
+            <div style="background:#ecfdf5; border:2px solid #10b981; border-radius:10px; padding:16px; color:#065f46;">
+              <div style="font-weight:800; font-size:16px;">A-109</div>
+              <div style="font-size:12px;">Kho L (8.0 m²)</div>
+              <div style="font-size:11px; font-weight:800; margin-top:8px;">AVAILABLE</div>
+            </div>
+            <div style="background:#ecfdf5; border:2px solid #10b981; border-radius:10px; padding:16px; color:#065f46;">
+              <div style="font-weight:800; font-size:16px;">A-110</div>
+              <div style="font-size:12px;">Kho S (3.0 m²)</div>
+              <div style="font-size:11px; font-weight:800; margin-top:8px;">AVAILABLE</div>
+            </div>
+            <div style="background:#fef2f2; border:2px solid #ef4444; border-radius:10px; padding:16px; color:#991b1b;">
+              <div style="font-weight:800; font-size:16px;">A-111</div>
+              <div style="font-size:12px;">Kho M (6.0 m²)</div>
+              <div style="font-size:11px; font-weight:800; margin-top:8px;">OCCUPIED</div>
+            </div>
+            <div style="background:#ecfdf5; border:2px solid #10b981; border-radius:10px; padding:16px; color:#065f46;">
+              <div style="font-weight:800; font-size:16px;">A-112</div>
+              <div style="font-size:12px;">Kho M (5.0 m²)</div>
+              <div style="font-size:11px; font-weight:800; margin-top:8px;">AVAILABLE</div>
+            </div>
+          </div>
+        </div>
+      </main>
+    
+    </body>
+    </html>
+  

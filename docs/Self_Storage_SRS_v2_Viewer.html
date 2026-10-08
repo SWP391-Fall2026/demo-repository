@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SRS v2.0 - Self-Storage Facility Rental and Management System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --primary: #1e40af;
+      --primary-light: #3b82f6;
+      --accent: #0284c7;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --table-header: #1e293b;
+      --table-alt: #162032;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 3rem;
+      border-radius: 16px;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+      border: 1px solid var(--border);
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .badge {
+      display: inline-block;
+      background: #0284c7;
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .btn-print {
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+    }
+
+    .btn-print:hover {
+      background: #1d4ed8;
+      transform: translateY(-1px);
+    }
+
+    #content h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #60a5fa;
+      margin-bottom: 0.5rem;
+      border-bottom: 2px solid #3b82f6;
+      padding-bottom: 0.5rem;
+    }
+
+    #content h2 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #93c5fd;
+      margin-top: 2.5rem;
+      margin-bottom: 1rem;
+      border-left: 4px solid #3b82f6;
+      padding-left: 0.75rem;
+    }
+
+    #content h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #38bdf8;
+      margin-top: 1.8rem;
+      margin-bottom: 0.8rem;
+    }
+
+    #content h4 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #7dd3fc;
+      margin-top: 1.2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    #content p, #content li {
+      color: #cbd5e1;
+      font-size: 0.95rem;
+      margin-bottom: 0.8rem;
+    }
+
+    #content ul, #content ol {
+      padding-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    #content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      font-size: 0.88rem;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    #content th, #content td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    #content th {
+      background-color: #1e3a8a;
+      color: #f8fafc;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    #content tr:nth-child(even) {
+      background-color: var(--table-alt);
+    }
+
+    #content tr:hover {
+      background-color: #1e293b;
+    }
+
+    #content pre {
+      background: #090d16;
+      padding: 1.2rem;
+      border-radius: 10px;
+      overflow-x: auto;
+      border: 1px solid #1e293b;
+      margin: 1.2rem 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: #38bdf8;
+    }
+
+    #content code {
+      font-family: 'JetBrains Mono', monospace;
+      background: rgba(59, 130, 246, 0.15);
+      color: #93c5fd;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.85em;
+    }
+
+    #content blockquote {
+      border-left: 4px solid #38bdf8;
+      background: rgba(56, 189, 248, 0.08);
+      padding: 1rem 1.2rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1.2rem 0;
+    }
+
+    #content hr {
+      border: 0;
+      height: 1px;
+      background: var(--border);
+      margin: 2.5rem 0;
+    }
+
+    .mermaid {
+      background: #0f172a;
+      padding: 1.5rem;
+      border-radius: 12px;
+      margin: 1.5rem 0;
+      display: flex;
+      justify-content: center;
+      border: 1px solid var(--border);
+    }
+
+    @media print {
+      body {
+        background: #fff;
+        color: #000;
+        padding: 0;
+      }
+      .container {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        max-width: 100%;
+      }
+      .toolbar { display: none; }
+      #content h1, #content h2, #content h3 { color: #1e40af; }
+      #content p, #content li { color: #1f2937; }
+      #content table { border: 1px solid #ccc; }
+      #content th { background: #e5e7eb; color: #111; }
+      #content td { border-bottom: 1px solid #e5e7eb; }
+      #content pre { background: #f3f4f6; color: #111; border: 1px solid #ccc; }
+      #content code { background: #e5e7eb; color: #111; }
+      .mermaid { background: #fff; border: 1px solid #ccc; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="toolbar">
+      <div>
+        <span class="badge">Đồ án SWP - Kỳ 7</span>
+        <span style="margin-left: 10px; color: var(--text-muted); font-size: 0.9rem;">SRS v2.0 Comprehensive Baseline</span>
+      </div>
+      <button class="btn-print" onclick="window.print()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 6 2 18 2 18 9"></polyline>
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+          <rect x="6" y="14" width="12" height="8"></rect>
+        </svg>
+        In / Xuất ra PDF
+      </button>
+    </div>
+
+    <div id="content">Đang tải nội dung tài liệu...</div>
+  </div>
+
+  <script>
+    mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+
+    fetch('Self_Storage_Detailed_Requirement_Specification_v2.md')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Không thể tải file Markdown.');
+        }
+        return response.text();
+      })
+      .then(markdown => {
+        // Tùy chỉnh marked để parse code block mermaid
+        const renderer = new marked.Renderer();
+        const originalCode = renderer.code.bind(renderer);
+        
+        renderer.code = function(code, language) {
+          if (language === 'mermaid') {
+            return `<div class="mermaid">${code}</div>`;
+          }
+          return originalCode(code, language);
+        };
+
+        marked.setOptions({
+          renderer: renderer,
+          breaks: true,
+          gfm: true
+        });
+
+        document.getElementById('content').innerHTML = marked.parse(markdown);
+        mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+      })
+      .catch(err => {
+        document.getElementById('content').innerHTML = `
+          <div style="color: #ef4444; padding: 2rem; text-align: center;">
+            <h2>Đã xảy ra lỗi khi tải tài liệu</h2>
+            <p>${err.message}</p>
+            <p>Vui lòng mở file qua Local HTTP Server hoặc xem trực tiếp file <code>Self_Storage_Detailed_Requirement_Specification_v2.md</code>.</p>
+          </div>
+        `;
+      });
+  </script>
+</body>
+</html>

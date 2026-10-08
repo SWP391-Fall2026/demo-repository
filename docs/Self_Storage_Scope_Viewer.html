@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Scope Baseline - Self-Storage Management System (SWP)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --primary: #1e40af;
+      --primary-light: #3b82f6;
+      --accent: #0284c7;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --table-header: #1e293b;
+      --table-alt: #162032;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 1150px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 3rem;
+      border-radius: 16px;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+      border: 1px solid var(--border);
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .badge {
+      display: inline-block;
+      background: #0284c7;
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .btn-print {
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+    }
+
+    .btn-print:hover {
+      background: #1d4ed8;
+      transform: translateY(-1px);
+    }
+
+    #content h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #60a5fa;
+      margin-bottom: 0.5rem;
+      border-bottom: 2px solid #3b82f6;
+      padding-bottom: 0.5rem;
+    }
+
+    #content h2 {
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: #93c5fd;
+      margin-top: 2.5rem;
+      margin-bottom: 1rem;
+      border-left: 4px solid #3b82f6;
+      padding-left: 0.75rem;
+    }
+
+    #content h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #38bdf8;
+      margin-top: 1.8rem;
+      margin-bottom: 0.8rem;
+    }
+
+    #content h4 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #7dd3fc;
+      margin-top: 1.2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    #content p {
+      margin-bottom: 1rem;
+      color: #cbd5e1;
+    }
+
+    #content ul, #content ol {
+      margin-bottom: 1.2rem;
+      padding-left: 1.8rem;
+      color: #cbd5e1;
+    }
+
+    #content li {
+      margin-bottom: 0.4rem;
+    }
+
+    #content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      font-size: 0.92rem;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    #content th, #content td {
+      padding: 0.85rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    #content th {
+      background: #0f172a;
+      color: #38bdf8;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      letter-spacing: 0.05em;
+    }
+
+    #content tr:nth-child(even) {
+      background: rgba(15, 23, 42, 0.4);
+    }
+
+    #content tr:hover {
+      background: rgba(59, 130, 246, 0.08);
+    }
+
+    #content code {
+      font-family: 'JetBrains Mono', monospace;
+      background: #0f172a;
+      color: #f43f5e;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.88rem;
+      border: 1px solid #334155;
+    }
+
+    #content pre {
+      background: #0b1120;
+      padding: 1.25rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 1.5rem 0;
+      border: 1px solid #1e293b;
+    }
+
+    #content pre code {
+      background: transparent;
+      color: #e2e8f0;
+      padding: 0;
+      border: none;
+      font-size: 0.9rem;
+    }
+
+    #content blockquote {
+      border-left: 4px solid #38bdf8;
+      padding: 0.75rem 1.2rem;
+      margin: 1.2rem 0;
+      background: rgba(56, 189, 248, 0.07);
+      border-radius: 0 8px 8px 0;
+      color: #94a3b8;
+    }
+
+    #content hr {
+      border: none;
+      height: 1px;
+      background: var(--border);
+      margin: 2rem 0;
+    }
+
+    .mermaid {
+      background: #0b1120;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin: 1.5rem 0;
+      display: flex;
+      justify-content: center;
+      border: 1px solid #1e293b;
+    }
+
+    @media print {
+      body { background: #fff; color: #000; padding: 0; }
+      .container { border: none; box-shadow: none; padding: 0; max-width: 100%; }
+      .toolbar { display: none; }
+      #content th { background: #f1f5f9; color: #0f172a; }
+      #content code { color: #b91c1c; background: #f8fafc; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="toolbar">
+      <span class="badge">SWP Project Scope Baseline - v1.0</span>
+      <button class="btn-print" onclick="window.print()">
+        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/>
+          <path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z"/>
+        </svg>
+        In / Xuất PDF
+      </button>
+    </div>
+    <div id="content">Đang tải nội dung phạm vi dự án...</div>
+  </div>
+
+  <script>
+    mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+
+    fetch('Self_Storage_Project_Scope_SWP.md')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Không thể tải file Self_Storage_Project_Scope_SWP.md.');
+        }
+        return response.text();
+      })
+      .then(markdown => {
+        const renderer = new marked.Renderer();
+        const originalCode = renderer.code.bind(renderer);
+        
+        renderer.code = function(code, language) {
+          if (language === 'mermaid') {
+            return `<div class="mermaid">${code}</div>`;
+          }
+          return originalCode(code, language);
+        };
+
+        marked.setOptions({
+          renderer: renderer,
+          breaks: true,
+          gfm: true
+        });
+
+        document.getElementById('content').innerHTML = marked.parse(markdown);
+        mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+      })
+      .catch(err => {
+        document.getElementById('content').innerHTML = `
+          <div style="color: #ef4444; padding: 2rem; text-align: center;">
+            <h2>Đã xảy ra lỗi khi tải tài liệu</h2>
+            <p>${err.message}</p>
+            <p>Vui lòng mở file qua Local HTTP Server hoặc xem trực tiếp file <code>Self_Storage_Project_Scope_SWP.md</code>.</p>
+          </div>
+        `;
+      });
+  </script>
+</body>
+</html>

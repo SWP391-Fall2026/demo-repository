@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trọn Bộ 12 Màn Hình Giao Diện Báo Cáo - Self Storage System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131c2e;
+      --border: #1e2e4a;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 30px 20px;
+    }
+    .container {
+      max-width: 1360px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 36px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .badge {
+      display: inline-block;
+      background: #2563eb;
+      color: white;
+      padding: 4px 14px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    p.sub {
+      color: var(--muted);
+      font-size: 15px;
+      max-width: 780px;
+      margin: 0 auto;
+    }
+    .actor-section-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: white;
+      margin: 30px 0 16px 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-left: 4px solid #3b82f6;
+      padding-left: 14px;
+    }
+    .screens-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      margin-bottom: 36px;
+    }
+    .screen-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+    }
+    .screen-card-header {
+      padding: 14px 18px;
+      background: #0f172a;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .screen-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: #38bdf8;
+      background: #1e293b;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+    .screen-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: white;
+    }
+    .img-container {
+      background: #000;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    .img-container img {
+      width: 100%;
+      height: auto;
+      display: block;
+      transition: transform 0.2s ease;
+    }
+    .img-container:hover img {
+      opacity: 0.95;
+    }
+    .screen-card-footer {
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--card);
+    }
+    .desc {
+      font-size: 12px;
+      color: var(--muted);
+      max-width: 70%;
+    }
+    .btn-action {
+      background: #2563eb;
+      color: white;
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-action:hover {
+      background: #1d4ed8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <span class="badge">SWP391 CAPSTONE • STANDALONE SCREENSHOTS</span>
+      <h1>Trọn Bộ 12 Ảnh Màn Hình Tách Rời Phục Vụ Báo Cáo & Figma</h1>
+      <p class="sub">Từng màn hình được xuất ảnh PNG độc lập chuẩn kích thước Desktop (1440x900 px), không chứa viền Figma, sẵn sàng copy dán vào Word, Slide hoặc thả vào khung Frame tương ứng trên Figma.</p>
+    </div>
+
+    <!-- ACTOR 1: CUSTOMER -->
+    <div class="actor-section-title">
+      1. Phân hệ Storage Customer (6 Màn Hình Khách Hàng Thuê Kho)
+    </div>
+
+    <div class="screens-grid">
+      <!-- 1 -->
+      <div class="screen-card">
+        <div class="screen-card-header">
+          <span class="screen-code">SCR-03</span>
+          <span class="screen-name">Danh Mục Cơ Sở, Loại Kho & Bảng Giá Khả Dụng</span>
+        </div>
+        <div class="img-container">
+          <a href="Screens_Bao_Cao/SCR_03_Customer_Catalog_Explorer.png" target="_blank">
+            <img src="Screens_Bao_Cao/SCR_03_Customer_Catalog_Explorer.png" alt="SCR-03 Catalog Explorer">
+          </a>
+        </div>
+        <div class="screen-card-footer">
+          <span class="desc">Xem kho theo chi nhánh, diện tích (S/M/L), giá thuê và số kho trống thời gian thực.</span>
+          <a href="Screens_Bao_Cao/SCR_03_Customer_Catalog_Explorer.png" download class="btn-action">⬇ Tải PNG</a>
+        </div>
+      </div>
+
+      <!-- 2 -->
+      <div class="screen-card">
+        <div class="screen-card-header">
+          <span class="screen-code">SCR-04</span>
+          <span class="screen-name">Đặt Giữ Chỗ Phòng Kho Trực Tuyến</span>
+        </div>
+        <div class="img-container">
+          <a href="Screens_Bao_Cao/SCR_04_Customer_Unit_Reservation.png" target="_blank">
+            <img src="Screens_Bao_Cao/SCR_04_Customer_Unit_Reservation.png" alt="SCR-04 Unit Reservation">
+          </a>
+        </div>
+        <div class="screen-card-footer">
+          <span class="desc">Chọn cơ sở, thời hạn thuê, ngày bắt đầu, khung giờ hẹn đón tiếp và tính tiền cọc.</span>
+          <a href="Screens_Bao_Cao/SCR_04_Customer_Unit_Reservation.png" download class="btn-action">⬇ Tải PNG</a>
+        </div>
+      </div>
+
+      <!-- 3 -->
+      <div class="screen-card">
+        <div class="screen-card-header">
+          <span class="screen-code">SCR-05</span>
+          <span class="screen-name">Thanh Toán Tiền Cọc, Cước Thuê & Phụ Phí</span>
+        </div>
+        <div class="img-container">
+          <a href="Screens_Bao_Cao/SCR_05_Customer_Payment_Invoices.png" target="_blank">
+            <img src="Screens_Bao_Cao/SCR_05_Customer_Payment_Invoices.png" alt="SCR-05 Payment Invoices">
+          </a>
+        </div>
+        <div class="screen-card-footer">
+          <span class="desc">Hóa đơn điện tử chi tiết và cổng quét mã chuyển khoản nhanh VietQR 24/7 tự động.</span>
+          <a href="Screens_Bao_Cao/SCR_05_Customer_Payment_Invoices.png" download class="btn-action">⬇ Tải PNG</a>
+        </div>
+      </div>
+
+      <!-- 4 -->
+      <div class="screen-card">
+        <div class="screen-card-header">
+          <span class="screen-code">SCR-06</span>
+          <span class="screen-name">Thẻ Hẹn Check-in Nhận Kho (Digital Pass)</span>
+        </div>
+        <div class="img-container">
+          <a href="Screens_Bao_Cao/SCR_06_Customer_Scheduled_Checkin_Pass.png" target="_blank">
+            <img src="Screens_Bao_Cao/SCR_06_Customer_Scheduled_Checkin_Pass.png" alt="SCR-06 Checkin Pass">
+          </a>
+        </div>
+        <div class="screen-card-footer">
+          <span class="desc">Thẻ thông hành điện tử có mã QR tiếp đón, giờ hẹn và số phòng gán UNIT A-102.</span>
+          <a href="Screens_Bao_Cao/SCR_06_Customer_Scheduled_Checkin_Pass.png" download class="btn-action">⬇ Tải PNG</a>
+        </div>
+      </div>
+
+      <!-- 5 -->
+      <div class="screen-card">
+        <div class="screen-card-header">
+          <span class="screen-code">SCR-07</span>
+          <span class="screen-name">Quản Lý Các Kho Đang Thuê & Mã PIN Mở Cửa</span>
+        </div>
+        <div class="img-container">
+          <a href="Screens_Bao_Cao/SCR_07_Customer_My_Rented_Units.png" target="_blank">
+            <img src="Screens_Bao_Cao/SCR_07_Customer_My_Rented_Units.png" alt="SCR-07 My Rented Units">
+          </a>
+        </div>
+        <div class="screen-card-footer">
+          <span class="desc">Bảng điều khiển đa kho, hiển thị mã PIN 6 số, nút gia hạn thuê và yêu cầu trả kho.</span>
+          <a href="Screens_Bao_Cao/SCR_07_Customer_My_Rented_Units.png" download class="btn-action">⬇ Tải PNG</a>
+        </div>
+      </div>
+
+      <!-- 6 -->
+      <div class="screen-card">
+        <div class="screen-card-header">
+          <span class="screen-code">SCR-09</span>
+          <span class="screen-name">Gửi Yêu Cầu Hỗ Trợ & Xử Lý Sự Cố Kỹ Thuật</span>
+        </div>
+        <div class="img-container">
+          <a href="Screens_Bao_Cao/SCR_09_Customer_Support_Ticket.png" target="_blank">
+            <img src="Screens_Bao_Cao/SCR_09_Customer_Support_Ticket.png" alt="SCR-09 Support Ticket">
+          </a>
+        </div>
+        <div class="screen-card-footer">
+          <span class="desc">Form gửi sự cố (ổ khóa, mã PIN, thấm ẩm, cước phí) và tiến độ xử lý của nhân viên.</span>
+          <a href="Screens_Bao_Cao/SCR_09_Customer_Support_Ticket.png" download class="btn-action">⬇ Tải PNG</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTOR 2: STAFF -->
+    <div class="actor-section-title" style="border-color:#10b981;">
+      2. Phân hệ Facility Staff (6 Màn Hình Nhân Viên Cơ Sở)
+    </div>
+
+    <div class="screens-grid">
+      <!-- 7 -->
+      <div class="screen-card">
+        <div class="screen-card-header">
+          <span class="screen-code">SCR-10</span>
+          <span class="screen-name">Bàn Làm Việc Ca Trực Hàng Ngày (Daily Task Board)</span>
+        </div>
+        <div class="img-container">
+          <a href="Screens_Bao_Cao/SCR_10_Staff_Daily_Task_Board.png" target="_blank">
+            <img src="Screens_Bao_Cao/SCR_10_Staff_Daily_Task_Board.png" alt="SCR-10 Daily Task Board">
+          </a>
+        </div>
+        <div class="screen-card-footer">
+          <span class="desc">Thống kê ca trực và hàng đợi tiếp đón khách nhận kho, khách trả kho, xử lý sự cố.</span>
+          <a href="Screens_Bao_Cao/SCR_10_Staff_Daily_Task_Board.png" download class="btn-action">⬇ Tải PNG</a>
+        </div>
+      </div>
+
+      <!-- 8 -->
+      <div class="screen-card">
+        <div class="screen-card-header">
+          <span class="screen-code">SCR-11</span>
+          <span class="screen-name">Tra Cứu & Xác Thực Đơn Đặt Chỗ Khi Khách Đến</span>
+        </div>
+        <div class="img-container">
+          <a href="Screens_Bao_Cao/SCR_11_Staff_Reservation_Lookup.png" target="_blank">
+            <img src="Screens_Bao_Cao/SCR_11_Staff_Reservation_Lookup.png" alt="SCR-11 Reservation Lookup">
+          </a>
+        </div>
+        <div class="screen-card-footer">
+          <span class="desc">Tra cứu đơn RSV-8821, đối soát tiền cọc, phòng kho đã gán và thu cước tháng đầu.</span>
+          <a href="Screens_Bao_Cao/SCR_11_Staff_Reservation_Lookup.png" download class="btn-action">⬇ Tải PNG</a>
+        </div>
+      </div>
+
+      <!-- 9 -->
+      <div class="screen-card">
+        <div class="screen-card-header">
+          <span class="screen-code">SCR-12</span>
+          <span class="screen-name">Biên Bản Kiểm Tra Thực Địa & Bàn Giao Kho</span>
+        </div>
+        <div class="img-container">
+          <a href="Screens_Bao_Cao/SCR_12_Staff_Checkin_Handover.png" target="_blank">
+            <img src="Screens_Bao_Cao/SCR_12_Staff_Checkin_Handover.png" alt="SCR-12 Checkin Handover">
+          </a>
+        </div>
+        <div class="screen-card-footer">
+          <span class="desc">Checklist hiện trường kho A-102, cấp ổ khóa cơ, thẻ từ RFID, kích hoạt mã PIN & ký nhận.</span>
+          <a href="Screens_Bao_Cao/SCR_12_Staff_Checkin_Handover.png" download class="btn-action">⬇ Tải PNG</a>
+        </div>
+      </div>
+
+      <!-- 10 -->
+      <div class="screen-card">
+        <div class="screen-card-header">
+          <span class="screen-code">SCR-16</span>
+          <span class="screen-name">Sơ Đồ Mặt Bằng Kho & Cập Nhật Trạng Thái</span>
+        </div>
+        <div class="img-container">
+          <a href="Screens_Bao_Cao/SCR_16_Staff_Unit_Status_Matrix.png" target="_blank">
+            <img src="Screens_Bao_Cao/SCR_16_Staff_Unit_Status_Matrix.png" alt="SCR-16 Unit Status Matrix">
+          </a>
+        </div>
+        <div class="screen-card-footer">
+          <span class="desc">Bản đồ mặt bằng ma trận kho (A-101 đến A-112) với 4 màu trạng thái cập nhật thời gian thực.</span>
+          <a href="Screens_Bao_Cao/SCR_16_Staff_Unit_Status_Matrix.png" download class="btn-action">⬇ Tải PNG</a>
+        </div>
+      </div>
+
+      <!-- 11 -->
+      <div class="screen-card">
+        <div class="screen-card-header">
+          <span class="screen-code">SCR-13</span>
+          <span class="screen-name">Biên Bản Nghiệm Thu Khi Khách Trả Kho & Hoàn Cọc</span>
+        </div>
+        <div class="img-container">
+          <a href="Screens_Bao_Cao/SCR_13_Staff_Return_Inspection.png" target="_blank">
+            <img src="Screens_Bao_Cao/SCR_13_Staff_Return_Inspection.png" alt="SCR-13 Return Inspection">
+          </a>
+        </div>
+        <div class="screen-card-footer">
+          <span class="desc">Kiểm tra dọn sạch đồ đạc, nghiệm thu không hư hại, thu hồi chìa khóa & duyệt hoàn tiền cọc.</span>
+          <a href="Screens_Bao_Cao/SCR_13_Staff_Return_Inspection.png" download class="btn-action">⬇ Tải PNG</a>
+        </div>
+      </div>
+
+      <!-- 12 -->
+      <div class="screen-card">
+        <div class="screen-card-header">
+          <span class="screen-code">SCR-14</span>
+          <span class="screen-name">Bàn Xử Lý Sự Cố Khẩn Cấp Tại Chi Nhánh</span>
+        </div>
+        <div class="img-container">
+          <a href="Screens_Bao_Cao/SCR_14_Staff_Onsite_Incident_Desk.png" target="_blank">
+            <img src="Screens_Bao_Cao/SCR_14_Staff_Onsite_Incident_Desk.png" alt="SCR-14 Onsite Incident Desk">
+          </a>
+        </div>
+        <div class="screen-card-footer">
+          <span class="desc">Xử lý tại quầy: cấp lại mã PIN tạm thời 60 phút, quy trình mất chìa và tạo phiếu bảo trì.</span>
+          <a href="Screens_Bao_Cao/SCR_14_Staff_Onsite_Incident_Desk.png" download class="btn-action">⬇ Tải PNG</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

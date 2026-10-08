@@ -1,0 +1,262 @@
+
+    <!DOCTYPE html>
+    <html lang="vi">
+    <head>
+      <meta charset="UTF-8">
+      <title>SCR-09: Gửi Yêu Cầu Hỗ Trợ Sự Cố (Khóa, Mã PIN, Phòng Kho, Hàng Hóa)</title>
+      <style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1440px;
+    height: 900px;
+    overflow: hidden;
+    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    background: #f8fafc;
+    color: #0f172a;
+    display: flex;
+    flex-direction: column;
+  }
+  .app-header {
+    height: 68px;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    flex-shrink: 0;
+  }
+  .app-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 800;
+    font-size: 20px;
+    color: #0f172a;
+  }
+  .logo-box {
+    width: 36px;
+    height: 36px;
+    background: #1e40af;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 900;
+  }
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .nav-link {
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+  }
+  .nav-link.active {
+    color: #1e40af;
+    background: #eff6ff;
+  }
+  .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #dbeafe;
+    color: #1e40af;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    border: 2px solid #3b82f6;
+  }
+  .content-body {
+    flex: 1;
+    padding: 32px 40px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .badge-success { background: #ecfdf5; color: #047857; }
+  .badge-warning { background: #fffbeb; color: #b45309; }
+  .badge-danger { background: #fef2f2; color: #b91c1c; }
+  .badge-primary { background: #eff6ff; color: #1d4ed8; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+    text-decoration: none;
+  }
+  .btn-primary { background: #1e40af; color: white; }
+  .btn-outline { background: white; border: 1px solid #cbd5e1; color: #334155; }
+  .btn-success { background: #10b981; color: white; }
+  .btn-danger { background: #ef4444; color: white; }
+  .ui-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .form-group { margin-bottom: 16px; }
+  .form-label { display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px; }
+  .form-control {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    background: white;
+  }
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .data-table th {
+    background: #f8fafc;
+    padding: 12px 16px;
+    font-weight: 700;
+    color: #475569;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+  }
+  .data-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+</style>
+    </head>
+    <body>
+      
+      
+    <header class="app-header">
+      <div class="app-logo">
+        <div class="logo-box">S</div>
+        <span>SelfStorage <span style="color:#2563eb;">PRO</span></span>
+      </div>
+      <nav class="nav-links">
+        <span class="nav-link ">Tìm kho & Bảng giá</span>
+        <span class="nav-link ">Đặt giữ chỗ</span>
+        <span class="nav-link ">Thanh toán cọc/phí</span>
+        <span class="nav-link ">Thẻ Check-in</span>
+        <span class="nav-link ">Kho đang thuê</span>
+        <span class="nav-link active">Hỗ trợ kỹ thuật</span>
+      </nav>
+      <div class="user-profile">
+        <div style="text-align:right;">
+          <div style="font-weight:700; font-size:14px;">Trần Văn Bảo</div>
+          <div style="font-size:12px; color:#64748b;">Storage Customer</div>
+        </div>
+        <div class="avatar">TB</div>
+      </div>
+    </header>
+  
+      <main class="content-body">
+        <div style="margin-bottom:20px;">
+          <span class="badge badge-primary">TRUNG TÂM TIẾP NHẬN HỖ TRỢ KỸ THUẬT</span>
+          <h1 style="font-size:24px; font-weight:800; margin-top:6px;">Gửi Yêu Cầu Hỗ Trợ & Xử Lý Sự Cố</h1>
+          <p style="font-size:14px; color:#64748b;">Xử lý sự cố: quên mã PIN, kẹt ổ khóa cơ, lỗi thẻ từ, rò rỉ ẩm phòng kho hoặc kiểm tra hàng hóa.</p>
+        </div>
+
+        <div class="grid-2">
+          <!-- FORM -->
+          <div class="ui-card">
+            <h3 style="font-size:16px; font-weight:700; margin-bottom:16px; color:#1e40af;">Tạo phiếu yêu cầu hỗ trợ mới</h3>
+            <div class="form-group">
+              <label class="form-label">Phòng kho cần hỗ trợ</label>
+              <select class="form-control" style="font-weight:600;">
+                <option>Unit A-102 (Chi nhánh Cầu Giấy, Hà Nội)</option>
+                <option>Unit B-205 (Chi nhánh Quận 7, TP.HCM)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phân loại sự cố (Category)</label>
+              <select class="form-control" style="font-weight:600;">
+                <option>🔢 Quên hoặc Lỗi mã PIN truy cập điện tử</option>
+                <option>🔐 Sự cố Ổ khóa cơ / Thẻ từ bị kẹt</option>
+                <option>💧 Vấn đề phòng kho (Thấm ẩm, cửa cuốn kẹt, đèn hỏng)</option>
+                <option>💳 Thắc mắc cước phí & Hóa đơn thanh toán</option>
+                <option>📦 Yêu cầu kiểm tra bảo quản hàng hóa</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mức độ ưu tiên</label>
+              <div style="display:flex; gap:20px; font-size:14px; margin-top:6px;">
+                <label style="display:flex; align-items:center; gap:6px;"><input type="radio" name="p" checked> Bình thường</label>
+                <label style="display:flex; align-items:center; gap:6px; color:#ef4444; font-weight:700;"><input type="radio" name="p"> Khẩn cấp (Cần mở kho gấp)</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mô tả chi tiết sự cố hiện trường</label>
+              <textarea class="form-control" rows="3" style="font-weight:500;">Bàn phím mã PIN tại kho A-102 nhấp nháy đèn đỏ báo lỗi, tôi không nhập được mã để mở cửa kho...</textarea>
+            </div>
+            <button class="btn btn-primary" style="width:100%; padding:14px; font-weight:700;">
+              Gửi Yêu Cầu Tới Nhân Viên Trực Ca Ngay
+            </button>
+          </div>
+
+          <!-- LIST -->
+          <div class="ui-card">
+            <h3 style="font-size:16px; font-weight:700; margin-bottom:16px;">Lịch sử yêu cầu hỗ trợ đã gửi</h3>
+            
+            <div style="border:1px solid #bfdbfe; background:#eff6ff; border-radius:10px; padding:16px; margin-bottom:14px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <span class="badge badge-warning">🟡 ĐANG XỬ LÝ TẠI CHỖ</span>
+                <span style="font-size:12px; color:#64748b;">Hôm nay, 13:10</span>
+              </div>
+              <div style="font-size:15px; font-weight:800; color:#0f172a;">#TK-115: Quên mã PIN mở kho Unit A-102</div>
+              <div style="font-size:13px; color:#334155; margin-top:6px;">
+                Nhân viên <strong>Nguyễn Văn Tuấn</strong> (Facility Staff) đang tiến hành xác minh và cấp mã tạm thời.
+              </div>
+            </div>
+
+            <div style="border:1px solid #e2e8f0; background:#f8fafc; border-radius:10px; padding:16px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <span class="badge badge-success">🟢 ĐÃ GIẢI QUYẾT</span>
+                <span style="font-size:12px; color:#64748b;">20/09/2026</span>
+              </div>
+              <div style="font-size:15px; font-weight:800; color:#0f172a;">#TK-102: Yêu cầu cấp thêm 01 thẻ từ ra vào cổng 24/7</div>
+              <div style="font-size:13px; color:#64748b; margin-top:6px;">
+                Đã bàn giao thẻ phụ CRD-0420 tại quầy tiếp tân cơ sở Cầu Giấy.
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    
+    </body>
+    </html>
+  
