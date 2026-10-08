@@ -95,7 +95,7 @@
 
 body {
   font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: var(--shell-bg);
+  background-color: #f8fafc;
   color: var(--slate-900);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -120,364 +120,93 @@ body {
 }
 
 /* ==========================================================================
-   FIGMA TOPBAR CONTROLLER
-   ========================================================================== */
-.figma-topbar {
-  height: 60px;
-  background: #0e1526;
-  border-bottom: 1px solid #1e293b;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  color: #e2e8f0;
-}
-
-.figma-brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-weight: 800;
-  font-size: 15px;
-  letter-spacing: -0.3px;
-}
-
-.figma-logo-badge {
-  width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, #f24e1e 0%, #a259ff 50%, #1abcfe 100%);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 900;
-  font-size: 16px;
-  box-shadow: 0 2px 8px rgba(162, 89, 255, 0.4);
-}
-
-.brand-spec-badge {
-  font-size: 11px;
-  color: #38bdf8;
-  font-family: 'JetBrains Mono', monospace;
-  background: #1e293b;
-  padding: 3px 8px;
-  border-radius: 4px;
-  border: 1px solid #334155;
-}
-
-/* 5 ACTORS SWITCHER IN TOPBAR */
-.actor-switcher-bar {
-  display: flex;
-  align-items: center;
-  background: #172239;
-  padding: 4px;
-  border-radius: 12px;
-  border: 1px solid #2a3a58;
-  gap: 3px;
-}
-
-.actor-pill-btn {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 7px 13px;
-  border-radius: 9px;
-  border: none;
-  background: transparent;
-  color: #94a3b8;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  font-family: inherit;
-  white-space: nowrap;
-}
-
-.actor-pill-btn:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.actor-pill-btn.active {
-  background: #2563eb;
-  color: #ffffff;
-  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.35);
-}
-
-.actor-pill-btn.active.role-staff {
-  background: #0d9488;
-  box-shadow: 0 3px 10px rgba(13, 148, 136, 0.35);
-}
-
-.actor-pill-btn.active.role-fmanager {
-  background: #7c3aed;
-  box-shadow: 0 3px 10px rgba(124, 58, 237, 0.35);
-}
-
-.actor-pill-btn.active.role-ops {
-  background: #ea580c;
-  box-shadow: 0 3px 10px rgba(234, 88, 12, 0.35);
-}
-
-.actor-pill-btn.active.role-admin {
-  background: #e11d48;
-  box-shadow: 0 3px 10px rgba(225, 29, 72, 0.35);
-}
-
-.actor-pill-badge {
-  font-size: 10px;
-  font-family: 'JetBrains Mono', monospace;
-  background: rgba(0, 0, 0, 0.25);
-  padding: 1px 5px;
-  border-radius: 4px;
-}
-
-/* TOPBAR ACTIONS */
-.topbar-right-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.btn-figma-tool {
-  background: #172239;
-  border: 1px solid #2a3a58;
-  color: #cbd5e1;
-  padding: 7px 12px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.2s;
-  text-decoration: none;
-  font-family: inherit;
-}
-
-.btn-figma-tool:hover {
-  background: #233352;
-  color: #ffffff;
-  border-color: #3b82f6;
-}
-
-.btn-figma-tool.active {
-  background: #1e40af;
-  color: white;
-  border-color: #3b82f6;
-}
-
-/* USER QUICK SWITCHER PROFILE */
-.user-identity-box {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 4px 10px;
-  background: #131c2e;
-  border-radius: 8px;
-  border: 1px solid #1e2e4a;
-  cursor: pointer;
-}
-
-.user-identity-box:hover {
-  border-color: #3b82f6;
-}
-
-.avatar-disc {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 12px;
-  color: white;
-  background: #2563eb;
-  border: 2px solid #60a5fa;
-}
-
-/* ==========================================================================
-   SUBNAV: SCREEN NAVIGATION FOR ACTIVE ACTOR
-   ========================================================================== */
-.figma-subnav {
-  background: #090e1a;
-  border-bottom: 1px solid #1e293b;
-  padding: 8px 24px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  overflow-x: auto;
-  white-space: nowrap;
-  position: sticky;
-  top: 60px;
-  z-index: 990;
-}
-
-.subnav-screen-pill {
-  background: transparent;
-  border: 1px solid #233352;
-  color: #94a3b8;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.subnav-screen-pill:hover {
-  background: #172239;
-  color: #f8fafc;
-  border-color: #38bdf8;
-}
-
-.subnav-screen-pill.active {
-  background: #1e40af;
-  color: #ffffff;
-  border-color: #60a5fa;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
-}
-
-.subnav-screen-pill .code-tag {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  opacity: 0.85;
-}
-
-/* ==========================================================================
-   CANVAS WORKSPACE & FRAME VIEWPORT
-   ========================================================================== */
-.canvas-wrapper {
-  padding: 24px 20px 48px;
-  max-width: 1460px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.frame-info-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--shell-card);
-  border: 1px solid #1e2e4a;
-  padding: 12px 20px;
-  border-radius: var(--radius-lg);
-  color: #cbd5e1;
-}
-
-.frame-title-meta {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.frame-id-tag {
-  background: #2563eb;
-  color: white;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 4px 9px;
-  border-radius: 6px;
-}
-
-.frame-name-text {
-  font-size: 16px;
-  font-weight: 700;
-  color: white;
-}
-
-.frame-actor-text {
-  font-size: 12px;
-  color: #94a3b8;
-}
-
-.frame-dimension-badge {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  color: #64748b;
-  background: #090d16;
-  padding: 4px 10px;
-  border-radius: 6px;
-  border: 1px solid #1e293b;
-}
-
-/* ARTBOARD DISPLAY (Simulated 1440x900 responsive Desktop Frame) */
-.artboard-container {
-  background: #f8fafc;
-  border-radius: var(--radius-lg);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
-  border: 1px solid #334155;
-  overflow: hidden;
-  min-height: 800px;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-}
-
-/* ==========================================================================
-   INNER PROTOTYPE APP HEADER (Customer / Staff / Manager / Admin)
+   APP HEADER & ROLE SELECTOR (NORMAL WEBSITE NAVBAR)
    ========================================================================== */
 .app-header {
-  height: 68px;
+  height: 72px;
   background: #ffffff;
   border-bottom: 1px solid #e2e8f0;
-  padding: 0 32px;
+  padding: 0 36px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-shrink: 0;
-  position: relative;
-  z-index: 50;
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.header-left-zone {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .app-brand-logo {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-weight: 800;
-  font-size: 19px;
-  color: #0f172a;
+  gap: 12px;
   text-decoration: none;
+  cursor: pointer;
+  user-select: none;
 }
 
 .app-brand-icon {
-  width: 34px;
-  height: 34px;
-  background: #1e40af;
-  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+  transition: transform 0.2s;
+}
+
+.app-brand-logo:hover .app-brand-icon {
+  transform: scale(1.05);
+}
+
+.brand-text-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.brand-role-indicator {
+  font-size: 11px;
+  font-weight: 700;
+  color: #2563eb;
+  letter-spacing: 0.2px;
 }
 
 .app-main-nav {
   display: flex;
   align-items: center;
-  gap: 22px;
+  gap: 6px;
 }
 
 .nav-item-link {
   font-size: 14px;
   font-weight: 600;
-  color: #64748b;
+  color: #475569;
   text-decoration: none;
-  padding: 6px 12px;
-  border-radius: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
 }
 
 .nav-item-link:hover {
@@ -495,17 +224,309 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  position: relative;
 }
 
 .branch-select-mini {
-  padding: 6px 10px;
-  border-radius: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
   border: 1px solid #cbd5e1;
   font-size: 12px;
   font-weight: 600;
   color: #334155;
   background: #f8fafc;
   outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.branch-select-mini:hover {
+  border-color: #3b82f6;
+}
+
+/* Quick Role Switch Pill Button */
+.btn-quick-role-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.btn-quick-role-switch:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #1e40af;
+  transform: translateY(-1px);
+}
+
+/* User Capsule */
+.user-profile-capsule {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 14px 5px 6px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.user-profile-capsule:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.avatar-disc {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 13px;
+  color: white;
+  background: #2563eb;
+  border: 2px solid white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+  flex-shrink: 0;
+}
+
+.user-meta-info {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.user-name-line {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.chevron-arrow {
+  color: #64748b;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.user-profile-capsule:hover .chevron-arrow {
+  transform: translateY(1px);
+}
+
+.user-role-badge-pill {
+  font-size: 11px;
+  font-weight: 600;
+  color: #2563eb;
+  white-space: nowrap;
+  line-height: 1.2;
+  margin-top: 1px;
+}
+
+/* USER & ROLE DROPDOWN MENU */
+.user-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 340px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.18), 0 8px 20px rgba(0, 0, 0, 0.06);
+  padding: 16px;
+  display: none;
+  flex-direction: column;
+  z-index: 1050;
+  animation: slideDownMenu 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.user-dropdown-menu.show {
+  display: flex;
+}
+
+@keyframes slideDownMenu {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-user-header {
+  padding-bottom: 12px;
+}
+
+.dd-avatar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dd-user-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.dd-user-email {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.dd-user-tag {
+  font-size: 11px;
+  font-weight: 700;
+  color: #2563eb;
+  margin-top: 3px;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: #f1f5f9;
+  margin: 10px 0;
+}
+
+.dropdown-heading {
+  font-size: 10px;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  padding-left: 4px;
+}
+
+.role-select-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.role-select-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.role-select-item:hover {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.role-select-item.active {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.role-badge-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.bg-customer { background: #dbeafe; color: #1e40af; }
+.bg-staff { background: #ccfbf1; color: #0f766e; }
+.bg-fmanager { background: #ede9fe; color: #6d28d9; }
+.bg-ops { background: #ffedd5; color: #c2410c; }
+.bg-admin { background: #fee2e2; color: #b91c1c; }
+
+.role-text-meta {
+  flex: 1;
+  text-align: left;
+}
+
+.role-item-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.3;
+}
+
+.role-item-sub {
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.2;
+}
+
+.role-check-icon {
+  font-size: 13px;
+  font-weight: 900;
+  color: #2563eb;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.role-select-item.active .role-check-icon {
+  opacity: 1;
+}
+
+.dropdown-footer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dd-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #f1f5f9;
+  background: #ffffff;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.dd-action-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #1e40af;
+}
+
+/* ==========================================================================
+   MAIN WEBSITE WORKSPACE CONTAINER
+   ========================================================================== */
+.site-main-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  min-height: calc(100vh - 72px - 260px);
+  display: flex;
+  flex-direction: column;
 }
 
 /* SCREEN SECTIONS */
@@ -1208,13 +1229,118 @@ body {
   .matrix-grid { grid-template-columns: repeat(4, 1fr); }
   .grid-4 { grid-template-columns: repeat(2, 1fr); }
   .artboard-cards-grid { grid-template-columns: repeat(2, 1fr); }
+  .footer-container { grid-template-columns: 1fr 1fr; gap: 30px; }
 }
 
 @media (max-width: 768px) {
-  .figma-topbar { flex-direction: column; height: auto; padding: 12px; gap: 10px; }
-  .actor-switcher-bar { flex-wrap: wrap; }
   .matrix-grid { grid-template-columns: repeat(2, 1fr); }
   .grid-3, .grid-2, .grid-1-2, .grid-2-1 { grid-template-columns: 1fr; }
   .artboard-cards-grid { grid-template-columns: 1fr; }
-  .app-header { flex-direction: column; height: auto; padding: 16px; gap: 12px; }
+  .app-header { flex-direction: column; height: auto; padding: 14px 20px; gap: 12px; }
+  .app-main-nav { overflow-x: auto; max-width: 100%; padding-bottom: 6px; }
+  .footer-container { grid-template-columns: 1fr; }
+  .footer-bottom { flex-direction: column; gap: 12px; text-align: center; }
 }
+
+/* ==========================================================================
+   WEBSITE FOOTER
+   ========================================================================== */
+.site-footer {
+  background: #0b1120;
+  color: #94a3b8;
+  padding: 50px 36px 24px;
+  border-top: 1px solid #1e293b;
+  margin-top: 60px;
+}
+
+.footer-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1.2fr;
+  gap: 40px;
+}
+
+.brand-col .app-brand-logo {
+  color: #ffffff;
+}
+
+.brand-col .app-brand-logo .brand-title {
+  color: #ffffff;
+}
+
+.footer-desc {
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 16px 0;
+  color: #94a3b8;
+}
+
+.footer-hotline {
+  font-size: 14px;
+  color: #e2e8f0;
+}
+
+.footer-col h4 {
+  font-size: 14px;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 16px;
+  letter-spacing: -0.2px;
+}
+
+.footer-col ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.footer-col ul li a {
+  color: #94a3b8;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-col ul li a:hover {
+  color: #38bdf8;
+}
+
+.footer-role-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.footer-role-btn {
+  background: #172239;
+  border: 1px solid #2a3a58;
+  color: #cbd5e1;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.footer-role-btn:hover {
+  background: #2563eb;
+  border-color: #3b82f6;
+  color: #ffffff;
+}
+
+.footer-bottom {
+  max-width: 1400px;
+  margin: 40px auto 0;
+  padding-top: 24px;
+  border-top: 1px solid #1e293b;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #64748b;
+}
+

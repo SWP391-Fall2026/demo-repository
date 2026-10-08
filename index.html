@@ -16,117 +16,145 @@
 <body>
 
   <!-- ==========================================================================
-       FIGMA SHELL TOPBAR (CONTROLLER FOR 5 ACTORS & PROTOTYPE MODES)
+       MAIN WEB APPLICATION HEADER (STANDARD MODERN NAVBAR)
        ========================================================================== -->
-  <header class="figma-topbar">
-    <div class="figma-brand">
-      <div class="figma-logo-badge">S</div>
-      <span>SelfStorage <span style="color:#38bdf8;">PRO</span></span>
-      <span class="brand-spec-badge">SWP391 • SRS v2.0 Baseline</span>
+  <header class="app-header">
+    <div class="header-left-zone">
+      <div class="app-brand-logo" onclick="navigateToScreen('SCR-C00')" title="Về trang chủ SelfStorage PRO">
+        <div class="app-brand-icon">
+          <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h10v2H7zm0-3h10v2H7zm0 6h7v2H7z" />
+          </svg>
+        </div>
+        <div class="brand-text-block">
+          <span class="brand-title">SelfStorage<span style="color:#2563eb;">PRO</span></span>
+          <span class="brand-role-indicator" id="headerRoleIndicator">Khách hàng thuê kho</span>
+        </div>
+      </div>
     </div>
 
-    <!-- 5 ACTORS RBAC SWITCHER -->
-    <div class="actor-switcher-bar">
-      <button class="actor-pill-btn active" id="btnActorCust" onclick="switchActor('CUSTOMER')">
-        <span>👤 1. Customer</span>
-        <span class="actor-pill-badge">7 SCR</span>
-      </button>
-      <button class="actor-pill-btn role-staff" id="btnActorStaff" onclick="switchActor('STAFF')">
-        <span>👷 2. Staff</span>
-        <span class="actor-pill-badge">7 SCR</span>
-      </button>
-      <button class="actor-pill-btn role-fmanager" id="btnActorFMgr" onclick="switchActor('FMANAGER')">
-        <span>🏢 3. Facility Mgr</span>
-        <span class="actor-pill-badge">6 SCR</span>
-      </button>
-      <button class="actor-pill-btn role-ops" id="btnActorOps" onclick="switchActor('OPS_MGR')">
-        <span>📈 4. Ops Mgr</span>
-        <span class="actor-pill-badge">5 SCR</span>
-      </button>
-      <button class="actor-pill-btn role-admin" id="btnActorAdmin" onclick="switchActor('ADMIN')">
-        <span>⚙️ 5. Admin</span>
-        <span class="actor-pill-badge">5 SCR</span>
-      </button>
-    </div>
+    <!-- MAIN DYNAMIC NAVIGATION BAR (Rendered by js/app.js based on role) -->
+    <nav class="app-main-nav" id="appNavLinks">
+      <!-- Populated dynamically based on active role -->
+    </nav>
 
-    <!-- TOPBAR RIGHT CONTROLS -->
-    <div class="topbar-right-actions">
-      <button class="btn-figma-tool" onclick="openModal('modalIdentitySwitch')">
-        <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
-          <path
-            d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+    <!-- RIGHT UTILITIES & USER PROFILE WITH ROLE SWITCHER -->
+    <div class="app-profile-slot">
+      <!-- Branch selector -->
+      <div class="branch-selector-wrap">
+        <select class="branch-select-mini" id="activeBranchSelect" onchange="showToast('Đã chuyển sang cơ sở: ' + this.options[this.selectedIndex].text)">
+          <option value="HN-CG" selected>📍 Cơ sở Cầu Giấy (120 Duy Tân)</option>
+          <option value="HCM-Q7">📍 Cơ sở Quận 7 (Nguyễn Thị Thập)</option>
+          <option value="HN-NTL">📍 Cơ sở Nam Từ Liêm (Khu CNC)</option>
+          <option value="HCM-TB">📍 Cơ sở Tân Bình (Cộng Hòa)</option>
+          <option value="DN-HC">📍 Cơ sở Đà Nẵng (Hải Châu)</option>
+        </select>
+      </div>
+
+      <!-- Quick Role Switch Pill Button (Mục đổi role trực quan tiện lợi) -->
+      <button class="btn-quick-role-switch" onclick="toggleUserDropdown(event)" title="Bấm để chọn vai trò hệ thống">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>
         </svg>
-        <span>Đổi User</span>
+        <span id="btnRoleQuickLabel">Đổi vai trò</span>
       </button>
-      <button class="btn-figma-tool" id="btnViewMode" onclick="toggleViewMode()">
-        <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zm-9 9h7v7H4v-7zm9 0h7v7h-7v-7z" />
-        </svg>
-        <span id="txtViewMode">Figma Canvas Artboards</span>
-      </button>
-      <a href="docs/Self_Storage_Detailed_Requirement_Specification_v2.md" target="_blank" class="btn-figma-tool">
-        <span>📄 SRS v2.0</span>
-      </a>
+
+      <!-- User Profile Capsule with Dropdown Trigger -->
+      <div class="user-profile-capsule" id="userRoleTrigger" onclick="toggleUserDropdown(event)">
+        <div class="avatar-disc" id="avatarInitials" style="background:#2563eb;">TB</div>
+        <div class="user-meta-info">
+          <div class="user-name-line">
+            <span id="txtUserName">Trần Văn Bảo</span>
+            <svg class="chevron-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M6 9l6 6 6-6"/>
+            </svg>
+          </div>
+          <div class="user-role-badge-pill" id="txtUserRoleBadge">Khách hàng</div>
+        </div>
+      </div>
+
+      <!-- USER & ROLE DROPDOWN MENU (NƠI CHỌN ROLE MỚI THEO YÊU CẦU) -->
+      <div class="user-dropdown-menu" id="userRoleDropdownMenu">
+        <div class="dropdown-user-header">
+          <div class="dd-avatar-wrap">
+            <div class="avatar-disc" id="ddAvatar" style="background:#2563eb; width:40px; height:40px; font-size:15px;">TB</div>
+            <div>
+              <div class="dd-user-name" id="ddUserName">Trần Văn Bảo</div>
+              <div class="dd-user-email" id="ddUserEmail">baotran@gmail.com</div>
+              <div class="dd-user-tag" id="ddUserRoleText">Vai trò hiện tại: Khách hàng</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dropdown-divider"></div>
+        <div class="dropdown-heading">CHUYỂN VAI TRÒ HỆ THỐNG (5 ROLES)</div>
+
+        <div class="role-select-list">
+          <div class="role-select-item active" id="roleOpt-CUSTOMER" onclick="selectRole('CUSTOMER')">
+            <div class="role-badge-icon bg-customer">👤</div>
+            <div class="role-text-meta">
+              <div class="role-item-title">1. Khách hàng (Customer)</div>
+              <div class="role-item-sub">Tìm kho, bảng giá, VietQR, mã PIN & check-in</div>
+            </div>
+            <div class="role-check-icon">✓</div>
+          </div>
+
+          <div class="role-select-item" id="roleOpt-STAFF" onclick="selectRole('STAFF')">
+            <div class="role-badge-icon bg-staff">👷</div>
+            <div class="role-text-meta">
+              <div class="role-item-title">2. Nhân viên kho (Facility Staff)</div>
+              <div class="role-item-sub">Lịch trực ca, bàn giao kho, kiểm tra, sự cố</div>
+            </div>
+            <div class="role-check-icon">✓</div>
+          </div>
+
+          <div class="role-select-item" id="roleOpt-FMANAGER" onclick="selectRole('FMANAGER')">
+            <div class="role-badge-icon bg-fmanager">🏢</div>
+            <div class="role-text-meta">
+              <div class="role-item-title">3. Quản lý cơ sở (Facility Manager)</div>
+              <div class="role-item-sub">Quản lý 120 kho, duyệt gán phòng, phân công</div>
+            </div>
+            <div class="role-check-icon">✓</div>
+          </div>
+
+          <div class="role-select-item" id="roleOpt-OPS_MGR" onclick="selectRole('OPS_MGR')">
+            <div class="role-badge-icon bg-ops">📈</div>
+            <div class="role-text-meta">
+              <div class="role-item-title">4. Giám đốc vận hành (Ops Manager)</div>
+              <div class="role-item-sub">Toàn chuỗi 5 cơ sở, biểu giá, doanh thu chuỗi</div>
+            </div>
+            <div class="role-check-icon">✓</div>
+          </div>
+
+          <div class="role-select-item" id="roleOpt-ADMIN" onclick="selectRole('ADMIN')">
+            <div class="role-badge-icon bg-admin">⚙️</div>
+            <div class="role-text-meta">
+              <div class="role-item-title">5. Quản trị viên (System Admin)</div>
+              <div class="role-item-sub">Quản lý tài khoản, ma trận phân quyền RBAC, audit</div>
+            </div>
+            <div class="role-check-icon">✓</div>
+          </div>
+        </div>
+
+        <div class="dropdown-divider"></div>
+        <div class="dropdown-footer-actions">
+          <button class="dd-action-btn" onclick="openModal('modalIdentitySwitch'); closeUserDropdown();">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            <span>Đổi người dùng / Demo User</span>
+          </button>
+          <a href="docs/Self_Storage_Detailed_Requirement_Specification_v2.md" target="_blank" class="dd-action-btn">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+            <span>Tài liệu SRS v2.0 Baseline</span>
+          </a>
+        </div>
+      </div>
     </div>
   </header>
 
-  <!-- SCREEN SUBNAV BAR (Tailored to active actor) -->
-  <nav class="figma-subnav" id="subnavContainer">
-    <!-- Populated by js/app.js -->
-  </nav>
-
   <!-- ==========================================================================
-       MAIN VIEWPORT: LIVE APP PROTOTYPE
+       MAIN WEB APPLICATION VIEWPORT
        ========================================================================== -->
-  <main class="canvas-wrapper" id="liveAppView">
-
-    <!-- FRAME META BAR -->
-    <div class="frame-info-header">
-      <div class="frame-title-meta">
-        <span class="frame-id-tag" id="lblFrameCode">SCR-C00</span>
-        <div>
-          <div class="frame-name-text" id="lblFrameName">Trang chủ & Giới thiệu dịch vụ kho</div>
-          <div class="frame-actor-text" id="lblFrameActor">Vai trò: Khách hàng thuê kho • Landing Page, bảng giá & quy
-            trình thuê</div>
-        </div>
-      </div>
-      <div class="frame-dimension-badge">Desktop Frame: 1440 x 900 px (Grid 12 Cột)</div>
-    </div>
-
-    <!-- ARTBOARD CONTAINER -->
-    <div class="artboard-container">
-
-      <!-- INNER APP TOP HEADER -->
-      <div class="app-header">
-        <div class="app-brand-logo">
-          <div class="app-brand-icon">
-            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-              <path
-                d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h10v2H7zm0-3h10v2H7zm0 6h7v2H7z" />
-            </svg>
-          </div>
-          <span>SelfStorage<span style="color:#2563eb;">PRO</span></span>
-        </div>
-
-        <nav class="app-main-nav" id="appNavLinks">
-          <!-- Populated dynamically based on role -->
-        </nav>
-
-        <div class="app-profile-slot">
-          <select class="branch-select-mini" id="activeBranchSelect">
-            <option value="HN-CG" selected>Cơ sở Cầu Giấy (120 Duy Tân)</option>
-            <option value="HCM-Q7">Cơ sở Quận 7 (Nguyễn Thị Thập)</option>
-            <option value="HN-NTL">Cơ sở Nam Từ Liêm (Khu CNC)</option>
-            <option value="HCM-TB">Cơ sở Tân Bình (Cộng Hòa)</option>
-            <option value="DN-HC">Cơ sở Đà Nẵng (Hải Châu)</option>
-          </select>
-          <div style="text-align:right;">
-            <div style="font-size:13px; font-weight:700; color:#0f172a;" id="txtUserName">Trần Văn Bảo</div>
-            <div style="font-size:11px; color:#64748b;" id="txtUserRole">Khách hàng thuê kho</div>
-          </div>
-          <div class="avatar-disc" id="avatarInitials">TB</div>
-        </div>
-      </div>
+  <main class="site-main-content" id="liveAppView">
 
       <!-- ====================================================================
            ROLE 1: STORAGE CUSTOMER SCREENS (SCR-C00 -> SCR-C06)
@@ -2447,9 +2475,74 @@
           </table>
         </div>
       </section>
-
-    </div>
   </main>
+
+  <!-- ==========================================================================
+       STANDARD WEBSITE FOOTER
+       ========================================================================== -->
+  <footer class="site-footer">
+    <div class="footer-container">
+      <div class="footer-col brand-col">
+        <div class="app-brand-logo" onclick="navigateToScreen('SCR-C00')" style="cursor:pointer;">
+          <div class="app-brand-icon">
+            <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h10v2H7zm0-3h10v2H7zm0 6h7v2H7z"/>
+            </svg>
+          </div>
+          <span class="brand-title">SelfStorage<span style="color:#2563eb;">PRO</span></span>
+        </div>
+        <p class="footer-desc">
+          Hệ thống quản lý và cho thuê kho lưu trữ tự phục vụ thông minh 24/7. Hỗ trợ đặt chỗ trực tuyến, thanh toán VietQR, cấp mã PIN điện tử tự động và camera an ninh kiểm soát môi trường chuẩn quốc tế.
+        </p>
+        <div class="footer-hotline">
+          <strong>Tổng đài hỗ trợ 24/7:</strong> <span style="color:#38bdf8; font-weight:800; font-size:16px;">1900 6868</span>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4>Hệ Thống Cơ Sở Kho</h4>
+        <ul>
+          <li>📍 Hà Nội: 120 Duy Tân, Cầu Giấy</li>
+          <li>📍 Hà Nội: Khu CNC Hòa Lạc, Nam Từ Liêm</li>
+          <li>📍 TP.HCM: 450 Nguyễn Thị Thập, Quận 7</li>
+          <li>📍 TP.HCM: 180 Cộng Hòa, Q. Tân Bình</li>
+          <li>📍 Đà Nẵng: 92 Nguyễn Văn Linh, Hải Châu</li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Dịch Vụ & Tiện Ích</h4>
+        <ul>
+          <li><a href="javascript:void(0)" onclick="navigateToScreen('SCR-C01')">Bảng giá kho mini S / M / L</a></li>
+          <li><a href="javascript:void(0)" onclick="navigateToScreen('SCR-C02')">Đặt giữ chỗ & Nhận phòng online</a></li>
+          <li><a href="javascript:void(0)" onclick="navigateToScreen('SCR-C04')">Thẻ hẹn check-in tiếp đón</a></li>
+          <li><a href="javascript:void(0)" onclick="navigateToScreen('SCR-C05')">Kho của tôi & Bàn phím mã PIN</a></li>
+          <li><a href="javascript:void(0)" onclick="navigateToScreen('SCR-C06')">Báo cáo sự cố khẩn cấp</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Chuyển Vai Trò Demo (5 Roles)</h4>
+        <p style="font-size:13px; color:#94a3b8; margin-bottom:12px;">Chuyển đổi vai trò người dùng bất kỳ lúc nào:</p>
+        <div class="footer-role-tags">
+          <button class="footer-role-btn" onclick="selectRole('CUSTOMER')">👤 1. Khách hàng</button>
+          <button class="footer-role-btn" onclick="selectRole('STAFF')">👷 2. Nhân viên kho</button>
+          <button class="footer-role-btn" onclick="selectRole('FMANAGER')">🏢 3. Quản lý cơ sở</button>
+          <button class="footer-role-btn" onclick="selectRole('OPS_MGR')">📈 4. Quản lý chuỗi</button>
+          <button class="footer-role-btn" onclick="selectRole('ADMIN')">⚙️ 5. Quản trị viên</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div>© 2026 SelfStorage PRO. Hệ thống Quản lý và Cho thuê Kho Lưu trữ Tự phục vụ. All rights reserved.</div>
+      <div style="display:flex; gap:16px;">
+        <span>SWP391 Capstone</span>
+        <span>•</span>
+        <a href="docs/Self_Storage_Detailed_Requirement_Specification_v2.md" target="_blank" style="color:#94a3b8;">Đặc tả yêu cầu SRS v2.0</a>
+      </div>
+    </div>
+  </footer>
 
   <!-- ==========================================================================
        VIEWPORT 2: FIGMA CANVAS ARTBOARDS OVERVIEW MODE (Matching Untitled.png)

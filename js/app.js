@@ -108,8 +108,19 @@ const ACTOR_SCREENS = {
 // ==========================================================================
 
 window.addEventListener('DOMContentLoaded', () => {
-  renderSubnav();
-  renderAppNavLinks();
+  const urlParams = new URLSearchParams(window.location.search);
+  const roleParam = urlParams.get('role');
+  if (roleParam && ACTOR_SCREENS[roleParam.toUpperCase()]) {
+    switchActor(roleParam.toUpperCase());
+  } else {
+    switchActor('CUSTOMER');
+  }
+
+  const screenParam = urlParams.get('screen');
+  if (screenParam) {
+    navigateToScreen(screenParam);
+  }
+
   renderMatrixGrid();
   renderUserTable();
   renderAuditLogsTable();
@@ -121,36 +132,97 @@ window.addEventListener('DOMContentLoaded', () => {
 // 3. ACTOR & ROLE SWITCHING (RBAC)
 // ==========================================================================
 
+const ROLE_USER_MAP = {
+  CUSTOMER: {
+    name: 'Trần Văn Bảo',
+    email: 'baotran@gmail.com',
+    role: 'Khách hàng thuê kho',
+    shortRole: 'Khách hàng',
+    init: 'TB',
+    color: '#2563eb',
+    facility: 'Hà Nội - Cầu Giấy'
+  },
+  STAFF: {
+    name: 'Nguyễn Văn Tuấn',
+    email: 'tuan.nv@selfstorage.vn',
+    role: 'Nhân viên cơ sở Cầu Giấy',
+    shortRole: 'Nhân viên kho',
+    init: 'NT',
+    color: '#0d9488',
+    facility: 'Hà Nội - Cầu Giấy'
+  },
+  FMANAGER: {
+    name: 'Phạm Hải Đăng',
+    email: 'dang.ph@selfstorage.vn',
+    role: 'Quản lý cơ sở Cầu Giấy',
+    shortRole: 'Quản lý cơ sở',
+    init: 'HĐ',
+    color: '#7c3aed',
+    facility: 'Hà Nội - Cầu Giấy'
+  },
+  OPS_MGR: {
+    name: 'Đặng Hoàng Long',
+    email: 'long.dh@selfstorage.vn',
+    role: 'Giám đốc vận hành chuỗi',
+    shortRole: 'GĐ Vận hành',
+    init: 'HL',
+    color: '#ea580c',
+    facility: 'Toàn hệ thống (HQ)'
+  },
+  ADMIN: {
+    name: 'Quản trị viên Hệ thống',
+    email: 'admin@selfstorage.vn',
+    role: 'Quản trị hệ thống (HQ)',
+    shortRole: 'Quản trị viên',
+    init: 'AD',
+    color: '#e11d48',
+    facility: 'Toàn hệ thống (HQ)'
+  }
+};
+
 function switchActor(actorKey) {
   currentActor = actorKey;
+  const user = ROLE_USER_MAP[actorKey] || ROLE_USER_MAP.CUSTOMER;
 
-  // Update topbar pills
-  document.querySelectorAll('.actor-pill-btn').forEach(btn => btn.classList.remove('active'));
-  const btnMap = {
-    CUSTOMER: 'btnActorCust',
-    STAFF: 'btnActorStaff',
-    FMANAGER: 'btnActorFMgr',
-    OPS_MGR: 'btnActorOps',
-    ADMIN: 'btnActorAdmin'
-  };
-  const activeBtn = document.getElementById(btnMap[actorKey]);
-  if (activeBtn) activeBtn.classList.add('active');
+  // Update header labels
+  if (document.getElementById('txtUserName')) {
+    document.getElementById('txtUserName').innerText = user.name;
+  }
+  if (document.getElementById('txtUserRoleBadge')) {
+    document.getElementById('txtUserRoleBadge').innerText = user.shortRole;
+  }
+  if (document.getElementById('headerRoleIndicator')) {
+    document.getElementById('headerRoleIndicator').innerText = user.role;
+  }
 
-  // Update user identity display in inner prototype header
-  const userMap = {
-    CUSTOMER: { name: 'Trần Văn Bảo', role: 'Khách hàng thuê kho', init: 'TB', color: '#2563eb' },
-    STAFF: { name: 'Nguyễn Văn Tuấn', role: 'Nhân viên cơ sở (Cầu Giấy)', init: 'NT', color: '#0d9488' },
-    FMANAGER: { name: 'Phạm Hải Đăng', role: 'Quản lý cơ sở Cầu Giấy', init: 'HĐ', color: '#7c3aed' },
-    OPS_MGR: { name: 'Đặng Hoàng Long', role: 'Quản lý vận hành toàn chuỗi', init: 'HL', color: '#ea580c' },
-    ADMIN: { name: 'Quản trị viên Hệ thống', role: 'System Administrator (HQ)', init: 'AD', color: '#e11d48' }
-  };
-
-  const user = userMap[actorKey];
-  document.getElementById('txtUserName').innerText = user.name;
-  document.getElementById('txtUserRole').innerText = user.role;
+  // Update header avatar
   const avatar = document.getElementById('avatarInitials');
-  avatar.innerText = user.init;
-  avatar.style.background = user.color;
+  if (avatar) {
+    avatar.innerText = user.init;
+    avatar.style.background = user.color;
+  }
+
+  // Update dropdown modal/menu values
+  if (document.getElementById('ddAvatar')) {
+    document.getElementById('ddAvatar').innerText = user.init;
+    document.getElementById('ddAvatar').style.background = user.color;
+  }
+  if (document.getElementById('ddUserName')) {
+    document.getElementById('ddUserName').innerText = user.name;
+  }
+  if (document.getElementById('ddUserEmail')) {
+    document.getElementById('ddUserEmail').innerText = user.email;
+  }
+  if (document.getElementById('ddUserRoleText')) {
+    document.getElementById('ddUserRoleText').innerText = `Vai trò hiện tại: ${user.role}`;
+  }
+
+  // Highlight active role in dropdown list
+  document.querySelectorAll('.role-select-item').forEach(item => item.classList.remove('active'));
+  const activeOpt = document.getElementById(`roleOpt-${actorKey}`);
+  if (activeOpt) {
+    activeOpt.classList.add('active');
+  }
 
   // Set default initial screen for each actor
   const defaultScreenMap = {
@@ -162,10 +234,15 @@ function switchActor(actorKey) {
   };
   currentScreen = defaultScreenMap[actorKey];
 
-  renderSubnav();
   renderAppNavLinks();
   navigateToScreen(currentScreen);
   showToast(`Đã chuyển sang vai trò: ${user.role}`);
+}
+
+// Select role from dropdown item
+function selectRole(actorKey) {
+  closeUserDropdown();
+  switchActor(actorKey);
 }
 
 // Quick Switcher from Modal
@@ -174,8 +251,41 @@ function quickSwitchIdentity(actorKey) {
   switchActor(actorKey);
 }
 
+// User Profile & Role Dropdown controls
+function toggleUserDropdown(event) {
+  if (event) {
+    event.stopPropagation();
+  }
+  const menu = document.getElementById('userRoleDropdownMenu');
+  if (menu) {
+    menu.classList.toggle('show');
+  }
+}
+
+function closeUserDropdown() {
+  const menu = document.getElementById('userRoleDropdownMenu');
+  if (menu) {
+    menu.classList.remove('show');
+  }
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', (e) => {
+  const trigger = document.getElementById('userRoleTrigger');
+  const quickBtn = document.querySelector('.btn-quick-role-switch');
+  const menu = document.getElementById('userRoleDropdownMenu');
+  if (menu && menu.classList.contains('show')) {
+    const isInsideMenu = menu.contains(e.target);
+    const isInsideTrigger = trigger && trigger.contains(e.target);
+    const isInsideQuickBtn = quickBtn && quickBtn.contains(e.target);
+    if (!isInsideMenu && !isInsideTrigger && !isInsideQuickBtn) {
+      menu.classList.remove('show');
+    }
+  }
+});
+
 // ==========================================================================
-// 4. NAVIGATION & SUBNAV RENDERING
+// 4. NAVIGATION RENDERING
 // ==========================================================================
 
 function renderSubnav() {
@@ -198,42 +308,44 @@ function renderAppNavLinks() {
     nav.innerHTML = `
       <span class="nav-item-link ${currentScreen === 'SCR-C00' ? 'active' : ''}" onclick="navigateToScreen('SCR-C00')">Trang chủ</span>
       <span class="nav-item-link ${currentScreen === 'SCR-C01' ? 'active' : ''}" onclick="navigateToScreen('SCR-C01')">Tìm kho & Bảng giá</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-C02' ? 'active' : ''}" onclick="navigateToScreen('SCR-C02')">Đặt giữ chỗ</span>
       <span class="nav-item-link ${currentScreen === 'SCR-C04' ? 'active' : ''}" onclick="navigateToScreen('SCR-C04')">Thẻ Check-in</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-C05' ? 'active' : ''}" onclick="navigateToScreen('SCR-C05')">Kho của tôi</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-C05' ? 'active' : ''}" onclick="navigateToScreen('SCR-C05')">Kho của tôi & Mã PIN</span>
       <span class="nav-item-link ${currentScreen === 'SCR-C06' ? 'active' : ''}" onclick="navigateToScreen('SCR-C06')">Hỗ trợ sự cố</span>
     `;
   } else if (currentActor === 'STAFF') {
     nav.innerHTML = `
       <span class="nav-item-link ${currentScreen === 'SCR-S01' ? 'active' : ''}" onclick="navigateToScreen('SCR-S01')">Ca trực hôm nay</span>
       <span class="nav-item-link ${currentScreen === 'SCR-S02' ? 'active' : ''}" onclick="navigateToScreen('SCR-S02')">Tra cứu đơn</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-S03' ? 'active' : ''}" onclick="navigateToScreen('SCR-S03')">Bàn giao kho</span>
       <span class="nav-item-link ${currentScreen === 'SCR-S04' ? 'active' : ''}" onclick="navigateToScreen('SCR-S04')">Sơ đồ mặt bằng</span>
       <span class="nav-item-link ${currentScreen === 'SCR-S05' ? 'active' : ''}" onclick="navigateToScreen('SCR-S05')">Nghiệm thu trả</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-S06' ? 'active' : ''}" onclick="navigateToScreen('SCR-S06')">Xử lý sự cố</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-S06' ? 'active' : ''}" onclick="navigateToScreen('SCR-S06')">Bàn sự cố</span>
       <span class="nav-item-link ${currentScreen === 'SCR-S07' ? 'active' : ''}" onclick="navigateToScreen('SCR-S07')">Mở khóa số</span>
     `;
   } else if (currentActor === 'FMANAGER') {
     nav.innerHTML = `
       <span class="nav-item-link ${currentScreen === 'SCR-M01' ? 'active' : ''}" onclick="navigateToScreen('SCR-M01')">Dashboard Cơ sở</span>
       <span class="nav-item-link ${currentScreen === 'SCR-M02' ? 'active' : ''}" onclick="navigateToScreen('SCR-M02')">Quản lý kho</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-M03' ? 'active' : ''}" onclick="navigateToScreen('SCR-M03')">Gán kho</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-M03' ? 'active' : ''}" onclick="navigateToScreen('SCR-M03')">Gán phòng</span>
       <span class="nav-item-link ${currentScreen === 'SCR-M04' ? 'active' : ''}" onclick="navigateToScreen('SCR-M04')">Phân công việc</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-M05' ? 'active' : ''}" onclick="navigateToScreen('SCR-M05')">Hợp đồng</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-M05' ? 'active' : ''}" onclick="navigateToScreen('SCR-M05')">Hợp đồng & Nợ</span>
       <span class="nav-item-link ${currentScreen === 'SCR-M06' ? 'active' : ''}" onclick="navigateToScreen('SCR-M06')">Báo cáo</span>
     `;
   } else if (currentActor === 'OPS_MGR') {
     nav.innerHTML = `
       <span class="nav-item-link ${currentScreen === 'SCR-O01' ? 'active' : ''}" onclick="navigateToScreen('SCR-O01')">Tổng quan chuỗi</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-O02' ? 'active' : ''}" onclick="navigateToScreen('SCR-O02')">Quản lý Chi nhánh</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-O02' ? 'active' : ''}" onclick="navigateToScreen('SCR-O02')">5 Chi nhánh</span>
       <span class="nav-item-link ${currentScreen === 'SCR-O03' ? 'active' : ''}" onclick="navigateToScreen('SCR-O03')">Bảng giá & Cọc</span>
       <span class="nav-item-link ${currentScreen === 'SCR-O04' ? 'active' : ''}" onclick="navigateToScreen('SCR-O04')">Báo cáo doanh thu</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-O05' ? 'active' : ''}" onclick="navigateToScreen('SCR-O05')">Chính sách chung</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-O05' ? 'active' : ''}" onclick="navigateToScreen('SCR-O05')">Tiêu chuẩn an toàn</span>
     `;
   } else if (currentActor === 'ADMIN') {
     nav.innerHTML = `
       <span class="nav-item-link ${currentScreen === 'SCR-A01' ? 'active' : ''}" onclick="navigateToScreen('SCR-A01')">Tổng quan Admin</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-A02' ? 'active' : ''}" onclick="navigateToScreen('SCR-A02')">Quản lý Tài khoản</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-A02' ? 'active' : ''}" onclick="navigateToScreen('SCR-A02')">Tài khoản</span>
       <span class="nav-item-link ${currentScreen === 'SCR-A03' ? 'active' : ''}" onclick="navigateToScreen('SCR-A03')">Phân quyền RBAC</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-A04' ? 'active' : ''}" onclick="navigateToScreen('SCR-A04')">Gán chi nhánh</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-A04' ? 'active' : ''}" onclick="navigateToScreen('SCR-A04')">Gán cơ sở</span>
       <span class="nav-item-link ${currentScreen === 'SCR-A05' ? 'active' : ''}" onclick="navigateToScreen('SCR-A05')">Audit Logs</span>
     `;
   }
@@ -249,17 +361,19 @@ function navigateToScreen(screenId) {
     target.classList.add('active');
   }
 
-  // Update Subnav
-  renderSubnav();
+  // Update App Nav links
   renderAppNavLinks();
 
-  // Update Frame Meta bar
+  // Update Frame Meta bar if present
   const screens = ACTOR_SCREENS[currentActor] || [];
   const meta = screens.find(s => s.id === screenId);
   if (meta) {
-    document.getElementById('lblFrameCode').innerText = meta.code;
-    document.getElementById('lblFrameName').innerText = meta.name;
-    document.getElementById('lblFrameActor').innerText = `Vai trò: ${document.getElementById('txtUserRole').innerText} • ${meta.desc}`;
+    if (document.getElementById('lblFrameCode')) document.getElementById('lblFrameCode').innerText = meta.code;
+    if (document.getElementById('lblFrameName')) document.getElementById('lblFrameName').innerText = meta.name;
+    if (document.getElementById('lblFrameActor')) {
+      const userRole = document.getElementById('txtUserRoleBadge') ? document.getElementById('txtUserRoleBadge').innerText : '';
+      document.getElementById('lblFrameActor').innerText = `Vai trò: ${userRole} • ${meta.desc}`;
+    }
   }
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -267,10 +381,18 @@ function navigateToScreen(screenId) {
 
 function toggleViewMode() {
   isViewModeOverview = !isViewModeOverview;
-  document.getElementById('liveAppView').style.display = isViewModeOverview ? 'none' : 'block';
-  document.getElementById('artboardsOverviewView').style.display = isViewModeOverview ? 'block' : 'none';
-  document.getElementById('btnViewMode').classList.toggle('active', isViewModeOverview);
-  document.getElementById('txtViewMode').innerText = isViewModeOverview ? 'Quay lại Live Prototype' : 'Figma Canvas Artboards';
+  if (document.getElementById('liveAppView')) {
+    document.getElementById('liveAppView').style.display = isViewModeOverview ? 'none' : 'block';
+  }
+  if (document.getElementById('artboardsOverviewView')) {
+    document.getElementById('artboardsOverviewView').style.display = isViewModeOverview ? 'block' : 'none';
+  }
+  if (document.getElementById('btnViewMode')) {
+    document.getElementById('btnViewMode').classList.toggle('active', isViewModeOverview);
+  }
+  if (document.getElementById('txtViewMode')) {
+    document.getElementById('txtViewMode').innerText = isViewModeOverview ? 'Quay lại Website' : 'Figma Canvas Artboards';
+  }
   if (isViewModeOverview) {
     renderArtboardsOverview();
   }
