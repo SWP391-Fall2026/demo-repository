@@ -1,15 +1,6 @@
-/**
- * SELF-STORAGE MANAGEMENT SYSTEM - APPLICATION CORE LOGIC
- * Supports 5 Actors (RBAC) & Complete Figma Specification Screens
- */
-
-// ==========================================================================
-// 1. STATE & DATA REPOSITORY
-// ==========================================================================
-
+// State & Data
 let currentActor = 'CUSTOMER';
 let currentScreen = 'SCR-C00';
-let isViewModeOverview = false;
 let isPinVisible = false;
 let keypadInput = '';
 let selectedUnitForModal = null;
@@ -97,16 +88,13 @@ const ACTOR_SCREENS = {
   ADMIN: [
     { id: 'SCR-A01', code: 'SCR-A01', name: 'Tổng quan hệ thống', desc: 'Dashboard quản trị: 1.284 người dùng, 5 cơ sở, Uptime 99.98%' },
     { id: 'SCR-A02', code: 'SCR-A02', name: 'Quản lý tài khoản', desc: 'Danh sách người dùng, phân vai trò, khóa/mở khóa tài khoản' },
-    { id: 'SCR-A03', code: 'SCR-A03', name: 'Ma trận phân quyền RBAC', desc: 'Cấu hình chi tiết quyền hạn cho 5 vai trò theo SRS v2.0' },
+    { id: 'SCR-A03', code: 'SCR-A03', name: 'Ma trận phân quyền RBAC', desc: 'Cấu hình chi tiết quyền hạn cho các vai trò người dùng' },
     { id: 'SCR-A04', code: 'SCR-A04', name: 'Gán cơ sở phụ trách', desc: 'Phân quyền dữ liệu theo chi nhánh cho nhân viên và quản lý' },
     { id: 'SCR-A05', code: 'SCR-A05', name: 'Nhật ký hệ thống Audit', desc: 'Theo dõi lịch sử đăng nhập và nhật ký thao tác thời gian thực' }
   ]
 };
 
-// ==========================================================================
-// 2. INITIALIZATION
-// ==========================================================================
-
+// Initialization
 window.addEventListener('DOMContentLoaded', () => {
   const urlParams = new URLSearchParams(window.location.search);
   const roleParam = urlParams.get('role');
@@ -124,13 +112,10 @@ window.addEventListener('DOMContentLoaded', () => {
   renderMatrixGrid();
   renderUserTable();
   renderAuditLogsTable();
-  renderArtboardsOverview();
   startPaymentCountdown();
 });
 
-// ==========================================================================
-// 3. ACTOR & ROLE SWITCHING (RBAC)
-// ==========================================================================
+// Role & Access Control
 
 const ROLE_USER_MAP = {
   CUSTOMER: {
@@ -284,9 +269,7 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// ==========================================================================
-// 4. NAVIGATION RENDERING
-// ==========================================================================
+// Navigation Rendering
 
 function renderSubnav() {
   const container = document.getElementById('subnavContainer');
@@ -379,28 +362,7 @@ function navigateToScreen(screenId) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function toggleViewMode() {
-  isViewModeOverview = !isViewModeOverview;
-  if (document.getElementById('liveAppView')) {
-    document.getElementById('liveAppView').style.display = isViewModeOverview ? 'none' : 'block';
-  }
-  if (document.getElementById('artboardsOverviewView')) {
-    document.getElementById('artboardsOverviewView').style.display = isViewModeOverview ? 'block' : 'none';
-  }
-  if (document.getElementById('btnViewMode')) {
-    document.getElementById('btnViewMode').classList.toggle('active', isViewModeOverview);
-  }
-  if (document.getElementById('txtViewMode')) {
-    document.getElementById('txtViewMode').innerText = isViewModeOverview ? 'Quay lại Website' : 'Figma Canvas Artboards';
-  }
-  if (isViewModeOverview) {
-    renderArtboardsOverview();
-  }
-}
-
-// ==========================================================================
-// 5. CUSTOMER WORKFLOWS
-// ==========================================================================
+// Customer Workflows
 
 function openUnitDetailModal(name, size, volume, price) {
   document.getElementById('mdlDetailUnitTitle').innerText = name;
@@ -561,9 +523,7 @@ function submitSupportTicket() {
   addAuditLog('Trần Văn Bảo', 'CUSTOMER', 'CREATE_TICKET', 'Báo cáo sự cố phòng kho Unit A-102');
 }
 
-// ==========================================================================
-// 6. STAFF WORKFLOWS
-// ==========================================================================
+// Staff Handlers
 
 function switchStaffTaskTab(tab) {
   document.getElementById('queueCheckinTable').style.display = tab === 'CHECKIN' ? 'block' : 'none';
@@ -724,9 +684,7 @@ function submitKeypadPin() {
   }
 }
 
-// ==========================================================================
-// 7. FACILITY MANAGER WORKFLOWS
-// ==========================================================================
+// Facility Manager Handlers
 
 function assignUnitToReservation(rsvId, unitCode) {
   const target = mockUnits.find(u => u.code === unitCode);
@@ -751,9 +709,7 @@ function dispatchStaffTask() {
   document.getElementById('txtTaskTitle').value = '';
 }
 
-// ==========================================================================
-// 8. BUSINESS OPERATIONS MANAGER WORKFLOWS
-// ==========================================================================
+// Operations Manager Handlers
 
 function savePricingPolicy() {
   showToast('Đã lưu và ban hành chính sách giá & tỷ lệ cọc mới trên toàn hệ thống!');
@@ -767,9 +723,7 @@ function exportFinancialReport() {
   }, 1200);
 }
 
-// ==========================================================================
-// 9. SYSTEM ADMINISTRATOR WORKFLOWS
-// ==========================================================================
+// Administrator Handlers
 
 function renderUserTable() {
   const tbody = document.getElementById('tblUsersBody');
@@ -849,73 +803,7 @@ function addAuditLog(user, role, action, detail) {
   renderAuditLogsTable();
 }
 
-// ==========================================================================
-// 10. FIGMA ARTBOARDS OVERVIEW MODE RENDERER
-// ==========================================================================
-
-function renderArtboardsOverview() {
-  const container = document.getElementById('artboardsOverviewContainer');
-  if (!container) return;
-
-  const actorsList = [
-    { key: 'CUSTOMER', name: '1. Phân hệ Storage Customer (Khách hàng thuê kho)', badge: '6+ Artboards', color: 'badge-primary' },
-    { key: 'STAFF', name: '2. Phân hệ Facility Staff (Nhân viên cơ sở)', badge: '7+ Artboards', color: 'badge-teal' },
-    { key: 'FMANAGER', name: '3. Phân hệ Facility Manager (Quản lý chi nhánh)', badge: '6 Artboards', color: 'badge-purple' },
-    { key: 'OPS_MGR', name: '4. Phân hệ Business Operations Manager (Quản lý chuỗi)', badge: '5 Artboards', color: 'badge-warning' },
-    { key: 'ADMIN', name: '5. Phân hệ System Administrator (Quản trị hệ thống)', badge: '5 Artboards', color: 'badge-danger' }
-  ];
-
-  container.innerHTML = actorsList.map(actor => {
-    const screens = ACTOR_SCREENS[actor.key] || [];
-    return `
-      <div class="canvas-row-group">
-        <div class="canvas-row-title">
-          <span>${actor.name}</span>
-          <span class="badge ${actor.color}">${actor.badge}</span>
-        </div>
-        <div class="artboard-cards-grid">
-          ${screens.map(s => `
-            <div class="artboard-thumb-card" onclick="switchToScreenFromArtboard('${actor.key}', '${s.id}')">
-              <div class="artboard-thumb-header">
-                <span style="font-family:'JetBrains Mono', monospace; font-size:12px; font-weight:700; color:#38bdf8;">[${s.code}]</span>
-                <span style="font-size:11px; color:#94a3b8; font-family:'JetBrains Mono', monospace;">1440 x 900 px</span>
-              </div>
-              <div class="artboard-thumb-preview">
-                <div style="text-align:center;">
-                  <div style="font-size:28px; margin-bottom:6px;">🖥️</div>
-                  <div style="font-size:13px; font-weight:700; color:white;">${s.name}</div>
-                  <div style="font-size:11px; color:#94a3b8; margin-top:4px;">12 Columns Grid • Auto Layout</div>
-                </div>
-              </div>
-              <div class="artboard-thumb-footer">
-                <div style="font-size:12px; color:#cbd5e1; line-height:1.4;">${s.desc}</div>
-                <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
-                  <span style="font-size:11px; color:#38bdf8; font-weight:600;">Click để mở Live View →</span>
-                  <span class="badge badge-neutral" style="font-size:10px;">Smart Animate</span>
-                </div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-function switchToScreenFromArtboard(actorKey, screenId) {
-  isViewModeOverview = false;
-  document.getElementById('liveAppView').style.display = 'block';
-  document.getElementById('artboardsOverviewView').style.display = 'none';
-  document.getElementById('btnViewMode').classList.remove('active');
-  document.getElementById('txtViewMode').innerText = 'Figma Canvas Artboards';
-
-  switchActor(actorKey);
-  navigateToScreen(screenId);
-}
-
-// ==========================================================================
-// 11. MODAL HELPERS & TOAST
-// ==========================================================================
+// Modal Helpers & Notifications
 
 function openModal(modalId) {
   const modal = document.getElementById(modalId);

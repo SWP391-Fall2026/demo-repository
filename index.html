@@ -15,9 +15,7 @@
 
 <body>
 
-  <!-- ==========================================================================
-       MAIN WEB APPLICATION HEADER (STANDARD MODERN NAVBAR)
-       ========================================================================== -->
+  <!-- Header Navigation -->
   <header class="app-header">
     <div class="header-left-zone">
       <div class="app-brand-logo" onclick="navigateToScreen('SCR-C00')" title="Về trang chủ SelfStorage PRO">
@@ -51,7 +49,7 @@
         </select>
       </div>
 
-      <!-- Quick Role Switch Pill Button (Mục đổi role trực quan tiện lợi) -->
+      <!-- Quick role switch -->
       <button class="btn-quick-role-switch" onclick="toggleUserDropdown(event)" title="Bấm để chọn vai trò hệ thống">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
           <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>
@@ -59,7 +57,7 @@
         <span id="btnRoleQuickLabel">Đổi vai trò</span>
       </button>
 
-      <!-- User Profile Capsule with Dropdown Trigger -->
+      <!-- User profile capsule -->
       <div class="user-profile-capsule" id="userRoleTrigger" onclick="toggleUserDropdown(event)">
         <div class="avatar-disc" id="avatarInitials" style="background:#2563eb;">TB</div>
         <div class="user-meta-info">
@@ -73,7 +71,7 @@
         </div>
       </div>
 
-      <!-- USER & ROLE DROPDOWN MENU (NƠI CHỌN ROLE MỚI THEO YÊU CẦU) -->
+      <!-- User & role dropdown menu -->
       <div class="user-dropdown-menu" id="userRoleDropdownMenu">
         <div class="dropdown-user-header">
           <div class="dd-avatar-wrap">
@@ -151,14 +149,10 @@
     </div>
   </header>
 
-  <!-- ==========================================================================
-       MAIN WEB APPLICATION VIEWPORT
-       ========================================================================== -->
+  <!-- Main Content -->
   <main class="site-main-content" id="liveAppView">
 
-      <!-- ====================================================================
-           ROLE 1: STORAGE CUSTOMER SCREENS (SCR-C00 -> SCR-C06)
-           ==================================================================== -->
+      <!-- Customer screens -->
 
       <!-- SCR-C00: LANDING PAGE -->
       <section class="screen-panel active" id="SCR-C00">
@@ -187,7 +181,7 @@
           </div>
         </div>
 
-        <!-- 4 Steps Rental Process -->
+        <!-- Rental Process -->
         <div class="ui-card">
           <div class="ui-card-header">
             <h3 class="ui-card-title">🚀 Quy trình thuê kho tự phục vụ 4 bước nhanh gọn</h3>
@@ -221,7 +215,7 @@
           </div>
         </div>
 
-        <!-- 3 Core Packages Preview -->
+        <!-- Packages Preview -->
         <div class="grid-3">
           <div class="ui-card">
             <div class="unit-card-3d-box">
@@ -949,9 +943,7 @@
         </div>
       </section>
 
-      <!-- ====================================================================
-           ROLE 2: FACILITY STAFF SCREENS (SCR-S01 -> SCR-S07)
-           ==================================================================== -->
+      <!-- Staff screens -->
 
       <!-- SCR-S01: DAILY TASK BOARD -->
       <section class="screen-panel" id="SCR-S01">
@@ -964,7 +956,7 @@
           <button class="btn btn-primary" onclick="navigateToScreen('SCR-S02')">🔍 Tra cứu đơn đặt chỗ</button>
         </div>
 
-        <!-- 4 Metric Cards -->
+        <!-- Metric Cards -->
         <div class="grid-4">
           <div class="stat-card">
             <div class="stat-card-title">Hẹn Check-in hôm nay</div>
@@ -1197,7 +1189,7 @@
         </div>
 
         <div class="grid-2">
-          <!-- 5 Checklist switches Left -->
+          <!-- Checklist switches Left -->
           <div class="ui-card">
             <h3 style="font-size:16px; font-weight:700; margin-bottom:16px; color:#0f172a;">1. Checklist kiểm tra hiện
               trạng phòng kho</h3>
@@ -1508,9 +1500,7 @@
         </div>
       </section>
 
-      <!-- ====================================================================
-           ROLE 3: FACILITY MANAGER SCREENS (SCR-M01 -> SCR-M06)
-           ==================================================================== -->
+      <!-- Facility manager screens -->
 
       <!-- SCR-M01: FACILITY DASHBOARD -->
       <section class="screen-panel" id="SCR-M01">
@@ -1920,9 +1910,7 @@
         </div>
       </section>
 
-      <!-- ====================================================================
-           ROLE 4: BUSINESS OPERATIONS MANAGER SCREENS (SCR-O01 -> SCR-O05)
-           ==================================================================== -->
+      <!-- Operations manager screens -->
 
       <!-- SCR-O01: BUSINESS MULTI-BRANCH OVERVIEW -->
       <section class="screen-panel" id="SCR-O01">
@@ -2199,9 +2187,7 @@
         </div>
       </section>
 
-      <!-- ====================================================================
-           ROLE 5: SYSTEM ADMINISTRATOR SCREENS (SCR-A01 -> SCR-A05)
-           ==================================================================== -->
+      <!-- Admin screens -->
 
       <!-- SCR-A01: SYSTEM ADMIN OVERVIEW -->
       <section class="screen-panel" id="SCR-A01">
@@ -2477,9 +2463,7 @@
       </section>
   </main>
 
-  <!-- ==========================================================================
-       STANDARD WEBSITE FOOTER
-       ========================================================================== -->
+  <!-- Footer -->
   <footer class="site-footer">
     <div class="footer-container">
       <div class="footer-col brand-col">
@@ -2544,30 +2528,7 @@
     </div>
   </footer>
 
-  <!-- ==========================================================================
-       VIEWPORT 2: FIGMA CANVAS ARTBOARDS OVERVIEW MODE (Matching Untitled.png)
-       ========================================================================== -->
-  <main class="canvas-wrapper artboards-canvas-mode" id="artboardsOverviewView">
-    <div
-      style="background:#131c2e; border:1px solid #1e2e4a; border-radius:14px; padding:24px; margin-bottom:28px; color:white;">
-      <span class="badge badge-primary" style="margin-bottom:8px;">FIGMA WORKSPACE ARTBOARD CANVAS</span>
-      <h2 style="font-size:24px; font-weight:800; margin-bottom:6px;">Bộ Khung Màn Hình Figma Đầy Đủ Cho 5 Vai Trò (SRS
-        v2.0)</h2>
-      <p style="font-size:14px; color:#94a3b8; max-width:800px;">
-        Toàn bộ khung Artboards trên Canvas giống trong file ảnh thiết kế gốc <span class="code-display"
-          style="background:#090d16; color:#38bdf8;">Untitled.png</span>. Click vào bất kỳ Artboard nào để chuyển ngay
-        sang chế độ Live Prototype tương tác trực tiếp.
-      </p>
-    </div>
-
-    <div id="artboardsOverviewContainer">
-      <!-- Generated dynamically by js/app.js -->
-    </div>
-  </main>
-
-  <!-- ==========================================================================
-       MODAL DIALOGS
-       ========================================================================== -->
+  <!-- Modal Dialogs -->
 
   <!-- Modal 1: Unit Detail Modal -->
   <div class="modal-overlay" id="modalUnitDetail">

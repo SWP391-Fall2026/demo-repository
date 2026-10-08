@@ -1,7 +1,4 @@
-/* ==========================================================================
-   SELF-STORAGE SYSTEM - ENTERPRISE DESIGN SYSTEM
-   Figma Design Specification Baseline: 1440x900 Grid 12 Columns
-   ========================================================================== */
+/* Design System Variables & Theme */
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
@@ -63,7 +60,7 @@
   --slate-50:    #f8fafc;
   --white:       #ffffff;
 
-  /* Figma Shell Canvas */
+  /* Dark Theme Palette */
   --shell-bg:      #090d16;
   --shell-surface: #111827;
   --shell-border:  #1f2937;
@@ -119,9 +116,7 @@ body {
   background: #475569;
 }
 
-/* ==========================================================================
-   APP HEADER & ROLE SELECTOR (NORMAL WEBSITE NAVBAR)
-   ========================================================================== */
+/* Navigation & Header */
 .app-header {
   height: 72px;
   background: #ffffff;
@@ -343,7 +338,7 @@ body {
   margin-top: 1px;
 }
 
-/* USER & ROLE DROPDOWN MENU */
+/* User dropdown menu */
 .user-dropdown-menu {
   position: absolute;
   top: calc(100% + 12px);
@@ -517,9 +512,7 @@ body {
   color: #1e40af;
 }
 
-/* ==========================================================================
-   MAIN WEBSITE WORKSPACE CONTAINER
-   ========================================================================== */
+/* Main container */
 .site-main-content {
   max-width: 1400px;
   margin: 0 auto;
@@ -529,7 +522,7 @@ body {
   flex-direction: column;
 }
 
-/* SCREEN SECTIONS */
+/* Screen sections */
 .screen-panel {
   display: none;
   flex: 1;
@@ -547,9 +540,7 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ==========================================================================
-   UI COMPONENTS & DESIGN PATTERNS
-   ========================================================================== */
+/* UI components */
 .page-header-row {
   display: flex;
   justify-content: space-between;
@@ -863,11 +854,7 @@ body {
   display: inline-block;
 }
 
-/* ==========================================================================
-   SPECIFIC APPLICATION COMPONENTS
-   ========================================================================== */
-
-/* 1. Landing Hero & Customer Unit 3D Box */
+/* Hero section */
 .landing-hero {
   background: linear-gradient(135deg, #0f172a 0%, #1e40af 100%);
   border-radius: var(--radius-lg);
@@ -916,7 +903,7 @@ body {
   filter: blur(20px);
 }
 
-/* 2. VietQR Mock Panel */
+/* Payment panel */
 .vietqr-box {
   background: #ffffff;
   border: 2px dashed #3b82f6;
@@ -940,7 +927,7 @@ body {
   border: 1px solid #cbd5e1;
 }
 
-/* 3. Boarding Pass Check-in Card */
+/* Access pass card */
 .boarding-pass-card {
   background: #ffffff;
   border-radius: var(--radius-lg);
@@ -977,7 +964,7 @@ body {
   border-right: 2px dashed #e2e8f0;
 }
 
-/* 4. PIN Keypad & Simulator */
+/* PIN keypad */
 .keypad-container {
   width: 280px;
   background: #111827;
@@ -1031,7 +1018,7 @@ body {
   transform: scale(0.95);
 }
 
-/* 5. Matrix Grid for Storage Units */
+/* Unit layout matrix */
 .matrix-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -1060,7 +1047,7 @@ body {
 .matrix-cell.maintenance { border-color: #ea580c; background: #fff7ed; color: #c2410c; }
 .matrix-cell.cleaning { border-color: #94a3b8; background: #f8fafc; color: #475569; }
 
-/* 6. Handover Checklist */
+/* Handover checklist */
 .checklist-item {
   display: flex;
   align-items: center;
@@ -1072,7 +1059,7 @@ body {
   margin-bottom: 10px;
 }
 
-/* 7. Modal Dialogs */
+/* Modals */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -1129,7 +1116,7 @@ body {
   gap: 12px;
 }
 
-/* 8. Toast Notifications */
+/* Toast notifications */
 .toast-bar {
   position: fixed;
   bottom: 28px;
@@ -1156,95 +1143,23 @@ body {
   opacity: 1;
 }
 
-/* 9. Figma Artboard Overview Mode */
-.artboards-canvas-mode {
-  display: none;
-  padding: 24px 0;
-}
-
-.canvas-row-group {
-  margin-bottom: 40px;
-}
-
-.canvas-row-title {
-  font-size: 18px;
-  font-weight: 800;
-  color: white;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border-left: 4px solid #3b82f6;
-  padding-left: 12px;
-}
-
-.artboard-cards-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-}
-
-.artboard-thumb-card {
-  background: #111827;
-  border: 1px solid #1f2937;
-  border-radius: 14px;
-  overflow: hidden;
-  transition: all 0.25s;
-  cursor: pointer;
-}
-
-.artboard-thumb-card:hover {
-  transform: translateY(-4px);
-  border-color: #3b82f6;
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
-}
-
-.artboard-thumb-header {
-  padding: 12px 16px;
-  background: #0b1120;
-  border-bottom: 1px solid #1f2937;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.artboard-thumb-preview {
-  height: 180px;
-  background: #1e293b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-  padding: 14px;
-}
-
-.artboard-thumb-footer {
-  padding: 14px 16px;
-  background: #111827;
-}
-
 /* Responsive adjustments */
 @media (max-width: 1200px) {
   .matrix-grid { grid-template-columns: repeat(4, 1fr); }
   .grid-4 { grid-template-columns: repeat(2, 1fr); }
-  .artboard-cards-grid { grid-template-columns: repeat(2, 1fr); }
   .footer-container { grid-template-columns: 1fr 1fr; gap: 30px; }
 }
 
 @media (max-width: 768px) {
   .matrix-grid { grid-template-columns: repeat(2, 1fr); }
   .grid-3, .grid-2, .grid-1-2, .grid-2-1 { grid-template-columns: 1fr; }
-  .artboard-cards-grid { grid-template-columns: 1fr; }
   .app-header { flex-direction: column; height: auto; padding: 14px 20px; gap: 12px; }
   .app-main-nav { overflow-x: auto; max-width: 100%; padding-bottom: 6px; }
   .footer-container { grid-template-columns: 1fr; }
   .footer-bottom { flex-direction: column; gap: 12px; text-align: center; }
 }
 
-/* ==========================================================================
-   WEBSITE FOOTER
-   ========================================================================== */
+/* Footer */
 .site-footer {
   background: #0b1120;
   color: #94a3b8;
