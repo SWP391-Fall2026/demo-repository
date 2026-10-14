@@ -186,44 +186,60 @@
 
               <!-- FORM ĐĂNG KÝ -->
               <div id="authPanelRegister" style="display:none;">
-                <form onsubmit="handleRegisterFormSubmit(event)">
-                  <div class="grid-2" style="margin-bottom:14px;">
+                <form onsubmit="handleRegisterFormSubmit(event)" novalidate>
+                  
+                  <!-- Hàng 1: Họ tên & Tên đăng nhập -->
+                  <div class="grid-2" style="margin-bottom:12px;">
                     <div class="form-group">
                       <label class="form-label">Họ và tên *</label>
-                      <input type="text" class="form-control" id="regFullName" placeholder="Ví dụ: Hoàng Minh Trí" required>
+                      <input type="text" class="form-control" id="regFullName" placeholder="Ví dụ: Hoàng Minh Trí" oninput="validateField('regFullName')" required>
+                      <div class="invalid-feedback-text" id="errRegFullName"></div>
                     </div>
                     <div class="form-group">
                       <label class="form-label">Tên đăng nhập (Username) *</label>
-                      <input type="text" class="form-control" id="regUsername" placeholder="Ví dụ: minhtri2026" required>
+                      <input type="text" class="form-control" id="regUsername" placeholder="Ví dụ: minhtri2026" oninput="validateField('regUsername')" required autocomplete="username">
+                      <div class="invalid-feedback-text" id="errRegUsername"></div>
                     </div>
                   </div>
 
-                  <div class="grid-2" style="margin-bottom:14px;">
+                  <!-- Hàng 2: Ngày sinh & Giới tính -->
+                  <div class="grid-2" style="margin-bottom:12px;">
                     <div class="form-group">
-                      <label class="form-label">Mật khẩu *</label>
-                      <input type="password" class="form-control" id="regPassword" placeholder="Nhập mật khẩu..." required>
+                      <label class="form-label">Ngày tháng năm sinh *</label>
+                      <input type="date" class="form-control" id="regDob" onchange="validateField('regDob')" required>
+                      <div class="invalid-feedback-text" id="errRegDob"></div>
                     </div>
                     <div class="form-group">
-                      <label class="form-label">Xác nhận mật khẩu *</label>
-                      <input type="password" class="form-control" id="regPasswordConfirm" placeholder="Nhập lại mật khẩu..." required>
+                      <label class="form-label">Giới tính *</label>
+                      <select class="form-control" id="regGender" onchange="validateField('regGender')">
+                        <option value="">-- Chọn giới tính --</option>
+                        <option value="Nam">Nam</option>
+                        <option value="Nữ">Nữ</option>
+                      </select>
+                      <div class="invalid-feedback-text" id="errRegGender"></div>
                     </div>
                   </div>
 
-                  <div class="grid-2" style="margin-bottom:14px;">
-                    <div class="form-group">
-                      <label class="form-label">Email liên hệ *</label>
-                      <input type="email" class="form-control" id="regEmail" placeholder="tri.hm@gmail.com" required>
-                    </div>
+                  <!-- Hàng 3: Số điện thoại & Email -->
+                  <div class="grid-2" style="margin-bottom:12px;">
                     <div class="form-group">
                       <label class="form-label">Số điện thoại *</label>
-                      <input type="tel" class="form-control" id="regPhone" placeholder="0912.333.444" required>
+                      <input type="tel" class="form-control" id="regPhone" placeholder="0912.333.444 (10 chữ số)" maxlength="10" oninput="validateField('regPhone')" required autocomplete="tel">
+                      <div class="invalid-feedback-text" id="errRegPhone"></div>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Email liên hệ *</label>
+                      <input type="email" class="form-control" id="regEmail" placeholder="yourname@gmail.com" oninput="validateField('regEmail')" required autocomplete="email">
+                      <div class="invalid-feedback-text" id="errRegEmail"></div>
                     </div>
                   </div>
 
-                  <div class="grid-2" style="margin-bottom:20px;">
+                  <!-- Hàng 4: CCCD & Chi nhánh kho -->
+                  <div class="grid-2" style="margin-bottom:12px;">
                     <div class="form-group">
-                      <label class="form-label">Số CCCD / CMND</label>
-                      <input type="text" class="form-control" id="regCccd" placeholder="0012020xxxxx">
+                      <label class="form-label">Số CCCD (12 chữ số) *</label>
+                      <input type="text" class="form-control" id="regCccd" placeholder="Ví dụ: 001202019988" maxlength="12" oninput="validateField('regCccd')" required>
+                      <div class="invalid-feedback-text" id="errRegCccd"></div>
                     </div>
                     <div class="form-group">
                       <label class="form-label">Cơ sở kho quan tâm</label>
@@ -237,8 +253,28 @@
                     </div>
                   </div>
 
-                  <button type="submit" class="btn btn-primary btn-lg" style="width:100%; justify-content:center;">
-                    Đăng ký tài khoản
+                  <!-- Hàng 5: Mật khẩu & Xác nhận mật khẩu (Masked *** with eye toggle) -->
+                  <div class="grid-2" style="margin-bottom:18px;">
+                    <div class="form-group">
+                      <label class="form-label">Mật khẩu *</label>
+                      <div style="position:relative;">
+                        <input type="password" class="form-control" id="regPassword" placeholder="Tối thiểu 6 ký tự..." oninput="validateField('regPassword')" required autocomplete="new-password">
+                        <span class="password-toggle-eye" onclick="togglePasswordVisibility('regPassword')" title="Hiện/ẩn mật khẩu">👁️</span>
+                      </div>
+                      <div class="invalid-feedback-text" id="errRegPassword"></div>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Xác nhận lại mật khẩu *</label>
+                      <div style="position:relative;">
+                        <input type="password" class="form-control" id="regPasswordConfirm" placeholder="Nhập lại mật khẩu..." oninput="validateField('regPasswordConfirm')" required autocomplete="new-password">
+                        <span class="password-toggle-eye" onclick="togglePasswordVisibility('regPasswordConfirm')" title="Hiện/ẩn mật khẩu">👁️</span>
+                      </div>
+                      <div class="invalid-feedback-text" id="errRegPasswordConfirm"></div>
+                    </div>
+                  </div>
+
+                  <button type="submit" class="btn btn-primary btn-lg" style="width:100%; justify-content:center;" id="btnSubmitRegister">
+                    Xác nhận & Nhận mã xác minh Email →
                   </button>
                 </form>
               </div>
@@ -420,9 +456,14 @@
                     <span class="plan-period">/ tháng</span>
                   </div>
 
-                  <button class="btn-plan-action outline" onclick="openReservationModal('Kho S (Kích thước nhỏ)', '2.0 m²', 650000)">
-                    Xem kho
-                  </button>
+                  <div style="display:flex; gap:8px; margin-top:14px;">
+                    <button class="btn btn-outline btn-sm" style="flex:1; justify-content:center; font-weight:700; padding:8px 10px;" onclick="openUnitDetailModal('Kho S (Kích thước nhỏ)', '2.0 m²', '4.9 m³', 650000)">
+                      🔍 Chi tiết kho
+                    </button>
+                    <button class="btn btn-primary btn-sm" style="flex:1; justify-content:center; font-weight:700; padding:8px 10px;" onclick="openReservationModal('Kho S (Kích thước nhỏ)', '2.0 m²', 650000)">
+                      ⚡ Đặt giữ chỗ
+                    </button>
+                  </div>
                 </div>
 
                 <!-- Card M (Featured) -->
@@ -445,9 +486,14 @@
                     <span class="plan-period">/ tháng</span>
                   </div>
 
-                  <button class="btn-plan-action solid-dark" onclick="openReservationModal('Kho M (Kích thước vừa)', '5.0 m²', 1450000)">
-                    Xem kho
-                  </button>
+                  <div style="display:flex; gap:8px; margin-top:14px;">
+                    <button class="btn btn-outline btn-sm" style="flex:1; justify-content:center; font-weight:700; padding:8px 10px;" onclick="openUnitDetailModal('Kho M (Kích thước vừa)', '5.0 m²', '12.5 m³', 1450000)">
+                      🔍 Chi tiết kho
+                    </button>
+                    <button class="btn btn-primary btn-sm" style="flex:1; justify-content:center; font-weight:700; padding:8px 10px;" onclick="openReservationModal('Kho M (Kích thước vừa)', '5.0 m²', 1450000)">
+                      ⚡ Đặt giữ chỗ
+                    </button>
+                  </div>
                 </div>
 
                 <!-- Card L -->
@@ -469,11 +515,44 @@
                     <span class="plan-period">/ tháng</span>
                   </div>
 
-                  <button class="btn-plan-action outline" onclick="openReservationModal('Kho L (Kích thước lớn)', '10.0 m²', 2800000)">
-                    Xem kho
-                  </button>
+                  <div style="display:flex; gap:8px; margin-top:14px;">
+                    <button class="btn btn-outline btn-sm" style="flex:1; justify-content:center; font-weight:700; padding:8px 10px;" onclick="openUnitDetailModal('Kho L (Kích thước lớn)', '10.0 m²', '25.0 m³', 2800000)">
+                      🔍 Chi tiết kho
+                    </button>
+                    <button class="btn btn-primary btn-sm" style="flex:1; justify-content:center; font-weight:700; padding:8px 10px;" onclick="openReservationModal('Kho L (Kích thước lớn)', '10.0 m²', 2800000)">
+                      ⚡ Đặt giữ chỗ
+                    </button>
+                  </div>
                 </div>
               </div>
+
+              <!-- BẢNG TRA CỨU SỐ LƯỢNG KHO THEO CHI NHÁNH & CƠ SỞ -->
+              <div style="margin-top:40px; background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:28px 24px; box-shadow:0 10px 25px -5px rgba(0,0,0,0.05);" id="sectionBranchStockPreview">
+                <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px; margin-bottom:20px;">
+                  <div>
+                    <span style="font-size:12px; font-weight:800; color:#2563eb; text-transform:uppercase; letter-spacing:0.5px;">TRA CỨU TRỰC TIẾP TỒN KHO SẴN SÀNG</span>
+                    <h3 style="font-size:22px; font-weight:800; color:#0f172a; margin-top:4px; margin-bottom:4px;">Xem trước số lượng phòng kho tại các cơ sở</h3>
+                    <p style="font-size:13.5px; color:#64748b; margin:0;">Khách hàng có thể kiểm tra trực tiếp số lượng kho còn trống, xem chi tiết kho và chọn đặt kho phù hợp.</p>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <label style="font-size:13px; font-weight:700; color:#334155;">Chi nhánh:</label>
+                    <select class="form-control" id="landingFacilitySelect" onchange="renderLandingBranchInventory(this.value)" style="min-width:260px; font-weight:700; border-color:#93c5fd; background:#f8fafc;">
+                      <option value="HN-CG" selected>📍 Hà Nội: Cầu Giấy (120 Duy Tân)</option>
+                      <option value="HCM-Q7">📍 TP.HCM: Quận 7 (Nguyễn Thị Thập)</option>
+                      <option value="HN-NTL">📍 Hà Nội: Nam Từ Liêm (Khu CNC)</option>
+                      <option value="HCM-TB">📍 TP.HCM: Tân Bình (Cộng Hòa)</option>
+                      <option value="DN-HC">📍 Đà Nẵng: Hải Châu (Nguyễn Văn Linh)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Live inventory counter badges -->
+                <div id="landingBranchStatsBar" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:24px;"></div>
+
+                <!-- Available units grid -->
+                <div id="landingBranchUnitsGrid" class="grid-4" style="gap:16px;"></div>
+              </div>
+
             </div>
           </section>
 
@@ -3053,8 +3132,7 @@
             <div style="font-size:11px; color:#64748b;">Đơn giá thuê:</div>
             <div style="font-size:20px; font-weight:800; color:#1e40af;" id="mdlDetailPrice">1.450.000 đ/tháng</div>
           </div>
-          <button class="btn btn-primary" onclick="openReservationModal('Kho Tiêu Chuẩn Medium', '5.0 m²', 1450000)">Đặt
-            giữ chỗ ngay</button>
+          <button class="btn btn-primary" onclick="handleDetailModalBookNow()">Đặt giữ chỗ ngay</button>
         </div>
       </div>
     </div>
@@ -3159,6 +3237,64 @@
   </div>
 
 
+
+  <!-- Modal: Email OTP Verification -->
+  <div class="modal-overlay" id="modalEmailVerify">
+    <div class="modal-content-box" style="max-width:480px; text-align:center;">
+      <div style="padding:28px 24px 20px;">
+        <div style="width:64px; height:64px; background:#eff6ff; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; color:#2563eb;">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+        </div>
+        <h3 style="font-size:20px; font-weight:800; color:#0f172a; margin-bottom:8px;">Xác Minh Địa Chỉ Email</h3>
+        <p style="font-size:13.5px; color:#64748b; line-height:1.5; margin-bottom:16px;">
+          Hệ thống đã gửi mã xác minh 6 số bảo mật tới email:<br>
+          <strong id="txtVerifyEmailTarget" style="color:#1e40af; font-size:14.5px;">user@gmail.com</strong>
+        </p>
+
+        <!-- Simulated Mailbox Preview Box (Thuận tiện kiểm tra & chấm demo đồ án) -->
+        <div id="simulatedEmailBox" style="background:#f8fafc; border:1px dashed #cbd5e1; border-radius:8px; padding:12px; margin-bottom:18px; text-align:left; font-size:12.5px; color:#475569;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <span style="font-weight:700; color:#0f172a;">📬 Hộp thư mô phỏng (Test/Demo):</span>
+            <span style="font-size:11px; color:#64748b;">Vừa xong</span>
+          </div>
+          <div>Người gửi: <em>STORAGE System &lt;no-reply@storage.vn&gt;</em></div>
+          <div style="margin-top:6px; display:flex; align-items:center; justify-content:space-between;">
+            <span>Mã OTP: <strong id="simulatedOtpCode" style="font-size:17px; font-family:'JetBrains Mono', monospace; color:#2563eb; letter-spacing:2px;">849210</strong></span>
+            <button type="button" class="btn btn-outline btn-sm" onclick="autoFillOtp()" style="font-size:11px; padding:3px 8px;">Nhập nhanh</button>
+          </div>
+        </div>
+
+        <!-- 6 OTP Inputs -->
+        <div class="otp-inputs-wrapper" id="otpInputsWrap">
+          <input type="text" maxlength="1" class="otp-digit-input" data-index="0" inputmode="numeric" autocomplete="one-time-code">
+          <input type="text" maxlength="1" class="otp-digit-input" data-index="1" inputmode="numeric">
+          <input type="text" maxlength="1" class="otp-digit-input" data-index="2" inputmode="numeric">
+          <input type="text" maxlength="1" class="otp-digit-input" data-index="3" inputmode="numeric">
+          <input type="text" maxlength="1" class="otp-digit-input" data-index="4" inputmode="numeric">
+          <input type="text" maxlength="1" class="otp-digit-input" data-index="5" inputmode="numeric">
+        </div>
+        <div id="otpErrorAlert" style="display:none; color:#dc2626; font-size:12.5px; font-weight:600; margin-bottom:14px;"></div>
+
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <button class="btn btn-primary btn-lg" style="width:100%; justify-content:center;" onclick="submitOtpVerification()">
+            Xác nhận kích hoạt tài khoản
+          </button>
+          <div style="font-size:13px; color:#64748b;">
+            Chưa nhận được mã? 
+            <button id="btnResendOtp" type="button" style="background:none; border:none; color:#2563eb; font-weight:700; cursor:pointer; padding:0;" onclick="resendOtpCode()">
+              Gửi lại (<span id="otpCountdown">60</span>s)
+            </button>
+          </div>
+          <button type="button" class="btn btn-link btn-sm" style="color:#64748b; margin-top:4px;" onclick="closeModal('modalEmailVerify')">
+            ← Quay lại chỉnh sửa thông tin đăng ký
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Modal: Create New User Account (Admin Actor) -->
   <div class="modal-overlay" id="modalAddUser">
