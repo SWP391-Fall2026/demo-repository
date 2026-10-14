@@ -40,6 +40,53 @@ router.post('/register', async (req, res) => {
   }
 });
 
+// POST /api/auth/send-otp
+router.post('/send-otp', (req, res) => {
+  try {
+    const result = authService.generateAndSendOtp(req.body);
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+// POST /api/auth/verify-otp
+router.post('/verify-otp', async (req, res) => {
+  try {
+    const { email, code } = req.body;
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+    const user = await authService.verifyOtpAndRegister(email, code, ip);
+    res.status(201).json({
+      success: true,
+      message: `Xác minh email thành công! Chào mừng ${user.name} đến với hệ thống STORAGE.`,
+      data: user,
+      token: `demo-token-${user.id}-${Date.now()}`
+    });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+// POST /api/auth/resend-otp
+router.post('/resend-otp', (req, res) => {
+  try {
+    const { email } = req.body;
+    const cleanEmail = String(email || '').trim().toLowerCase();
+    const pending = authService.pendingOtps.get(cleanEmail);
+    if (!pending) {
+      return res.status(404).json({ success: false, message: 'Phiên xác minh không tồn tại hoặc đã hết hạn. Vui lòng đăng ký lại!' });
+    }
+    const result = authService.generateAndSendOtp(pending.userData);
+    res.json({
+      success: true,
+      message: `Đã gửi lại mã xác minh mới tới ${cleanEmail}!`,
+      code: result.code
+    });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
 // GET /api/auth/login-history
 router.get('/login-history', (req, res) => {
   try {

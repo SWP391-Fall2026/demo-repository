@@ -2621,5 +2621,78 @@ body {
   }
 }
 
+/* Form Validation & Input Enhancement */
+.password-toggle-eye {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #64748b;
+  font-size: 15px;
+  user-select: none;
+  z-index: 2;
+  transition: color 0.2s;
+}
+.password-toggle-eye:hover {
+  color: #1e40af;
+}
 
+.form-control.is-invalid {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+}
 
+.form-control.is-valid {
+  border-color: #22c55e !important;
+}
+
+.invalid-feedback-text {
+  color: #dc2626;
+  font-size: 11.5px;
+  font-weight: 600;
+  margin-top: 4px;
+  display: block;
+}
+
+.valid-feedback-text {
+  color: #16a34a;
+  font-size: 11.5px;
+  font-weight: 600;
+  margin-top: 4px;
+  display: block;
+}
+
+/* OTP 6-Digit Verification Inputs */
+.otp-inputs-wrapper {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.otp-digit-input {
+  width: 48px;
+  height: 54px;
+  font-size: 26px;
+  font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+  text-align: center;
+  border: 2px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.otp-digit-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+  transform: scale(1.05);
+}
+
+.otp-digit-input.filled {
+  border-color: #2563eb;
+  background: #f8fafc;
+}

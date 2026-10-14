@@ -13,6 +13,9 @@ let isPinVisible = false;
 let keypadInput = '';
 let selectedUnitForModal = null;
 let paymentTimerInterval = null;
+let pendingReservationIntent = null;
+let currentPendingRegistration = null;
+let otpCountdownInterval = null;
 
 // Mock Units (Floor 1 - Area A, Cầu Giấy Branch)
 let mockUnits = [
@@ -38,14 +41,14 @@ let mockUnits = [
 
 // Mock Users Database (5 Required Accounts + Extras)
 let mockUsers = [
-  { id: 'USR-01', name: 'Trần Văn Bảo', username: 'customer', password: '1', email: 'customer@selfstorage.vn', phone: '0987.654.321', cccd: '001202019988', role: 'CUSTOMER', roleTitle: 'Khách hàng thuê kho', facility: 'Hà Nội - Cầu Giấy', facilityCode: 'HN-CG', status: 'ACTIVE' },
-  { id: 'USR-02', name: 'Nguyễn Văn Tuấn', username: 'staff', password: '3', email: 'staff@selfstorage.vn', phone: '0912.345.678', cccd: '001201044556', role: 'STAFF', roleTitle: 'Nhân viên cơ sở', facility: 'Hà Nội - Cầu Giấy', facilityCode: 'HN-CG', status: 'ACTIVE' },
-  { id: 'USR-03', name: 'Lê Thị Mai', username: 'staff2', password: '3', email: 'mai.lt@selfstorage.vn', phone: '0903.112.233', cccd: '001203099881', role: 'STAFF', roleTitle: 'Nhân viên cơ sở', facility: 'Hà Nội - Cầu Giấy', facilityCode: 'HN-CG', status: 'ACTIVE' },
-  { id: 'USR-04', name: 'Phạm Hải Đăng', username: 'manager', password: '4', email: 'manager@selfstorage.vn', phone: '0934.567.890', cccd: '001200055443', role: 'FMANAGER', roleTitle: 'Quản lý cơ sở', facility: 'Hà Nội - Cầu Giấy', facilityCode: 'HN-CG', status: 'ACTIVE' },
-  { id: 'USR-05', name: 'Trần Quang Vinh', username: 'manager_q7', password: '4', email: 'vinh.tq@selfstorage.vn', phone: '0978.889.900', cccd: '079201088997', role: 'FMANAGER', roleTitle: 'Quản lý cơ sở', facility: 'TP.HCM - Quận 7', facilityCode: 'HCM-Q7', status: 'ACTIVE' },
-  { id: 'USR-06', name: 'Đặng Hoàng Long', username: 'business', password: '5', email: 'business@selfstorage.vn', phone: '0918.777.666', cccd: '001200011223', role: 'OPS_MGR', roleTitle: 'Quản lý vận hành toàn chuỗi', facility: 'Toàn hệ thống (HQ)', facilityCode: 'HQ', status: 'ACTIVE' },
-  { id: 'USR-07', name: 'Quản trị viên Hệ thống', username: 'admin', password: '2', email: 'admin@selfstorage.vn', phone: '0909.999.000', cccd: '001200000001', role: 'ADMIN', roleTitle: 'Quản trị hệ thống', facility: 'Toàn hệ thống (HQ)', facilityCode: 'HQ', status: 'ACTIVE' },
-  { id: 'USR-08', name: 'Nguyễn Kiều Oanh', username: 'oanhnguyen', password: '1', email: 'oanh.nk@gmail.com', phone: '0988.123.456', cccd: '079201998811', role: 'CUSTOMER', roleTitle: 'Khách hàng thuê kho', facility: 'TP.HCM - Quận 7', facilityCode: 'HCM-Q7', status: 'ACTIVE' }
+  { id: 'USR-01', name: 'Trần Văn Bảo', dob: '1998-05-12', gender: 'Nam', username: 'customer', password: '1', email: 'customer@selfstorage.vn', phone: '0987.654.321', cccd: '001202019988', role: 'CUSTOMER', roleTitle: 'Khách hàng thuê kho', facility: 'Hà Nội - Cầu Giấy', facilityCode: 'HN-CG', status: 'ACTIVE' },
+  { id: 'USR-02', name: 'Nguyễn Văn Tuấn', dob: '1994-08-20', gender: 'Nam', username: 'staff', password: '3', email: 'staff@selfstorage.vn', phone: '0912.345.678', cccd: '001201044556', role: 'STAFF', roleTitle: 'Nhân viên cơ sở', facility: 'Hà Nội - Cầu Giấy', facilityCode: 'HN-CG', status: 'ACTIVE' },
+  { id: 'USR-03', name: 'Lê Thị Mai', dob: '1996-03-15', gender: 'Nữ', username: 'staff2', password: '3', email: 'mai.lt@selfstorage.vn', phone: '0903.112.233', cccd: '001203099881', role: 'STAFF', roleTitle: 'Nhân viên cơ sở', facility: 'Hà Nội - Cầu Giấy', facilityCode: 'HN-CG', status: 'ACTIVE' },
+  { id: 'USR-04', name: 'Phạm Hải Đăng', dob: '1988-11-25', gender: 'Nam', username: 'manager', password: '4', email: 'manager@selfstorage.vn', phone: '0934.567.890', cccd: '001200055443', role: 'FMANAGER', roleTitle: 'Quản lý cơ sở', facility: 'Hà Nội - Cầu Giấy', facilityCode: 'HN-CG', status: 'ACTIVE' },
+  { id: 'USR-05', name: 'Trần Quang Vinh', dob: '1990-07-10', gender: 'Nam', username: 'manager_q7', password: '4', email: 'vinh.tq@selfstorage.vn', phone: '0978.889.900', cccd: '079201088997', role: 'FMANAGER', roleTitle: 'Quản lý cơ sở', facility: 'TP.HCM - Quận 7', facilityCode: 'HCM-Q7', status: 'ACTIVE' },
+  { id: 'USR-06', name: 'Đặng Hoàng Long', dob: '1985-02-18', gender: 'Nam', username: 'business', password: '5', email: 'business@selfstorage.vn', phone: '0918.777.666', cccd: '001200011223', role: 'OPS_MGR', roleTitle: 'Quản lý vận hành toàn chuỗi', facility: 'Toàn hệ thống (HQ)', facilityCode: 'HQ', status: 'ACTIVE' },
+  { id: 'USR-07', name: 'Quản trị viên Hệ thống', dob: '1992-09-09', gender: 'Nam', username: 'admin', password: '2', email: 'admin@selfstorage.vn', phone: '0909.999.000', cccd: '001200000001', role: 'ADMIN', roleTitle: 'Quản trị hệ thống', facility: 'Toàn hệ thống (HQ)', facilityCode: 'HQ', status: 'ACTIVE' },
+  { id: 'USR-08', name: 'Nguyễn Kiều Oanh', dob: '1999-12-05', gender: 'Nữ', username: 'oanhnguyen', password: '1', email: 'oanh.nk@gmail.com', phone: '0988.123.456', cccd: '079201998811', role: 'CUSTOMER', roleTitle: 'Khách hàng thuê kho', facility: 'TP.HCM - Quận 7', facilityCode: 'HCM-Q7', status: 'ACTIVE' }
 ];
 
 // Mock Support Tickets
@@ -174,6 +177,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   renderAuditLogsTable();
   renderSupportTicketsTable();
   startPaymentCountdown();
+  renderLandingBranchInventory('HN-CG');
 });
 
 // ==============================================================================
@@ -189,10 +193,23 @@ function switchAuthTab(tab) {
   hideAuthAlert();
 }
 
-function toggleLoginPassword() {
-  const input = document.getElementById('txtLoginPassword');
+const VALID_PROVINCES = [
+  '001','002','004','006','008','010','011','012','014','015','017','019',
+  '020','022','024','025','026','027','030','031','033','034','035','036',
+  '037','038','040','042','044','045','046','048','049','051','052','054',
+  '056','058','060','062','064','066','067','068','070','072','074','075',
+  '077','079','080','082','083','084','086','087','089','091','092','093',
+  '094','095','096'
+];
+
+function togglePasswordVisibility(inputId) {
+  const input = document.getElementById(inputId);
   if (!input) return;
   input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+function toggleLoginPassword() {
+  togglePasswordVisibility('txtLoginPassword');
 }
 
 function showAuthAlert(msg) {
@@ -227,7 +244,7 @@ function quickFillAndLogin(username, password) {
 async function executeLogin(username, password) {
   hideAuthAlert();
   if (!username || !password) {
-    showAuthAlert('Vui lòng nhập tên đăng nhập và mật khẩu!');
+    showAuthAlert('Thông tin không hợp lệ!');
     return;
   }
 
@@ -245,7 +262,7 @@ async function executeLogin(username, password) {
       addAuditLog(data.data.name, data.data.role, 'USER_LOGIN', `Đăng nhập thành công với tài khoản @${data.data.username}`);
       return;
     } else if (res.status === 401) {
-      showAuthAlert(data.message || 'Tên đăng nhập hoặc mật khẩu không chính xác!');
+      showAuthAlert('Thông tin không hợp lệ!');
       return;
     }
   } catch (err) {
@@ -261,7 +278,7 @@ async function executeLogin(username, password) {
   );
 
   if (!found) {
-    showAuthAlert('❌ Tên đăng nhập hoặc mật khẩu không chính xác!');
+    showAuthAlert('Thông tin không hợp lệ!');
     return;
   }
 
@@ -275,62 +292,427 @@ async function executeLogin(username, password) {
   addAuditLog(found.name, found.role, 'USER_LOGIN', `Đăng nhập thành công với tài khoản @${found.username}`);
 }
 
+function setFieldError(fieldId, errorMsg) {
+  const input = document.getElementById(fieldId);
+  const errEl = document.getElementById('err' + fieldId.charAt(0).toUpperCase() + fieldId.slice(1));
+  if (input) {
+    if (errorMsg) {
+      input.classList.add('is-invalid');
+      input.classList.remove('is-valid');
+    } else {
+      input.classList.remove('is-invalid');
+      input.classList.add('is-valid');
+    }
+  }
+  if (errEl) {
+    errEl.innerText = errorMsg || '';
+    errEl.style.display = errorMsg ? 'block' : 'none';
+  }
+}
+
+function validateField(fieldId) {
+  const el = document.getElementById(fieldId);
+  const val = (el ? el.value : '').trim();
+
+  switch (fieldId) {
+    case 'regFullName': {
+      if (!val) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
+      if (val.length < 2 || val.length > 50) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
+      const nameRegex = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/;
+      if (!nameRegex.test(val)) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
+      setFieldError(fieldId, ''); return true;
+    }
+    case 'regUsername': {
+      if (!val) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
+      if (!/^[a-zA-Z0-9_]{4,20}$/.test(val)) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
+      if (/^[0-9]/.test(val)) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
+      const exists = mockUsers.some(u => u.username.toLowerCase() === val.toLowerCase());
+      if (exists) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
+      setFieldError(fieldId, ''); return true;
+    }
+    case 'regDob': {
+      if (!val) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
+      const bDate = new Date(val);
+      const now = new Date();
+      if (bDate > now) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
+      let age = now.getFullYear() - bDate.getFullYear();
+      const m = now.getMonth() - bDate.getMonth();
+      if (m < 0 || (m === 0 && now.getDate() < bDate.getDate())) age--;
+      if (age < 18 || age > 100) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
+      setFieldError(fieldId, ''); return true;
+    }
+    case 'regGender': {
+      if (!val) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
+      setFieldError(fieldId, ''); return true;
+    }
+    case 'regPhone': {
+      const cleanP = val.replace(/[\s.-]/g, '');
+      if (!cleanP) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
+      if (!/^(03|05|07|08|09)[0-9]{8}$/.test(cleanP)) {
+        setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false;
+      }
+      if (/^(\d)\1{9}$/.test(cleanP) || cleanP === '0123456789' || cleanP === '0987654321') {
+        setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false;
+      }
+      setFieldError(fieldId, ''); return true;
+    }
+    case 'regEmail': {
+      const cleanE = val.toLowerCase();
+      if (!cleanE) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(cleanE) || cleanE.includes('..')) {
+        setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false;
+      }
+      const domain = cleanE.split('@')[1];
+      if (['test.com', 'example.com', 'fake.com', 'mailinator.com', 'abc.xyz'].includes(domain)) {
+        setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false;
+      }
+      const exists = mockUsers.some(u => u.email.toLowerCase() === cleanE);
+      if (exists) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
+      setFieldError(fieldId, ''); return true;
+    }
+    case 'regCccd': {
+      const cleanC = val.replace(/\s/g, '');
+      if (!cleanC) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
+      if (!/^[0-9]{12}$/.test(cleanC)) {
+        setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false;
+      }
+      const prov = cleanC.substring(0, 3);
+      if (!VALID_PROVINCES.includes(prov)) {
+        setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false;
+      }
+      // Cross validation with DOB & Gender
+      const dobVal = document.getElementById('regDob')?.value;
+      const genderVal = document.getElementById('regGender')?.value;
+      if (dobVal && genderVal) {
+        const bYear = new Date(dobVal).getFullYear();
+        let expCode = -1;
+        if (bYear >= 1900 && bYear <= 1999) expCode = (genderVal === 'Nam') ? 0 : 1;
+        else if (bYear >= 2000 && bYear <= 2099) expCode = (genderVal === 'Nam') ? 2 : 3;
+        const actualCode = parseInt(cleanC.charAt(3), 10);
+        if (expCode !== -1 && actualCode !== expCode) {
+          setFieldError(fieldId, 'Thông tin không hợp lệ!');
+          return false;
+        }
+        const expYear = String(bYear).slice(-2);
+        const actYear = cleanC.substring(4, 6);
+        if (expYear !== actYear) {
+          setFieldError(fieldId, 'Thông tin không hợp lệ!');
+          return false;
+        }
+      }
+      setFieldError(fieldId, ''); return true;
+    }
+    case 'regPassword': {
+      if (!val) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
+      if (val.length < 6) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
+      setFieldError(fieldId, ''); return true;
+    }
+    case 'regPasswordConfirm': {
+      const pw = document.getElementById('regPassword')?.value || '';
+      if (!val) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
+      if (val !== pw) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
+      setFieldError(fieldId, ''); return true;
+    }
+  }
+  return true;
+}
+
+function validateAllRegistrationFields() {
+  const fields = ['regFullName', 'regUsername', 'regDob', 'regGender', 'regPhone', 'regEmail', 'regCccd', 'regPassword', 'regPasswordConfirm'];
+  let allValid = true;
+  let firstInvalid = null;
+
+  for (const f of fields) {
+    const isValid = validateField(f);
+    if (!isValid) {
+      allValid = false;
+      if (!firstInvalid) firstInvalid = f;
+    }
+  }
+
+  if (firstInvalid) {
+    const el = document.getElementById(firstInvalid);
+    if (el) {
+      el.focus();
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  return allValid;
+}
+
 async function handleRegisterFormSubmit(e) {
   if (e) e.preventDefault();
-  const name = document.getElementById('regFullName').value.trim();
-  const username = document.getElementById('regUsername').value.trim().toLowerCase();
-  const password = document.getElementById('regPassword').value.trim();
-  const confirm = document.getElementById('regPasswordConfirm').value.trim();
-  const email = document.getElementById('regEmail').value.trim();
-  const phone = document.getElementById('regPhone').value.trim();
-  const cccd = document.getElementById('regCccd').value.trim();
-  const facility = document.getElementById('regFacility').value;
+  hideAuthAlert();
 
-  if (password !== confirm) {
-    alert('Hai lần nhập mật khẩu không trùng khớp!');
+  if (!validateAllRegistrationFields()) {
+    showAuthAlert('Thông tin không hợp lệ!');
     return;
   }
 
-  const payload = { name, username, password, email, phone, cccd, facility, role: 'CUSTOMER' };
+  const name = document.getElementById('regFullName').value.trim();
+  const username = document.getElementById('regUsername').value.trim().toLowerCase();
+  const dob = document.getElementById('regDob').value;
+  const gender = document.getElementById('regGender').value;
+  const phone = document.getElementById('regPhone').value.trim().replace(/[\s.-]/g, '');
+  const email = document.getElementById('regEmail').value.trim().toLowerCase();
+  const cccd = document.getElementById('regCccd').value.trim().replace(/\s/g, '');
+  const facility = document.getElementById('regFacility').value;
+  const password = document.getElementById('regPassword').value;
 
-  // 1. Try server register
+  const userData = { name, username, dob, gender, phone, email, cccd, facility, password };
+
+  // Generate 6-digit OTP code
+  const generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
+  currentPendingRegistration = {
+    userData,
+    otpCode: generatedCode,
+    expiresAt: Date.now() + 5 * 60 * 1000
+  };
+
+  // Try sending to backend service
   try {
-    const res = await fetch('/api/auth/register', {
+    const res = await fetch('/api/auth/send-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ ...userData, confirmPassword: password })
     });
-    const data = await res.json();
-    if (res.ok && data.success && data.data) {
-      applyUserSession(data.data);
-      showToast('✨ Đăng ký tài khoản thành công! Đã đăng nhập vào hệ thống.');
-      addAuditLog(data.data.name, 'CUSTOMER', 'USER_REGISTER', `Đăng ký tài khoản mới @${data.data.username}`);
+    const resData = await res.json();
+    if (res.ok && resData.code) {
+      currentPendingRegistration.otpCode = resData.code;
+    }
+  } catch (err) {
+    console.warn('[Register] Send OTP API offline, using local verification.');
+  }
+
+  // Open OTP Modal
+  openOtpVerificationModal(email, currentPendingRegistration.otpCode);
+}
+
+function openOtpVerificationModal(email, code) {
+  document.getElementById('txtVerifyEmailTarget').innerText = email;
+  document.getElementById('simulatedOtpCode').innerText = code;
+  const alertBox = document.getElementById('otpErrorAlert');
+  if (alertBox) alertBox.style.display = 'none';
+
+  const inputs = document.querySelectorAll('.otp-digit-input');
+  inputs.forEach(inp => {
+    inp.value = '';
+    inp.classList.remove('filled');
+  });
+
+  openModal('modalEmailVerify');
+  setupOtpDigitInputs();
+  startOtpCountdown(60);
+  showToast(`📧 Đã gửi mã xác minh 6 số tới ${email}!`);
+}
+
+function setupOtpDigitInputs() {
+  const inputs = document.querySelectorAll('.otp-digit-input');
+  if (!inputs || inputs.length === 0) return;
+
+  inputs.forEach((input, index) => {
+    input.oninput = (e) => {
+      const val = e.target.value.replace(/[^0-9]/g, '');
+      e.target.value = val ? val[val.length - 1] : '';
+      if (val) {
+        input.classList.add('filled');
+        if (index < inputs.length - 1) {
+          inputs[index + 1].focus();
+        } else {
+          checkOtpAutoSubmit();
+        }
+      } else {
+        input.classList.remove('filled');
+      }
+    };
+
+    input.onkeydown = (e) => {
+      if (e.key === 'Backspace' && !input.value && index > 0) {
+        inputs[index - 1].focus();
+      }
+    };
+
+    input.onpaste = (e) => {
+      e.preventDefault();
+      const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
+      if (pasted) {
+        for (let i = 0; i < inputs.length; i++) {
+          if (pasted[i]) {
+            inputs[i].value = pasted[i];
+            inputs[i].classList.add('filled');
+          }
+        }
+        const lastIdx = Math.min(pasted.length, inputs.length) - 1;
+        inputs[lastIdx].focus();
+        checkOtpAutoSubmit();
+      }
+    };
+  });
+
+  setTimeout(() => inputs[0].focus(), 150);
+}
+
+function autoFillOtp() {
+  if (!currentPendingRegistration) return;
+  const code = currentPendingRegistration.otpCode;
+  const inputs = document.querySelectorAll('.otp-digit-input');
+  for (let i = 0; i < inputs.length; i++) {
+    inputs[i].value = code[i] || '';
+    inputs[i].classList.add('filled');
+  }
+  showToast('Đã tự động điền mã xác nhận!');
+}
+
+function checkOtpAutoSubmit() {
+  const inputs = document.querySelectorAll('.otp-digit-input');
+  let fullCode = '';
+  inputs.forEach(inp => fullCode += (inp.value || ''));
+  if (fullCode.length === 6) {
+    setTimeout(submitOtpVerification, 200);
+  }
+}
+
+async function submitOtpVerification() {
+  const inputs = document.querySelectorAll('.otp-digit-input');
+  let enteredCode = '';
+  inputs.forEach(inp => enteredCode += (inp.value || '').trim());
+
+  const alertBox = document.getElementById('otpErrorAlert');
+  if (enteredCode.length !== 6) {
+    if (alertBox) {
+      alertBox.innerText = 'Thông tin không hợp lệ!';
+      alertBox.style.display = 'block';
+    }
+    return;
+  }
+
+  if (!currentPendingRegistration) {
+    if (alertBox) {
+      alertBox.innerText = 'Thông tin không hợp lệ!';
+      alertBox.style.display = 'block';
+    }
+    return;
+  }
+
+  if (Date.now() > currentPendingRegistration.expiresAt) {
+    if (alertBox) {
+      alertBox.innerText = 'Mã xác minh đã hết hạn!';
+      alertBox.style.display = 'block';
+    }
+    return;
+  }
+
+  // 1. Try server OTP verification
+  try {
+    const res = await fetch('/api/auth/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: currentPendingRegistration.userData.email,
+        code: enteredCode
+      })
+    });
+    const resData = await res.json();
+    if (res.ok && resData.success && resData.data) {
+      completeRegistrationSuccess(resData.data);
+      return;
+    } else if (!res.ok) {
+      if (alertBox) {
+        alertBox.innerText = resData.message || 'Thông tin không hợp lệ!';
+        alertBox.style.display = 'block';
+      }
       return;
     }
   } catch (err) {
-    console.warn('[Register] API offline, using local creation.');
+    console.warn('[Register] Verify OTP API offline, using local verification.');
   }
 
-  // 2. Local fallback creation
+  // 2. Local verification fallback
+  if (enteredCode !== currentPendingRegistration.otpCode) {
+    if (alertBox) {
+      alertBox.innerText = 'Thông tin không hợp lệ!';
+      alertBox.style.display = 'block';
+    }
+    return;
+  }
+
+  const u = currentPendingRegistration.userData;
   const newUser = {
     id: `USR-0${mockUsers.length + 1}`,
-    name,
-    username,
-    password,
-    email,
-    phone,
-    cccd: cccd || '001202099999',
+    name: u.name,
+    dob: u.dob,
+    gender: u.gender,
+    username: u.username,
+    password: u.password,
+    email: u.email,
+    phone: u.phone,
+    cccd: u.cccd,
     role: 'CUSTOMER',
     roleTitle: 'Khách hàng thuê kho',
-    facility,
+    facility: u.facility,
     facilityCode: 'HN-CG',
-    status: 'ACTIVE'
+    status: 'ACTIVE',
+    emailVerified: true
   };
 
   mockUsers.push(newUser);
-  applyUserSession(newUser);
-  showToast('✨ Đăng ký tài khoản thành công! Đã đăng nhập vào hệ thống.');
-  addAuditLog(newUser.name, 'CUSTOMER', 'USER_REGISTER', `Đăng ký tài khoản mới @${newUser.username}`);
+  completeRegistrationSuccess(newUser);
+}
+
+function completeRegistrationSuccess(user) {
+  closeModal('modalEmailVerify');
+  clearInterval(otpCountdownInterval);
+  currentPendingRegistration = null;
+
+  applyUserSession(user);
+  showToast(`🎉 Đăng ký & xác thực email thành công! Chào mừng ${user.name}`);
+  addAuditLog(user.name, 'CUSTOMER', 'USER_REGISTER', `Đăng ký & xác thực thành công tài khoản @${user.username}`);
+}
+
+function startOtpCountdown(seconds = 60) {
+  clearInterval(otpCountdownInterval);
+  let remain = seconds;
+  const countEl = document.getElementById('otpCountdown');
+  const btnResend = document.getElementById('btnResendOtp');
+  if (btnResend) btnResend.style.pointerEvents = 'none';
+
+  if (countEl) countEl.innerText = remain;
+
+  otpCountdownInterval = setInterval(() => {
+    remain--;
+    if (countEl) countEl.innerText = remain;
+    if (remain <= 0) {
+      clearInterval(otpCountdownInterval);
+      if (btnResend) {
+        btnResend.style.pointerEvents = 'auto';
+        btnResend.innerHTML = 'Gửi lại mã mới';
+      }
+    }
+  }, 1000);
+}
+
+async function resendOtpCode() {
+  if (!currentPendingRegistration) return;
+  const newCode = Math.floor(100000 + Math.random() * 900000).toString();
+  currentPendingRegistration.otpCode = newCode;
+  currentPendingRegistration.expiresAt = Date.now() + 5 * 60 * 1000;
+
+  document.getElementById('simulatedOtpCode').innerText = newCode;
+  const alertBox = document.getElementById('otpErrorAlert');
+  if (alertBox) alertBox.style.display = 'none';
+
+  try {
+    await fetch('/api/auth/resend-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: currentPendingRegistration.userData.email })
+    });
+  } catch (err) {}
+
+  startOtpCountdown(60);
+  showToast('📬 Đã gửi lại mã xác minh mới vào email của bạn!');
 }
 
 function applyUserSession(user) {
@@ -381,6 +763,19 @@ function applyUserSession(user) {
   }
 
   renderAppNavLinks();
+
+  // If user had a pending reservation intent, resume booking!
+  if (pendingReservationIntent) {
+    const { name, size, price } = pendingReservationIntent;
+    pendingReservationIntent = null;
+    navigateToScreen('SCR-C00');
+    setTimeout(() => {
+      openReservationModal(name, size, price);
+      showToast(`Chào mừng ${user.name}! Bạn có thể tiếp tục hoàn tất đơn đặt kho.`);
+    }, 400);
+    return;
+  }
+
   navigateToScreen(meta.defaultScreen);
 }
 
@@ -452,9 +847,10 @@ function renderAppNavLinks() {
   if (!currentUser) {
     nav.innerHTML = `
       <span class="nav-item-link ${currentScreen === 'SCR-C00' ? 'active' : ''}" onclick="navigateToScreen('SCR-C00')">Trang chủ</span>
-      <span class="nav-item-link" onclick="scrollToLandingSection('landing-pricing')">Kho lưu trữ</span>
-      <span class="nav-item-link" onclick="scrollToLandingSection('landing-process')">Điều kiện thuê</span>
-      <span class="nav-item-link" onclick="scrollToLandingSection('landing-facilities')">Chính sách bảo mật</span>
+      <span class="nav-item-link" onclick="scrollToLandingSection('sectionBranchStockPreview')">Số lượng kho các nơi</span>
+      <span class="nav-item-link" onclick="scrollToLandingSection('landing-pricing')">Bảng giá kho</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-C01' ? 'active' : ''}" onclick="navigateToScreen('SCR-C01')">Tra cứu chi nhánh</span>
+      <span class="nav-item-link" onclick="scrollToLandingSection('landing-facilities')">Cơ sở lưu trữ</span>
     `;
     return;
   }
@@ -535,6 +931,13 @@ function navigateToScreen(screenId) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
+    if (screenId === 'SCR-C02') {
+      pendingReservationIntent = { name: 'Kho Tiêu Chuẩn M', size: '5.0 m²', price: 1450000 };
+      showToast('ℹ️ Vui lòng đăng nhập hoặc đăng ký tài khoản để tiếp tục đặt giữ chỗ!');
+      openAuthScreen('LOGIN');
+      showAuthAlert('Vui lòng đăng nhập hoặc đăng ký tài khoản để tiếp tục đặt giữ chỗ kho!');
+      return;
+    }
     showToast('⚠️ Vui lòng đăng nhập để truy cập tính năng này!');
     openAuthScreen('LOGIN');
     return;
@@ -579,7 +982,10 @@ function handleBranchChange(val) {
 // CUSTOMER ACTOR WORKFLOWS
 // ==============================================================================
 
+let currentDetailUnit = { name: 'Kho Tiêu Chuẩn Medium (M)', size: '5.0 m²', volume: '12.5 m³', price: 1450000 };
+
 function openUnitDetailModal(name, size, volume, price) {
+  currentDetailUnit = { name, size, volume, price };
   document.getElementById('mdlDetailUnitTitle').innerText = name;
   document.getElementById('mdlDetailSize').innerText = size;
   document.getElementById('mdlDetailVol').innerText = volume;
@@ -587,11 +993,159 @@ function openUnitDetailModal(name, size, volume, price) {
   openModal('modalUnitDetail');
 }
 
+function handleDetailModalBookNow() {
+  if (currentDetailUnit) {
+    openReservationModal(currentDetailUnit.name, currentDetailUnit.size, currentDetailUnit.price);
+  } else {
+    openReservationModal('Kho Tiêu Chuẩn Medium (M)', '5.0 m²', 1450000);
+  }
+}
+
 function openReservationModal(name, size, price) {
   closeModal('modalUnitDetail');
+  if (!currentUser) {
+    pendingReservationIntent = { name, size, price };
+    showToast('ℹ️ Vui lòng đăng nhập hoặc đăng ký tài khoản để tiếp tục đặt giữ chỗ kho!');
+    openAuthScreen('LOGIN');
+    showAuthAlert(`Vui lòng đăng nhập hoặc đăng ký tài khoản để đặt: ${name} (${size})!`);
+    return;
+  }
   document.getElementById('mdlRsvUnitName').innerText = `${name} (${size})`;
   document.getElementById('mdlRsvPrice').innerText = price.toLocaleString('vi-VN') + ' đ/tháng';
   openModal('modalReservation');
+}
+
+// Data & Renderer: Real-time Branch Warehouse Inventory for Guest Explorer
+const branchStockData = {
+  'HN-CG': {
+    name: 'Cơ sở Cầu Giấy (120 Duy Tân, Hà Nội)',
+    total: 120,
+    available: 34,
+    reserved: 8,
+    occupied: 78,
+    units: [
+      { code: 'CG-101', name: 'Kho Mini S', size: '2.0 m²', vol: '4.9 m³', price: 650000, stock: 12, floor: 'Tầng 1 (Khu A)' },
+      { code: 'CG-102', name: 'Kho Tiêu Chuẩn M', size: '5.0 m²', vol: '12.5 m³', price: 1450000, stock: 14, floor: 'Tầng 1 (Khu A)' },
+      { code: 'CG-205', name: 'Kho Lớn L', size: '10.0 m²', vol: '25.0 m³', price: 2800000, stock: 6, floor: 'Tầng 2 (Khu B)' },
+      { code: 'CG-301', name: 'Kho Khoang Lớn XL', size: '16.0 m²', vol: '40.0 m³', price: 4200000, stock: 2, floor: 'Tầng trệt (Lối xe tải)' }
+    ]
+  },
+  'HCM-Q7': {
+    name: 'Cơ sở Quận 7 (Nguyễn Thị Thập, TP.HCM)',
+    total: 150,
+    available: 42,
+    reserved: 10,
+    occupied: 98,
+    units: [
+      { code: 'Q7-101', name: 'Kho Mini S', size: '2.0 m²', vol: '4.9 m³', price: 700000, stock: 16, floor: 'Tầng 1' },
+      { code: 'Q7-105', name: 'Kho Tiêu Chuẩn M', size: '5.0 m²', vol: '12.5 m³', price: 1500000, stock: 18, floor: 'Tầng 1 - Khu mát' },
+      { code: 'Q7-202', name: 'Kho Lớn L', size: '10.0 m²', vol: '25.0 m³', price: 2900000, stock: 6, floor: 'Tầng 2' },
+      { code: 'Q7-308', name: 'Kho Doanh Nghiệp XL', size: '18.0 m²', vol: '45.0 m³', price: 4600000, stock: 2, floor: 'Tầng trệt' }
+    ]
+  },
+  'HN-NTL': {
+    name: 'Cơ sở Nam Từ Liêm (Khu Công Nghệ Cao, Hà Nội)',
+    total: 110,
+    available: 29,
+    reserved: 5,
+    occupied: 76,
+    units: [
+      { code: 'NTL-101', name: 'Kho Mini S', size: '2.0 m²', vol: '4.9 m³', price: 620000, stock: 10, floor: 'Tầng 1' },
+      { code: 'NTL-104', name: 'Kho Tiêu Chuẩn M', size: '5.0 m²', vol: '12.5 m³', price: 1400000, stock: 12, floor: 'Tầng 1' },
+      { code: 'NTL-201', name: 'Kho Lớn L', size: '10.0 m²', vol: '25.0 m³', price: 2700000, stock: 5, floor: 'Tầng 2' },
+      { code: 'NTL-302', name: 'Kho Khoang Lớn XL', size: '16.0 m²', vol: '40.0 m³', price: 4100000, stock: 2, floor: 'Tầng trệt' }
+    ]
+  },
+  'HCM-TB': {
+    name: 'Cơ sở Tân Bình (Cộng Hòa / KCN Tân Bình, TP.HCM)',
+    total: 140,
+    available: 38,
+    reserved: 7,
+    occupied: 95,
+    units: [
+      { code: 'TB-101', name: 'Kho Mini S', size: '2.0 m²', vol: '4.9 m³', price: 680000, stock: 15, floor: 'Tầng 1' },
+      { code: 'TB-106', name: 'Kho Tiêu Chuẩn M', size: '5.0 m²', vol: '12.5 m³', price: 1480000, stock: 14, floor: 'Tầng 1' },
+      { code: 'TB-203', name: 'Kho Lớn L', size: '10.0 m²', vol: '25.0 m³', price: 2850000, stock: 7, floor: 'Tầng 2' },
+      { code: 'TB-305', name: 'Kho Doanh Nghiệp XL', size: '16.0 m²', vol: '40.0 m³', price: 4300000, stock: 2, floor: 'Tầng trệt' }
+    ]
+  },
+  'DN-HC': {
+    name: 'Cơ sở Hải Châu (Nguyễn Văn Linh, Đà Nẵng)',
+    total: 90,
+    available: 24,
+    reserved: 4,
+    occupied: 62,
+    units: [
+      { code: 'HC-101', name: 'Kho Mini S', size: '2.0 m²', vol: '4.9 m³', price: 600000, stock: 8, floor: 'Tầng 1' },
+      { code: 'HC-103', name: 'Kho Tiêu Chuẩn M', size: '5.0 m²', vol: '12.5 m³', price: 1350000, stock: 10, floor: 'Tầng 1' },
+      { code: 'HC-201', name: 'Kho Lớn L', size: '10.0 m²', vol: '25.0 m³', price: 2600000, stock: 4, floor: 'Tầng 2' },
+      { code: 'HC-301', name: 'Kho Khoang Lớn XL', size: '15.0 m²', vol: '38.0 m³', price: 3900000, stock: 2, floor: 'Tầng trệt' }
+    ]
+  }
+};
+
+function renderLandingBranchInventory(facilityCode = 'HN-CG') {
+  const data = branchStockData[facilityCode] || branchStockData['HN-CG'];
+  const statsBar = document.getElementById('landingBranchStatsBar');
+  const unitsGrid = document.getElementById('landingBranchUnitsGrid');
+
+  if (statsBar) {
+    statsBar.innerHTML = `
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 16px;">
+        <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">Tổng phòng kho</div>
+        <div style="font-size:22px; font-weight:800; color:#0f172a; margin-top:2px;">${data.total} <span style="font-size:13px; font-weight:600; color:#64748b;">phòng</span></div>
+      </div>
+      <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:12px 16px;">
+        <div style="font-size:11px; font-weight:700; color:#166534; text-transform:uppercase;">🟢 Còn trống sẵn sàng</div>
+        <div style="font-size:22px; font-weight:800; color:#15803d; margin-top:2px;">${data.available} <span style="font-size:13px; font-weight:600; color:#166534;">kho</span></div>
+      </div>
+      <div style="background:#fefce8; border:1px solid #fef08a; border-radius:10px; padding:12px 16px;">
+        <div style="font-size:11px; font-weight:700; color:#854d0e; text-transform:uppercase;">🟡 Khách đang giữ chỗ</div>
+        <div style="font-size:22px; font-weight:800; color:#ca8a04; margin-top:2px;">${data.reserved} <span style="font-size:13px; font-weight:600; color:#854d0e;">kho</span></div>
+      </div>
+      <div style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; padding:12px 16px;">
+        <div style="font-size:11px; font-weight:700; color:#475569; text-transform:uppercase;">🔴 Đang cho thuê</div>
+        <div style="font-size:22px; font-weight:800; color:#334155; margin-top:2px;">${data.occupied} <span style="font-size:13px; font-weight:600; color:#475569;">kho</span></div>
+      </div>
+    `;
+  }
+
+  if (unitsGrid) {
+    unitsGrid.innerHTML = data.units.map(u => `
+      <div class="ui-card" style="display:flex; flex-direction:column; justify-content:space-between; padding:18px; border:1px solid #e2e8f0; border-radius:12px; transition:transform 0.2s, box-shadow 0.2s; background:#ffffff;">
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span style="font-size:11px; font-weight:800; color:#2563eb; background:#eff6ff; padding:3px 8px; border-radius:6px; letter-spacing:0.5px;">${u.code}</span>
+            <span class="badge badge-success" style="font-size:11px;">🟢 Còn ${u.stock} phòng</span>
+          </div>
+          <h4 style="font-size:16px; font-weight:800; color:#0f172a; margin-bottom:4px;">${u.name}</h4>
+          <div style="font-size:12.5px; color:#64748b; margin-bottom:10px;">
+            📐 Diện tích: <strong>${u.size}</strong> • Thể tích: <strong>${u.vol}</strong><br>
+            📍 Vị trí: ${u.floor}
+          </div>
+          <div style="font-size:12px; color:#475569; display:flex; flex-direction:column; gap:3px; margin-bottom:14px; background:#f8fafc; padding:8px 10px; border-radius:8px;">
+            <div>🔒 Khóa điện tử PIN + Chìa Titan</div>
+            <div>❄️ Cảm biến ẩm 55-65% chống mốc</div>
+            <div>🛡️ Camera bảo vệ trực diện 24/7</div>
+          </div>
+        </div>
+        <div>
+          <div style="margin-bottom:12px;">
+            <span style="font-size:19px; font-weight:800; color:#1e40af;">${u.price.toLocaleString('vi-VN')} đ</span>
+            <span style="font-size:12px; color:#64748b;">/tháng</span>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-outline btn-sm" style="flex:1; justify-content:center; font-weight:700; padding:7px 8px; font-size:12px;" onclick="openUnitDetailModal('${u.name}', '${u.size}', '${u.vol}', ${u.price})">
+              🔍 Chi tiết
+            </button>
+            <button class="btn btn-primary btn-sm" style="flex:1; justify-content:center; font-weight:700; padding:7px 8px; font-size:12px;" onclick="openReservationModal('${u.name}', '${u.size}', ${u.price})">
+              ⚡ Đặt kho
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
 }
 
 function calculateCost() {
