@@ -501,10 +501,10 @@ erDiagram
 | - Đổi mã PIN cá nhân cho khách hàng                                           |
 +-------------------------------------------------------------------------------+
 | [3] OUT-OF-SCOPE (Tuyệt đối KHÔNG làm trong đồ án sinh viên)                  |
-| - KHÔNG lắp đặt thiết bị phần cứng khóa IoT thông minh cơ điện tử thực tế     |
+| - KHÔNG lắp đặt thiết bị phần cứng khóa IoT cơ điện tử thực tế                |
 | - KHÔNG tích hợp đầu đọc thẻ từ NFC phần cứng vật lý tại cửa                  |
 | - KHÔNG kết nối cổng thanh toán Visa/Mastercard quốc tế môi trường thật       |
-| - KHÔNG áp dụng thuật toán AI nhận diện khuôn mặt khách ra vào                |
+| - KHÔNG áp dụng thuật toán nhận diện khuôn mặt sinh trắc học                  |
 | - KHÔNG xây dựng phân hệ kế toán tài chính doanh nghiệp chuyên sâu            |
 +-------------------------------------------------------------------------------+
 ```

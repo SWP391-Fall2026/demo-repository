@@ -16,7 +16,9 @@
   "author": "SWP391 Team",
   "license": "MIT",
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.3",
     "cors": "^2.8.6",
+    "dotenv": "^18.0.6",
     "express": "^5.2.1"
   }
 }

@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SelfStorage PRO - Hệ Thống Quản Lý & Cho Thuê Kho Tự Phục Vụ (5 Actors RBAC)</title>
+  <title>STORAGE - Hệ Thống Quản Lý & Cho Thuê Kho Lưu Trữ Tự Phục Vụ</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -18,15 +18,17 @@
   <!-- Header Navigation -->
   <header class="app-header">
     <div class="header-left-zone">
-      <div class="app-brand-logo" onclick="navigateToScreen('SCR-C00')" title="Về trang chủ SelfStorage PRO">
+      <div class="app-brand-logo" onclick="navigateToScreen('SCR-C00')" title="Về trang chủ STORAGE">
         <div class="app-brand-icon">
-          <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h10v2H7zm0-3h10v2H7zm0 6h7v2H7z" />
+          <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
           </svg>
         </div>
         <div class="brand-text-block">
-          <span class="brand-title">SelfStorage<span style="color:#2563eb;">PRO</span></span>
-          <span class="brand-role-indicator" id="headerRoleIndicator">Khách hàng thuê kho</span>
+          <span class="brand-title" style="letter-spacing:1px; font-weight:800;">STORAGE</span>
+          <span class="brand-role-indicator" id="headerRoleIndicator">KHO ĐƠN | HỆ THỐNG KHO TỰ QUẢN</span>
         </div>
       </div>
     </div>
@@ -36,11 +38,11 @@
       <!-- Populated dynamically based on active role -->
     </nav>
 
-    <!-- RIGHT UTILITIES & USER PROFILE WITH ROLE SWITCHER -->
+    <!-- RIGHT UTILITIES & USER PROFILE WITH RBAC SECURITY -->
     <div class="app-profile-slot">
       <!-- Branch selector -->
-      <div class="branch-selector-wrap">
-        <select class="branch-select-mini" id="activeBranchSelect" onchange="showToast('Đã chuyển sang cơ sở: ' + this.options[this.selectedIndex].text)">
+      <div class="branch-selector-wrap" id="headerBranchWrap" style="display:none;">
+        <select class="branch-select-mini" id="activeBranchSelect" onchange="handleBranchChange(this.value)">
           <option value="HN-CG" selected>📍 Cơ sở Cầu Giấy (120 Duy Tân)</option>
           <option value="HCM-Q7">📍 Cơ sở Quận 7 (Nguyễn Thị Thập)</option>
           <option value="HN-NTL">📍 Cơ sở Nam Từ Liêm (Khu CNC)</option>
@@ -49,101 +51,64 @@
         </select>
       </div>
 
-      <!-- Quick role switch -->
-      <button class="btn-quick-role-switch" onclick="toggleUserDropdown(event)" title="Bấm để chọn vai trò hệ thống">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-          <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>
-        </svg>
-        <span id="btnRoleQuickLabel">Đổi vai trò</span>
-      </button>
-
-      <!-- User profile capsule -->
-      <div class="user-profile-capsule" id="userRoleTrigger" onclick="toggleUserDropdown(event)">
-        <div class="avatar-disc" id="avatarInitials" style="background:#2563eb;">TB</div>
-        <div class="user-meta-info">
-          <div class="user-name-line">
-            <span id="txtUserName">Trần Văn Bảo</span>
-            <svg class="chevron-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M6 9l6 6 6-6"/>
-            </svg>
-          </div>
-          <div class="user-role-badge-pill" id="txtUserRoleBadge">Khách hàng</div>
-        </div>
+      <!-- Logged-out state controls (Matching Mockup) -->
+      <div id="authLoggedOutSlot" class="header-logged-out-group">
+        <button class="btn-nav-login" onclick="openAuthScreen('LOGIN')">Đăng nhập</button>
+        <button class="btn-nav-register" onclick="openAuthScreen('REGISTER')">Đăng ký</button>
+        <button class="btn-nav-user-icon" onclick="openAuthScreen('LOGIN')" title="Tài khoản">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </button>
       </div>
 
-      <!-- User & role dropdown menu -->
+      <!-- Logged-in state profile capsule -->
+      <div id="authLoggedInSlot" style="display:flex; align-items:center; gap:10px;">
+        <div class="user-profile-capsule" id="userRoleTrigger" onclick="toggleUserDropdown(event)" title="Xem thông tin tài khoản">
+          <div class="avatar-disc" id="avatarInitials" style="background:#2563eb;">TB</div>
+          <div class="user-meta-info">
+            <div class="user-name-line">
+              <span id="txtUserName">Trần Văn Bảo</span>
+              <span class="user-username-tag" id="txtUserHandle">@customer</span>
+              <svg class="chevron-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M6 9l6 6 6-6"/>
+              </svg>
+            </div>
+            <div class="user-role-badge-pill" id="txtUserRoleBadge">Khách hàng</div>
+          </div>
+        </div>
+
+        <!-- Dedicated Logout Button -->
+        <button class="btn-logout" id="btnHeaderLogout" onclick="logoutUser()" title="Đăng xuất khỏi tài khoản hiện tại">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          <span>Đăng xuất</span>
+        </button>
+      </div>
+
+      <!-- User profile detail dropdown menu -->
       <div class="user-dropdown-menu" id="userRoleDropdownMenu">
         <div class="dropdown-user-header">
           <div class="dd-avatar-wrap">
             <div class="avatar-disc" id="ddAvatar" style="background:#2563eb; width:40px; height:40px; font-size:15px;">TB</div>
             <div>
               <div class="dd-user-name" id="ddUserName">Trần Văn Bảo</div>
-              <div class="dd-user-email" id="ddUserEmail">baotran@gmail.com</div>
-              <div class="dd-user-tag" id="ddUserRoleText">Vai trò hiện tại: Khách hàng</div>
+              <div class="dd-user-email" id="ddUserEmail">customer@selfstorage.vn</div>
+              <div class="dd-user-tag" id="ddUserRoleText">Vai trò: Khách hàng thuê kho</div>
             </div>
-          </div>
-        </div>
-
-        <div class="dropdown-divider"></div>
-        <div class="dropdown-heading">CHUYỂN VAI TRÒ HỆ THỐNG (5 ROLES)</div>
-
-        <div class="role-select-list">
-          <div class="role-select-item active" id="roleOpt-CUSTOMER" onclick="selectRole('CUSTOMER')">
-            <div class="role-badge-icon bg-customer">👤</div>
-            <div class="role-text-meta">
-              <div class="role-item-title">1. Khách hàng (Customer)</div>
-              <div class="role-item-sub">Tìm kho, bảng giá, VietQR, mã PIN & check-in</div>
-            </div>
-            <div class="role-check-icon">✓</div>
-          </div>
-
-          <div class="role-select-item" id="roleOpt-STAFF" onclick="selectRole('STAFF')">
-            <div class="role-badge-icon bg-staff">👷</div>
-            <div class="role-text-meta">
-              <div class="role-item-title">2. Nhân viên kho (Facility Staff)</div>
-              <div class="role-item-sub">Lịch trực ca, bàn giao kho, kiểm tra, sự cố</div>
-            </div>
-            <div class="role-check-icon">✓</div>
-          </div>
-
-          <div class="role-select-item" id="roleOpt-FMANAGER" onclick="selectRole('FMANAGER')">
-            <div class="role-badge-icon bg-fmanager">🏢</div>
-            <div class="role-text-meta">
-              <div class="role-item-title">3. Quản lý cơ sở (Facility Manager)</div>
-              <div class="role-item-sub">Quản lý 120 kho, duyệt gán phòng, phân công</div>
-            </div>
-            <div class="role-check-icon">✓</div>
-          </div>
-
-          <div class="role-select-item" id="roleOpt-OPS_MGR" onclick="selectRole('OPS_MGR')">
-            <div class="role-badge-icon bg-ops">📈</div>
-            <div class="role-text-meta">
-              <div class="role-item-title">4. Giám đốc vận hành (Ops Manager)</div>
-              <div class="role-item-sub">Toàn chuỗi 5 cơ sở, biểu giá, doanh thu chuỗi</div>
-            </div>
-            <div class="role-check-icon">✓</div>
-          </div>
-
-          <div class="role-select-item" id="roleOpt-ADMIN" onclick="selectRole('ADMIN')">
-            <div class="role-badge-icon bg-admin">⚙️</div>
-            <div class="role-text-meta">
-              <div class="role-item-title">5. Quản trị viên (System Admin)</div>
-              <div class="role-item-sub">Quản lý tài khoản, ma trận phân quyền RBAC, audit</div>
-            </div>
-            <div class="role-check-icon">✓</div>
           </div>
         </div>
 
         <div class="dropdown-divider"></div>
         <div class="dropdown-footer-actions">
-          <button class="dd-action-btn" onclick="openModal('modalIdentitySwitch'); closeUserDropdown();">
-            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-            <span>Đổi người dùng / Demo User</span>
+          <button class="dd-action-btn" style="color:#dc2626;" onclick="logoutUser(); closeUserDropdown();">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+            <span style="font-weight:700;">Đăng xuất</span>
           </button>
-          <a href="docs/Self_Storage_Detailed_Requirement_Specification_v2.md" target="_blank" class="dd-action-btn">
-            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-            <span>Tài liệu SRS v2.0 Baseline</span>
-          </a>
         </div>
       </div>
     </div>
@@ -152,121 +117,621 @@
   <!-- Main Content -->
   <main class="site-main-content" id="liveAppView">
 
+      <!-- =====================================================================
+           AUTHENTICATION SCREEN (LOGIN & REGISTER - 5 ACTORS RBAC)
+           ===================================================================== -->
+      <section class="screen-panel" id="SCR-AUTH">
+        <div class="auth-view-container">
+          <div class="auth-card-wrapper">
+            <div class="auth-card-top-banner">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <button type="button" class="btn btn-sm btn-outline" onclick="navigateToScreen('SCR-C00')" style="background:rgba(255,255,255,0.12); border-color:rgba(255,255,255,0.25); color:white; padding:6px 14px; border-radius:6px; font-size:12.5px; cursor:pointer;">
+                  ← Quay lại Trang chủ
+                </button>
+                <span style="font-size:11.5px; color:#94a3b8; font-weight:600;">HỆ THỐNG KHO TỰ QUẢN</span>
+              </div>
+              <div class="app-brand-logo" onclick="navigateToScreen('SCR-C00')" style="cursor:pointer;">
+                <div class="app-brand-icon">
+                  <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                  </svg>
+                </div>
+                <span class="brand-title" style="letter-spacing:1px; font-weight:800; color:white;">STORAGE</span>
+              </div>
+              <h2 style="font-size:20px; font-weight:800; margin-bottom:6px;">Đăng Nhập Hệ Thống</h2>
+              <p>Hệ thống Quản lý và Cho thuê Kho Lưu trữ Tự phục vụ 24/7. Vui lòng đăng nhập để tiếp tục.</p>
+            </div>
+
+            <div class="auth-tabs-header">
+              <button class="auth-tab-btn active" id="tabBtnLogin" onclick="switchAuthTab('LOGIN')">
+                <span>Đăng Nhập</span>
+              </button>
+              <button class="auth-tab-btn" id="tabBtnRegister" onclick="switchAuthTab('REGISTER')">
+                <span>Đăng Ký Tài Khoản</span>
+              </button>
+            </div>
+
+            <div class="auth-card-body">
+              <!-- ERROR ALERT BOX -->
+              <div id="authAlertBox" style="display:none; background:#fef2f2; border:1px solid #fecaca; color:#b91c1c; border-radius:10px; padding:12px 16px; font-size:13px; font-weight:600; margin-bottom:16px;">
+                Thông báo lỗi
+              </div>
+
+              <!-- FORM ĐĂNG NHẬP -->
+              <div id="authPanelLogin">
+                <form onsubmit="handleLoginFormSubmit(event)">
+                  <div class="form-group" style="margin-bottom:16px;">
+                    <label class="form-label">Tên đăng nhập hoặc Email</label>
+                    <div style="position:relative;">
+                      <input type="text" class="form-control" id="txtLoginUsername" placeholder="Nhập tên đăng nhập hoặc email..." required autocomplete="username">
+                      <span style="position:absolute; right:12px; top:50%; transform:translateY(-50%); color:#94a3b8; pointer-events:none;">👤</span>
+                    </div>
+                  </div>
+
+                  <div class="form-group" style="margin-bottom:20px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                      <label class="form-label" style="margin:0;">Mật khẩu</label>
+                      <span style="font-size:12px; color:#2563eb; cursor:pointer; font-weight:600;" onclick="toggleLoginPassword()">👁️ Hiện/Ẩn mật khẩu</span>
+                    </div>
+                    <input type="password" class="form-control" id="txtLoginPassword" placeholder="Nhập mật khẩu..." required autocomplete="current-password">
+                  </div>
+
+                  <button type="submit" class="btn btn-primary btn-lg" style="width:100%; justify-content:center;" id="btnLoginSubmit">
+                    Đăng nhập vào hệ thống →
+                  </button>
+                </form>
+              </div>
+
+              <!-- FORM ĐĂNG KÝ -->
+              <div id="authPanelRegister" style="display:none;">
+                <form onsubmit="handleRegisterFormSubmit(event)">
+                  <div class="grid-2" style="margin-bottom:14px;">
+                    <div class="form-group">
+                      <label class="form-label">Họ và tên *</label>
+                      <input type="text" class="form-control" id="regFullName" placeholder="Ví dụ: Hoàng Minh Trí" required>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Tên đăng nhập (Username) *</label>
+                      <input type="text" class="form-control" id="regUsername" placeholder="Ví dụ: minhtri2026" required>
+                    </div>
+                  </div>
+
+                  <div class="grid-2" style="margin-bottom:14px;">
+                    <div class="form-group">
+                      <label class="form-label">Mật khẩu *</label>
+                      <input type="password" class="form-control" id="regPassword" placeholder="Nhập mật khẩu..." required>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Xác nhận mật khẩu *</label>
+                      <input type="password" class="form-control" id="regPasswordConfirm" placeholder="Nhập lại mật khẩu..." required>
+                    </div>
+                  </div>
+
+                  <div class="grid-2" style="margin-bottom:14px;">
+                    <div class="form-group">
+                      <label class="form-label">Email liên hệ *</label>
+                      <input type="email" class="form-control" id="regEmail" placeholder="tri.hm@gmail.com" required>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Số điện thoại *</label>
+                      <input type="tel" class="form-control" id="regPhone" placeholder="0912.333.444" required>
+                    </div>
+                  </div>
+
+                  <div class="grid-2" style="margin-bottom:20px;">
+                    <div class="form-group">
+                      <label class="form-label">Số CCCD / CMND</label>
+                      <input type="text" class="form-control" id="regCccd" placeholder="0012020xxxxx">
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Cơ sở kho quan tâm</label>
+                      <select class="form-control" id="regFacility">
+                        <option value="Hà Nội - Cầu Giấy">📍 Hà Nội: Cơ sở Cầu Giấy (120 Duy Tân)</option>
+                        <option value="TP.HCM - Quận 7">📍 TP.HCM: Cơ sở Quận 7 (Nguyễn Thị Thập)</option>
+                        <option value="Hà Nội - Nam Từ Liêm">📍 Hà Nội: Cơ sở Nam Từ Liêm (Khu CNC)</option>
+                        <option value="TP.HCM - Tân Bình">📍 TP.HCM: Cơ sở Tân Bình (Cộng Hòa)</option>
+                        <option value="Đà Nẵng - Hải Châu">📍 Đà Nẵng: Cơ sở Hải Châu (Nguyễn Văn Linh)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <button type="submit" class="btn btn-primary btn-lg" style="width:100%; justify-content:center;">
+                    Đăng ký tài khoản
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- Customer screens -->
 
-      <!-- SCR-C00: LANDING PAGE -->
+      <!-- Customer screens -->
+
+      <!-- =====================================================================
+           SCR-C00: MAIN MENU / LANDING PAGE (PORTAL TRANG CHỦ THEO THIẾT KẾ)
+           ===================================================================== -->
       <section class="screen-panel active" id="SCR-C00">
-        <div class="landing-hero">
-          <div style="max-width:720px; position:relative; z-index:2;">
-            <span class="badge badge-primary"
-              style="background:rgba(255,255,255,0.2); color:white; border-color:rgba(255,255,255,0.3); margin-bottom:14px;">
-              Hệ thống kho tự phục vụ thông minh chuẩn quốc tế 24/7
-            </span>
-            <h1 style="font-size:32px; font-weight:800; line-height:1.25; margin-bottom:12px;">
-              Kho Lưu Trữ Tự Phục Vụ An Toàn, Tiện Lợi & Linh Hoạt
-            </h1>
-            <p style="font-size:15px; opacity:0.9; margin-bottom:24px; line-height:1.6;">
-              Giải pháp thuê kho cá nhân và kho doanh nghiệp mini tại Hà Nội, TP.HCM & Đà Nẵng. Cấp mã PIN điện tử riêng
-              biệt, camera an ninh 24/7, kiểm soát nhiệt độ & độ ẩm chuẩn ISO.
-            </p>
-            <div style="display:flex; gap:12px;">
-              <button class="btn btn-primary btn-lg" onclick="navigateToScreen('SCR-C01')">
-                Khám phá kho trống & Bảng giá →
-              </button>
-              <button class="btn btn-outline btn-lg" style="color:white; border-color:rgba(255,255,255,0.4);"
-                onclick="navigateToScreen('SCR-C02')">
-                Đặt giữ chỗ online
-              </button>
-            </div>
-          </div>
-        </div>
+        <div class="landing-page-wrap">
 
-        <!-- Rental Process -->
-        <div class="ui-card">
-          <div class="ui-card-header">
-            <h3 class="ui-card-title">🚀 Quy trình thuê kho tự phục vụ 4 bước nhanh gọn</h3>
-            <span class="badge badge-primary">Tiện lợi 100% online</span>
-          </div>
-          <div class="grid-4">
-            <div style="padding:16px; background:#f8fafc; border-radius:10px; border:1px solid #e2e8f0;">
-              <div style="font-size:20px; font-weight:800; color:#2563eb; margin-bottom:6px;">01</div>
-              <div style="font-weight:700; margin-bottom:4px;">Chọn kho & Đặt chỗ</div>
-              <div style="font-size:12px; color:#64748b;">Khám phá các gói kho S/M/L, chọn thời gian thuê và chi nhánh
-                gần nhất.</div>
-            </div>
-            <div style="padding:16px; background:#f8fafc; border-radius:10px; border:1px solid #e2e8f0;">
-              <div style="font-size:20px; font-weight:800; color:#2563eb; margin-bottom:6px;">02</div>
-              <div style="font-weight:700; margin-bottom:4px;">Thanh toán cọc VietQR</div>
-              <div style="font-size:12px; color:#64748b;">Quét mã QR chuyển khoản 24/7. Hệ thống tự động xác nhận sau 5
-                giây.</div>
-            </div>
-            <div style="padding:16px; background:#f8fafc; border-radius:10px; border:1px solid #e2e8f0;">
-              <div style="font-size:20px; font-weight:800; color:#2563eb; margin-bottom:6px;">03</div>
-              <div style="font-weight:700; margin-bottom:4px;">Nhận Thẻ hẹn & Mã PIN</div>
-              <div style="font-size:12px; color:#64748b;">Hệ thống gán số phòng kho cụ thể và cấp mã PIN bảo mật 6 số
-                qua ứng dụng.</div>
-            </div>
-            <div style="padding:16px; background:#f8fafc; border-radius:10px; border:1px solid #e2e8f0;">
-              <div style="font-size:20px; font-weight:800; color:#2563eb; margin-bottom:6px;">04</div>
-              <div style="font-weight:700; margin-bottom:4px;">Tự do ra vào 24/7</div>
-              <div style="font-size:12px; color:#64748b;">Nhập mã PIN hoặc quẹt thẻ từ để lưu trữ, lấy hàng bất kỳ lúc
-                nào bạn muốn.</div>
-            </div>
-          </div>
-        </div>
+          <!-- 1. HERO SECTION -->
+          <div class="landing-hero-block">
+            <div class="landing-container">
+              <div class="landing-hero-grid">
 
-        <!-- Packages Preview -->
-        <div class="grid-3">
-          <div class="ui-card">
-            <div class="unit-card-3d-box">
-              <span style="font-size:32px;">📦</span>
-              <span style="font-weight:700; font-size:15px; margin-top:6px;">KHO NHỎ (SMALL S)</span>
-            </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-              <h4 style="font-size:16px; font-weight:800;">Kho S-Standard (2.0 m²)</h4>
-              <span class="badge badge-success">🟢 Còn 6 phòng</span>
-            </div>
-            <p style="font-size:13px; color:#64748b; margin-bottom:14px;">Thể tích 5.0 m³. Chứa vừa vali, tài liệu cá
-              nhân, quạt điện, 8 thùng carton.</p>
-            <div style="font-size:20px; font-weight:800; color:#1e40af; margin-bottom:14px;">800.000 đ <span
-                style="font-size:12px; color:#64748b; font-weight:500;">/ tháng</span></div>
-            <button class="btn btn-primary btn-block"
-              onclick="openReservationModal('Kho S-Standard', '2.0 m²', 800000)">Đặt giữ chỗ ngay</button>
-          </div>
+                <!-- Hero Left: Content -->
+                <div class="landing-hero-left">
+                  <div class="hero-kicker-pill">
+                    <span class="hero-kicker-dot"></span>
+                    <span>DỊCH VỤ KHO TỰ QUẢN TIÊU CHUẨN</span>
+                  </div>
+                  <h1 class="hero-headline">
+                    Kho lưu trữ tự phục vụ an toàn và linh hoạt
+                  </h1>
+                  <p class="hero-subtext">
+                    Giúp bạn dễ dàng tìm kho phù hợp nhu cầu, đặt giữ chỗ trực tuyến nhanh chóng, thanh toán tiền cọc minh bạch và chủ động quản lý kho thuê tự phục vụ.
+                  </p>
+                  <div class="hero-actions-row">
+                    <button class="btn-hero-cta-main" onclick="scrollToLandingSection('landing-pricing')">
+                      <span>Tìm kho lưu trữ</span>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </button>
+                    <button class="btn-hero-cta-secondary" onclick="openAuthScreen('LOGIN')">
+                      Đăng nhập
+                    </button>
+                  </div>
 
-          <div class="ui-card" style="border:2px solid #2563eb;">
-            <div class="unit-card-3d-box" style="background:linear-gradient(135deg, #1e40af 0%, #0f172a 100%);">
-              <span style="font-size:32px;">🏢</span>
-              <span style="font-weight:700; font-size:15px; margin-top:6px;">KHO TIÊU CHUẨN (MEDIUM M) - PHỔ BIẾN</span>
+                  <!-- 3 Feature Badges Bar -->
+                  <div class="hero-meta-bar">
+                    <div class="hero-meta-col">
+                      <div class="hero-meta-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+                      </div>
+                      <div class="hero-meta-info">
+                        <strong>Kiểm soát</strong>
+                        <span>Ra vào cài khóa an toàn</span>
+                      </div>
+                    </div>
+                    <div class="hero-meta-divider"></div>
+                    <div class="hero-meta-col">
+                      <div class="hero-meta-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
+                      </div>
+                      <div class="hero-meta-info">
+                        <strong>Không gian</strong>
+                        <span>Khí hậu thông thoáng</span>
+                      </div>
+                    </div>
+                    <div class="hero-meta-divider"></div>
+                    <div class="hero-meta-col">
+                      <div class="hero-meta-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                      </div>
+                      <div class="hero-meta-info">
+                        <strong>Kích thước</strong>
+                        <span>Linh hoạt theo nhu cầu</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Hero Right: Photo with Floating Glass Badge -->
+                <div class="landing-hero-right">
+                  <div class="hero-photo-wrapper">
+                    <img src="images/hero_storage.jpg" alt="Hành lang kho tự quản tiêu chuẩn" class="hero-primary-photo">
+                    <div class="hero-floating-glass-card">
+                      <div class="hf-info">
+                        <div class="hf-title-line">
+                          <span class="hf-dot"></span>
+                          <span class="hf-title">Hành lang kho Khóa 04</span>
+                        </div>
+                        <span class="hf-desc">Hệ thống giám sát và chiếu sáng tự động</span>
+                      </div>
+                      <div class="hf-badge-verified">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>Đạt chuẩn</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-              <h4 style="font-size:16px; font-weight:800;">Kho M-Standard (5.0 m²)</h4>
-              <span class="badge badge-warning">🟡 Sắp hết</span>
-            </div>
-            <p style="font-size:13px; color:#64748b; margin-bottom:14px;">Thể tích 12.5 m³. Chứa đồ gia đình 1 phòng
-              ngủ, xe máy, bàn ghế, 25 thùng đồ.</p>
-            <div style="font-size:20px; font-weight:800; color:#1e40af; margin-bottom:14px;">1.450.000 đ <span
-                style="font-size:12px; color:#64748b; font-weight:500;">/ tháng</span></div>
-            <button class="btn btn-primary btn-block"
-              onclick="openReservationModal('Kho M-Standard', '5.0 m²', 1450000)">Đặt giữ chỗ ngay</button>
           </div>
 
-          <div class="ui-card">
-            <div class="unit-card-3d-box">
-              <span style="font-size:32px;">🏬</span>
-              <span style="font-weight:700; font-size:15px; margin-top:6px;">KHO LỚN (LARGE L)</span>
+          <!-- 2. SECTION: ƯU THẾ DỊCH VỤ -->
+          <section class="landing-content-section" id="landing-benefits">
+            <div class="landing-container">
+              <div class="landing-section-header">
+                <span class="section-kicker">ƯU THẾ DỊCH VỤ</span>
+                <h2 class="section-title">Trải nghiệm lưu trữ bài bản và tiện ích</h2>
+                <p class="section-desc">Được thiết kế nhằm tối ưu hóa sự thuận tiện cho việc lưu giữ đồ gia đình lẫn hàng hoá kinh doanh.</p>
+              </div>
+
+              <div class="benefits-cards-grid">
+                <!-- Card 1 -->
+                <div class="benefit-feature-card">
+                  <div class="bf-icon-wrap">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                  </div>
+                  <h3 class="bf-title">Nhiều kích thước kho</h3>
+                  <p class="bf-text">Đa dạng kích cỡ từ 1.2-12.0m mini, kho cá nhân đến kho lưu trữ vật dụng gia đình và doanh nghiệp vừa.</p>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="benefit-feature-card">
+                  <div class="bf-icon-wrap">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                  </div>
+                  <h3 class="bf-title">Vị trí thuận tiện</h3>
+                  <p class="bf-text">Nằm tại các trục đường giao thông trọng điểm, xe tải và xe bán tải dễ dàng tiếp cận tận cửa sảnh.</p>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="benefit-feature-card">
+                  <div class="bf-icon-wrap">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="m9 16 2 2 4-4"/></svg>
+                  </div>
+                  <h3 class="bf-title">Quy trình đặt kho rõ ràng</h3>
+                  <p class="bf-text">Đặt chỗ trực tuyến minh bạch, hiển thị diện tích và giá niêm yết rõ ràng từng kho.</p>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="benefit-feature-card">
+                  <div class="bf-icon-wrap">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                  </div>
+                  <h3 class="bf-title">Theo dõi kho thuê dễ dàng</h3>
+                  <p class="bf-text">Xem thông tin hợp đồng thuê, ngày gia hạn và lịch sử thanh toán trên cổng khách hàng.</p>
+                </div>
+              </div>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-              <h4 style="font-size:16px; font-weight:800;">Kho L-Premium (10.0 m²)</h4>
-              <span class="badge badge-success">🟢 Còn 4 phòng</span>
+          </section>
+
+          <!-- 3. SECTION: PHÂN LOẠI & ĐỊNH GIÁ -->
+          <section class="landing-content-section bg-soft-alt" id="landing-pricing">
+            <div class="landing-container">
+              <div class="landing-section-header">
+                <span class="section-kicker">PHÂN LOẠI & ĐỊNH GIÁ</span>
+                <h2 class="section-title">Các loại kho lưu trữ</h2>
+                <p class="section-desc">Bảng giá niêm yết tham khảo từng loại kho, không chi phí ẩn.</p>
+              </div>
+
+              <div class="pricing-cards-grid">
+                <!-- Card S -->
+                <div class="pricing-plan-card">
+                  <div class="plan-header-row">
+                    <span class="plan-tag-pill">GÓI NHỎ</span>
+                    <span class="plan-volume">Thể tích: ~4 - 7m³</span>
+                  </div>
+                  <h3 class="plan-name">Kho S (Kích thước nhỏ)</h3>
+                  <div class="plan-dimensions">Diện tích: 1.5m² - 3m²</div>
+
+                  <div class="plan-suitable-box">
+                    <div class="ps-label">Phù hợp nhu cầu:</div>
+                    <div class="ps-desc">Vali du lịch, tài liệu, thùng carton, đồ dùng cá nhân.</div>
+                  </div>
+
+                  <div class="plan-pricing-row">
+                    <span class="plan-amount">650.000 đ</span>
+                    <span class="plan-period">/ tháng</span>
+                  </div>
+
+                  <button class="btn-plan-action outline" onclick="openReservationModal('Kho S (Kích thước nhỏ)', '2.0 m²', 650000)">
+                    Xem kho
+                  </button>
+                </div>
+
+                <!-- Card M (Featured) -->
+                <div class="pricing-plan-card featured-highlight">
+                  <div class="popular-ribbon-tag">ĐƯỢC CHỌN NHIỀU</div>
+                  <div class="plan-header-row">
+                    <span class="plan-tag-pill active">GÓI TIÊU CHUẨN</span>
+                    <span class="plan-volume">Thể tích: ~10 - 20m³</span>
+                  </div>
+                  <h3 class="plan-name">Kho M (Kích thước vừa)</h3>
+                  <div class="plan-dimensions">Diện tích: 4m² - 8m²</div>
+
+                  <div class="plan-suitable-box">
+                    <div class="ps-label">Phù hợp nhu cầu:</div>
+                    <div class="ps-desc">Đồ nội thất căn hộ 1-2 phòng ngủ, thiết bị gia dụng, hàng hóa kinh doanh online.</div>
+                  </div>
+
+                  <div class="plan-pricing-row">
+                    <span class="plan-amount">1.450.000 đ</span>
+                    <span class="plan-period">/ tháng</span>
+                  </div>
+
+                  <button class="btn-plan-action solid-dark" onclick="openReservationModal('Kho M (Kích thước vừa)', '5.0 m²', 1450000)">
+                    Xem kho
+                  </button>
+                </div>
+
+                <!-- Card L -->
+                <div class="pricing-plan-card">
+                  <div class="plan-header-row">
+                    <span class="plan-tag-pill">GÓI MỞ RỘNG</span>
+                    <span class="plan-volume">Thể tích: ~25 - 50m³</span>
+                  </div>
+                  <h3 class="plan-name">Kho L (Kích thước lớn)</h3>
+                  <div class="plan-dimensions">Diện tích: 10m² - 20m²</div>
+
+                  <div class="plan-suitable-box">
+                    <div class="ps-label">Phù hợp nhu cầu:</div>
+                    <div class="ps-desc">Toàn bộ nội thất nhà phố, hàng tồn kho doanh nghiệp, thiết bị văn phòng.</div>
+                  </div>
+
+                  <div class="plan-pricing-row">
+                    <span class="plan-amount">2.800.000 đ</span>
+                    <span class="plan-period">/ tháng</span>
+                  </div>
+
+                  <button class="btn-plan-action outline" onclick="openReservationModal('Kho L (Kích thước lớn)', '10.0 m²', 2800000)">
+                    Xem kho
+                  </button>
+                </div>
+              </div>
             </div>
-            <p style="font-size:13px; color:#64748b; margin-bottom:14px;">Thể tích 25.0 m³. Phù hợp kho hàng thương mại
-              điện tử, thiết bị văn phòng, pallet hàng.</p>
-            <div style="font-size:20px; font-weight:800; color:#1e40af; margin-bottom:14px;">2.800.000 đ <span
-                style="font-size:12px; color:#64748b; font-weight:500;">/ tháng</span></div>
-            <button class="btn btn-primary btn-block"
-              onclick="openReservationModal('Kho L-Premium', '10.0 m²', 2800000)">Đặt giữ chỗ ngay</button>
+          </section>
+
+          <!-- 4. SECTION: LỘ TRÌNH SỬ DỤNG -->
+          <section class="landing-content-section" id="landing-process">
+            <div class="landing-container">
+              <div class="landing-section-header">
+                <span class="section-kicker">LỘ TRÌNH SỬ DỤNG</span>
+                <h2 class="section-title">Quy trình thuê kho</h2>
+                <p class="section-desc">4 bước trực quan để bắt đầu thuê và sử dụng kho lưu trữ tự phục vụ.</p>
+              </div>
+
+              <div class="steps-flow-grid">
+                <!-- Step 1 -->
+                <div class="step-card">
+                  <div class="step-top-row">
+                    <span class="step-number">01</span>
+                    <div class="step-icon-bubble">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </div>
+                  </div>
+                  <h3 class="step-title">Tìm kho</h3>
+                  <p class="step-desc">Chọn loại kho, diện tích và chi nhánh cho phù hợp nhu cầu.</p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="step-card">
+                  <div class="step-top-row">
+                    <span class="step-number">02</span>
+                    <div class="step-icon-bubble">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    </div>
+                  </div>
+                  <h3 class="step-title">Đặt giữ chỗ</h3>
+                  <p class="step-desc">Đăng ký giữ chỗ kho trực tuyến với thông tin thời gian thuê dự kiến.</p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="step-card">
+                  <div class="step-top-row">
+                    <span class="step-number">03</span>
+                    <div class="step-icon-bubble">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                    </div>
+                  </div>
+                  <h3 class="step-title">Thanh toán tiền cọc</h3>
+                  <p class="step-desc">Hoàn tất xác nhận đơn đặt bằng thanh toán tiền cọc theo quy định.</p>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="step-card">
+                  <div class="step-top-row">
+                    <span class="step-number">04</span>
+                    <div class="step-icon-bubble">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 2l-2 2m-1.5 6.5l3-3a2.12 2.12 0 1 0-3-3l-3 3m0 0l-7.5 7.5a2.12 2.12 0 0 0-.62 1.5V20h3.5c.56 0 1.1-.22 1.5-.62l7.5-7.5m0 0l-3-3"/></svg>
+                    </div>
+                  </div>
+                  <h3 class="step-title">Nhận bàn giao</h3>
+                  <p class="step-desc">Đến chi nhánh nhận bàn giao chìa khóa/mã mở kho và bắt đầu sử dụng.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 5. SECTION: MẠNG LƯỚI CƠ SỞ -->
+          <section class="landing-content-section bg-soft-alt" id="landing-facilities">
+            <div class="landing-container">
+              <div class="landing-section-header">
+                <span class="section-kicker">MẠNG LƯỚI CƠ SỞ</span>
+                <h2 class="section-title">Địa điểm lưu trữ</h2>
+                <p class="section-desc">Hệ thống kho tại các vị trí trung tâm, đường xe tải thuận tiện.</p>
+              </div>
+
+              <div class="branches-grid">
+                <!-- Branch 1: Tan Binh -->
+                <div class="branch-card">
+                  <div class="branch-img-frame">
+                    <img src="images/facility_tan_binh.jpg" alt="Cơ sở Tân Bình - TP. Hồ Chí Minh" class="branch-img">
+                    <div class="branch-region-tag">TP. HỒ CHÍ MINH</div>
+                  </div>
+                  <div class="branch-card-content">
+                    <h3 class="branch-name">Cơ sở Tân Bình - TP. Hồ Chí Minh</h3>
+                    <div class="branch-address">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                      <span>Khu Công Nghiệp Tân Bình, P. Tây Thạnh, Q. Tân Phú, TP. HCM</span>
+                    </div>
+                    <ul class="branch-checklist">
+                      <li>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>Bãi đỗ xe tải rộng, tiếp cận tận cửa sảnh</span>
+                      </li>
+                      <li>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>Thang máy nâng hàng tải trọng lớn</span>
+                      </li>
+                      <li>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>Camera giám sát khu vực chung</span>
+                      </li>
+                    </ul>
+                    <button class="btn-branch-action" onclick="scrollToLandingSection('landing-pricing')">Xem kho</button>
+                  </div>
+                </div>
+
+                <!-- Branch 2: District 7 -->
+                <div class="branch-card">
+                  <div class="branch-img-frame">
+                    <img src="images/facility_quan_7.jpg" alt="Cơ sở Quận 7 - TP. Hồ Chí Minh" class="branch-img">
+                    <div class="branch-region-tag">TP. HỒ CHÍ MINH</div>
+                  </div>
+                  <div class="branch-card-content">
+                    <h3 class="branch-name">Cơ sở Quận 7 - TP. Hồ Chí Minh</h3>
+                    <div class="branch-address">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                      <span>Đường Nguyễn Thị Thập, P. Tân Phong, Quận 7, TP. HCM</span>
+                    </div>
+                    <ul class="branch-checklist">
+                      <li>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>Kho mát bảo quản tài liệu & thiết bị</span>
+                      </li>
+                      <li>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>Xe trung chuyển ra vào thuận lợi</span>
+                      </li>
+                      <li>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>Cảm biến kiểm soát độ ẩm phòng kho</span>
+                      </li>
+                    </ul>
+                    <button class="btn-branch-action" onclick="scrollToLandingSection('landing-pricing')">Xem kho</button>
+                  </div>
+                </div>
+
+                <!-- Branch 3: Cau Giay Hanoi -->
+                <div class="branch-card">
+                  <div class="branch-img-frame">
+                    <img src="images/facility_cau_giay.jpg" alt="Cơ sở Cầu Giấy - Hà Nội" class="branch-img">
+                    <div class="branch-region-tag">HÀ NỘI</div>
+                  </div>
+                  <div class="branch-card-content">
+                    <h3 class="branch-name">Cơ sở Cầu Giấy - Hà Nội</h3>
+                    <div class="branch-address">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                      <span>Đường Duy Tân, P. Dịch Vọng Hậu, Q. Cầu Giấy, Hà Nội</span>
+                    </div>
+                    <ul class="branch-checklist">
+                      <li>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>Tiếp giáp các tòa nhà văn phòng trung tâm</span>
+                      </li>
+                      <li>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>Khu lưu trữ sạch sẽ, thông thoáng</span>
+                      </li>
+                      <li>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>Xe đẩy hàng sẵn có phục vụ miễn phí</span>
+                      </li>
+                    </ul>
+                    <button class="btn-branch-action" onclick="scrollToLandingSection('landing-pricing')">Xem kho</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 6. SECTION: CƠ SỞ VẬT CHẤT -->
+          <section class="landing-content-section" id="landing-infrastructure">
+            <div class="landing-container">
+              <div class="landing-section-header">
+                <span class="section-kicker">CƠ SỞ VẬT CHẤT</span>
+                <h2 class="section-title">Không gian lưu trữ tiêu chuẩn & ngăn nắp</h2>
+                <p class="section-desc">Hình ảnh thực tế ghi nhận hệ thống kho tự quản quy hoạch.</p>
+              </div>
+
+              <div class="facility-showcase-grid">
+                <!-- Left: Big Photo with Overlay -->
+                <div class="facility-left-panel">
+                  <img src="images/facility_clean.jpg" alt="Môi trường kho sạch sẽ" class="facility-clean-img">
+                  <div class="facility-photo-overlay">
+                    <div class="fpo-badge">
+                      <span class="fpo-dot"></span>
+                      <span>THỰC TẾ CƠ SỞ</span>
+                    </div>
+                    <h3 class="fpo-title">Môi trường kho sạch sẽ</h3>
+                    <p class="fpo-desc">Lối đi rộng rãi, cao sát từng tầng kho công nghiệp, hệ thống đèn LED chiếu sáng đầy đủ và kiểm soát sự kiện định kỳ.</p>
+                  </div>
+                </div>
+
+                <!-- Right: 2 Spec Cards -->
+                <div class="facility-right-panel">
+                  <!-- Spec Card 1 -->
+                  <div class="facility-spec-card">
+                    <div class="fsc-header">
+                      <div class="fsc-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                      </div>
+                      <h4 class="fsc-title">Đa dạng kích thước kho</h4>
+                    </div>
+                    <p class="fsc-desc">Từng dãy kho có khóa cửa cuốn chuyên dụng, đánh số định danh rõ ràng, vách ngăn chống cháy bền chắc và độ an toàn cao.</p>
+                    <div class="fsc-tags-row">
+                      <span class="fsc-tag">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <span>Khóa riêng biệt</span>
+                      </span>
+                      <span class="fsc-tag">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>Vệ sinh sạch sẽ</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Spec Card 2 -->
+                  <div class="facility-spec-card">
+                    <div class="fsc-header">
+                      <div class="fsc-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                      </div>
+                      <h4 class="fsc-title">Cơ sở vận hành ngăn nắp</h4>
+                    </div>
+                    <p class="fsc-desc">Sắp xếp phân khu khoa học, xe đẩy hỗ trợ bốc xếp hàng hóa tại sảnh giúp khách hàng chuyển đồ thuận tiện và nhanh chóng.</p>
+                    <div class="fsc-tags-row">
+                      <span class="fsc-tag">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                        <span>Xe đẩy miễn phí</span>
+                      </span>
+                      <span class="fsc-tag">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>Hỗ trợ xuất nhập đồ</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 7. SECTION: CTA BANNER -->
+          <div class="landing-container">
+            <div class="landing-cta-banner">
+              <div class="cta-left-content">
+                <span class="cta-badge-tag">TIẾT KIỆM THỰC TUYẾN TIỆN LỢI</span>
+                <h2 class="cta-banner-title">Sẵn sàng tìm kho phù hợp?</h2>
+                <p class="cta-banner-desc">Khám phá ngay các kho lưu trữ còn trống tại chi nhánh gần bạn nhất hoặc liên hệ đội ngũ để được hướng dẫn chi tiết.</p>
+              </div>
+              <div class="cta-right-buttons">
+                <button class="btn-cta-primary" onclick="scrollToLandingSection('landing-pricing')">
+                  <span>Tìm kho lưu trữ</span>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </button>
+                <button class="btn-cta-secondary" onclick="openAuthScreen('LOGIN')">
+                  Đăng nhập
+                </button>
+              </div>
+            </div>
           </div>
+
         </div>
       </section>
 
@@ -2464,66 +2929,91 @@
   </main>
 
   <!-- Footer -->
+  <!-- Site Footer (Designed matching Mockup) -->
   <footer class="site-footer">
     <div class="footer-container">
-      <div class="footer-col brand-col">
-        <div class="app-brand-logo" onclick="navigateToScreen('SCR-C00')" style="cursor:pointer;">
+
+      <!-- Col 1: Brand & Core Badges -->
+      <div class="footer-col brand-column">
+        <div class="app-brand-logo footer-brand-logo" onclick="navigateToScreen('SCR-C00')">
           <div class="app-brand-icon">
-            <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h10v2H7zm0-3h10v2H7zm0 6h7v2H7z"/>
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+              <line x1="12" y1="22.08" x2="12" y2="12"></line>
             </svg>
           </div>
-          <span class="brand-title">SelfStorage<span style="color:#2563eb;">PRO</span></span>
+          <div class="brand-text-block">
+            <span class="brand-title" style="color:white; letter-spacing:1px; font-weight:800;">STORAGE</span>
+            <span style="font-size:9.5px; font-weight:700; color:#94a3b8; letter-spacing:0.5px;">KHO ĐƠN | HỆ THỐNG KHO TỰ QUẢN</span>
+          </div>
         </div>
         <p class="footer-desc">
-          Hệ thống quản lý và cho thuê kho lưu trữ tự phục vụ thông minh 24/7. Hỗ trợ đặt chỗ trực tuyến, thanh toán VietQR, cấp mã PIN điện tử tự động và camera an ninh kiểm soát môi trường chuẩn quốc tế.
+          Hệ thống quản lý và cho thuê kho lưu trữ tự phục vụ an toàn, linh hoạt và tiện lợi hàng đầu Việt Nam.
         </p>
-        <div class="footer-hotline">
-          <strong>Tổng đài hỗ trợ 24/7:</strong> <span style="color:#38bdf8; font-weight:800; font-size:16px;">1900 6868</span>
+        <div class="footer-pills-row">
+          <span class="footer-pill">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>Phục vụ 24/7</span>
+          </span>
+          <span class="footer-pill">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+            <span>Kiểm soát nhiệt độ</span>
+          </span>
+          <span class="footer-pill">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span>Khóa số bảo mật</span>
+          </span>
         </div>
       </div>
 
+      <!-- Col 2: Hệ thống -->
       <div class="footer-col">
-        <h4>Hệ Thống Cơ Sở Kho</h4>
-        <ul>
-          <li>📍 Hà Nội: 120 Duy Tân, Cầu Giấy</li>
-          <li>📍 Hà Nội: Khu CNC Hòa Lạc, Nam Từ Liêm</li>
-          <li>📍 TP.HCM: 450 Nguyễn Thị Thập, Quận 7</li>
-          <li>📍 TP.HCM: 180 Cộng Hòa, Q. Tân Bình</li>
-          <li>📍 Đà Nẵng: 92 Nguyễn Văn Linh, Hải Châu</li>
+        <h4>Hệ thống</h4>
+        <ul class="footer-nav-list">
+          <li><a href="javascript:void(0)" onclick="navigateToScreen('SCR-C00')">Trang chủ</a></li>
+          <li><a href="javascript:void(0)" onclick="scrollToLandingSection('landing-pricing')">Kho lưu trữ</a></li>
+          <li><a href="javascript:void(0)" onclick="scrollToLandingSection('landing-pricing')">Bảng giá dịch vụ</a></li>
+          <li><a href="javascript:void(0)" onclick="openAuthScreen('LOGIN')">Đăng nhập tài khoản</a></li>
         </ul>
       </div>
 
+      <!-- Col 3: Chính sách & Pháp lý -->
       <div class="footer-col">
-        <h4>Dịch Vụ & Tiện Ích</h4>
-        <ul>
-          <li><a href="javascript:void(0)" onclick="navigateToScreen('SCR-C01')">Bảng giá kho mini S / M / L</a></li>
-          <li><a href="javascript:void(0)" onclick="navigateToScreen('SCR-C02')">Đặt giữ chỗ & Nhận phòng online</a></li>
-          <li><a href="javascript:void(0)" onclick="navigateToScreen('SCR-C04')">Thẻ hẹn check-in tiếp đón</a></li>
-          <li><a href="javascript:void(0)" onclick="navigateToScreen('SCR-C05')">Kho của tôi & Bàn phím mã PIN</a></li>
-          <li><a href="javascript:void(0)" onclick="navigateToScreen('SCR-C06')">Báo cáo sự cố khẩn cấp</a></li>
+        <h4>Chính sách & Pháp lý</h4>
+        <ul class="footer-nav-list">
+          <li><a href="javascript:void(0)" onclick="scrollToLandingSection('landing-process')">Điều khoản sử dụng</a></li>
+          <li><a href="javascript:void(0)" onclick="scrollToLandingSection('landing-facilities')">Chính sách bảo mật</a></li>
+          <li><a href="javascript:void(0)" onclick="scrollToLandingSection('landing-infrastructure')">Quy định lưu trữ</a></li>
+          <li><a href="javascript:void(0)">Bảo hiểm tài sản</a></li>
         </ul>
       </div>
 
+      <!-- Col 4: Hỗ trợ & Liên hệ -->
       <div class="footer-col">
-        <h4>Chuyển Vai Trò Demo (5 Roles)</h4>
-        <p style="font-size:13px; color:#94a3b8; margin-bottom:12px;">Chuyển đổi vai trò người dùng bất kỳ lúc nào:</p>
-        <div class="footer-role-tags">
-          <button class="footer-role-btn" onclick="selectRole('CUSTOMER')">👤 1. Khách hàng</button>
-          <button class="footer-role-btn" onclick="selectRole('STAFF')">👷 2. Nhân viên kho</button>
-          <button class="footer-role-btn" onclick="selectRole('FMANAGER')">🏢 3. Quản lý cơ sở</button>
-          <button class="footer-role-btn" onclick="selectRole('OPS_MGR')">📈 4. Quản lý chuỗi</button>
-          <button class="footer-role-btn" onclick="selectRole('ADMIN')">⚙️ 5. Quản trị viên</button>
-        </div>
+        <h4>Hỗ trợ & Liên hệ</h4>
+        <ul class="footer-contact-list">
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span>Hotline: <strong style="color:#ffffff;">1900 6868</strong></span>
+          </li>
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <span>Email: <a href="mailto:hotline@storage.vn" style="color:#94a3b8;">hotline@storage.vn</a></span>
+          </li>
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>08:00 - 20:00 hàng ngày (Cả T7 & CN)</span>
+          </li>
+        </ul>
       </div>
+
     </div>
 
     <div class="footer-bottom">
-      <div>© 2026 SelfStorage PRO. Hệ thống Quản lý và Cho thuê Kho Lưu trữ Tự phục vụ. All rights reserved.</div>
+      <div>© 2026 STORAGE. Hệ thống Quản lý và Cho thuê Kho Lưu trữ Tự phục vụ. All rights reserved.</div>
       <div style="display:flex; gap:16px;">
-        <span>SWP391 Capstone</span>
-        <span>•</span>
-        <a href="docs/Self_Storage_Detailed_Requirement_Specification_v2.md" target="_blank" style="color:#94a3b8;">Đặc tả yêu cầu SRS v2.0</a>
+        <span>SWP391 Capstone Project</span>
       </div>
     </div>
   </footer>
@@ -2624,7 +3114,7 @@
           <input type="password" maxlength="6" class="form-control" id="txtConfirmPin" placeholder="Nhập lại mã PIN">
         </div>
         <div style="font-size:12px; color:#64748b;">
-          *Mã PIN mới sẽ được cập nhật đồng thời lên khóa thông minh của phòng kho Unit A-102.
+          *Mã PIN mới sẽ được cập nhật đồng thời lên khóa điện tử của phòng kho Unit A-102.
         </div>
       </div>
       <div class="modal-footer-bar">
@@ -2668,80 +3158,133 @@
     </div>
   </div>
 
-  <!-- Modal 5: Quick Identity Switcher -->
-  <div class="modal-overlay" id="modalIdentitySwitch">
-    <div class="modal-content-box">
+
+
+  <!-- Modal: Create New User Account (Admin Actor) -->
+  <div class="modal-overlay" id="modalAddUser">
+    <div class="modal-content-box" style="max-width:580px;">
       <div class="modal-header-bar">
-        <h3 style="font-size:18px; font-weight:800; color:#0f172a;">Chuyển Đổi Nhanh Danh Tính Demo (5 Roles)</h3>
-        <button class="btn btn-outline btn-sm" onclick="closeModal('modalIdentitySwitch')">✕</button>
+        <h3 style="font-size:18px; font-weight:800; color:#0f172a;">Tạo Tài Khoản Người Dùng Mới (RBAC)</h3>
+        <button class="btn btn-outline btn-sm" onclick="closeModal('modalAddUser')">✕</button>
       </div>
       <div class="modal-body-pad">
-        <div style="display:flex; flex-direction:column; gap:12px;">
-          <div
-            style="display:flex; justify-content:space-between; align-items:center; padding:12px; border:1px solid #e2e8f0; border-radius:10px; cursor:pointer;"
-            onclick="quickSwitchIdentity('CUSTOMER')">
-            <div style="display:flex; align-items:center; gap:12px;">
-              <div class="avatar-disc" style="background:#2563eb;">TB</div>
-              <div>
-                <div style="font-weight:700;">Trần Văn Bảo</div>
-                <div style="font-size:12px; color:#64748b;">1. Storage Customer (Khách hàng thuê kho)</div>
-              </div>
-            </div>
-            <button class="btn btn-primary btn-sm">Chọn</button>
+        <div class="grid-2" style="margin-bottom:12px;">
+          <div class="form-group">
+            <label class="form-label">Họ và tên *</label>
+            <input type="text" class="form-control" id="txtNewUserName" placeholder="Ví dụ: Lê Bảo Châu" required>
           </div>
-
-          <div
-            style="display:flex; justify-content:space-between; align-items:center; padding:12px; border:1px solid #e2e8f0; border-radius:10px; cursor:pointer;"
-            onclick="quickSwitchIdentity('STAFF')">
-            <div style="display:flex; align-items:center; gap:12px;">
-              <div class="avatar-disc" style="background:#0d9488;">NT</div>
-              <div>
-                <div style="font-weight:700;">Nguyễn Văn Tuấn</div>
-                <div style="font-size:12px; color:#64748b;">2. Facility Staff (Nhân viên ca trực Cầu Giấy)</div>
-              </div>
-            </div>
-            <button class="btn btn-primary btn-sm">Chọn</button>
-          </div>
-
-          <div
-            style="display:flex; justify-content:space-between; align-items:center; padding:12px; border:1px solid #e2e8f0; border-radius:10px; cursor:pointer;"
-            onclick="quickSwitchIdentity('FMANAGER')">
-            <div style="display:flex; align-items:center; gap:12px;">
-              <div class="avatar-disc" style="background:#7c3aed;">HĐ</div>
-              <div>
-                <div style="font-weight:700;">Phạm Hải Đăng</div>
-                <div style="font-size:12px; color:#64748b;">3. Facility Manager (Quản lý chi nhánh Cầu Giấy)</div>
-              </div>
-            </div>
-            <button class="btn btn-primary btn-sm">Chọn</button>
-          </div>
-
-          <div
-            style="display:flex; justify-content:space-between; align-items:center; padding:12px; border:1px solid #e2e8f0; border-radius:10px; cursor:pointer;"
-            onclick="quickSwitchIdentity('OPS_MGR')">
-            <div style="display:flex; align-items:center; gap:12px;">
-              <div class="avatar-disc" style="background:#ea580c;">HL</div>
-              <div>
-                <div style="font-weight:700;">Đặng Hoàng Long</div>
-                <div style="font-size:12px; color:#64748b;">4. Business Operations Manager (Quản lý toàn chuỗi)</div>
-              </div>
-            </div>
-            <button class="btn btn-primary btn-sm">Chọn</button>
-          </div>
-
-          <div
-            style="display:flex; justify-content:space-between; align-items:center; padding:12px; border:1px solid #e2e8f0; border-radius:10px; cursor:pointer;"
-            onclick="quickSwitchIdentity('ADMIN')">
-            <div style="display:flex; align-items:center; gap:12px;">
-              <div class="avatar-disc" style="background:#e11d48;">AD</div>
-              <div>
-                <div style="font-weight:700;">Quản trị viên Hệ thống</div>
-                <div style="font-size:12px; color:#64748b;">5. System Administrator (Quản trị hệ thống)</div>
-              </div>
-            </div>
-            <button class="btn btn-primary btn-sm">Chọn</button>
+          <div class="form-group">
+            <label class="form-label">Tên đăng nhập (Username) *</label>
+            <input type="text" class="form-control" id="txtNewUserUsername" placeholder="Ví dụ: chau.lb" required>
           </div>
         </div>
+
+        <div class="grid-2" style="margin-bottom:12px;">
+          <div class="form-group">
+            <label class="form-label">Mật khẩu ban đầu *</label>
+            <input type="password" class="form-control" id="txtNewUserPassword" placeholder="Nhập mật khẩu..." required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Số điện thoại *</label>
+            <input type="tel" class="form-control" id="txtNewUserPhone" placeholder="0912.xxx.xxx" required>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:12px;">
+          <div class="form-group">
+            <label class="form-label">Email *</label>
+            <input type="email" class="form-control" id="txtNewUserEmail" placeholder="chau.lb@selfstorage.vn" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Số CCCD / CMND</label>
+            <input type="text" class="form-control" id="txtNewUserCccd" placeholder="0012020xxxxx">
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:14px;">
+          <div class="form-group">
+            <label class="form-label">Vai trò (Role) *</label>
+            <select class="form-control" id="selNewUserRole">
+              <option value="CUSTOMER">👤 Storage Customer (Khách hàng)</option>
+              <option value="STAFF">👷 Facility Staff (Nhân viên cơ sở)</option>
+              <option value="FMANAGER">🏢 Facility Manager (Quản lý cơ sở)</option>
+              <option value="OPS_MGR">📈 Business Ops Manager (Quản lý toàn chuỗi)</option>
+              <option value="ADMIN">⚙️ System Administrator (Quản trị hệ thống)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cơ sở phân công *</label>
+            <select class="form-control" id="selNewUserFacility">
+              <option value="Hà Nội - Cầu Giấy">📍 Hà Nội - Cầu Giấy</option>
+              <option value="TP.HCM - Quận 7">📍 TP.HCM - Quận 7</option>
+              <option value="Hà Nội - Nam Từ Liêm">📍 Hà Nội - Nam Từ Liêm</option>
+              <option value="TP.HCM - Tân Bình">📍 TP.HCM - Tân Bình</option>
+              <option value="Đà Nẵng - Hải Châu">📍 Đà Nẵng - Hải Châu</option>
+              <option value="Toàn hệ thống (HQ)">🏢 Toàn hệ thống (HQ)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer-bar">
+        <button class="btn btn-secondary" onclick="closeModal('modalAddUser')">Hủy</button>
+        <button class="btn btn-primary" onclick="submitCreateUserByAdmin()">+ Tạo tài khoản</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add New Storage Unit (Facility Manager Actor) -->
+  <div class="modal-overlay" id="modalAddUnit">
+    <div class="modal-content-box" style="max-width:540px;">
+      <div class="modal-header-bar">
+        <h3 style="font-size:18px; font-weight:800; color:#0f172a;">Thêm Phòng Kho Mới Tại Chi Nhánh</h3>
+        <button class="btn btn-outline btn-sm" onclick="closeModal('modalAddUnit')">✕</button>
+      </div>
+      <div class="modal-body-pad">
+        <div class="grid-2" style="margin-bottom:12px;">
+          <div class="form-group">
+            <label class="form-label">Mã phòng kho *</label>
+            <input type="text" class="form-control" id="txtNewUnitCode" placeholder="Ví dụ: A-119" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phân loại kho *</label>
+            <select class="form-control" id="selNewUnitType">
+              <option value="S">Kho Nhỏ S (1 - 3 m²)</option>
+              <option value="M" selected>Kho Vừa M (4 - 8 m²)</option>
+              <option value="L">Kho Lớn L (9 - 16 m²)</option>
+              <option value="CLIMATE">Kho Điều Hòa Mát (Climate Controlled)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:12px;">
+          <div class="form-group">
+            <label class="form-label">Diện tích (m²) *</label>
+            <input type="number" step="0.5" class="form-control" id="txtNewUnitSize" value="5.0" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Đơn giá niêm yết (VNĐ/tháng) *</label>
+            <input type="number" step="50000" class="form-control" id="txtNewUnitPrice" value="1450000" required>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:12px;">
+          <div class="form-group">
+            <label class="form-label">Vị trí mặt bằng</label>
+            <input type="text" class="form-control" id="txtNewUnitLocation" value="Tầng 1 - Khu A">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Trạng thái khởi tạo</label>
+            <select class="form-control" id="selNewUnitInitialStatus">
+              <option value="available" selected>Trống sẵn sàng (Available)</option>
+              <option value="cleaning">Đang vệ sinh (Cleaning)</option>
+              <option value="maintenance">Đang bảo trì (Maintenance)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer-bar">
+        <button class="btn btn-secondary" onclick="closeModal('modalAddUnit')">Hủy</button>
+        <button class="btn btn-primary" onclick="submitCreateUnitByManager()">+ Lưu phòng kho</button>
       </div>
     </div>
   </div>

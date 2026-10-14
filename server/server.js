@@ -1,6 +1,8 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const supabase = require('./supabase');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,7 +13,7 @@ app.use(express.json());
 // Serve static files
 app.use(express.static(path.resolve(__dirname, '..')));
 
-// API routes
+// Microservices API routes
 app.use('/api/auth', require('../services/auth-service'));
 app.use('/api/facilities', require('../services/facility-service'));
 app.use('/api/reservations', require('../services/reservation-service'));
@@ -41,4 +43,3 @@ app.get('/api/services', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
-

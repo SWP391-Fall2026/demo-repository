@@ -1,43 +1,56 @@
-// State & Data
-let currentActor = 'CUSTOMER';
+/**
+ * ==============================================================================
+ * SELFSTORAGE PRO - CORE APPLICATION JAVASCRIPT
+ * Hệ thống Quản lý & Cho thuê Kho Lưu trữ Tự phục vụ
+ * ==============================================================================
+ */
+
+// Application State
+let currentUser = null;
+let currentActor = null; // 'CUSTOMER' | 'STAFF' | 'FMANAGER' | 'OPS_MGR' | 'ADMIN'
 let currentScreen = 'SCR-C00';
 let isPinVisible = false;
 let keypadInput = '';
 let selectedUnitForModal = null;
 let paymentTimerInterval = null;
 
-// Mock Units (Floor 1 - Area A)
+// Mock Units (Floor 1 - Area A, Cầu Giấy Branch)
 let mockUnits = [
-  { code: 'A-101', type: 'S', size: '2.0 m²', status: 'available', price: 800000, tenant: null },
-  { code: 'A-102', type: 'M', size: '5.0 m²', status: 'reserved', price: 1450000, tenant: 'Trần Văn Bảo' },
-  { code: 'A-103', type: 'M', size: '5.0 m²', status: 'occupied', price: 1450000, tenant: 'Lê Hoàng Nam' },
-  { code: 'A-104', type: 'L', size: '10.0 m²', status: 'occupied', price: 2800000, tenant: 'Công ty Alpha Logistics' },
-  { code: 'A-105', type: 'S', size: '3.0 m²', status: 'available', price: 950000, tenant: null },
-  { code: 'A-106', type: 'M', size: '5.0 m²', status: 'occupied', price: 1450000, tenant: 'Hoàng Minh Châu' },
-  { code: 'A-107', type: 'L', size: '12.0 m²', status: 'maintenance', price: 3200000, tenant: null },
-  { code: 'A-108', type: 'M', size: '6.0 m²', status: 'cleaning', price: 1600000, tenant: null },
-  { code: 'A-109', type: 'S', size: '2.5 m²', status: 'occupied', price: 850000, tenant: 'Phạm Thu Trang' },
-  { code: 'A-110', type: 'M', size: '5.0 m²', status: 'available', price: 1450000, tenant: null },
-  { code: 'A-111', type: 'L', size: '10.0 m²', status: 'occupied', price: 2800000, tenant: 'Vũ Quốc Đạt' },
-  { code: 'A-112', type: 'M', size: '5.0 m²', status: 'available', price: 1450000, tenant: null },
-  { code: 'A-113', type: 'L', size: '12.0 m²', status: 'occupied', price: 3200000, tenant: 'Công ty CP Đầu tư Á Châu' },
-  { code: 'A-114', type: 'S', size: '2.0 m²', status: 'available', price: 800000, tenant: null },
-  { code: 'A-115', type: 'M', size: '5.0 m²', status: 'reserved', price: 1450000, tenant: 'Nguyễn Kiều Oanh' },
-  { code: 'A-116', type: 'S', size: '3.0 m²', status: 'cleaning', price: 950000, tenant: null },
-  { code: 'A-117', type: 'L', size: '10.0 m²', status: 'available', price: 2800000, tenant: null },
-  { code: 'A-118', type: 'M', size: '5.0 m²', status: 'available', price: 1450000, tenant: null }
+  { code: 'A-101', type: 'S', size: '2.0 m²', status: 'available', price: 800000, tenant: null, pin: '842916' },
+  { code: 'A-102', type: 'M', size: '5.0 m²', status: 'reserved', price: 1450000, tenant: 'Trần Văn Bảo', pin: '842916' },
+  { code: 'A-103', type: 'M', size: '5.0 m²', status: 'occupied', price: 1450000, tenant: 'Lê Hoàng Nam', pin: '771239' },
+  { code: 'A-104', type: 'L', size: '10.0 m²', status: 'occupied', price: 2800000, tenant: 'Công ty Alpha Logistics', pin: '918234' },
+  { code: 'A-105', type: 'S', size: '3.0 m²', status: 'available', price: 950000, tenant: null, pin: '842916' },
+  { code: 'A-106', type: 'M', size: '5.0 m²', status: 'occupied', price: 1450000, tenant: 'Hoàng Minh Châu', pin: '629104' },
+  { code: 'A-107', type: 'L', size: '12.0 m²', status: 'maintenance', price: 3200000, tenant: null, pin: '000000' },
+  { code: 'A-108', type: 'M', size: '6.0 m²', status: 'cleaning', price: 1600000, tenant: null, pin: '000000' },
+  { code: 'A-109', type: 'S', size: '2.5 m²', status: 'occupied', price: 850000, tenant: 'Phạm Thu Trang', pin: '512984' },
+  { code: 'A-110', type: 'M', size: '5.0 m²', status: 'available', price: 1450000, tenant: null, pin: '842916' },
+  { code: 'A-111', type: 'L', size: '10.0 m²', status: 'occupied', price: 2800000, tenant: 'Vũ Quốc Đạt', pin: '491204' },
+  { code: 'A-112', type: 'M', size: '5.0 m²', status: 'available', price: 1450000, tenant: null, pin: '842916' },
+  { code: 'A-113', type: 'L', size: '12.0 m²', status: 'occupied', price: 3200000, tenant: 'Công ty CP Đầu tư Á Châu', pin: '948123' },
+  { code: 'A-114', type: 'S', size: '2.0 m²', status: 'available', price: 800000, tenant: null, pin: '842916' },
+  { code: 'A-115', type: 'M', size: '5.0 m²', status: 'reserved', price: 1450000, tenant: 'Nguyễn Kiều Oanh', pin: '842916' },
+  { code: 'A-116', type: 'S', size: '3.0 m²', status: 'cleaning', price: 950000, tenant: null, pin: '000000' },
+  { code: 'A-117', type: 'L', size: '10.0 m²', status: 'available', price: 2800000, tenant: null, pin: '842916' },
+  { code: 'A-118', type: 'M', size: '5.0 m²', status: 'available', price: 1450000, tenant: null, pin: '842916' }
 ];
 
-// Mock Users (Admin Actor)
+// Mock Users Database (5 Required Accounts + Extras)
 let mockUsers = [
-  { id: 'USR-01', name: 'Trần Văn Bảo', email: 'baotran@gmail.com', phone: '0987.654.321', role: 'CUSTOMER', facility: 'Hà Nội - Cầu Giấy', status: 'ACTIVE' },
-  { id: 'USR-02', name: 'Nguyễn Văn Tuấn', email: 'tuan.nv@selfstorage.vn', phone: '0912.345.678', role: 'STAFF', facility: 'Hà Nội - Cầu Giấy', status: 'ACTIVE' },
-  { id: 'USR-03', name: 'Lê Thị Mai', email: 'mai.lt@selfstorage.vn', phone: '0903.112.233', role: 'STAFF', facility: 'Hà Nội - Cầu Giấy', status: 'ACTIVE' },
-  { id: 'USR-04', name: 'Phạm Hải Đăng', email: 'dang.ph@selfstorage.vn', phone: '0934.567.890', role: 'FACILITY_MANAGER', facility: 'Hà Nội - Cầu Giấy', status: 'ACTIVE' },
-  { id: 'USR-05', name: 'Trần Quang Vinh', email: 'vinh.tq@selfstorage.vn', phone: '0978.889.900', role: 'FACILITY_MANAGER', facility: 'TP.HCM - Quận 7', status: 'ACTIVE' },
-  { id: 'USR-06', name: 'Đặng Hoàng Long', email: 'long.dh@selfstorage.vn', phone: '0918.777.666', role: 'OPS_MANAGER', facility: 'Toàn hệ thống (HQ)', status: 'ACTIVE' },
-  { id: 'USR-07', name: 'Quản trị viên Hệ thống', email: 'admin@selfstorage.vn', phone: '0909.999.000', role: 'SYSTEM_ADMIN', facility: 'Toàn hệ thống (HQ)', status: 'ACTIVE' },
-  { id: 'USR-08', name: 'Nguyễn Kiều Oanh', email: 'oanh.nk@gmail.com', phone: '0988.123.456', role: 'CUSTOMER', facility: 'TP.HCM - Quận 7', status: 'ACTIVE' }
+  { id: 'USR-01', name: 'Trần Văn Bảo', username: 'customer', password: '1', email: 'customer@selfstorage.vn', phone: '0987.654.321', cccd: '001202019988', role: 'CUSTOMER', roleTitle: 'Khách hàng thuê kho', facility: 'Hà Nội - Cầu Giấy', facilityCode: 'HN-CG', status: 'ACTIVE' },
+  { id: 'USR-02', name: 'Nguyễn Văn Tuấn', username: 'staff', password: '3', email: 'staff@selfstorage.vn', phone: '0912.345.678', cccd: '001201044556', role: 'STAFF', roleTitle: 'Nhân viên cơ sở', facility: 'Hà Nội - Cầu Giấy', facilityCode: 'HN-CG', status: 'ACTIVE' },
+  { id: 'USR-03', name: 'Lê Thị Mai', username: 'staff2', password: '3', email: 'mai.lt@selfstorage.vn', phone: '0903.112.233', cccd: '001203099881', role: 'STAFF', roleTitle: 'Nhân viên cơ sở', facility: 'Hà Nội - Cầu Giấy', facilityCode: 'HN-CG', status: 'ACTIVE' },
+  { id: 'USR-04', name: 'Phạm Hải Đăng', username: 'manager', password: '4', email: 'manager@selfstorage.vn', phone: '0934.567.890', cccd: '001200055443', role: 'FMANAGER', roleTitle: 'Quản lý cơ sở', facility: 'Hà Nội - Cầu Giấy', facilityCode: 'HN-CG', status: 'ACTIVE' },
+  { id: 'USR-05', name: 'Trần Quang Vinh', username: 'manager_q7', password: '4', email: 'vinh.tq@selfstorage.vn', phone: '0978.889.900', cccd: '079201088997', role: 'FMANAGER', roleTitle: 'Quản lý cơ sở', facility: 'TP.HCM - Quận 7', facilityCode: 'HCM-Q7', status: 'ACTIVE' },
+  { id: 'USR-06', name: 'Đặng Hoàng Long', username: 'business', password: '5', email: 'business@selfstorage.vn', phone: '0918.777.666', cccd: '001200011223', role: 'OPS_MGR', roleTitle: 'Quản lý vận hành toàn chuỗi', facility: 'Toàn hệ thống (HQ)', facilityCode: 'HQ', status: 'ACTIVE' },
+  { id: 'USR-07', name: 'Quản trị viên Hệ thống', username: 'admin', password: '2', email: 'admin@selfstorage.vn', phone: '0909.999.000', cccd: '001200000001', role: 'ADMIN', roleTitle: 'Quản trị hệ thống', facility: 'Toàn hệ thống (HQ)', facilityCode: 'HQ', status: 'ACTIVE' },
+  { id: 'USR-08', name: 'Nguyễn Kiều Oanh', username: 'oanhnguyen', password: '1', email: 'oanh.nk@gmail.com', phone: '0988.123.456', cccd: '079201998811', role: 'CUSTOMER', roleTitle: 'Khách hàng thuê kho', facility: 'TP.HCM - Quận 7', facilityCode: 'HCM-Q7', status: 'ACTIVE' }
+];
+
+// Mock Support Tickets
+let mockSupportTickets = [
+  { id: 'TCK-2026-01', unit: 'A-102', category: 'Kẹt khóa / Khóa cơ', priority: 'NORMAL', desc: 'Ổ khóa cơ hơi rít khi tra chìa vào buổi sáng sớm.', status: 'Đang xử lý', time: '10:15 Hôm nay' }
 ];
 
 // Mock Audit Logs
@@ -47,245 +60,404 @@ let mockAuditLogs = [
   { time: '11:50:40 Hôm nay', user: 'Phạm Hải Đăng', role: 'FACILITY_MGR', action: 'ASSIGN_UNIT', detail: 'Gán kho A-102 cho đơn đặt chỗ RSV-8821', ip: '192.168.1.12', status: 'SUCCESS' },
   { time: '10:30:15 Hôm nay', user: 'Trần Văn Bảo', role: 'CUSTOMER', action: 'CREATE_RESERVATION', detail: 'Tạo đơn đặt giữ chỗ Kho M (5.0m²) tại Cầu Giấy', ip: '113.190.23.8', status: 'SUCCESS' },
   { time: '09:40:22 Hôm nay', user: 'Đặng Hoàng Long', role: 'OPS_MGR', action: 'UPDATE_POLICY', detail: 'Cập nhật mức chiết khấu thuê 12 tháng lên 15%', ip: '192.168.0.2', status: 'SUCCESS' },
-  { time: '08:15:00 Hôm nay', user: 'Admin Hệ thống', role: 'SYSTEM_ADMIN', action: 'USER_LOGIN', detail: 'Đăng nhập vào bảng điều khiển quản trị tập trung', ip: '192.168.0.1', status: 'SUCCESS' }
+  { time: '08:15:00 Hôm nay', user: 'Quản trị viên Hệ thống', role: 'SYSTEM_ADMIN', action: 'USER_LOGIN', detail: 'Đăng nhập vào bảng điều khiển quản trị tập trung', ip: '192.168.0.1', status: 'SUCCESS' }
 ];
 
-// Screen Catalog metadata for all 5 actors
+// Screen Catalog metadata strictly separated by Actor
 const ACTOR_SCREENS = {
   CUSTOMER: [
     { id: 'SCR-C00', code: 'SCR-C00', name: 'Trang chủ & Giới thiệu', desc: 'Landing Page, danh mục gói kho & quy trình thuê 4 bước' },
-    { id: 'SCR-C01', code: 'SCR-C01', name: 'Catalog & Bảng giá', desc: 'Khám phá cơ sở, kích thước kho S/M/L, giá & phòng trống' },
-    { id: 'SCR-C02', code: 'SCR-C02', name: 'Đặt giữ chỗ trực tuyến', desc: 'Chọn chi nhánh, thời hạn thuê, hẹn giờ check-in & tính cọc' },
-    { id: 'SCR-C03', code: 'SCR-C03', name: 'Thanh toán & VietQR', desc: 'Thanh toán cọc qua mã VietQR Napas247 & Giả lập giao dịch' },
-    { id: 'SCR-C04', code: 'SCR-C04', name: 'Thẻ hẹn Check-in Pass', desc: 'Thẻ boarding pass tiếp đón nhận kho với mã QR cá nhân' },
-    { id: 'SCR-C05', code: 'SCR-C05', name: 'Kho của tôi & Mã PIN', desc: 'Quản lý kho đang thuê, xem mã PIN 842916 & bàn phím' },
-    { id: 'SCR-C06', code: 'SCR-C06', name: 'Gửi ticket hỗ trợ', desc: 'Báo cáo sự cố khẩn cấp (kẹt khóa, quên PIN, thấm ẩm)' }
+    { id: 'SCR-C01', code: 'SCR-C01', name: 'Catalog & Bảng giá', desc: 'Xem cơ sở lưu trữ, loại kho, kích thước, giá thuê và kho khả dụng' },
+    { id: 'SCR-C02', code: 'SCR-C02', name: 'Đặt giữ chỗ trực tuyến', desc: 'Chọn chi nhánh, loại kho, ngày bắt đầu, thời hạn thuê & tính cọc' },
+    { id: 'SCR-C03', code: 'SCR-C03', name: 'Thanh toán các khoản phí', desc: 'Thanh toán tiền cọc, tiền thuê định kỳ, gia hạn, phụ phí qua VietQR' },
+    { id: 'SCR-C04', code: 'SCR-C04', name: 'Thẻ hẹn Check-in Pass', desc: 'Thủ tục check-in nhận phòng kho bàn giao theo lịch hẹn' },
+    { id: 'SCR-C05', code: 'SCR-C05', name: 'Quản lý kho đang thuê', desc: 'Quản lý các phòng kho đang thuê, xem & đổi mã PIN điện tử' },
+    { id: 'SCR-C06', code: 'SCR-C06', name: 'Gửi yêu cầu hỗ trợ sự cố', desc: 'Gửi ticket hỗ trợ: ổ khóa, mã PIN, ẩm mốc, thanh toán, hàng hóa' }
   ],
   STAFF: [
-    { id: 'SCR-S01', code: 'SCR-S01', name: 'Ca trực hôm nay', desc: 'Bàn làm việc theo dõi danh sách khách hẹn nhận/trả kho' },
-    { id: 'SCR-S02', code: 'SCR-S02', name: 'Tra cứu đơn đặt chỗ', desc: 'Đối chiếu CCCD, kiểm tra tiền cọc RSV-8821 khi khách đến' },
-    { id: 'SCR-S03', code: 'SCR-S03', name: 'Biên bản bàn giao kho', desc: 'Checklist 5 mục hiện trường, cấp khóa/thẻ/mã PIN & ký nhận' },
-    { id: 'SCR-S04', code: 'SCR-S04', name: 'Sơ đồ mặt bằng kho', desc: 'Ma trận ô phòng kho chi nhánh & cập nhật trạng thái tức thì' },
-    { id: 'SCR-S05', code: 'SCR-S05', name: 'Nghiệm thu trả kho', desc: 'Kiểm tra dọn sạch, hoàn trả tiền cọc 1.500.000 VNĐ' },
-    { id: 'SCR-S06', code: 'SCR-S06', name: 'Xử lý sự cố tại quầy', desc: 'Cấp mã PIN tạm 60p, xử lý mất chìa, báo bảo trì khẩn' },
+    { id: 'SCR-S01', code: 'SCR-S01', name: 'Lịch công việc hàng ngày', desc: 'Theo dõi danh sách khách hẹn nhận kho, trả kho & sự cố ca trực' },
+    { id: 'SCR-S02', code: 'SCR-S02', name: 'Kiểm tra đơn đặt chỗ', desc: 'Kiểm tra và xác thực đơn đặt giữ chỗ của khách hàng khi đến' },
+    { id: 'SCR-S03', code: 'SCR-S03', name: 'Hỗ trợ check-in & Bàn giao', desc: 'Biên bản bàn giao kho, ổ khóa, thẻ từ hoặc mã truy cập PIN' },
+    { id: 'SCR-S04', code: 'SCR-S04', name: 'Cập nhật trạng thái phòng kho', desc: 'Sơ đồ mặt bằng kho & cập nhật trạng thái kho tức thì' },
+    { id: 'SCR-S05', code: 'SCR-S05', name: 'Kiểm tra & Nghiệm thu khi trả kho', desc: 'Kiểm tra và xác nhận tình trạng thực tế của phòng kho khi khách trả' },
+    { id: 'SCR-S06', code: 'SCR-S06', name: 'Xử lý sự cố tại chỗ', desc: 'Tiếp nhận xử lý tại quầy: cấp mã PIN tạm, mất chìa, hư hại' },
     { id: 'SCR-S07', code: 'SCR-S07', name: 'Mô phỏng Mở khóa kho', desc: 'Bàn phím nhập mã PIN thực địa kiểm tra mở cửa' }
   ],
   FMANAGER: [
-    { id: 'SCR-M01', code: 'SCR-M01', name: 'Tổng quan chi nhánh', desc: 'Dashboard điều hành chi nhánh: 120 kho, 82% lấp đầy, 145M VNĐ' },
-    { id: 'SCR-M02', code: 'SCR-M02', name: 'Quản lý phòng kho', desc: 'Danh sách 120 kho chi nhánh, thêm kho, sửa thông tin' },
-    { id: 'SCR-M03', code: 'SCR-M03', name: 'Gán phòng kho cho khách', desc: 'Duyệt đơn đặt chỗ và gán phòng kho trống phù hợp' },
-    { id: 'SCR-M04', code: 'SCR-M04', name: 'Phân công nhân viên', desc: 'Giao việc ca trực cho Staff: Bàn giao, Nghiệm thu, Bảo trì' },
-    { id: 'SCR-M05', code: 'SCR-M05', name: 'Giám sát hợp đồng & nợ', desc: 'Theo dõi hợp đồng thuê, cảnh báo hạn & xử lý quá hạn' },
-    { id: 'SCR-M06', code: 'SCR-M06', name: 'Báo cáo vận hành cơ sở', desc: 'Báo cáo doanh thu, công nợ và tỷ lệ khai thác mặt bằng' }
+    { id: 'SCR-M01', code: 'SCR-M01', name: 'Tổng quan chi nhánh', desc: 'Dashboard điều hành cơ sở: 120 kho, 82% lấp đầy, 145M VNĐ' },
+    { id: 'SCR-M02', code: 'SCR-M02', name: 'Quản lý kho tại chi nhánh', desc: 'Quản lý danh mục phòng kho: loại kho, kích thước, vị trí, giá, trạng thái' },
+    { id: 'SCR-M03', code: 'SCR-M03', name: 'Gán phòng kho phù hợp', desc: 'Gán phòng kho trống phù hợp cho khách theo loại kho & thời hạn' },
+    { id: 'SCR-M04', code: 'SCR-M04', name: 'Phân công nhân viên', desc: 'Phân công nhân viên cơ sở thực hiện hỗ trợ bàn giao, nghiệm thu, sự cố' },
+    { id: 'SCR-M05', code: 'SCR-M05', name: 'Giám sát khách hàng & Hợp đồng', desc: 'Giám sát hợp đồng, thời hạn, thanh toán và xử lý quá hạn nợ cước' },
+    { id: 'SCR-M06', code: 'SCR-M06', name: 'Báo cáo vận hành chi nhánh', desc: 'Xem báo cáo chi nhánh: kho trống, kho đang thuê, doanh thu, lấp đầy' }
   ],
   OPS_MGR: [
     { id: 'SCR-O01', code: 'SCR-O01', name: 'Tổng quan toàn chuỗi', desc: 'Dashboard 5 chi nhánh toàn quốc, 560 kho, 648M VNĐ/tháng' },
-    { id: 'SCR-O02', code: 'SCR-O02', name: 'Quản lý 5 Chi nhánh', desc: 'Danh mục chi nhánh Hà Nội, TP.HCM, Đà Nẵng & điều hành' },
-    { id: 'SCR-O03', code: 'SCR-O03', name: 'Bảng giá & Chính sách cọc', desc: 'Thiết lập khung giá chuẩn S/M/L, biểu phí cọc, chiết khấu' },
-    { id: 'SCR-O04', code: 'SCR-O04', name: 'Báo cáo kinh doanh chuỗi', desc: 'Phân tích doanh thu, tỷ lệ lấp đầy liên chi nhánh & xuất file' },
-    { id: 'SCR-O05', code: 'SCR-O05', name: 'Chính sách cho thuê chung', desc: 'Quy chuẩn an toàn kho, bảo hiểm và hàng cấm lưu trữ' }
+    { id: 'SCR-O02', code: 'SCR-O02', name: 'Quản lý chuỗi chi nhánh', desc: 'Quản lý danh sách tất cả các chi nhánh cơ sở kho toàn hệ thống' },
+    { id: 'SCR-O03', code: 'SCR-O03', name: 'Khung giá & Phụ phí', desc: 'Quản lý khung giá thuê, biểu phí phụ, phí phạt, chiết khấu' },
+    { id: 'SCR-O04', code: 'SCR-O04', name: 'Báo cáo toàn hệ thống & Xuất file', desc: 'Xem và xuất các báo cáo cấp hệ thống theo chi nhánh, doanh thu' },
+    { id: 'SCR-O05', code: 'SCR-O05', name: 'Ban hành chính sách cho thuê', desc: 'Thiết lập chính sách tiền cọc, gia hạn, hủy đơn, trả kho, an toàn' }
   ],
   ADMIN: [
     { id: 'SCR-A01', code: 'SCR-A01', name: 'Tổng quan hệ thống', desc: 'Dashboard quản trị: 1.284 người dùng, 5 cơ sở, Uptime 99.98%' },
-    { id: 'SCR-A02', code: 'SCR-A02', name: 'Quản lý tài khoản', desc: 'Danh sách người dùng, phân vai trò, khóa/mở khóa tài khoản' },
-    { id: 'SCR-A03', code: 'SCR-A03', name: 'Ma trận phân quyền RBAC', desc: 'Cấu hình chi tiết quyền hạn cho các vai trò người dùng' },
-    { id: 'SCR-A04', code: 'SCR-A04', name: 'Gán cơ sở phụ trách', desc: 'Phân quyền dữ liệu theo chi nhánh cho nhân viên và quản lý' },
-    { id: 'SCR-A05', code: 'SCR-A05', name: 'Nhật ký hệ thống Audit', desc: 'Theo dõi lịch sử đăng nhập và nhật ký thao tác thời gian thực' }
+    { id: 'SCR-A02', code: 'SCR-A02', name: 'Quản trị tài khoản người dùng', desc: 'Danh sách người dùng: tạo mới, phân quyền, khóa/mở khóa tài khoản' },
+    { id: 'SCR-A03', code: 'SCR-A03', name: 'Phân vai trò người dùng (Roles)', desc: 'Gán vai trò cho Customer, Staff, Facility Manager, Ops Manager' },
+    { id: 'SCR-A04', code: 'SCR-A04', name: 'Cấu hình quyền truy cập dữ liệu', desc: 'Cấu hình quyền dữ liệu dựa trên vai trò & chi nhánh được phân công' },
+    { id: 'SCR-A05', code: 'SCR-A05', name: 'Nhật ký hoạt động & Đăng nhập', desc: 'Theo dõi lịch sử đăng nhập và nhật ký hoạt động thời gian thực' }
   ]
 };
 
-// Initialization
-window.addEventListener('DOMContentLoaded', () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const roleParam = urlParams.get('role');
-  if (roleParam && ACTOR_SCREENS[roleParam.toUpperCase()]) {
-    switchActor(roleParam.toUpperCase());
-  } else {
-    switchActor('CUSTOMER');
+// Role styling & display mappings
+const ROLE_METADATA = {
+  CUSTOMER: {
+    title: 'Khách hàng thuê kho',
+    badgeText: 'Khách hàng',
+    color: '#2563eb',
+    defaultScreen: 'SCR-C00'
+  },
+  STAFF: {
+    title: 'Nhân viên cơ sở',
+    badgeText: 'Nhân viên kho',
+    color: '#0d9488',
+    defaultScreen: 'SCR-S01'
+  },
+  FMANAGER: {
+    title: 'Quản lý cơ sở',
+    badgeText: 'Quản lý cơ sở',
+    color: '#7c3aed',
+    defaultScreen: 'SCR-M01'
+  },
+  OPS_MGR: {
+    title: 'Quản lý vận hành toàn chuỗi',
+    badgeText: 'GĐ Vận hành',
+    color: '#ea580c',
+    defaultScreen: 'SCR-O01'
+  },
+  ADMIN: {
+    title: 'Quản trị hệ thống',
+    badgeText: 'Quản trị viên',
+    color: '#e11d48',
+    defaultScreen: 'SCR-A01'
   }
+};
 
-  const screenParam = urlParams.get('screen');
-  if (screenParam) {
-    navigateToScreen(screenParam);
+// Aliases normalization
+function normalizeRole(role) {
+  if (!role) return 'CUSTOMER';
+  const r = role.toUpperCase();
+  if (r === 'FACILITY_MANAGER') return 'FMANAGER';
+  if (r === 'OPS_MANAGER') return 'OPS_MGR';
+  if (r === 'SYSTEM_ADMIN') return 'ADMIN';
+  return r;
+}
+
+// ==============================================================================
+// INITIALIZATION
+// ==============================================================================
+
+window.addEventListener('DOMContentLoaded', async () => {
+  // Restore saved session or show login screen
+  const savedSession = localStorage.getItem('selfstorage_auth_user');
+  if (savedSession) {
+    try {
+      const user = JSON.parse(savedSession);
+      applyUserSession(user);
+    } catch (e) {
+      applyLoggedOutState();
+    }
+  } else {
+    applyLoggedOutState();
   }
 
   renderMatrixGrid();
   renderUserTable();
   renderAuditLogsTable();
+  renderSupportTicketsTable();
   startPaymentCountdown();
 });
 
-// Role & Access Control
+// ==============================================================================
+// AUTHENTICATION & SESSION MANAGEMENT
+// ==============================================================================
 
-const ROLE_USER_MAP = {
-  CUSTOMER: {
-    name: 'Trần Văn Bảo',
-    email: 'baotran@gmail.com',
-    role: 'Khách hàng thuê kho',
-    shortRole: 'Khách hàng',
-    init: 'TB',
-    color: '#2563eb',
-    facility: 'Hà Nội - Cầu Giấy'
-  },
-  STAFF: {
-    name: 'Nguyễn Văn Tuấn',
-    email: 'tuan.nv@selfstorage.vn',
-    role: 'Nhân viên cơ sở Cầu Giấy',
-    shortRole: 'Nhân viên kho',
-    init: 'NT',
-    color: '#0d9488',
-    facility: 'Hà Nội - Cầu Giấy'
-  },
-  FMANAGER: {
-    name: 'Phạm Hải Đăng',
-    email: 'dang.ph@selfstorage.vn',
-    role: 'Quản lý cơ sở Cầu Giấy',
-    shortRole: 'Quản lý cơ sở',
-    init: 'HĐ',
-    color: '#7c3aed',
-    facility: 'Hà Nội - Cầu Giấy'
-  },
-  OPS_MGR: {
-    name: 'Đặng Hoàng Long',
-    email: 'long.dh@selfstorage.vn',
-    role: 'Giám đốc vận hành chuỗi',
-    shortRole: 'GĐ Vận hành',
-    init: 'HL',
-    color: '#ea580c',
-    facility: 'Toàn hệ thống (HQ)'
-  },
-  ADMIN: {
-    name: 'Quản trị viên Hệ thống',
-    email: 'admin@selfstorage.vn',
-    role: 'Quản trị hệ thống (HQ)',
-    shortRole: 'Quản trị viên',
-    init: 'AD',
-    color: '#e11d48',
-    facility: 'Toàn hệ thống (HQ)'
-  }
-};
+function switchAuthTab(tab) {
+  const isLogin = tab === 'LOGIN';
+  document.getElementById('tabBtnLogin').classList.toggle('active', isLogin);
+  document.getElementById('tabBtnRegister').classList.toggle('active', !isLogin);
+  document.getElementById('authPanelLogin').style.display = isLogin ? 'block' : 'none';
+  document.getElementById('authPanelRegister').style.display = isLogin ? 'none' : 'block';
+  hideAuthAlert();
+}
 
-function switchActor(actorKey) {
-  currentActor = actorKey;
-  const user = ROLE_USER_MAP[actorKey] || ROLE_USER_MAP.CUSTOMER;
+function toggleLoginPassword() {
+  const input = document.getElementById('txtLoginPassword');
+  if (!input) return;
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
 
-  // Update header labels
-  if (document.getElementById('txtUserName')) {
-    document.getElementById('txtUserName').innerText = user.name;
+function showAuthAlert(msg) {
+  const box = document.getElementById('authAlertBox');
+  if (box) {
+    box.innerText = msg;
+    box.style.display = 'block';
   }
-  if (document.getElementById('txtUserRoleBadge')) {
-    document.getElementById('txtUserRoleBadge').innerText = user.shortRole;
-  }
-  if (document.getElementById('headerRoleIndicator')) {
-    document.getElementById('headerRoleIndicator').innerText = user.role;
+}
+
+function hideAuthAlert() {
+  const box = document.getElementById('authAlertBox');
+  if (box) box.style.display = 'none';
+}
+
+function handleLoginFormSubmit(e) {
+  if (e) e.preventDefault();
+  const username = document.getElementById('txtLoginUsername').value.trim();
+  const password = document.getElementById('txtLoginPassword').value.trim();
+  executeLogin(username, password);
+}
+
+function quickFillAndLogin(username, password) {
+  const uInput = document.getElementById('txtLoginUsername');
+  const pInput = document.getElementById('txtLoginPassword');
+  if (uInput) uInput.value = username;
+  if (pInput) pInput.value = password;
+  switchAuthTab('LOGIN');
+  executeLogin(username, password);
+}
+
+async function executeLogin(username, password) {
+  hideAuthAlert();
+  if (!username || !password) {
+    showAuthAlert('Vui lòng nhập tên đăng nhập và mật khẩu!');
+    return;
   }
 
-  // Update header avatar
+  // 1. Attempt API login
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (res.ok && data.success && data.data) {
+      applyUserSession(data.data);
+      showToast(`🎉 ${data.message}`);
+      addAuditLog(data.data.name, data.data.role, 'USER_LOGIN', `Đăng nhập thành công với tài khoản @${data.data.username}`);
+      return;
+    } else if (res.status === 401) {
+      showAuthAlert(data.message || 'Tên đăng nhập hoặc mật khẩu không chính xác!');
+      return;
+    }
+  } catch (err) {
+    console.warn('[Auth] Server API offline, falling back to local database.');
+  }
+
+  // 2. Fallback to local user database
+  const cleanU = username.toLowerCase();
+  const cleanP = String(password);
+  const found = mockUsers.find(u => 
+    (u.username.toLowerCase() === cleanU || u.email.toLowerCase() === cleanU) &&
+    String(u.password) === cleanP
+  );
+
+  if (!found) {
+    showAuthAlert('❌ Tên đăng nhập hoặc mật khẩu không chính xác!');
+    return;
+  }
+
+  if (found.status === 'LOCKED') {
+    showAuthAlert('🔒 Tài khoản của bạn đã bị khóa! Vui lòng liên hệ Quản trị viên hệ thống.');
+    return;
+  }
+
+  applyUserSession(found);
+  showToast(`🎉 Đăng nhập thành công! Chào mừng ${found.name} (${found.roleTitle || found.role})`);
+  addAuditLog(found.name, found.role, 'USER_LOGIN', `Đăng nhập thành công với tài khoản @${found.username}`);
+}
+
+async function handleRegisterFormSubmit(e) {
+  if (e) e.preventDefault();
+  const name = document.getElementById('regFullName').value.trim();
+  const username = document.getElementById('regUsername').value.trim().toLowerCase();
+  const password = document.getElementById('regPassword').value.trim();
+  const confirm = document.getElementById('regPasswordConfirm').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const phone = document.getElementById('regPhone').value.trim();
+  const cccd = document.getElementById('regCccd').value.trim();
+  const facility = document.getElementById('regFacility').value;
+
+  if (password !== confirm) {
+    alert('Hai lần nhập mật khẩu không trùng khớp!');
+    return;
+  }
+
+  const payload = { name, username, password, email, phone, cccd, facility, role: 'CUSTOMER' };
+
+  // 1. Try server register
+  try {
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (res.ok && data.success && data.data) {
+      applyUserSession(data.data);
+      showToast('✨ Đăng ký tài khoản thành công! Đã đăng nhập vào hệ thống.');
+      addAuditLog(data.data.name, 'CUSTOMER', 'USER_REGISTER', `Đăng ký tài khoản mới @${data.data.username}`);
+      return;
+    }
+  } catch (err) {
+    console.warn('[Register] API offline, using local creation.');
+  }
+
+  // 2. Local fallback creation
+  const newUser = {
+    id: `USR-0${mockUsers.length + 1}`,
+    name,
+    username,
+    password,
+    email,
+    phone,
+    cccd: cccd || '001202099999',
+    role: 'CUSTOMER',
+    roleTitle: 'Khách hàng thuê kho',
+    facility,
+    facilityCode: 'HN-CG',
+    status: 'ACTIVE'
+  };
+
+  mockUsers.push(newUser);
+  applyUserSession(newUser);
+  showToast('✨ Đăng ký tài khoản thành công! Đã đăng nhập vào hệ thống.');
+  addAuditLog(newUser.name, 'CUSTOMER', 'USER_REGISTER', `Đăng ký tài khoản mới @${newUser.username}`);
+}
+
+function applyUserSession(user) {
+  currentUser = user;
+  currentActor = normalizeRole(user.role);
+  localStorage.setItem('selfstorage_auth_user', JSON.stringify(user));
+
+  const meta = ROLE_METADATA[currentActor] || ROLE_METADATA.CUSTOMER;
+
+  // Update Header Elements
+  const loggedOutSlot = document.getElementById('authLoggedOutSlot');
+  const loggedInSlot = document.getElementById('authLoggedInSlot');
+  const branchWrap = document.getElementById('headerBranchWrap');
+  if (loggedOutSlot) loggedOutSlot.style.display = 'none';
+  if (loggedInSlot) loggedInSlot.style.display = 'flex';
+  if (branchWrap) branchWrap.style.display = (currentActor === 'CUSTOMER') ? 'none' : 'block';
+
+  if (document.getElementById('txtUserName')) document.getElementById('txtUserName').innerText = user.name;
+  if (document.getElementById('txtUserHandle')) document.getElementById('txtUserHandle').innerText = `@${user.username || 'user'}`;
+  if (document.getElementById('txtUserRoleBadge')) document.getElementById('txtUserRoleBadge').innerText = meta.badgeText;
+  if (document.getElementById('headerRoleIndicator')) document.getElementById('headerRoleIndicator').innerText = meta.title;
+
+  const initials = getInitials(user.name);
   const avatar = document.getElementById('avatarInitials');
   if (avatar) {
-    avatar.innerText = user.init;
-    avatar.style.background = user.color;
+    avatar.innerText = initials;
+    avatar.style.background = meta.color;
   }
 
-  // Update dropdown modal/menu values
-  if (document.getElementById('ddAvatar')) {
-    document.getElementById('ddAvatar').innerText = user.init;
-    document.getElementById('ddAvatar').style.background = user.color;
+  const ddAvatar = document.getElementById('ddAvatar');
+  if (ddAvatar) {
+    ddAvatar.innerText = initials;
+    ddAvatar.style.background = meta.color;
   }
-  if (document.getElementById('ddUserName')) {
-    document.getElementById('ddUserName').innerText = user.name;
-  }
-  if (document.getElementById('ddUserEmail')) {
-    document.getElementById('ddUserEmail').innerText = user.email;
-  }
-  if (document.getElementById('ddUserRoleText')) {
-    document.getElementById('ddUserRoleText').innerText = `Vai trò hiện tại: ${user.role}`;
-  }
+  if (document.getElementById('ddUserName')) document.getElementById('ddUserName').innerText = user.name;
+  if (document.getElementById('ddUserEmail')) document.getElementById('ddUserEmail').innerText = user.email || `${user.username}@selfstorage.vn`;
+  if (document.getElementById('ddUserRoleText')) document.getElementById('ddUserRoleText').innerText = `Vai trò: ${meta.title}`;
 
-  // Highlight active role in dropdown list
-  document.querySelectorAll('.role-select-item').forEach(item => item.classList.remove('active'));
-  const activeOpt = document.getElementById(`roleOpt-${actorKey}`);
-  if (activeOpt) {
-    activeOpt.classList.add('active');
+  // Branch selector adjustment for staff/manager
+  if (user.facility && document.getElementById('activeBranchSelect')) {
+    const sel = document.getElementById('activeBranchSelect');
+    for (let opt of sel.options) {
+      if (opt.text.includes(user.facility) || user.facility.includes(opt.value)) {
+        sel.value = opt.value;
+        break;
+      }
+    }
   }
-
-  // Set default initial screen for each actor
-  const defaultScreenMap = {
-    CUSTOMER: 'SCR-C00',
-    STAFF: 'SCR-S01',
-    FMANAGER: 'SCR-M01',
-    OPS_MGR: 'SCR-O01',
-    ADMIN: 'SCR-A01'
-  };
-  currentScreen = defaultScreenMap[actorKey];
 
   renderAppNavLinks();
-  navigateToScreen(currentScreen);
-  showToast(`Đã chuyển sang vai trò: ${user.role}`);
+  navigateToScreen(meta.defaultScreen);
 }
 
-// Select role from dropdown item
-function selectRole(actorKey) {
-  closeUserDropdown();
-  switchActor(actorKey);
+function applyLoggedOutState() {
+  currentUser = null;
+  currentActor = null;
+  localStorage.removeItem('selfstorage_auth_user');
+
+  const loggedOutSlot = document.getElementById('authLoggedOutSlot');
+  const loggedInSlot = document.getElementById('authLoggedInSlot');
+  const branchWrap = document.getElementById('headerBranchWrap');
+  if (loggedOutSlot) loggedOutSlot.style.display = 'flex';
+  if (loggedInSlot) loggedInSlot.style.display = 'none';
+  if (branchWrap) branchWrap.style.display = 'none';
+
+  if (document.getElementById('headerRoleIndicator')) {
+    document.getElementById('headerRoleIndicator').innerText = 'KHO ĐƠN | HỆ THỐNG KHO TỰ QUẢN';
+  }
+
+  renderAppNavLinks();
+  navigateToScreen('SCR-C00');
 }
 
-// Quick Switcher from Modal
-function quickSwitchIdentity(actorKey) {
-  closeModal('modalIdentitySwitch');
-  switchActor(actorKey);
+function logoutUser() {
+  if (currentUser) {
+    addAuditLog(currentUser.name, currentActor, 'USER_LOGOUT', `Đăng xuất khỏi hệ thống (@${currentUser.username})`);
+  }
+  applyLoggedOutState();
+  showToast('👋 Đã đăng xuất khỏi hệ thống thành công.');
 }
 
-// User Profile & Role Dropdown controls
+function getInitials(name) {
+  if (!name) return 'US';
+  const parts = name.trim().split(' ');
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+// User Profile dropdown
 function toggleUserDropdown(event) {
-  if (event) {
-    event.stopPropagation();
-  }
+  if (event) event.stopPropagation();
   const menu = document.getElementById('userRoleDropdownMenu');
-  if (menu) {
-    menu.classList.toggle('show');
-  }
+  if (menu) menu.classList.toggle('show');
 }
 
 function closeUserDropdown() {
   const menu = document.getElementById('userRoleDropdownMenu');
-  if (menu) {
-    menu.classList.remove('show');
-  }
+  if (menu) menu.classList.remove('show');
 }
 
-// Close dropdown when clicking outside
 document.addEventListener('click', (e) => {
   const trigger = document.getElementById('userRoleTrigger');
-  const quickBtn = document.querySelector('.btn-quick-role-switch');
   const menu = document.getElementById('userRoleDropdownMenu');
   if (menu && menu.classList.contains('show')) {
-    const isInsideMenu = menu.contains(e.target);
-    const isInsideTrigger = trigger && trigger.contains(e.target);
-    const isInsideQuickBtn = quickBtn && quickBtn.contains(e.target);
-    if (!isInsideMenu && !isInsideTrigger && !isInsideQuickBtn) {
+    if (!menu.contains(e.target) && (!trigger || !trigger.contains(e.target))) {
       menu.classList.remove('show');
     }
   }
 });
 
-// Navigation Rendering
-
-function renderSubnav() {
-  const container = document.getElementById('subnavContainer');
-  if (!container) return;
-  const screens = ACTOR_SCREENS[currentActor] || [];
-  container.innerHTML = screens.map(s => `
-    <button class="subnav-screen-pill ${s.id === currentScreen ? 'active' : ''}" onclick="navigateToScreen('${s.id}')">
-      <span class="code-tag">[${s.code}]</span>
-      <span>${s.name}</span>
-    </button>
-  `).join('');
-}
+// ==============================================================================
+// STRICT NAVIGATION & RBAC ROUTE GUARD
+// ==============================================================================
 
 function renderAppNavLinks() {
   const nav = document.getElementById('appNavLinks');
   if (!nav) return;
+
+  if (!currentUser) {
+    nav.innerHTML = `
+      <span class="nav-item-link ${currentScreen === 'SCR-C00' ? 'active' : ''}" onclick="navigateToScreen('SCR-C00')">Trang chủ</span>
+      <span class="nav-item-link" onclick="scrollToLandingSection('landing-pricing')">Kho lưu trữ</span>
+      <span class="nav-item-link" onclick="scrollToLandingSection('landing-process')">Điều kiện thuê</span>
+      <span class="nav-item-link" onclick="scrollToLandingSection('landing-facilities')">Chính sách bảo mật</span>
+    `;
+    return;
+  }
 
   if (currentActor === 'CUSTOMER') {
     nav.innerHTML = `
@@ -302,18 +474,18 @@ function renderAppNavLinks() {
       <span class="nav-item-link ${currentScreen === 'SCR-S02' ? 'active' : ''}" onclick="navigateToScreen('SCR-S02')">Tra cứu đơn</span>
       <span class="nav-item-link ${currentScreen === 'SCR-S03' ? 'active' : ''}" onclick="navigateToScreen('SCR-S03')">Bàn giao kho</span>
       <span class="nav-item-link ${currentScreen === 'SCR-S04' ? 'active' : ''}" onclick="navigateToScreen('SCR-S04')">Sơ đồ mặt bằng</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-S05' ? 'active' : ''}" onclick="navigateToScreen('SCR-S05')">Nghiệm thu trả</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-S05' ? 'active' : ''}" onclick="navigateToScreen('SCR-S05')">Nghiệm thu trả kho</span>
       <span class="nav-item-link ${currentScreen === 'SCR-S06' ? 'active' : ''}" onclick="navigateToScreen('SCR-S06')">Bàn sự cố</span>
       <span class="nav-item-link ${currentScreen === 'SCR-S07' ? 'active' : ''}" onclick="navigateToScreen('SCR-S07')">Mở khóa số</span>
     `;
   } else if (currentActor === 'FMANAGER') {
     nav.innerHTML = `
-      <span class="nav-item-link ${currentScreen === 'SCR-M01' ? 'active' : ''}" onclick="navigateToScreen('SCR-M01')">Dashboard Cơ sở</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-M01' ? 'active' : ''}" onclick="navigateToScreen('SCR-M01')">Tổng quan cơ sở</span>
       <span class="nav-item-link ${currentScreen === 'SCR-M02' ? 'active' : ''}" onclick="navigateToScreen('SCR-M02')">Quản lý kho</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-M03' ? 'active' : ''}" onclick="navigateToScreen('SCR-M03')">Gán phòng</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-M03' ? 'active' : ''}" onclick="navigateToScreen('SCR-M03')">Gán phòng kho</span>
       <span class="nav-item-link ${currentScreen === 'SCR-M04' ? 'active' : ''}" onclick="navigateToScreen('SCR-M04')">Phân công việc</span>
       <span class="nav-item-link ${currentScreen === 'SCR-M05' ? 'active' : ''}" onclick="navigateToScreen('SCR-M05')">Hợp đồng & Nợ</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-M06' ? 'active' : ''}" onclick="navigateToScreen('SCR-M06')">Báo cáo</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-M06' ? 'active' : ''}" onclick="navigateToScreen('SCR-M06')">Báo cáo vận hành</span>
     `;
   } else if (currentActor === 'OPS_MGR') {
     nav.innerHTML = `
@@ -321,7 +493,7 @@ function renderAppNavLinks() {
       <span class="nav-item-link ${currentScreen === 'SCR-O02' ? 'active' : ''}" onclick="navigateToScreen('SCR-O02')">5 Chi nhánh</span>
       <span class="nav-item-link ${currentScreen === 'SCR-O03' ? 'active' : ''}" onclick="navigateToScreen('SCR-O03')">Bảng giá & Cọc</span>
       <span class="nav-item-link ${currentScreen === 'SCR-O04' ? 'active' : ''}" onclick="navigateToScreen('SCR-O04')">Báo cáo doanh thu</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-O05' ? 'active' : ''}" onclick="navigateToScreen('SCR-O05')">Tiêu chuẩn an toàn</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-O05' ? 'active' : ''}" onclick="navigateToScreen('SCR-O05')">Chính sách chung</span>
     `;
   } else if (currentActor === 'ADMIN') {
     nav.innerHTML = `
@@ -334,35 +506,78 @@ function renderAppNavLinks() {
   }
 }
 
-function navigateToScreen(screenId) {
-  currentScreen = screenId;
-
-  // Toggle active screen panel
-  document.querySelectorAll('.screen-panel').forEach(panel => panel.classList.remove('active'));
-  const target = document.getElementById(screenId);
-  if (target) {
-    target.classList.add('active');
-  }
-
-  // Update App Nav links
-  renderAppNavLinks();
-
-  // Update Frame Meta bar if present
-  const screens = ACTOR_SCREENS[currentActor] || [];
-  const meta = screens.find(s => s.id === screenId);
-  if (meta) {
-    if (document.getElementById('lblFrameCode')) document.getElementById('lblFrameCode').innerText = meta.code;
-    if (document.getElementById('lblFrameName')) document.getElementById('lblFrameName').innerText = meta.name;
-    if (document.getElementById('lblFrameActor')) {
-      const userRole = document.getElementById('txtUserRoleBadge') ? document.getElementById('txtUserRoleBadge').innerText : '';
-      document.getElementById('lblFrameActor').innerText = `Vai trò: ${userRole} • ${meta.desc}`;
-    }
-  }
-
+function openAuthScreen(tab = 'LOGIN') {
+  navigateToScreen('SCR-AUTH');
+  switchAuthTab(tab);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Customer Workflows
+function scrollToLandingSection(sectionId) {
+  if (currentScreen !== 'SCR-C00') {
+    navigateToScreen('SCR-C00');
+    setTimeout(() => {
+      const el = document.getElementById(sectionId);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }, 120);
+  } else {
+    const el = document.getElementById(sectionId);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
+function navigateToScreen(screenId) {
+  // Public screens for guests / non-logged-in
+  if (!currentUser) {
+    if (screenId === 'SCR-C00' || screenId === 'SCR-C01' || screenId === 'SCR-AUTH') {
+      currentScreen = screenId;
+      displayScreen(screenId);
+      renderAppNavLinks();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    showToast('⚠️ Vui lòng đăng nhập để truy cập tính năng này!');
+    openAuthScreen('LOGIN');
+    return;
+  }
+
+  // Logged-in navigation to home or auth
+  if (screenId === 'SCR-C00' || screenId === 'SCR-AUTH') {
+    currentScreen = screenId;
+    displayScreen(screenId);
+    renderAppNavLinks();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  // Route Guard check against ACTOR_SCREENS
+  const allowedScreens = ACTOR_SCREENS[currentActor] || [];
+  const isAllowed = allowedScreens.some(s => s.id === screenId);
+
+  if (!isAllowed) {
+    const meta = ROLE_METADATA[currentActor] || {};
+    showToast(`⛔ Bạn không có quyền truy cập màn hình này! Tính năng này chỉ dành cho vai trò tương ứng.`);
+    return;
+  }
+
+  currentScreen = screenId;
+  displayScreen(screenId);
+  renderAppNavLinks();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function displayScreen(screenId) {
+  document.querySelectorAll('.screen-panel').forEach(panel => panel.classList.remove('active'));
+  const target = document.getElementById(screenId);
+  if (target) target.classList.add('active');
+}
+
+function handleBranchChange(val) {
+  showToast(`📍 Đã chọn cơ sở: ${val}`);
+}
+
+// ==============================================================================
+// CUSTOMER ACTOR WORKFLOWS
+// ==============================================================================
 
 function openUnitDetailModal(name, size, volume, price) {
   document.getElementById('mdlDetailUnitTitle').innerText = name;
@@ -399,6 +614,9 @@ function confirmReservation() {
   navigateToScreen('SCR-C03');
   setPaymentType('DEPOSIT');
   showToast('Đã tạo đơn đặt chỗ RSV-8821! Đang chuyển sang cổng thanh toán VietQR...');
+  if (currentUser) {
+    addAuditLog(currentUser.name, 'CUSTOMER', 'CREATE_RESERVATION', 'Tạo đơn đặt giữ chỗ Kho M (5.0m²) tại Cầu Giấy');
+  }
 }
 
 function setPaymentType(type) {
@@ -453,7 +671,8 @@ function startPaymentCountdown() {
 
 function simulatePaymentSuccess() {
   showToast('🎉 Giao dịch thành công! Mã giao dịch Napas: TXN-998124');
-  addAuditLog('Trần Văn Bảo', 'CUSTOMER', 'PAYMENT_CONFIRM', 'Thanh toán cọc 1.450.000 VNĐ qua VietQR');
+  const uName = currentUser ? currentUser.name : 'Trần Văn Bảo';
+  addAuditLog(uName, 'CUSTOMER', 'PAYMENT_CONFIRM', 'Thanh toán cọc 1.450.000 VNĐ qua VietQR');
   setTimeout(() => {
     navigateToScreen('SCR-C04');
     showToast('Đã phát hành Thẻ hẹn Check-in nhận kho Unit A-102!');
@@ -496,7 +715,8 @@ function saveNewPin() {
   }
   closeModal('modalChangePin');
   showToast('Đã đổi mã PIN mới thành công! Hệ thống khóa đã được đồng bộ.');
-  addAuditLog('Trần Văn Bảo', 'CUSTOMER', 'UPDATE_PIN', 'Đổi mã PIN điện tử kho Unit A-102');
+  const uName = currentUser ? currentUser.name : 'Trần Văn Bảo';
+  addAuditLog(uName, 'CUSTOMER', 'UPDATE_PIN', 'Đổi mã PIN điện tử kho Unit A-102');
 }
 
 function openRenewalModal(unit) {
@@ -508,22 +728,58 @@ function openRenewalModal(unit) {
 function openCheckoutRequestModal(unit) {
   if (confirm(`Bạn có chắc chắn muốn gửi yêu cầu trả phòng kho ${unit}? Lịch hẹn nghiệm thu sẽ được chuyển đến Nhân viên ca trực.`)) {
     showToast(`Đã gửi yêu cầu trả kho ${unit}! Vui lòng mang đủ chìa và thẻ từ đến bàn giao.`);
-    addAuditLog('Trần Văn Bảo', 'CUSTOMER', 'REQUEST_CHECKOUT', `Yêu cầu trả phòng kho ${unit}`);
+    const uName = currentUser ? currentUser.name : 'Trần Văn Bảo';
+    addAuditLog(uName, 'CUSTOMER', 'REQUEST_CHECKOUT', `Yêu cầu trả phòng kho ${unit}`);
   }
 }
 
 function submitSupportTicket() {
   const desc = document.getElementById('ticketDesc').value.trim();
+  const unit = document.getElementById('ticketUnitSelect') ? document.getElementById('ticketUnitSelect').value : 'A-102';
+  const category = document.getElementById('ticketCategorySelect') ? document.getElementById('ticketCategorySelect').value : 'Ổ khóa cơ';
+  
   if (!desc) {
     alert('Vui lòng nhập mô tả chi tiết sự cố cần hỗ trợ!');
     return;
   }
+
+  const newTicket = {
+    id: `TCK-2026-0${mockSupportTickets.length + 1}`,
+    unit,
+    category,
+    priority: 'NORMAL',
+    desc,
+    status: 'Đang xử lý',
+    time: 'Vừa xong'
+  };
+
+  mockSupportTickets.unshift(newTicket);
+  renderSupportTicketsTable();
+
   document.getElementById('ticketDesc').value = '';
-  showToast('Phiếu hỗ trợ đã được tạo và phân công tới Nhân viên ca trực!');
-  addAuditLog('Trần Văn Bảo', 'CUSTOMER', 'CREATE_TICKET', 'Báo cáo sự cố phòng kho Unit A-102');
+  showToast('Phiếu hỗ trợ đã được tạo và chuyển đến Nhân viên ca trực!');
+  const uName = currentUser ? currentUser.name : 'Trần Văn Bảo';
+  addAuditLog(uName, 'CUSTOMER', 'CREATE_TICKET', `Báo cáo sự cố ${category} tại phòng ${unit}`);
 }
 
-// Staff Handlers
+function renderSupportTicketsTable() {
+  const tbody = document.getElementById('tblSupportTicketsBody');
+  if (!tbody) return;
+  tbody.innerHTML = mockSupportTickets.map(t => `
+    <tr>
+      <td><span class="code-display">${t.id}</span></td>
+      <td><strong>${t.unit}</strong></td>
+      <td>${t.category}</td>
+      <td>${t.desc}</td>
+      <td><span class="badge badge-warning">${t.status}</span></td>
+      <td style="font-size:12px; color:#64748b;">${t.time}</td>
+    </tr>
+  `).join('');
+}
+
+// ==============================================================================
+// FACILITY STAFF WORKFLOWS
+// ==============================================================================
 
 function switchStaffTaskTab(tab) {
   document.getElementById('queueCheckinTable').style.display = tab === 'CHECKIN' ? 'block' : 'none';
@@ -540,7 +796,8 @@ function switchStaffTaskTab(tab) {
 
 function startCheckinForCustomer(rsv, cust, unit) {
   navigateToScreen('SCR-S02');
-  document.getElementById('txtSearchReservation').value = rsv;
+  const input = document.getElementById('txtSearchReservation');
+  if (input) input.value = rsv;
   showToast(`Đang tra cứu hồ sơ đơn đặt chỗ ${rsv} của khách ${cust}...`);
 }
 
@@ -549,7 +806,6 @@ function lookupReservation() {
 }
 
 function completeHandoverProtocol() {
-  // Update unit state in database
   const target = mockUnits.find(u => u.code === 'A-102');
   if (target) {
     target.status = 'occupied';
@@ -558,7 +814,8 @@ function completeHandoverProtocol() {
   renderMatrixGrid();
 
   showToast('🎉 Hoàn tất Bàn giao kho! Hợp đồng CTR-2026-001 chính thức có hiệu lực.');
-  addAuditLog('Nguyễn Văn Tuấn', 'STAFF', 'HANDOVER_COMPLETE', 'Hoàn tất bàn giao Unit A-102 cho Trần Văn Bảo');
+  const uName = currentUser ? currentUser.name : 'Nguyễn Văn Tuấn';
+  addAuditLog(uName, 'STAFF', 'HANDOVER_COMPLETE', 'Hoàn tất bàn giao Unit A-102 cho Trần Văn Bảo');
 
   setTimeout(() => {
     navigateToScreen('SCR-S04');
@@ -575,7 +832,8 @@ function completeReturnInspection() {
   renderMatrixGrid();
 
   showToast('Xác nhận Nghiệm thu thành công! Hoàn trả cọc 1.500.000đ về MBBank của khách.');
-  addAuditLog('Nguyễn Văn Tuấn', 'STAFF', 'RETURN_INSPECTION', 'Nghiệm thu trả kho Unit A-102 & duyệt hoàn cọc');
+  const uName = currentUser ? currentUser.name : 'Nguyễn Văn Tuấn';
+  addAuditLog(uName, 'STAFF', 'RETURN_INSPECTION', 'Nghiệm thu trả kho Unit A-102 & duyệt hoàn cọc');
 
   setTimeout(() => {
     navigateToScreen('SCR-S04');
@@ -587,17 +845,19 @@ function openEmergencyPinModal() {
   const tempPin = Math.floor(100000 + Math.random() * 900000);
   alert(`[GIAO THỨC KHẨN CẤP TẠI QUẦY]\nMã PIN tạm thời hiệu lực 60 phút cho khách là: ${tempPin}\nHệ thống đã gửi SMS tới số điện thoại chính chủ.`);
   showToast(`Đã cấp mã PIN tạm thời: ${tempPin} (Hiệu lực 60 phút)`);
-  addAuditLog('Nguyễn Văn Tuấn', 'STAFF', 'EMERGENCY_PIN', `Cấp mã PIN tạm thời 60p cho Unit A-102`);
+  const uName = currentUser ? currentUser.name : 'Nguyễn Văn Tuấn';
+  addAuditLog(uName, 'STAFF', 'EMERGENCY_PIN', `Cấp mã PIN tạm thời 60p cho Unit A-102`);
 }
 
 function openLostKeyModal() {
   if (confirm('Lập biên bản mất chìa khóa cơ, thu phụ phí thay ổ khóa mới 150.000 VNĐ?')) {
     showToast('Đã lập biên bản mất chìa và phân công kỹ thuật thay ổ khóa mới!');
-    addAuditLog('Nguyễn Văn Tuấn', 'STAFF', 'LOST_KEY_PROTOCOL', 'Thu phụ phí 150.000đ và thay khóa Unit A-102');
+    const uName = currentUser ? currentUser.name : 'Nguyễn Văn Tuấn';
+    addAuditLog(uName, 'STAFF', 'LOST_KEY_PROTOCOL', 'Thu phụ phí 150.000đ và thay khóa Unit A-102');
   }
 }
 
-// Matrix Grid Renderer
+// Matrix Grid Renderer (Floor 1 - Area A)
 function renderMatrixGrid() {
   const container = document.getElementById('matrixGridContainer');
   if (!container) return;
@@ -636,7 +896,8 @@ function saveUnitStatusChange() {
   renderMatrixGrid();
   closeModal('modalUnitStatus');
   showToast(`Đã cập nhật trạng thái kho ${selectedUnitForModal.code} thành: ${newStatus.toUpperCase()}`);
-  addAuditLog(document.getElementById('txtUserName').innerText, currentActor, 'UPDATE_UNIT_STATUS', `Cập nhật trạng thái Unit ${selectedUnitForModal.code} -> ${newStatus}`);
+  const uName = currentUser ? currentUser.name : 'Nhân viên';
+  addAuditLog(uName, currentActor || 'STAFF', 'UPDATE_UNIT_STATUS', `Cập nhật trạng thái Unit ${selectedUnitForModal.code} -> ${newStatus}`);
 }
 
 // Keypad Simulator (SCR-S07)
@@ -650,21 +911,19 @@ function typeKeypadDigit(digit) {
 function clearKeypad() {
   keypadInput = '';
   updateKeypadDisplay();
-  document.getElementById('keypadStatusResult').innerHTML = '';
+  const el = document.getElementById('keypadStatusResult');
+  if (el) el.innerHTML = '';
 }
 
 function updateKeypadDisplay() {
   const display = document.getElementById('keypadScreenDisplay');
   if (!display) return;
-  if (!keypadInput) {
-    display.innerText = '------';
-  } else {
-    display.innerText = keypadInput.padEnd(6, '-');
-  }
+  display.innerText = !keypadInput ? '------' : keypadInput.padEnd(6, '-');
 }
 
 function submitKeypadPin() {
   const result = document.getElementById('keypadStatusResult');
+  if (!result) return;
   if (keypadInput === '842916' || keypadInput === '894210') {
     result.innerHTML = `
       <div style="background:#ecfdf5; border:1px solid #10b981; border-radius:10px; padding:16px; text-align:center; color:#047857; margin-top:16px;">
@@ -684,7 +943,9 @@ function submitKeypadPin() {
   }
 }
 
-// Facility Manager Handlers
+// ==============================================================================
+// FACILITY MANAGER WORKFLOWS
+// ==============================================================================
 
 function assignUnitToReservation(rsvId, unitCode) {
   const target = mockUnits.find(u => u.code === unitCode);
@@ -694,7 +955,8 @@ function assignUnitToReservation(rsvId, unitCode) {
     renderMatrixGrid();
   }
   showToast(`Đã gán phòng kho ${unitCode} cho đơn đặt chỗ ${rsvId}! Khách hàng đã nhận được thông báo.`);
-  addAuditLog('Phạm Hải Đăng', 'FACILITY_MGR', 'ASSIGN_UNIT', `Gán kho ${unitCode} cho đơn đặt chỗ ${rsvId}`);
+  const uName = currentUser ? currentUser.name : 'Phạm Hải Đăng';
+  addAuditLog(uName, 'FACILITY_MGR', 'ASSIGN_UNIT', `Gán kho ${unitCode} cho đơn đặt chỗ ${rsvId}`);
 }
 
 function dispatchStaffTask() {
@@ -705,25 +967,99 @@ function dispatchStaffTask() {
     return;
   }
   showToast(`Đã phân công việc "${taskName}" cho nhân viên ${staffName}!`);
-  addAuditLog('Phạm Hải Đăng', 'FACILITY_MGR', 'DISPATCH_TASK', `Phân công việc "${taskName}" cho ${staffName}`);
+  const uName = currentUser ? currentUser.name : 'Phạm Hải Đăng';
+  addAuditLog(uName, 'FACILITY_MGR', 'DISPATCH_TASK', `Phân công việc "${taskName}" cho ${staffName}`);
   document.getElementById('txtTaskTitle').value = '';
 }
 
-// Operations Manager Handlers
+function submitCreateUnitByManager() {
+  const code = document.getElementById('txtNewUnitCode').value.trim().toUpperCase();
+  const type = document.getElementById('selNewUnitType').value;
+  const size = parseFloat(document.getElementById('txtNewUnitSize').value) || 5.0;
+  const price = parseInt(document.getElementById('txtNewUnitPrice').value) || 1450000;
+  const status = document.getElementById('selNewUnitInitialStatus').value;
+
+  if (!code) {
+    alert('Vui lòng nhập mã phòng kho!');
+    return;
+  }
+
+  const exists = mockUnits.find(u => u.code === code);
+  if (exists) {
+    alert(`Mã phòng kho ${code} đã tồn tại trong cơ sở!`);
+    return;
+  }
+
+  const newUnit = {
+    code,
+    type,
+    size: `${size.toFixed(1)} m²`,
+    status,
+    price,
+    tenant: null,
+    pin: '842916'
+  };
+
+  mockUnits.push(newUnit);
+  renderMatrixGrid();
+  closeModal('modalAddUnit');
+  showToast(`Đã thêm phòng kho mới: ${code} vào cơ sở!`);
+  const uName = currentUser ? currentUser.name : 'Quản lý cơ sở';
+  addAuditLog(uName, 'FACILITY_MGR', 'CREATE_UNIT', `Thêm phòng kho mới ${code} (${size}m²)`);
+}
+
+function triggerOverdueLockout(contractId, unitCode, customerName) {
+  if (confirm(`Xác nhận kích hoạt Giao thức Khóa An Ninh Quá Hạn nợ cước cho phòng ${unitCode} (${customerName})? Mã PIN sẽ bị vô hiệu hóa tạm thời.`)) {
+    showToast(`🔒 Đã khóa an ninh Unit ${unitCode}! Mã PIN tạm vô hiệu hóa đến khi hoàn tất công nợ.`);
+    const uName = currentUser ? currentUser.name : 'Phạm Hải Đăng';
+    addAuditLog(uName, 'FACILITY_MGR', 'OVERDUE_LOCKOUT', `Khóa an ninh phòng ${unitCode} do quá hạn nợ cước (${contractId})`);
+  }
+}
+
+// ==============================================================================
+// BUSINESS OPERATIONS MANAGER WORKFLOWS
+// ==============================================================================
 
 function savePricingPolicy() {
   showToast('Đã lưu và ban hành chính sách giá & tỷ lệ cọc mới trên toàn hệ thống!');
-  addAuditLog('Đặng Hoàng Long', 'OPS_MGR', 'UPDATE_PRICE_POLICY', 'Ban hành khung giá cọc và chiết khấu mới');
+  const uName = currentUser ? currentUser.name : 'Đặng Hoàng Long';
+  addAuditLog(uName, 'OPS_MGR', 'UPDATE_PRICE_POLICY', 'Ban hành khung giá cọc và chiết khấu mới toàn chuỗi');
+}
+
+function saveGeneralPolicy() {
+  showToast('Đã ban hành Bộ quy chuẩn & Chính sách cho thuê chung toàn chuỗi 5 cơ sở!');
+  const uName = currentUser ? currentUser.name : 'Đặng Hoàng Long';
+  addAuditLog(uName, 'OPS_MGR', 'UPDATE_GENERAL_POLICY', 'Cập nhật chính sách an toàn, cọc và thời gian ân hạn');
 }
 
 function exportFinancialReport() {
-  showToast('Đang kết xuất báo cáo tài chính 5 chi nhánh (File: SelfStorage_Report_2026.xlsx)...');
+  showToast('Đang kết xuất báo cáo tài chính 5 chi nhánh (File: SelfStorage_Report_2026.csv)...');
+  
+  // Real CSV export generation
   setTimeout(() => {
-    showToast('Tải xuống báo cáo thành công!');
-  }, 1200);
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + "Chi nhánh,Tổng số kho,Kho đang thuê,Tỷ lệ lấp đầy (%),Doanh thu tháng (VNĐ),Trạng thái\n"
+      + "Cơ sở Cầu Giấy (120 Duy Tân),120,98,81.67%,145200000,Hoạt động tốt\n"
+      + "Cơ sở Quận 7 (Nguyễn Thị Thập),150,132,88.00%,198000000,Hoạt động tốt\n"
+      + "Cơ sở Nam Từ Liêm (Khu CNC),100,80,80.00%,118500000,Hoạt động tốt\n"
+      + "Cơ sở Tân Bình (Cộng Hòa),110,93,84.55%,137800000,Hoạt động tốt\n"
+      + "Cơ sở Đà Nẵng (Hải Châu),80,60,75.00%,88500000,Cần tối ưu marketing\n";
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "SelfStorage_Bao_Cao_Chuoi_2026.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    showToast('✅ Tải xuống báo cáo tài chính thành công!');
+  }, 1000);
 }
 
-// Administrator Handlers
+// ==============================================================================
+// SYSTEM ADMINISTRATOR WORKFLOWS
+// ==============================================================================
 
 function renderUserTable() {
   const tbody = document.getElementById('tblUsersBody');
@@ -734,15 +1070,15 @@ function renderUserTable() {
       <td><span class="code-display">${u.id}</span></td>
       <td>
         <div style="font-weight:700; color:#0f172a;">${u.name}</div>
-        <div style="font-size:12px; color:#64748b;">${u.email}</div>
+        <div style="font-size:12px; color:#64748b;">${u.email} • <strong>@${u.username}</strong></div>
       </td>
       <td>${u.phone}</td>
       <td>
         <span class="badge ${
           u.role === 'CUSTOMER' ? 'badge-primary' :
           u.role === 'STAFF' ? 'badge-teal' :
-          u.role === 'FACILITY_MANAGER' ? 'badge-purple' :
-          u.role === 'OPS_MANAGER' ? 'badge-warning' : 'badge-danger'
+          u.role === 'FMANAGER' ? 'badge-purple' :
+          u.role === 'OPS_MGR' ? 'badge-warning' : 'badge-danger'
         }">${u.role}</span>
       </td>
       <td>${u.facility}</td>
@@ -765,8 +1101,55 @@ function toggleLockUser(userId) {
   if (!target) return;
   target.status = target.status === 'ACTIVE' ? 'LOCKED' : 'ACTIVE';
   renderUserTable();
-  showToast(`Đã thay đổi trạng thái tài khoản ${target.name} thành: ${target.status}!`);
-  addAuditLog('Quản trị viên', 'SYSTEM_ADMIN', 'TOGGLE_USER_STATUS', `Đổi trạng thái tài khoản ${target.id} -> ${target.status}`);
+  showToast(`Đã thay đổi trạng thái tài khoản ${target.name} (@${target.username}) thành: ${target.status}!`);
+  const uName = currentUser ? currentUser.name : 'Quản trị viên';
+  addAuditLog(uName, 'ADMIN', 'TOGGLE_USER_STATUS', `Đổi trạng thái tài khoản ${target.id} (@${target.username}) -> ${target.status}`);
+}
+
+function submitCreateUserByAdmin() {
+  const name = document.getElementById('txtNewUserName').value.trim();
+  const username = document.getElementById('txtNewUserUsername').value.trim().toLowerCase();
+  const password = document.getElementById('txtNewUserPassword').value.trim();
+  const phone = document.getElementById('txtNewUserPhone').value.trim();
+  const email = document.getElementById('txtNewUserEmail').value.trim();
+  const cccd = document.getElementById('txtNewUserCccd').value.trim();
+  const role = document.getElementById('selNewUserRole').value;
+  const facility = document.getElementById('selNewUserFacility').value;
+
+  if (!name || !username || !password || !email) {
+    alert('Vui lòng điền đầy đủ các thông tin bắt buộc (*)!');
+    return;
+  }
+
+  const exists = mockUsers.find(u => u.username === username);
+  if (exists) {
+    alert(`Tên đăng nhập @${username} đã tồn tại!`);
+    return;
+  }
+
+  const meta = ROLE_METADATA[role] || ROLE_METADATA.CUSTOMER;
+
+  const newUser = {
+    id: `USR-0${mockUsers.length + 1}`,
+    name,
+    username,
+    password,
+    phone: phone || '0900.000.000',
+    email,
+    cccd: cccd || '0012020xxxxx',
+    role,
+    roleTitle: meta.title,
+    facility,
+    facilityCode: 'HN-CG',
+    status: 'ACTIVE'
+  };
+
+  mockUsers.push(newUser);
+  renderUserTable();
+  closeModal('modalAddUser');
+  showToast(`Đã tạo thành công tài khoản @${username} cho ${name} (${role})!`);
+  const uName = currentUser ? currentUser.name : 'Quản trị viên';
+  addAuditLog(uName, 'ADMIN', 'CREATE_USER', `Tạo tài khoản mới @${username} (${role})`);
 }
 
 function renderAuditLogsTable() {
@@ -790,11 +1173,11 @@ function renderAuditLogsTable() {
 
 function addAuditLog(user, role, action, detail) {
   const now = new Date();
-  const timeStr = `${now.getHours()}:${now.getMinutes() < 10 ? '0' : ''}${now.getMinutes()}:${now.getSeconds() < 10 ? '0' : ''}${now.getSeconds()} Hôm nay`;
+  const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')} Hôm nay`;
   mockAuditLogs.unshift({
     time: timeStr,
-    user: user,
-    role: role,
+    user: user || 'Hệ thống',
+    role: role || 'SYSTEM',
     action: action,
     detail: detail,
     ip: '192.168.1.100',
@@ -803,7 +1186,11 @@ function addAuditLog(user, role, action, detail) {
   renderAuditLogsTable();
 }
 
-// Modal Helpers & Notifications
+
+
+// ==============================================================================
+// MODAL HELPERS & NOTIFICATIONS
+// ==============================================================================
 
 function openModal(modalId) {
   const modal = document.getElementById(modalId);

@@ -87,7 +87,7 @@ Nhằm đảm bảo **tính khả thi cao nhất cho nhóm sinh viên trung bìn
 │   • KHÔNG lắp đặt mạch điều khiển IoT / Chốt điện từ phần cứng thực tế       │
 │   • KHÔNG tích hợp đầu đọc thẻ từ NFC/RFID vật lý                            │
 │   • KHÔNG ký hợp đồng kết nối cổng thanh toán Visa/Mastercard live           │
-│   • KHÔNG sử dụng AI nhận diện khuôn mặt khách ra vào                        │
+│   • KHÔNG sử dụng camera nhận diện khuôn mặt sinh trắc học                    │
 │   • KHÔNG lập trình phân hệ kế toán tài chính doanh nghiệp chuyên sâu        │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -179,12 +179,12 @@ Nhằm đảm bảo **tính khả thi cao nhất cho nhóm sinh viên trung bìn
 
 Để đồ án hoàn thành đúng tiến độ và không bị "vỡ trận", các hạng mục sau **nằm ngoài phạm vi thực hiện**:
 
-| Hạng mục Out-of-Scope | Lý do loại trừ | Giải pháp thay thế thông minh trong đồ án |
+| Hạng mục Out-of-Scope | Lý do loại trừ | Giải pháp thay thế trong đồ án |
 | :--- | :--- | :--- |
-| **1. Phần cứng khóa IoT thông minh / Chốt điện cơ** | Vượt quá thời lượng SWP, tốn kém chi phí mua sắm linh kiện, dễ lỗi kết nối vật lý khi demo trước Hội đồng. | **Mô phỏng vòng đời mã PIN điện tử 6 số (Virtual Access Code Lifecycle):** Sinh mã tự động khi Check-in, chỉ kích hoạt khi hợp đồng `ACTIVE`, tự động khóa khi `OVERDUE` hoặc `TERMINATED`. |
+| **1. Phần cứng khóa IoT / Chốt điện cơ vật lý** | Vượt quá thời lượng SWP, tốn kém chi phí mua sắm linh kiện, dễ lỗi kết nối vật lý khi demo trước Hội đồng. | **Mô phỏng vòng đời mã PIN điện tử 6 số (Virtual Access Code Lifecycle):** Sinh mã tự động khi Check-in, chỉ kích hoạt khi hợp đồng `ACTIVE`, tự động khóa khi `OVERDUE` hoặc `TERMINATED`. |
 | **2. Đầu đọc thẻ từ RFID / NFC tại cửa** | Đòi hỏi thiết bị phần cứng chuyên dụng và giao tiếp cổng COM/Serial phức tạp. | Bàn giao thẻ từ vật lý được mô phỏng bằng cách Staff ghi nhận số thẻ vào biên bản bàn giao điện tử (Handover Record). |
 | **3. Cổng thanh toán quốc tế Visa/Mastercard live** | Cần pháp nhân công ty, hợp đồng ngân hàng và chữ ký bảo mật phức tạp. | **Mock Payment Gateway & VietQR tĩnh:** Giả lập cổng thanh toán thử nghiệm với các kịch bản thành công/thất bại và tạo QR chuyển khoản kèm nội dung thanh toán tự động. |
-| **4. AI nhận diện khuôn mặt / Camera an ninh** | Nặng về xử lý thị giác máy tính, lạc đề so với mục tiêu môn Kỹ thuật phần mềm quản lý (SWP). | Hệ thống tập trung xác thực định danh qua số CCCD/CMND khi tiếp đón tại quầy và bảo mật tài khoản JWT. |
+| **4. Nhận diện khuôn mặt sinh trắc học / Camera thị giác máy tính** | Nặng về xử lý thị giác máy tính, lạc đề so với mục tiêu môn Kỹ thuật phần mềm quản trị thông tin (SWP). | Hệ thống tập trung xác thực định danh qua số CCCD/CMND khi tiếp đón tại quầy và bảo mật tài khoản JWT. |
 | **5. Phân hệ kế toán chuyên sâu (Tổng tài khoản, Thuế)** | Thuộc phạm vi hệ thống ERP doanh nghiệp lớn (SAP/Oracle), không phù hợp với quy mô phần mềm đồ án sinh viên. | Quản lý sổ cái doanh thu theo dạng Đơn đặt $\rightarrow$ Hóa đơn $\rightarrow$ Thanh toán (Invoices & Payments Tracking). |
 
 ---
