@@ -1,6 +1,8 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const supabase = require('./supabase');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,7 +13,18 @@ app.use(express.json());
 // Serve static files
 app.use(express.static(path.resolve(__dirname, '..')));
 
-// API routes
+// Supabase Status & Config API
+app.get('/api/supabase/status', (req, res) => {
+  res.json(supabase.getStatus());
+});
+
+app.post('/api/supabase/config', (req, res) => {
+  const { url, anonKey } = req.body;
+  const status = supabase.updateConfig(url, anonKey);
+  res.json({ success: true, status });
+});
+
+// Microservices API routes
 app.use('/api/auth', require('../services/auth-service'));
 app.use('/api/facilities', require('../services/facility-service'));
 app.use('/api/reservations', require('../services/reservation-service'));
@@ -25,6 +38,7 @@ app.use('/api/audit-logs', require('../services/audit-service'));
 app.get('/api/services', (req, res) => {
   res.json({
     status: 'ok',
+    supabase: supabase.getStatus(),
     services: [
       { name: 'Auth & User Service', endpoint: '/api/auth' },
       { name: 'Facility & Unit Service', endpoint: '/api/facilities' },
@@ -40,5 +54,5 @@ app.get('/api/services', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`Supabase Status: ${supabase.getStatus().message}`);
 });
-
