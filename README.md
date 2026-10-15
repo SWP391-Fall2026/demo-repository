@@ -13,14 +13,32 @@ Hệ thống quản lý và cho thuê kho tự lưu trữ (Self-Storage) phục 
 5. **System Administrator (Quản trị hệ thống):** Quản trị tài khoản người dùng, phân vai trò (Roles), cấu hình phân quyền truy cập, theo dõi nhật ký hoạt động (Audit Logs) và lịch sử đăng nhập.
 
 ## 2. Hướng dẫn chạy dự án
-```bash
-# Cài đặt thư viện phụ thuộc
-npm install
 
-# Khởi động máy chủ Node.js Express
+Dự án được phân tách rõ ràng thành 2 thư mục độc lập: **`frontend/`** (Giao diện Web) và **`backend/`** (Máy chủ Spring Boot API).
+
+### Bước 1: Khởi động Backend (Spring Boot 3 + Supabase)
+```bash
+# Cách 1: Đứng tại thư mục gốc chạy:
+npm run start:backend
+
+# Hoặc di chuyển vào thư mục backend:
+cd backend
+mvn spring-boot:run
+```
+*Backend Spring Boot API sẽ lắng nghe tại: `http://localhost:8080`*
+
+### Bước 2: Khởi động Frontend Web
+```bash
+# Cách 1: Đứng tại thư mục gốc chạy:
+npm start
+
+# Hoặc di chuyển vào thư mục frontend:
+cd frontend
 npm start
 ```
-Truy cập hệ thống tại: `http://localhost:3000`
+*Giao diện Web Frontend sẽ chạy tại: `http://localhost:3000` (tự động kết nối tới Spring Boot tại `8080`)*
+
+*(Ngoài ra bạn cũng có thể mở trực tiếp file `frontend/index.html` bằng trình duyệt hoặc qua Live Server của VS Code).*
 
 ## 3. Tài khoản thử nghiệm (5 Actors)
 | Vai trò | Tên đăng nhập | Mật khẩu | Chi nhánh mặc định |
@@ -32,10 +50,17 @@ Truy cập hệ thống tại: `http://localhost:3000`
 | **Ops Manager** | `business` | `5` | Toàn hệ thống (HQ) |
 
 ## 4. Cấu trúc thư mục
-- `index.html`: Giao diện người dùng Web SPA tích hợp 5 phân hệ actor.
-- `css/`: Hệ thống định kiểu giao diện hiện đại, responsive.
-- `js/`: Xử lý logic phía client (chuyển màn hình, giỏ hàng, thanh toán, RBAC).
-- `server/`: Máy chủ Node.js Express & bộ kết nối CSDL Supabase.
-- `services/`: Kiến trúc Microservices (Auth, Facility, Reservation, Payment, Contract, Task, Policy, Audit).
+- `backend/`: Toàn bộ Backend **Spring Boot 3 (Java 21, Spring Security, JWT, Spring Data JPA)** kết nối Supabase Cloud.
+  - `src/main/java/com/swp391/selfstorage/`:
+    - `config/`: Cấu hình Security, CORS, DataInitializer nạp dữ liệu mẫu ban đầu.
+    - `controller/`: REST Controllers (`/api/auth`, `/api/facilities`, `/api/reservations`, `/api/payments`, `/api/contracts`, `/api/tasks`, `/api/policies`, `/api/audit-logs`).
+    - `entity/`: Các thực thể JPA (`User`, `Facility`, `Unit`, `Reservation`, `Contract`, `Payment`, `SupportTicket`, `DailyTask`, `AuditLog`, `LoginHistory`).
+    - `repository/`: Spring Data JPA Repositories truy vấn PostgreSQL.
+    - `security/`: `JwtUtil`, `JwtAuthenticationFilter`, `CustomUserDetailsService`.
+    - `service/`: Nghiệp vụ phân quyền RBAC, kiểm tra CCCD/SĐT/Email, OTP, tính giá chiết khấu, bàn giao kho.
+    - `dto/`: Request/Response DTO và chuẩn phản hồi API.
+- `frontend/`: Toàn bộ giao diện **Web SPA (HTML5, CSS3, Vanilla JS)** và máy chủ Web phát triển (`server.js`).
+- `design/`: Tài liệu thiết kế Figma và bộ ảnh chụp màn hình báo cáo.
 - `docs/`: Tài liệu đặc tả yêu cầu (SRS v2.0, Scope Statement, SQL Schema DDL & Seed).
+
 

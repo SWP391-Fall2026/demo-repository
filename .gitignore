@@ -3,6 +3,12 @@ node_modules/
 /.pnp
 .pnp.js
 
+# Maven Build Outputs
+target/
+*.class
+*.jar
+*.war
+
 # Environment and Local Config
 .env
 .env.local
