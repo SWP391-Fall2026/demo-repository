@@ -2,23 +2,20 @@
   "name": "self-storage-facility-rental-system",
   "version": "1.0.0",
   "description": "Hệ thống Quản lý và Cho thuê Kho Lưu trữ Tự phục vụ (Self-Storage Management System)",
-  "main": "server/server.js",
+  "main": "frontend/server.js",
   "scripts": {
-    "start": "node server/server.js",
-    "dev": "node server/server.js"
+    "start": "node frontend/server.js",
+    "dev": "node frontend/server.js",
+    "start:frontend": "node frontend/server.js",
+    "start:backend": "cd backend && mvn spring-boot:run",
+    "build:backend": "cd backend && mvn clean package -DskipTests"
   },
   "keywords": [
     "self-storage",
     "swp391",
-    "nodejs",
-    "express"
+    "springboot",
+    "java"
   ],
   "author": "SWP391 Team",
-  "license": "MIT",
-  "dependencies": {
-    "@supabase/supabase-js": "^2.117.3",
-    "cors": "^2.8.6",
-    "dotenv": "^18.0.6",
-    "express": "^5.2.1"
-  }
+  "license": "MIT"
 }
