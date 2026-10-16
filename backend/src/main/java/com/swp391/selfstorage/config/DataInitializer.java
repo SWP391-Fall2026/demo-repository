@@ -7,6 +7,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -16,6 +18,8 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final FacilityRepository facilityRepository;
     private final UnitRepository unitRepository;
+    private final ReservationRepository reservationRepository;
+    private final PaymentRepository paymentRepository;
     private final ContractRepository contractRepository;
     private final DailyTaskRepository dailyTaskRepository;
     private final AuditLogRepository auditLogRepository;
@@ -24,6 +28,8 @@ public class DataInitializer implements CommandLineRunner {
     public DataInitializer(UserRepository userRepository,
                            FacilityRepository facilityRepository,
                            UnitRepository unitRepository,
+                           ReservationRepository reservationRepository,
+                           PaymentRepository paymentRepository,
                            ContractRepository contractRepository,
                            DailyTaskRepository dailyTaskRepository,
                            AuditLogRepository auditLogRepository,
@@ -31,6 +37,8 @@ public class DataInitializer implements CommandLineRunner {
         this.userRepository = userRepository;
         this.facilityRepository = facilityRepository;
         this.unitRepository = unitRepository;
+        this.reservationRepository = reservationRepository;
+        this.paymentRepository = paymentRepository;
         this.contractRepository = contractRepository;
         this.dailyTaskRepository = dailyTaskRepository;
         this.auditLogRepository = auditLogRepository;
@@ -42,7 +50,9 @@ public class DataInitializer implements CommandLineRunner {
         seedFacilities();
         seedUnits();
         seedUsers();
+        seedReservations();
         seedContracts();
+        seedPayments();
         seedTasks();
         seedAuditLogs();
         System.out.println("[DataInitializer] ✅ Khởi tạo dữ liệu mẫu hệ thống hoàn tất.");
@@ -66,8 +76,8 @@ public class DataInitializer implements CommandLineRunner {
         if (unitRepository.count() == 0) {
             List<Unit> units = Arrays.asList(
                     new Unit("A-101", "HN-CG", "S", "2.0 m²", BigDecimal.valueOf(2.0), BigDecimal.valueOf(800000), "available", null, "842916"),
-                    new Unit("A-102", "HN-CG", "M", "5.0 m²", BigDecimal.valueOf(5.0), BigDecimal.valueOf(1450000), "reserved", "Trần Văn Bảo", "842916"),
-                    new Unit("A-103", "HN-CG", "M", "5.0 m²", BigDecimal.valueOf(5.0), BigDecimal.valueOf(1450000), "occupied", "Lê Hoàng Nam", "771239"),
+                    new Unit("A-102", "HN-CG", "M", "5.0 m²", BigDecimal.valueOf(5.0), BigDecimal.valueOf(1450000), "available", null, "000000"),
+                    new Unit("A-103", "HN-CG", "M", "5.0 m²", BigDecimal.valueOf(5.0), BigDecimal.valueOf(1450000), "occupied", "Trần Văn Bảo", "771239"),
                     new Unit("A-104", "HN-CG", "L", "10.0 m²", BigDecimal.valueOf(10.0), BigDecimal.valueOf(2800000), "occupied", "Công ty Alpha Logistics", "918234"),
                     new Unit("A-105", "HN-CG", "S", "3.0 m²", BigDecimal.valueOf(3.0), BigDecimal.valueOf(950000), "available", null, "842916"),
                     new Unit("A-106", "HN-CG", "M", "5.0 m²", BigDecimal.valueOf(5.0), BigDecimal.valueOf(1450000), "occupied", "Hoàng Minh Châu", "629104"),
@@ -79,13 +89,33 @@ public class DataInitializer implements CommandLineRunner {
                     new Unit("A-112", "HN-CG", "M", "5.0 m²", BigDecimal.valueOf(5.0), BigDecimal.valueOf(1450000), "available", null, "842916"),
                     new Unit("A-113", "HN-CG", "L", "12.0 m²", BigDecimal.valueOf(12.0), BigDecimal.valueOf(3200000), "occupied", "Công ty CP Đầu tư Á Châu", "948123"),
                     new Unit("A-114", "HN-CG", "S", "2.0 m²", BigDecimal.valueOf(2.0), BigDecimal.valueOf(800000), "available", null, "842916"),
-                    new Unit("A-115", "HN-CG", "M", "5.0 m²", BigDecimal.valueOf(5.0), BigDecimal.valueOf(1450000), "reserved", "Nguyễn Kiều Oanh", "842916"),
+                    new Unit("A-115", "HN-CG", "M", "5.0 m²", BigDecimal.valueOf(5.0), BigDecimal.valueOf(1450000), "available", null, "000000"),
                     new Unit("A-116", "HN-CG", "S", "3.0 m²", BigDecimal.valueOf(3.0), BigDecimal.valueOf(950000), "cleaning", null, "000000"),
                     new Unit("A-117", "HN-CG", "L", "10.0 m²", BigDecimal.valueOf(10.0), BigDecimal.valueOf(2800000), "available", null, "842916"),
                     new Unit("A-118", "HN-CG", "M", "5.0 m²", BigDecimal.valueOf(5.0), BigDecimal.valueOf(1450000), "available", null, "842916")
             );
             unitRepository.saveAll(units);
             System.out.println("[DataInitializer] 📦 Đã nạp 18 phòng kho mẫu cơ sở Cầu Giấy.");
+        }
+    }
+
+    private void seedReservations() {
+        if (reservationRepository.count() == 0) {
+            Reservation reservation = new Reservation();
+            reservation.setId("RSV-8821");
+            reservation.setUserId("USR-01");
+            reservation.setCustomerName("Trần Văn Bảo");
+            reservation.setCustomerPhone("0987.654.321");
+            reservation.setFacilityCode("HN-CG");
+            reservation.setUnitType("M");
+            reservation.setUnitCode(null);
+            reservation.setDurationMonths(3);
+            reservation.setStartDate(LocalDate.now());
+            reservation.setDepositAmount(BigDecimal.valueOf(1450000));
+            reservation.setStatus("RESERVED");
+            reservation.setAppointment("14:00 - 15:00");
+            reservation.setCreatedAt(LocalDateTime.now());
+            reservationRepository.save(reservation);
         }
     }
 
@@ -108,15 +138,18 @@ public class DataInitializer implements CommandLineRunner {
         if (contractRepository.count() == 0) {
             Contract c1 = new Contract();
             c1.setId("CTR-2026-001");
-            c1.setUnitCode("A-102");
+            c1.setReservationId(null);
+            c1.setUserId("USR-01");
+            c1.setUnitCode("A-103");
+            c1.setFacilityCode("HN-CG");
             c1.setCustomerName("Trần Văn Bảo");
             c1.setCustomerPhone("0987.654.321");
-            c1.setStartDate("24/09/2026");
-            c1.setEndDate("24/12/2026");
+            c1.setStartDate(LocalDate.now().minusMonths(2));
+            c1.setEndDate(LocalDate.now().plusMonths(1));
             c1.setDurationMonths(3);
             c1.setMonthlyFee(BigDecimal.valueOf(1450000));
             c1.setDepositFee(BigDecimal.valueOf(1450000));
-            c1.setPinCode("842916");
+            c1.setPinCode("771239");
             c1.setPhysicalLock("LOC-8812");
             c1.setRfidCard("CRD-0419");
             c1.setStatus("ACTIVE");
@@ -125,13 +158,51 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
+    private void seedPayments() {
+        if (paymentRepository.count() == 0) {
+            Payment deposit = new Payment();
+            deposit.setId("TXN-SEED-DEPOSIT");
+            deposit.setReservationId("RSV-8821");
+            deposit.setCustomerName("Trần Văn Bảo");
+            deposit.setInvoiceType("DEPOSIT");
+            deposit.setAmount(BigDecimal.valueOf(1450000));
+            deposit.setPaymentMethod("VietQR Napas247");
+            deposit.setTransactionCode("SEED-DEPOSIT-8821");
+            deposit.setStatus("PAID");
+            deposit.setCreatedAt(LocalDateTime.now());
+
+            Payment rent = new Payment();
+            rent.setId("TXN-SEED-RENT");
+            rent.setContractId("CTR-2026-001");
+            rent.setCustomerName("Trần Văn Bảo");
+            rent.setInvoiceType("RENT");
+            rent.setAmount(BigDecimal.valueOf(1450000));
+            rent.setPaymentMethod("VietQR Napas247");
+            rent.setTransactionCode("SEED-RENT-001");
+            rent.setStatus("PAID");
+            rent.setCreatedAt(LocalDateTime.now());
+            paymentRepository.saveAll(Arrays.asList(deposit, rent));
+        }
+    }
+
     private void seedTasks() {
         if (dailyTaskRepository.count() == 0) {
-            dailyTaskRepository.saveAll(Arrays.asList(
-                    new DailyTask("TSK-101", "Bàn giao tiếp đón kho A-102", "Nguyễn Văn Tuấn", "15:00", "IN_PROGRESS"),
-                    new DailyTask("TSK-102", "Nghiệm thu kho trả A-106", "Lê Thị Mai", "17:30", "PENDING"),
-                    new DailyTask("TSK-103", "Vệ sinh chuyên sâu kho A-108", "Nguyễn Văn Tuấn", "14:30", "COMPLETED")
-            ));
+            LocalDate today = LocalDate.now();
+            DailyTask returned = new DailyTask("TSK-102", "Nghiệm thu kho trả A-106", "Lê Thị Mai", "17:30", "PENDING");
+            returned.setFacilityCode("HN-CG");
+            returned.setStaffId("USR-03");
+            returned.setTaskType("RETURN");
+            returned.setUnitCode("A-106");
+            returned.setDueDate(today);
+
+            DailyTask maintenance = new DailyTask("TSK-103", "Vệ sinh chuyên sâu kho A-108", "Nguyễn Văn Tuấn", "14:30", "COMPLETED");
+            maintenance.setFacilityCode("HN-CG");
+            maintenance.setStaffId("USR-02");
+            maintenance.setTaskType("MAINTENANCE");
+            maintenance.setUnitCode("A-108");
+            maintenance.setDueDate(today);
+
+            dailyTaskRepository.saveAll(Arrays.asList(returned, maintenance));
         }
     }
 

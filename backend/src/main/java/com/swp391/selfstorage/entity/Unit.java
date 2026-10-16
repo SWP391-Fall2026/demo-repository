@@ -1,7 +1,9 @@
 package com.swp391.selfstorage.entity;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "units")
@@ -20,6 +22,9 @@ public class Unit {
     @Column(name = "size_desc")
     private String sizeDesc;
 
+    @Column(name = "floor")
+    private Integer floor;
+
     @Column(name = "size_sqm", nullable = false)
     private BigDecimal sizeSqm;
 
@@ -34,6 +39,12 @@ public class Unit {
 
     @Column(name = "pin_code")
     private String pinCode = "842916";
+
+    @Column(name = "temporary_pin")
+    private String temporaryPin;
+
+    @Column(name = "temporary_pin_expires_at")
+    private LocalDateTime temporaryPinExpiresAt;
 
     public Unit() {}
 
@@ -73,6 +84,18 @@ public class Unit {
     public String getTenantName() { return tenantName; }
     public void setTenantName(String tenantName) { this.tenantName = tenantName; }
 
+    @JsonIgnore
     public String getPinCode() { return pinCode; }
     public void setPinCode(String pinCode) { this.pinCode = pinCode; }
+
+    @JsonIgnore
+    public String getTemporaryPin() { return temporaryPin; }
+    public void setTemporaryPin(String temporaryPin) { this.temporaryPin = temporaryPin; }
+
+    @JsonIgnore
+    public LocalDateTime getTemporaryPinExpiresAt() { return temporaryPinExpiresAt; }
+    public void setTemporaryPinExpiresAt(LocalDateTime temporaryPinExpiresAt) { this.temporaryPinExpiresAt = temporaryPinExpiresAt; }
+
+    public Integer getFloor() { return floor; }
+    public void setFloor(Integer floor) { this.floor = floor; }
 }

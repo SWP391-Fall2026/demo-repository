@@ -1419,7 +1419,7 @@
 
             <div class="form-group">
               <label class="form-label">Chọn phòng kho bị ảnh hưởng</label>
-              <select class="form-control">
+              <select class="form-control" id="ticketUnitSelect">
                 <option>Unit A-102 (Cơ sở Cầu Giấy - Tầng 1)</option>
                 <option>Unit B-205 (Cơ sở Quận 7 - Tầng 2)</option>
               </select>
@@ -1427,7 +1427,7 @@
 
             <div class="form-group">
               <label class="form-label">Phân loại sự cố</label>
-              <select class="form-control">
+              <select class="form-control" id="ticketCategorySelect">
                 <option>🔐 Sự cố ổ khóa / Kẹt cửa cuốn kho</option>
                 <option>🔢 Quên hoặc Lỗi mã PIN truy cập</option>
                 <option>💧 Thấm ẩm / Hỏng đèn chiếu sáng kho</option>
@@ -1438,7 +1438,7 @@
 
             <div class="form-group">
               <label class="form-label">Mức độ ưu tiên</label>
-              <select class="form-control">
+              <select class="form-control" id="ticketPrioritySelect">
                 <option>Bình thường (Phản hồi trong 2 giờ)</option>
                 <option selected>Khẩn cấp (Cần mở kho gấp / Nhân viên hỗ trợ tại chỗ)</option>
               </select>
@@ -1450,6 +1450,11 @@
                 placeholder="Mô tả cụ thể hiện tượng sự cố bạn đang gặp phải tại phòng kho..."></textarea>
             </div>
 
+            <div class="form-group">
+              <label class="form-label">Link ảnh minh chứng (tùy chọn)</label>
+              <input class="form-control" type="url" id="ticketAttachmentUrl" placeholder="https://...">
+            </div>
+
             <button class="btn btn-primary btn-block" onclick="submitSupportTicket()">
               Gửi yêu cầu hỗ trợ tới Nhân viên ca trực
             </button>
@@ -1459,7 +1464,7 @@
           <div class="ui-card">
             <h3 style="font-size:16px; font-weight:700; margin-bottom:16px; color:#0f172a;">Lịch sử yêu cầu hỗ trợ</h3>
 
-            <div
+            <div id="supportTicketsHistory"
               style="border:1px solid #e2e8f0; border-radius:10px; padding:16px; margin-bottom:14px; background:#f8fafc;">
               <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
                 <span class="code-display">#TK-115</span>
@@ -1484,6 +1489,7 @@
               <div style="font-size:12px; color:#64748b;">Giải quyết lúc: 09:45 Ngày 22/09/2026 • Đánh giá: 5/5 ⭐</div>
             </div>
           </div>
+          <div id="supportTicketsEmptyState" style="display:none; color:#64748b; font-size:13px;">Chưa có ticket hỗ trợ.</div>
         </div>
       </section>
 
@@ -1548,7 +1554,7 @@
                 <th>Thao tác</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="checkinTasksBody">
               <tr>
                 <td><strong style="color:#1e40af;">14:00</strong></td>
                 <td>Trần Văn Bảo</td>
@@ -1603,7 +1609,7 @@
                 <th>Thao tác</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="returnTasksBody">
               <tr>
                 <td>16:00</td>
                 <td>Trần Văn Bảo</td>
@@ -1642,7 +1648,7 @@
                 <th>Thao tác</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="staffSupportQueueBody">
               <tr>
                 <td><span class="code-display">#TK-115</span></td>
                 <td>Kẹt cửa cuốn phòng kho</td>
@@ -1956,7 +1962,7 @@
                 <th>Thao tác</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="incidentTicketsBody">
               <tr>
                 <td><span class="code-display">#TK-115</span></td>
                 <td>Trần Văn Bảo</td>
@@ -2158,7 +2164,7 @@
             <p class="page-desc">Thiết lập danh mục phòng kho tại cơ sở Cầu Giấy, đơn giá niêm yết và tình trạng sử
               dụng.</p>
           </div>
-          <button class="btn btn-primary" onclick="showToast('Mở modal thêm phòng kho mới...')">+ Thêm phòng kho
+          <button class="btn btn-primary" onclick="openModal('modalAddUnit')">+ Thêm phòng kho
             mới</button>
         </div>
 
@@ -2175,7 +2181,7 @@
                 <th>Thao tác</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="managedUnitsBody">
               <tr>
                 <td><span class="code-display">A-101</span></td>
                 <td>Kho Nhỏ (S)</td>
@@ -2250,7 +2256,7 @@
                 <th>Thao tác</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="assignableReservationsBody">
               <tr>
                 <td><span class="code-display">RSV-8821</span></td>
                 <td>Trần Văn Bảo</td>
@@ -2393,7 +2399,7 @@
                 <th>Thao tác</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="managerContractsBody">
               <tr>
                 <td><span class="code-display">CTR-2026-001</span></td>
                 <td>Trần Văn Bảo</td>
@@ -2423,6 +2429,13 @@
             </tbody>
           </table>
         </div>
+        <div class="ui-card" style="margin-top:16px;">
+          <h3 style="font-size:16px; font-weight:700; margin-bottom:12px;">Yêu cầu hoàn cọc chờ duyệt</h3>
+          <table class="data-table">
+            <thead><tr><th>Contract</th><th>Inspection</th><th>Số tiền hoàn</th><th>Thao tác</th></tr></thead>
+            <tbody id="pendingRefundsBody"><tr><td colspan="4">Đang tải...</td></tr></tbody>
+          </table>
+        </div>
       </section>
 
       <!-- SCR-M06: FACILITY REPORTS -->
@@ -2438,12 +2451,12 @@
         <div class="grid-3">
           <div class="stat-card">
             <div class="stat-card-title">Doanh thu quý 3/2026</div>
-            <div class="stat-card-value">435.6 Tr</div>
+            <div class="stat-card-value" id="facilityMonthlyRevenue">-</div>
             <div class="stat-card-meta">Tăng 14% so với quý trước</div>
           </div>
           <div class="stat-card">
             <div class="stat-card-title">Tiền cọc đang giữ</div>
-            <div class="stat-card-value">142.1 Tr</div>
+            <div class="stat-card-value" id="facilityHeldDeposits">-</div>
             <div class="stat-card-meta">Bảo đảm trong tài khoản MBBank</div>
           </div>
           <div class="stat-card">
@@ -2470,22 +2483,22 @@
         <div class="grid-4">
           <div class="stat-card">
             <div class="stat-card-title">Chuỗi cơ sở</div>
-            <div class="stat-card-value">05 Chi nhánh</div>
+            <div class="stat-card-value" id="chainFacilityCount">-</div>
             <div class="stat-card-meta">Hà Nội (2) • TP.HCM (2) • Đà Nẵng (1)</div>
           </div>
           <div class="stat-card">
             <div class="stat-card-title">Tổng phòng kho</div>
-            <div class="stat-card-value">560 Kho</div>
-            <div class="stat-card-meta">432 Đang thuê • 128 Trống</div>
+            <div class="stat-card-value" id="chainTotalUnits">-</div>
+            <div class="stat-card-meta" id="chainUnitBreakdown">-</div>
           </div>
           <div class="stat-card">
             <div class="stat-card-title">Tỉ lệ lấp đầy toàn chuỗi</div>
-            <div class="stat-card-value">77.1%</div>
+            <div class="stat-card-value" id="chainOccupancyRate">-</div>
             <div class="stat-card-meta" style="color:#10b981;">Tăng 3.4% so với tháng trước</div>
           </div>
           <div class="stat-card">
             <div class="stat-card-title">Doanh thu toàn hệ thống</div>
-            <div class="stat-card-value">648.5 Tr</div>
+            <div class="stat-card-value" id="chainMonthlyRevenue">-</div>
             <div class="stat-card-meta">Doanh thu định kỳ tháng 10/2026</div>
           </div>
         </div>
@@ -2506,7 +2519,7 @@
                 <th>Đánh giá</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="chainFacilitiesBody">
               <tr>
                 <td><strong>1. Hà Nội - Cầu Giấy (120 Duy Tân)</strong></td>
                 <td>Phạm Hải Đăng</td>
@@ -2564,11 +2577,11 @@
             <h2 class="page-title">Quản Lý Danh Mục Chi Nhánh Toàn Hệ Thống</h2>
             <p class="page-desc">Thêm cơ sở mới, cập nhật thông tin địa điểm và phân quyền trưởng chi nhánh.</p>
           </div>
-          <button class="btn btn-primary" onclick="showToast('Mở form thiết lập chi nhánh mới...')">+ Thêm Chi nhánh
+          <button class="btn btn-primary" onclick="openFacilityForm()">+ Thêm Chi nhánh
             mới</button>
         </div>
 
-        <div class="grid-3">
+        <div class="grid-3" id="facilityCardsGrid">
           <div class="ui-card">
             <h3 style="font-size:16px; font-weight:800; margin-bottom:8px; color:#1e40af;">Hà Nội - Cơ sở Cầu Giấy</h3>
             <div style="font-size:13px; color:#64748b; margin-bottom:12px;">120 Duy Tân, P. Dịch Vọng Hậu, Cầu Giấy, Hà
@@ -2579,7 +2592,7 @@
               <div>⚡ Trạng thái: <span class="badge badge-success">Đang hoạt động</span></div>
             </div>
             <button class="btn btn-outline btn-block btn-sm"
-              onclick="showToast('Xem chi tiết cấu hình cơ sở Cầu Giấy!')">Cấu hình chi nhánh</button>
+              onclick="openFacilityForm('HN-CG')">Cấu hình chi nhánh</button>
           </div>
 
           <div class="ui-card">
@@ -2592,7 +2605,7 @@
               <div>⚡ Trạng thái: <span class="badge badge-success">Đang hoạt động</span></div>
             </div>
             <button class="btn btn-outline btn-block btn-sm"
-              onclick="showToast('Xem chi tiết cấu hình cơ sở Quận 7!')">Cấu hình chi nhánh</button>
+              onclick="openFacilityForm('HCM-Q7')">Cấu hình chi nhánh</button>
           </div>
 
           <div class="ui-card">
@@ -2605,7 +2618,7 @@
               <div>⚡ Trạng thái: <span class="badge badge-success">Đang hoạt động</span></div>
             </div>
             <button class="btn btn-outline btn-block btn-sm"
-              onclick="showToast('Xem chi tiết cấu hình cơ sở Đà Nẵng!')">Cấu hình chi nhánh</button>
+              onclick="openFacilityForm('DN-HC')">Cấu hình chi nhánh</button>
           </div>
         </div>
       </section>
@@ -2629,22 +2642,22 @@
 
             <div class="form-group">
               <label class="form-label">Kho Nhỏ S (1 - 3 m²)</label>
-              <input type="text" class="form-control" value="800.000 VNĐ / tháng">
+              <input type="number" class="form-control" id="policyPriceS" value="800000">
             </div>
 
             <div class="form-group">
               <label class="form-label">Kho Tiêu Chuẩn Medium M (4 - 8 m²)</label>
-              <input type="text" class="form-control" value="1.450.000 VNĐ / tháng">
+              <input type="number" class="form-control" id="policyPriceM" value="1450000">
             </div>
 
             <div class="form-group">
               <label class="form-label">Kho Lớn Large L (> 9 m²)</label>
-              <input type="text" class="form-control" value="2.800.000 VNĐ / tháng">
+              <input type="number" class="form-control" id="policyPriceL" value="2800000">
             </div>
 
             <div class="form-group">
               <label class="form-label">Kho Lạnh / Điều hòa kiểm soát độ ẩm</label>
-              <input type="text" class="form-control" value="2.200.000 VNĐ / tháng">
+              <input type="number" class="form-control" id="policyPriceClimate" value="2200000">
             </div>
           </div>
 
@@ -2655,25 +2668,41 @@
 
             <div class="form-group">
               <label class="form-label">Tỷ lệ tiền cọc bảo đảm</label>
-              <select class="form-control">
-                <option selected>Tương đương 01 tháng cước (Mặc định)</option>
-                <option>Tương đương 02 tháng cước</option>
+              <select class="form-control" id="policyDepositRule">
+                <option value="1_MONTH" selected>Tương đương 01 tháng cước (Mặc định)</option>
+                <option value="2_MONTHS">Tương đương 02 tháng cước</option>
               </select>
             </div>
 
             <div class="form-group">
               <label class="form-label">Chiết khấu thuê 3 Tháng</label>
-              <input type="text" class="form-control" value="5 %">
+              <input type="number" class="form-control" id="policyDiscount3" min="0" max="99" value="5">
             </div>
 
             <div class="form-group">
               <label class="form-label">Chiết khấu thuê 6 Tháng</label>
-              <input type="text" class="form-control" value="10 %">
+              <input type="number" class="form-control" id="policyDiscount6" min="0" max="99" value="10">
             </div>
 
             <div class="form-group">
               <label class="form-label">Chiết khấu thuê 12 Tháng</label>
-              <input type="text" class="form-control" value="15 %">
+              <input type="number" class="form-control" id="policyDiscount12" min="0" max="99" value="15">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phí vệ sinh (VNĐ)</label>
+              <input type="number" class="form-control" id="policyFeeCleaning" min="0" value="200000">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phí thay khóa (VNĐ)</label>
+              <input type="number" class="form-control" id="policyFeeNewLock" min="0" value="150000">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phạt quá hạn mỗi ngày (VNĐ)</label>
+              <input type="number" class="form-control" id="policyFeeOverdue" min="0" value="50000">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Thời gian ân hạn (ngày)</label>
+              <input type="number" class="form-control" id="policyGracePeriod" min="0" max="30" value="3">
             </div>
           </div>
         </div>
@@ -3153,18 +3182,19 @@
         </div>
         <div class="form-group">
           <label class="form-label">Họ và tên người thuê</label>
-          <input type="text" class="form-control" value="Trần Văn Bảo">
+          <input type="text" class="form-control" id="quickRsvName" value="">
         </div>
         <div class="form-group">
           <label class="form-label">Số điện thoại liên hệ</label>
-          <input type="text" class="form-control" value="0987.654.321">
+          <input type="text" class="form-control" id="quickRsvPhone" value="">
         </div>
         <div class="form-group">
           <label class="form-label">Thời hạn thuê</label>
-          <select class="form-control">
-            <option>1 Tháng</option>
-            <option selected>3 Tháng (Giảm 5%)</option>
-            <option>6 Tháng (Giảm 10%)</option>
+          <select class="form-control" id="quickRsvDuration">
+            <option value="1">1 Tháng</option>
+            <option value="3" selected>3 Tháng (Giảm 5%)</option>
+            <option value="6">6 Tháng (Giảm 10%)</option>
+            <option value="12">12 Tháng (Giảm 15%)</option>
           </select>
         </div>
       </div>
@@ -3364,6 +3394,26 @@
       <div class="modal-footer-bar">
         <button class="btn btn-secondary" onclick="closeModal('modalAddUser')">Hủy</button>
         <button class="btn btn-primary" onclick="submitCreateUserByAdmin()">+ Tạo tài khoản</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalFacilityForm">
+    <div class="modal-content-box" style="max-width:540px;">
+      <div class="modal-header-bar">
+        <h3 id="facilityFormTitle" style="font-size:18px; font-weight:800; color:#0f172a;">Thêm chi nhánh</h3>
+        <button class="btn btn-outline btn-sm" onclick="closeModal('modalFacilityForm')">✕</button>
+      </div>
+      <div class="modal-body-pad">
+        <div class="form-group"><label class="form-label">Mã chi nhánh</label><input class="form-control" id="facilityFormCode" maxlength="50"></div>
+        <div class="form-group"><label class="form-label">Tên chi nhánh</label><input class="form-control" id="facilityFormName"></div>
+        <div class="form-group"><label class="form-label">Địa chỉ</label><input class="form-control" id="facilityFormAddress"></div>
+        <div class="form-group"><label class="form-label">Thành phố</label><input class="form-control" id="facilityFormCity"></div>
+        <div class="form-group"><label class="form-label">Hotline</label><input class="form-control" id="facilityFormHotline"></div>
+      </div>
+      <div class="modal-footer-bar">
+        <button class="btn btn-secondary" onclick="closeModal('modalFacilityForm')">Hủy</button>
+        <button class="btn btn-primary" onclick="submitFacilityForm()">Lưu chi nhánh</button>
       </div>
     </div>
   </div>

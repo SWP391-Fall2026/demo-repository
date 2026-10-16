@@ -43,7 +43,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/facilities/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/policies/**").permitAll()
                         .requestMatchers("/error").permitAll()
-                        .anyRequest().permitAll() // Cho phép linh hoạt cho prototype frontend, JWT filter vẫn đọc và nạp Principal
+                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

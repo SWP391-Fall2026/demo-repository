@@ -118,13 +118,14 @@ body {
 
 /* Navigation & Header */
 .app-header {
-  height: 72px;
+  min-height: 76px;
   background: #ffffff;
   border-bottom: 1px solid #e2e8f0;
-  padding: 0 36px;
+  padding: 0 16px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 24px;
   position: sticky;
   top: 0;
   z-index: 999;
@@ -134,23 +135,23 @@ body {
 .header-left-zone {
   display: flex;
   align-items: center;
-  gap: 16px;
+  flex: 0 0 auto;
 }
 
 .app-brand-logo {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   text-decoration: none;
   cursor: pointer;
   user-select: none;
 }
 
 .app-brand-icon {
-  width: 40px;
-  height: 40px;
+  width: 50px;
+  height: 50px;
   background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
-  border-radius: 10px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -169,33 +170,42 @@ body {
 }
 
 .brand-title {
-  font-size: 20px;
+  font-size: 28px;
   font-weight: 800;
   letter-spacing: -0.5px;
   color: #0f172a;
-  line-height: 1.2;
+  line-height: 1;
 }
 
 .brand-role-indicator {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   color: #2563eb;
   letter-spacing: 0.2px;
+  white-space: nowrap;
 }
 
 .app-main-nav {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.app-main-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .nav-item-link {
-  font-size: 14px;
+  flex: 0 0 auto;
+  font-size: 17px;
   font-weight: 600;
   color: #475569;
   text-decoration: none;
-  padding: 8px 14px;
-  border-radius: 8px;
+  padding: 13px 16px;
+  border-radius: 11px;
   cursor: pointer;
   transition: all 0.2s;
   display: inline-flex;
@@ -216,6 +226,7 @@ body {
 }
 
 .app-profile-slot {
+  margin-left: auto;
   display: flex;
   align-items: center;
   gap: 12px;

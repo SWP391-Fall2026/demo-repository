@@ -6,6 +6,7 @@ import com.swp391.selfstorage.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -59,44 +60,38 @@ public class AuthController {
 
     @PostMapping("/resend-otp")
     public ResponseEntity<ApiResponse<Map<String, Object>>> resendOtp(@RequestBody Map<String, String> body) {
-        String email = body.get("email");
-        Map<String, Object> pending = authService.getPendingOtp(email);
-        if (pending == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(ApiResponse.error("Phiên xác minh không tồn tại hoặc đã hết hạn. Vui lòng đăng ký lại!"));
+        try {
+            return ResponseEntity.ok(authService.resendOtp(body.get("email")));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
         }
-        ApiResponse<Map<String, Object>> res = ApiResponse.ok("Đã gửi lại mã xác minh mới tới " + email + "!", pending);
-        res.setCode((String) pending.get("code"));
-        return ResponseEntity.ok(res);
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<UserDto>> register(@RequestBody RegisterRequest req, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> register(@RequestBody RegisterRequest req) {
         try {
-            authService.validateRegistrationData(req);
-            String ip = request.getHeader("X-Forwarded-For");
-            if (ip == null) ip = request.getRemoteAddr();
-            var user = authService.registerUser(req, ip);
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(ApiResponse.ok("Đăng ký tài khoản thành công!", new UserDto(user)));
+            return ResponseEntity.ok(authService.generateAndSendOtp(req));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
         }
     }
 
     @GetMapping("/login-history")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SYSTEM_ADMIN')")
     public ResponseEntity<ApiResponse<List<LoginHistory>>> getLoginHistory() {
         List<LoginHistory> history = authService.getLoginHistory();
         return ResponseEntity.ok(ApiResponse.list(history.size(), history));
     }
 
     @GetMapping("/users")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SYSTEM_ADMIN')")
     public ResponseEntity<ApiResponse<List<UserDto>>> getAllUsers() {
         List<UserDto> users = authService.getAllUsers();
         return ResponseEntity.ok(ApiResponse.list(users.size(), users));
     }
 
     @PatchMapping("/users/{id}/toggle-lock")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SYSTEM_ADMIN')")
     public ResponseEntity<ApiResponse<UserDto>> toggleLock(@PathVariable String id) {
         try {
             UserDto updated = authService.toggleLockUser(id);
@@ -107,6 +102,7 @@ public class AuthController {
     }
 
     @GetMapping("/rbac-matrix")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SYSTEM_ADMIN')")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getRbacMatrix() {
         Map<String, Object> rbac = new LinkedHashMap<>();
         rbac.put("CUSTOMER", Arrays.asList("VIEW_FACILITIES", "CREATE_RESERVATION", "PAY_DEPOSIT", "VIEW_RENTED_UNITS", "UPDATE_PIN", "CREATE_TICKET"));

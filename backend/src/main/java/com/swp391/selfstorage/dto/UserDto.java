@@ -14,6 +14,7 @@ public class UserDto {
     private String facility;
     private String facilityCode;
     private String status;
+    private boolean emailVerified;
 
     public UserDto() {}
 
@@ -29,6 +30,7 @@ public class UserDto {
         this.facility = user.getFacility();
         this.facilityCode = user.getFacilityCode();
         this.status = user.getStatus();
+        this.emailVerified = user.isEmailVerified();
     }
 
     public String getId() { return id; }
@@ -63,4 +65,7 @@ public class UserDto {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public boolean isEmailVerified() { return emailVerified; }
+    public void setEmailVerified(boolean emailVerified) { this.emailVerified = emailVerified; }
 }

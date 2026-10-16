@@ -8,6 +8,7 @@
 // Application State & Backend Connection
 const API_BASE = window.location.port === '8080' ? '' : 'http://localhost:8080';
 let currentUser = null;
+let authToken = localStorage.getItem('selfstorage_auth_token') || null;
 let currentActor = null; // 'CUSTOMER' | 'STAFF' | 'FMANAGER' | 'OPS_MGR' | 'ADMIN'
 let currentScreen = 'SCR-C00';
 let isPinVisible = false;
@@ -17,6 +18,23 @@ let paymentTimerInterval = null;
 let pendingReservationIntent = null;
 let currentPendingRegistration = null;
 let otpCountdownInterval = null;
+let currentReservation = null;
+let currentContract = null;
+let currentContracts = [];
+let knownFacilities = [];
+let editingFacilityCode = null;
+let currentPaymentType = 'DEPOSIT';
+let currentRenewalQuote = null;
+let currentLandingFacilityCode = 'HN-CG';
+let currentBookingContext = { facilityCode: 'HN-CG', unitType: 'M' };
+let managedUnits = null;
+
+function apiFetch(path, options = {}) {
+  const headers = new Headers(options.headers || {});
+  if (!headers.has('Content-Type') && options.body) headers.set('Content-Type', 'application/json');
+  if (authToken) headers.set('Authorization', `Bearer ${authToken}`);
+  return fetch(`${API_BASE}${path}`, { ...options, headers });
+}
 
 // Mock Units (Floor 1 - Area A, Cầu Giấy Branch)
 let mockUnits = [
@@ -258,6 +276,8 @@ async function executeLogin(username, password) {
     });
     const data = await res.json();
     if (res.ok && data.success && data.data) {
+      authToken = data.token || null;
+      if (authToken) localStorage.setItem('selfstorage_auth_token', authToken);
       applyUserSession(data.data);
       showToast(`🎉 ${data.message}`);
       addAuditLog(data.data.name, data.data.role, 'USER_LOGIN', `Đăng nhập thành công với tài khoản @${data.data.username}`);
@@ -617,6 +637,8 @@ async function submitOtpVerification() {
     });
     const resData = await res.json();
     if (res.ok && resData.success && resData.data) {
+      authToken = resData.token || null;
+      if (authToken) localStorage.setItem('selfstorage_auth_token', authToken);
       completeRegistrationSuccess(resData.data);
       return;
     } else if (!res.ok) {
@@ -696,21 +718,30 @@ function startOtpCountdown(seconds = 60) {
 
 async function resendOtpCode() {
   if (!currentPendingRegistration) return;
-  const newCode = Math.floor(100000 + Math.random() * 900000).toString();
-  currentPendingRegistration.otpCode = newCode;
-  currentPendingRegistration.expiresAt = Date.now() + 5 * 60 * 1000;
-
-  document.getElementById('simulatedOtpCode').innerText = newCode;
   const alertBox = document.getElementById('otpErrorAlert');
   if (alertBox) alertBox.style.display = 'none';
 
   try {
-    await fetch(`${API_BASE}/api/auth/resend-otp`, {
+    const response = await fetch(`${API_BASE}/api/auth/resend-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: currentPendingRegistration.userData.email })
     });
-  } catch (err) {}
+    const responseData = await response.json();
+    if (!response.ok || !responseData.code) {
+      if (alertBox) {
+        alertBox.innerText = responseData.message || 'Không thể gửi lại mã lúc này.';
+        alertBox.style.display = 'block';
+      }
+      return;
+    }
+    currentPendingRegistration.otpCode = responseData.code;
+  } catch (err) {
+    currentPendingRegistration.otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  currentPendingRegistration.expiresAt = Date.now() + 5 * 60 * 1000;
+  document.getElementById('simulatedOtpCode').innerText = currentPendingRegistration.otpCode;
 
   startOtpCountdown(60);
   showToast('📬 Đã gửi lại mã xác minh mới vào email của bạn!');
@@ -767,11 +798,11 @@ function applyUserSession(user) {
 
   // If user had a pending reservation intent, resume booking!
   if (pendingReservationIntent) {
-    const { name, size, price } = pendingReservationIntent;
+    const { name, size, price, facilityCode, unitType } = pendingReservationIntent;
     pendingReservationIntent = null;
     navigateToScreen('SCR-C00');
     setTimeout(() => {
-      openReservationModal(name, size, price);
+      openReservationModal(name, size, price, { facilityCode, unitType });
       showToast(`Chào mừng ${user.name}! Bạn có thể tiếp tục hoàn tất đơn đặt kho.`);
     }, 400);
     return;
@@ -782,8 +813,10 @@ function applyUserSession(user) {
 
 function applyLoggedOutState() {
   currentUser = null;
+  authToken = null;
   currentActor = null;
   localStorage.removeItem('selfstorage_auth_user');
+  localStorage.removeItem('selfstorage_auth_token');
 
   const loggedOutSlot = document.getElementById('authLoggedOutSlot');
   const loggedInSlot = document.getElementById('authLoggedInSlot');
@@ -859,10 +892,10 @@ function renderAppNavLinks() {
   if (currentActor === 'CUSTOMER') {
     nav.innerHTML = `
       <span class="nav-item-link ${currentScreen === 'SCR-C00' ? 'active' : ''}" onclick="navigateToScreen('SCR-C00')">Trang chủ</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-C01' ? 'active' : ''}" onclick="navigateToScreen('SCR-C01')">Tìm kho & Bảng giá</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-C01' ? 'active' : ''}" onclick="navigateToScreen('SCR-C01')">Tìm kho &amp; Bảng giá</span>
       <span class="nav-item-link ${currentScreen === 'SCR-C02' ? 'active' : ''}" onclick="navigateToScreen('SCR-C02')">Đặt giữ chỗ</span>
       <span class="nav-item-link ${currentScreen === 'SCR-C04' ? 'active' : ''}" onclick="navigateToScreen('SCR-C04')">Thẻ Check-in</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-C05' ? 'active' : ''}" onclick="navigateToScreen('SCR-C05')">Kho của tôi & Mã PIN</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-C05' ? 'active' : ''}" onclick="navigateToScreen('SCR-C05')">Kho của tôi &amp; Mã PIN</span>
       <span class="nav-item-link ${currentScreen === 'SCR-C06' ? 'active' : ''}" onclick="navigateToScreen('SCR-C06')">Hỗ trợ sự cố</span>
     `;
   } else if (currentActor === 'STAFF') {
@@ -881,14 +914,14 @@ function renderAppNavLinks() {
       <span class="nav-item-link ${currentScreen === 'SCR-M02' ? 'active' : ''}" onclick="navigateToScreen('SCR-M02')">Quản lý kho</span>
       <span class="nav-item-link ${currentScreen === 'SCR-M03' ? 'active' : ''}" onclick="navigateToScreen('SCR-M03')">Gán phòng kho</span>
       <span class="nav-item-link ${currentScreen === 'SCR-M04' ? 'active' : ''}" onclick="navigateToScreen('SCR-M04')">Phân công việc</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-M05' ? 'active' : ''}" onclick="navigateToScreen('SCR-M05')">Hợp đồng & Nợ</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-M05' ? 'active' : ''}" onclick="navigateToScreen('SCR-M05')">Hợp đồng &amp; Nợ</span>
       <span class="nav-item-link ${currentScreen === 'SCR-M06' ? 'active' : ''}" onclick="navigateToScreen('SCR-M06')">Báo cáo vận hành</span>
     `;
   } else if (currentActor === 'OPS_MGR') {
     nav.innerHTML = `
       <span class="nav-item-link ${currentScreen === 'SCR-O01' ? 'active' : ''}" onclick="navigateToScreen('SCR-O01')">Tổng quan chuỗi</span>
       <span class="nav-item-link ${currentScreen === 'SCR-O02' ? 'active' : ''}" onclick="navigateToScreen('SCR-O02')">5 Chi nhánh</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-O03' ? 'active' : ''}" onclick="navigateToScreen('SCR-O03')">Bảng giá & Cọc</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-O03' ? 'active' : ''}" onclick="navigateToScreen('SCR-O03')">Bảng giá &amp; Cọc</span>
       <span class="nav-item-link ${currentScreen === 'SCR-O04' ? 'active' : ''}" onclick="navigateToScreen('SCR-O04')">Báo cáo doanh thu</span>
       <span class="nav-item-link ${currentScreen === 'SCR-O05' ? 'active' : ''}" onclick="navigateToScreen('SCR-O05')">Chính sách chung</span>
     `;
@@ -966,6 +999,17 @@ function navigateToScreen(screenId) {
   currentScreen = screenId;
   displayScreen(screenId);
   renderAppNavLinks();
+  if (screenId === 'SCR-S01') loadDailyTasks();
+  if (screenId === 'SCR-S04' || screenId === 'SCR-M02') loadManagedUnits();
+  if (screenId === 'SCR-M05') { loadPendingRefunds(); loadManagerContracts(); }
+  if (screenId === 'SCR-M03') loadAssignableReservations();
+  if (screenId === 'SCR-O02') loadFacilities();
+  if (screenId === 'SCR-O03') loadPricingPolicies();
+  if (screenId === 'SCR-O01' || screenId === 'SCR-O04') loadChainStats();
+  if (screenId === 'SCR-M06') loadFacilityReport();
+  if (screenId === 'SCR-C05') loadMyContracts();
+  if (screenId === 'SCR-C06' || screenId === 'SCR-S06') loadSupportTickets();
+  if (screenId === 'SCR-S01') loadSupportTickets();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -1002,10 +1046,18 @@ function handleDetailModalBookNow() {
   }
 }
 
-function openReservationModal(name, size, price) {
+function openReservationModal(name, size, price, bookingContext = {}) {
   closeModal('modalUnitDetail');
+  const unitType = bookingContext.unitType || inferUnitType(name);
+  currentBookingContext = {
+    facilityCode: bookingContext.facilityCode || currentLandingFacilityCode || 'HN-CG',
+    unitType,
+    name,
+    size,
+    price
+  };
   if (!currentUser) {
-    pendingReservationIntent = { name, size, price };
+    pendingReservationIntent = { ...currentBookingContext };
     showToast('ℹ️ Vui lòng đăng nhập hoặc đăng ký tài khoản để tiếp tục đặt giữ chỗ kho!');
     openAuthScreen('LOGIN');
     showAuthAlert(`Vui lòng đăng nhập hoặc đăng ký tài khoản để đặt: ${name} (${size})!`);
@@ -1013,7 +1065,20 @@ function openReservationModal(name, size, price) {
   }
   document.getElementById('mdlRsvUnitName').innerText = `${name} (${size})`;
   document.getElementById('mdlRsvPrice').innerText = price.toLocaleString('vi-VN') + ' đ/tháng';
+  const renterName = document.getElementById('quickRsvName');
+  const renterPhone = document.getElementById('quickRsvPhone');
+  if (renterName) renterName.value = currentUser.name || '';
+  if (renterPhone) renterPhone.value = currentUser.phone || '';
   openModal('modalReservation');
+}
+
+function inferUnitType(name) {
+  const value = String(name || '').toUpperCase();
+  if (value.includes('CLIMATE') || value.includes('LẠNH')) return 'CLIMATE';
+  if (value.includes('XL')) return 'L';
+  if (value.includes('SIZE L') || value.includes('LỚN') || value.includes('KHO L')) return 'L';
+  if (value.includes('SIZE S') || value.includes('MINI') || value.includes('KHO S')) return 'S';
+  return 'M';
 }
 
 // Data & Renderer: Real-time Branch Warehouse Inventory for Guest Explorer
@@ -1085,8 +1150,37 @@ const branchStockData = {
   }
 };
 
-function renderLandingBranchInventory(facilityCode = 'HN-CG') {
-  const data = branchStockData[facilityCode] || branchStockData['HN-CG'];
+async function renderLandingBranchInventory(facilityCode = 'HN-CG') {
+  currentLandingFacilityCode = facilityCode;
+  let data = branchStockData[facilityCode] || branchStockData['HN-CG'];
+  try {
+    const response = await fetch(`${API_BASE}/api/facilities/inventory/${encodeURIComponent(facilityCode)}`);
+    if (response.ok) {
+      const result = await response.json();
+      const inventory = result.data || result;
+      const typeNames = { S: 'Kho Mini S', M: 'Kho Tiêu Chuẩn M', L: 'Kho Lớn L', CLIMATE: 'Kho kiểm soát nhiệt ẩm' };
+      data = {
+        name: inventory.facilityName,
+        total: Number(inventory.total || 0),
+        available: Number(inventory.available || 0),
+        reserved: Number(inventory.reserved || 0),
+        occupied: Number(inventory.occupied || 0),
+        units: (inventory.units || []).map(unit => ({
+          code: unit.code,
+          type: unit.type,
+          name: typeNames[unit.type] || `Kho ${unit.type}`,
+          size: unit.sizeDesc || `${unit.sizeSqm} m²`,
+          vol: `${Number(unit.volumeM3 || 0).toFixed(1)} m³`,
+          price: Number(unit.pricePerMonth || 0),
+          stock: unit.status === 'available' ? 1 : 0,
+          status: unit.status,
+          floor: unit.floor == null ? 'Chưa cập nhật tầng' : `Tầng ${unit.floor}`
+        }))
+      };
+    }
+  } catch (error) {
+    console.warn('[Inventory] Backend unavailable; using demo inventory.', error);
+  }
   const statsBar = document.getElementById('landingBranchStatsBar');
   const unitsGrid = document.getElementById('landingBranchUnitsGrid');
 
@@ -1112,12 +1206,21 @@ function renderLandingBranchInventory(facilityCode = 'HN-CG') {
   }
 
   if (unitsGrid) {
-    unitsGrid.innerHTML = data.units.map(u => `
+    unitsGrid.innerHTML = data.units.map(u => {
+      const stateLabels = {
+        available: ['Còn trống', 'badge-success'],
+        reserved: ['Đang giữ chỗ', 'badge-warning'],
+        occupied: ['Đang cho thuê', 'badge-secondary'],
+        cleaning: ['Đang vệ sinh', 'badge-warning'],
+        maintenance: ['Bảo trì', 'badge-danger']
+      };
+      const state = stateLabels[u.status || 'available'] || stateLabels.available;
+      return `
       <div class="ui-card" style="display:flex; flex-direction:column; justify-content:space-between; padding:18px; border:1px solid #e2e8f0; border-radius:12px; transition:transform 0.2s, box-shadow 0.2s; background:#ffffff;">
         <div>
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
             <span style="font-size:11px; font-weight:800; color:#2563eb; background:#eff6ff; padding:3px 8px; border-radius:6px; letter-spacing:0.5px;">${u.code}</span>
-            <span class="badge badge-success" style="font-size:11px;">🟢 Còn ${u.stock} phòng</span>
+            <span class="badge ${state[1]}" style="font-size:11px;">${state[0]}</span>
           </div>
           <h4 style="font-size:16px; font-weight:800; color:#0f172a; margin-bottom:4px;">${u.name}</h4>
           <div style="font-size:12.5px; color:#64748b; margin-bottom:10px;">
@@ -1139,13 +1242,14 @@ function renderLandingBranchInventory(facilityCode = 'HN-CG') {
             <button class="btn btn-outline btn-sm" style="flex:1; justify-content:center; font-weight:700; padding:7px 8px; font-size:12px;" onclick="openUnitDetailModal('${u.name}', '${u.size}', '${u.vol}', ${u.price})">
               🔍 Chi tiết
             </button>
-            <button class="btn btn-primary btn-sm" style="flex:1; justify-content:center; font-weight:700; padding:7px 8px; font-size:12px;" onclick="openReservationModal('${u.name}', '${u.size}', ${u.price})">
+            <button class="btn btn-primary btn-sm" ${u.status && u.status !== 'available' ? 'disabled' : ''} style="flex:1; justify-content:center; font-weight:700; padding:7px 8px; font-size:12px;" onclick="openReservationModal('${u.name}', '${u.size}', ${u.price}, {facilityCode:'${facilityCode}', unitType:'${u.type || inferUnitType(u.name)}'})">
               ⚡ Đặt kho
             </button>
           </div>
         </div>
       </div>
-    `).join('');
+    `;
+    }).join('');
   }
 }
 
@@ -1164,17 +1268,42 @@ function calculateCost() {
   document.getElementById('sumPayNow').innerText = baseMonthly.toLocaleString('vi-VN') + ' đ';
 }
 
-function confirmReservation() {
-  closeModal('modalReservation');
-  navigateToScreen('SCR-C03');
-  setPaymentType('DEPOSIT');
-  showToast('Đã tạo đơn đặt chỗ RSV-8821! Đang chuyển sang cổng thanh toán VietQR...');
-  if (currentUser) {
-    addAuditLog(currentUser.name, 'CUSTOMER', 'CREATE_RESERVATION', 'Tạo đơn đặt giữ chỗ Kho M (5.0m²) tại Cầu Giấy');
+async function confirmReservation() {
+  if (!currentUser || !authToken) {
+    pendingReservationIntent = { ...currentBookingContext };
+    closeModal('modalReservation');
+    openAuthScreen('LOGIN');
+    showAuthAlert('Vui lòng đăng nhập lại để đặt giữ chỗ.');
+    return;
+  }
+  const durationMonths = Number(document.getElementById('quickRsvDuration')?.value || 3);
+  const body = {
+    facilityCode: currentBookingContext.facilityCode,
+    unitType: currentBookingContext.unitType,
+    durationMonths,
+    startDate: new Date().toISOString().slice(0, 10)
+  };
+  try {
+    const response = await apiFetch('/api/reservations', { method: 'POST', body: JSON.stringify(body) });
+    const result = await response.json();
+    if (!response.ok || !result.success || !result.data) {
+      throw new Error(result.message || 'Không thể tạo reservation.');
+    }
+    currentReservation = result.data;
+    currentBookingContext.depositAmount = Number(currentReservation.depositAmount || 0);
+    currentBookingContext.durationMonths = durationMonths;
+    closeModal('modalReservation');
+    navigateToScreen('SCR-C03');
+    setPaymentType('DEPOSIT');
+    showToast(`Đã tạo đơn ${currentReservation.id}. Thanh toán cọc để giữ chỗ.`);
+    addAuditLog(currentUser.name, 'CUSTOMER', 'CREATE_RESERVATION', `Tạo reservation ${currentReservation.id}`);
+  } catch (error) {
+    showToast(error.message || 'Không thể kết nối backend để tạo đơn.');
   }
 }
 
 function setPaymentType(type) {
+  currentPaymentType = type;
   const title = document.getElementById('lblInvoiceTitle');
   const item = document.getElementById('tblInvoiceItemName');
   const total = document.getElementById('tblInvoiceTotal');
@@ -1183,22 +1312,26 @@ function setPaymentType(type) {
 
   if (type === 'DEPOSIT') {
     title.innerText = 'Hóa đơn tiền cọc giữ chỗ (Security Deposit)';
-    item.innerText = 'Tiền cọc bảo đảm phòng kho Medium 5.0m² (Mã đơn: RSV-8821)';
-    total.innerText = '1.450.000 đ';
-    amt.innerText = '1.450.000 đ';
-    qrDesc.innerText = 'TT COC RSV 8821';
+    const reservationId = currentReservation?.id || 'Chưa có reservation';
+    const deposit = Number(currentReservation?.depositAmount || currentBookingContext.depositAmount || currentBookingContext.price || 0);
+    item.innerText = `Tiền cọc ${currentBookingContext.name || 'kho'} (Mã đơn: ${reservationId})`;
+    total.innerText = deposit.toLocaleString('vi-VN') + ' đ';
+    amt.innerText = deposit.toLocaleString('vi-VN') + ' đ';
+    qrDesc.innerText = `TT COC ${reservationId}`;
   } else if (type === 'RENT') {
     title.innerText = 'Hóa đơn cước thuê phòng kho kỳ đầu';
-    item.innerText = 'Tiền thuê tháng đầu tiên (Tháng 10/2026 - Unit A-102)';
-    total.innerText = '1.450.000 đ';
-    amt.innerText = '1.450.000 đ';
-    qrDesc.innerText = 'THUE THANG 10 UNIT A102';
+    const rent = Number(currentBookingContext.price || 0);
+    item.innerText = `Tiền thuê kỳ đầu (${currentReservation?.unitCode || 'chờ Manager gán Unit'})`;
+    total.innerText = rent.toLocaleString('vi-VN') + ' đ';
+    amt.innerText = rent.toLocaleString('vi-VN') + ' đ';
+    qrDesc.innerText = `THUE ${currentReservation?.id || ''}`;
   } else if (type === 'RENEW') {
     title.innerText = 'Hóa đơn gia hạn hợp đồng thuê kho';
-    item.innerText = 'Gia hạn thêm 01 tháng sử dụng (Unit A-102)';
-    total.innerText = '1.450.000 đ';
-    amt.innerText = '1.450.000 đ';
-    qrDesc.innerText = 'GIA HAN UNIT A102';
+    const quote = currentRenewalQuote || { durationMonths: 1, totalAmount: 0, contractId: '' };
+    item.innerText = `Gia hạn ${quote.durationMonths} tháng (${quote.contractId})`;
+    total.innerText = Number(quote.totalAmount || 0).toLocaleString('vi-VN') + ' đ';
+    amt.innerText = Number(quote.totalAmount || 0).toLocaleString('vi-VN') + ' đ';
+    qrDesc.innerText = `GIA HAN ${quote.contractId}`;
   } else if (type === 'EXTRA') {
     title.innerText = 'Hóa đơn phụ phí dịch vụ phát sinh';
     item.innerText = 'Phí vệ sinh chuyên sâu & thay ổ khóa cơ mới';
@@ -1224,22 +1357,58 @@ function startPaymentCountdown() {
   }, 1000);
 }
 
-function simulatePaymentSuccess() {
-  showToast('🎉 Giao dịch thành công! Mã giao dịch Napas: TXN-998124');
-  const uName = currentUser ? currentUser.name : 'Trần Văn Bảo';
-  addAuditLog(uName, 'CUSTOMER', 'PAYMENT_CONFIRM', 'Thanh toán cọc 1.450.000 VNĐ qua VietQR');
-  setTimeout(() => {
-    navigateToScreen('SCR-C04');
-    showToast('Đã phát hành Thẻ hẹn Check-in nhận kho Unit A-102!');
-  }, 1000);
+async function simulatePaymentSuccess() {
+  if (!authToken || ((currentPaymentType === 'DEPOSIT' || currentPaymentType === 'RENT') && !currentReservation?.id)
+      || (currentPaymentType === 'RENEW' && !currentRenewalQuote?.contractId)) {
+    showToast('Thiếu thông tin hợp đồng hoặc reservation để thanh toán.');
+    return;
+  }
+  const isDeposit = currentPaymentType === 'DEPOSIT';
+  const isRenew = currentPaymentType === 'RENEW';
+  if (!isDeposit && currentPaymentType !== 'RENT' && !isRenew) {
+    showToast('Loại thanh toán này chưa được nối với backend.');
+    return;
+  }
+  const amount = isDeposit
+    ? Number(currentReservation.depositAmount || currentBookingContext.depositAmount || 0)
+    : isRenew ? Number(currentRenewalQuote.totalAmount || 0) : Number(currentBookingContext.price || 0);
+  const endpoint = isDeposit ? '/api/payments/deposit' : isRenew ? '/api/payments/renew' : '/api/payments/rent';
+  const body = isRenew
+    ? { contractId: currentRenewalQuote.contractId, durationMonths: currentRenewalQuote.durationMonths, amount, paymentMethod: 'VietQR Napas247' }
+    : { reservationId: currentReservation.id, amount, paymentMethod: 'VietQR Napas247' };
+  try {
+    const response = await apiFetch(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(body)
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Thanh toán thất bại.');
+    if (isDeposit) currentReservation.status = 'RESERVED';
+    showToast(`Thanh toán thành công. Mã giao dịch ${result.data?.transactionCode || result.data?.id || ''}`);
+    addAuditLog(currentUser.name, 'CUSTOMER', 'PAYMENT_CONFIRM', `Thanh toán ${currentPaymentType} cho ${currentReservation.id}`);
+    if (isDeposit) {
+      setTimeout(() => {
+        navigateToScreen('SCR-C04');
+        showToast(`Reservation ${currentReservation.id} đã được giữ chỗ; chờ Manager gán Unit.`);
+      }, 500);
+    } else if (isRenew) {
+      currentRenewalQuote = null;
+      await loadMyContracts();
+      showToast('Hợp đồng đã được gia hạn và PIN đã được kích hoạt.');
+    }
+  } catch (error) {
+    showToast(error.message || 'Không thể kết nối backend để thanh toán.');
+  }
 }
 
 function togglePinVisibility() {
+  const pin = currentContract?.pinCode;
+  if (!pin) return showToast('Chưa có PIN của hợp đồng đang hoạt động.');
   isPinVisible = !isPinVisible;
   const box = document.getElementById('pinDisplayBox');
   const btn = document.getElementById('btnPinEyeText');
   if (isPinVisible) {
-    box.innerText = '8 4 2 9 1 6';
+    box.innerText = pin.split('').join(' ');
     box.style.color = '#10b981';
     btn.innerText = '🔒 Ẩn mã PIN';
   } else {
@@ -1250,10 +1419,12 @@ function togglePinVisibility() {
 }
 
 function copyPinCode() {
-  navigator.clipboard.writeText('842916').then(() => {
-    showToast('Đã sao chép mã PIN: 842916');
+  const pin = currentContract?.pinCode;
+  if (!pin) return showToast('Chưa có PIN của hợp đồng đang hoạt động.');
+  navigator.clipboard.writeText(pin).then(() => {
+    showToast('Đã sao chép mã PIN.');
   }).catch(() => {
-    showToast('Đã sao chép mã PIN: 842916');
+    showToast('Không thể sao chép PIN trên trình duyệt này.');
   });
 }
 
@@ -1261,75 +1432,198 @@ function openChangePinModal() {
   openModal('modalChangePin');
 }
 
-function saveNewPin() {
+async function saveNewPin() {
   const p1 = document.getElementById('txtNewPin').value;
   const p2 = document.getElementById('txtConfirmPin').value;
   if (p1.length !== 6 || p1 !== p2) {
     alert('Mã PIN phải gồm đúng 6 chữ số và hai lần nhập phải giống nhau!');
     return;
   }
-  closeModal('modalChangePin');
-  showToast('Đã đổi mã PIN mới thành công! Hệ thống khóa đã được đồng bộ.');
-  const uName = currentUser ? currentUser.name : 'Trần Văn Bảo';
-  addAuditLog(uName, 'CUSTOMER', 'UPDATE_PIN', 'Đổi mã PIN điện tử kho Unit A-102');
-}
-
-function openRenewalModal(unit) {
-  navigateToScreen('SCR-C03');
-  setPaymentType('RENEW');
-  showToast(`Mở hóa đơn gia hạn cho phòng kho ${unit}!`);
-}
-
-function openCheckoutRequestModal(unit) {
-  if (confirm(`Bạn có chắc chắn muốn gửi yêu cầu trả phòng kho ${unit}? Lịch hẹn nghiệm thu sẽ được chuyển đến Nhân viên ca trực.`)) {
-    showToast(`Đã gửi yêu cầu trả kho ${unit}! Vui lòng mang đủ chìa và thẻ từ đến bàn giao.`);
-    const uName = currentUser ? currentUser.name : 'Trần Văn Bảo';
-    addAuditLog(uName, 'CUSTOMER', 'REQUEST_CHECKOUT', `Yêu cầu trả phòng kho ${unit}`);
+  if (!currentContract?.unitCode) return showToast('Chưa tải hợp đồng đang thuê.');
+  try {
+    const response = await apiFetch(`/api/contracts/${encodeURIComponent(currentContract.unitCode)}/pin`, {
+      method: 'PATCH', body: JSON.stringify({ newPin: p1 })
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể đổi PIN.');
+    currentContract = result.data;
+    closeModal('modalChangePin');
+    showToast('Đã đổi mã PIN mới trên hợp đồng và Unit.');
+    addAuditLog(currentUser.name, currentActor, 'UPDATE_PIN', `Đổi PIN Unit ${currentContract.unitCode}`);
+  } catch (error) {
+    showToast(error.message || 'Không thể đổi PIN.');
   }
 }
 
-function submitSupportTicket() {
-  const desc = document.getElementById('ticketDesc').value.trim();
-  const unit = document.getElementById('ticketUnitSelect') ? document.getElementById('ticketUnitSelect').value : 'A-102';
-  const category = document.getElementById('ticketCategorySelect') ? document.getElementById('ticketCategorySelect').value : 'Ổ khóa cơ';
-  
-  if (!desc) {
-    alert('Vui lòng nhập mô tả chi tiết sự cố cần hỗ trợ!');
+async function openRenewalModal(unit) {
+  if (!currentContracts.length) await loadMyContracts();
+  const contract = currentContracts.find(item => item.unitCode === unit && ['ACTIVE', 'EXPIRING_SOON', 'OVERDUE'].includes(item.status));
+  if (!contract) return showToast(`Không tìm thấy hợp đồng có thể gia hạn của Unit ${unit}.`);
+  const monthsText = prompt('Số tháng muốn gia hạn (1-36):', '1');
+  const months = Number(monthsText || 1);
+  if (!Number.isInteger(months) || months < 1 || months > 36) return showToast('Số tháng gia hạn không hợp lệ.');
+  try {
+    const response = await apiFetch(`/api/contracts/${encodeURIComponent(contract.id)}/renewal-quote?months=${months}`);
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể tính phí gia hạn.');
+    currentRenewalQuote = result.data;
+    navigateToScreen('SCR-C03');
+    setPaymentType('RENEW');
+  } catch (error) {
+    showToast(error.message || 'Không thể tính phí gia hạn.');
+  }
+}
+
+async function openCheckoutRequestModal(unit) {
+  if (!currentContracts.length) await loadMyContracts();
+  const contract = currentContracts.find(item => item.unitCode === unit
+    && ['ACTIVE', 'EXPIRING_SOON', 'OVERDUE'].includes(item.status));
+  if (!contract) return showToast(`Không tìm thấy hợp đồng đang thuê của Unit ${unit}.`);
+  if (confirm(`Bạn có chắc chắn muốn gửi yêu cầu trả phòng kho ${unit}? Lịch hẹn nghiệm thu sẽ được chuyển đến Nhân viên ca trực.`)) {
+    try {
+      const response = await apiFetch('/api/contracts/checkout-request', {
+        method: 'POST',
+        body: JSON.stringify({ contractId: contract.id, requestedDate: new Date().toISOString().slice(0, 10) })
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) throw new Error(result.message || 'Không thể gửi yêu cầu trả kho.');
+      currentContract = result.data;
+      showToast(`Đã tạo lịch nghiệm thu cho Unit ${unit}.`);
+      addAuditLog(currentUser.name, currentActor, 'REQUEST_CHECKOUT', `Checkout ${contract.id}`);
+    } catch (error) {
+      showToast(error.message || 'Không thể gửi yêu cầu trả kho.');
+    }
+  }
+}
+
+async function loadMyContracts() {
+  if (!authToken || currentActor !== 'CUSTOMER') return;
+  try {
+    const response = await apiFetch('/api/contracts');
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không tải được hợp đồng.');
+    currentContracts = result.data || [];
+    currentContract = currentContracts.find(contract => contract.status === 'ACTIVE') || currentContracts[0] || null;
+  } catch (error) {
+    showToast(error.message || 'Không tải được hợp đồng.');
+  }
+}
+
+async function submitSupportTicket() {
+  if (!authToken || currentActor !== 'CUSTOMER') {
+    return showToast('Vui lòng đăng nhập bằng tài khoản khách hàng.');
+  }
+  const desc = document.getElementById('ticketDesc')?.value.trim();
+  const unit = document.getElementById('ticketUnitSelect')?.value;
+  const category = document.getElementById('ticketCategorySelect')?.value || 'GENERAL';
+  const priorityText = document.getElementById('ticketPrioritySelect')?.value || '';
+  const priority = priorityText.toLowerCase().includes('khẩn') ? 'URGENT'
+    : priorityText.toLowerCase().includes('cao') ? 'HIGH' : 'NORMAL';
+  const attachmentUrl = document.getElementById('ticketAttachmentUrl')?.value.trim();
+  if (!desc || !unit) return showToast('Chọn kho và nhập mô tả sự cố.');
+  try {
+    const response = await apiFetch('/api/tasks/tickets', {
+      method: 'POST',
+      body: JSON.stringify({ unitCode: unit, category, description: desc, priority, attachmentUrl })
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể tạo ticket.');
+    document.getElementById('ticketDesc').value = '';
+    if (document.getElementById('ticketAttachmentUrl')) document.getElementById('ticketAttachmentUrl').value = '';
+    showToast(`Đã tạo ticket ${result.data.id} và chuyển đến nhân viên cơ sở.`);
+    await loadSupportTickets();
+  } catch (error) {
+    showToast(error.message || 'Không thể tạo ticket.');
+  }
+}
+
+async function loadSupportTickets() {
+  if (!authToken || !['CUSTOMER', 'STAFF', 'FMANAGER', 'FACILITY_MANAGER'].includes(currentActor)) return;
+  try {
+    if (currentActor === 'CUSTOMER') {
+      await loadMyContracts();
+      const unitSelect = document.getElementById('ticketUnitSelect');
+      const rented = currentContracts.filter(contract => ['ACTIVE', 'EXPIRING_SOON', 'OVERDUE'].includes(contract.status));
+      if (unitSelect) unitSelect.innerHTML = rented.map(contract =>
+        `<option value="${escapeHtml(contract.unitCode)}">Unit ${escapeHtml(contract.unitCode)} (${escapeHtml(contract.facilityCode || '')})</option>`
+      ).join('') || '<option value="">Chưa có kho đang thuê</option>';
+    }
+    const response = await apiFetch('/api/tasks/tickets');
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không tải được ticket.');
+    const tickets = result.data || [];
+    renderSupportTicketsTable(tickets);
+    renderStaffSupportTickets(tickets);
+  } catch (error) {
+    console.warn('[Tickets] Unable to load tickets', error);
+  }
+}
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[character]));
+}
+
+function renderSupportTicketsTable(tickets = []) {
+  const container = document.getElementById('supportTicketsHistory');
+  if (!container) return;
+  const empty = document.getElementById('supportTicketsEmptyState');
+  if (!tickets.length) {
+    container.innerHTML = '';
+    if (empty) empty.style.display = 'block';
     return;
   }
-
-  const newTicket = {
-    id: `TCK-2026-0${mockSupportTickets.length + 1}`,
-    unit,
-    category,
-    priority: 'NORMAL',
-    desc,
-    status: 'Đang xử lý',
-    time: 'Vừa xong'
-  };
-
-  mockSupportTickets.unshift(newTicket);
-  renderSupportTicketsTable();
-
-  document.getElementById('ticketDesc').value = '';
-  showToast('Phiếu hỗ trợ đã được tạo và chuyển đến Nhân viên ca trực!');
-  const uName = currentUser ? currentUser.name : 'Trần Văn Bảo';
-  addAuditLog(uName, 'CUSTOMER', 'CREATE_TICKET', `Báo cáo sự cố ${category} tại phòng ${unit}`);
+  if (empty) empty.style.display = 'none';
+  container.innerHTML = tickets.map(ticket => `
+    <div style="border-bottom:1px solid #e2e8f0; padding:10px 0;">
+      <div style="display:flex; justify-content:space-between; gap:8px;">
+        <span class="code-display">${escapeHtml(ticket.id)}</span>
+        <span class="badge ${ticket.status === 'RESOLVED' || ticket.status === 'CLOSED' ? 'badge-success' : 'badge-warning'}">${escapeHtml(ticket.status)}</span>
+      </div>
+      <div style="font-weight:700; margin:5px 0;">${escapeHtml(ticket.category || ticket.title)}</div>
+      <div style="font-size:13px; color:#475569;">${escapeHtml(ticket.description || '')}</div>
+      <div style="font-size:12px; color:#64748b; margin-top:5px;">Unit ${escapeHtml(ticket.unitCode)} · ${escapeHtml(ticket.priority)}${ticket.staffAssigned ? ` · ${escapeHtml(ticket.staffAssigned)}` : ''}</div>
+      ${ticket.status === 'RESOLVED' ? `<button class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="closeSupportTicket('${escapeHtml(ticket.id)}')">Đóng ticket</button>` : ''}
+    </div>`).join('');
 }
 
-function renderSupportTicketsTable() {
-  const tbody = document.getElementById('tblSupportTicketsBody');
-  if (!tbody) return;
-  tbody.innerHTML = mockSupportTickets.map(t => `
-    <tr>
-      <td><span class="code-display">${t.id}</span></td>
-      <td><strong>${t.unit}</strong></td>
-      <td>${t.category}</td>
-      <td>${t.desc}</td>
-      <td><span class="badge badge-warning">${t.status}</span></td>
-      <td style="font-size:12px; color:#64748b;">${t.time}</td>
-    </tr>
-  `).join('');
+function renderStaffSupportTickets(tickets = []) {
+  const rows = tickets.map(ticket => `<tr>
+    <td><span class="code-display">${escapeHtml(ticket.id)}</span></td>
+    <td>${escapeHtml(ticket.category || ticket.title)}</td>
+    <td>${escapeHtml(ticket.unitCode || '')}</td>
+    <td><span class="badge ${ticket.priority === 'URGENT' ? 'badge-danger' : 'badge-warning'}">${escapeHtml(ticket.priority)}</span></td>
+    <td>${ticket.status === 'OPEN' ? `<button class="btn btn-primary btn-sm" onclick="updateSupportTicket('${escapeHtml(ticket.id)}','IN_PROGRESS')">Tiếp nhận</button>` : ticket.status === 'IN_PROGRESS' ? `<button class="btn btn-success btn-sm" onclick="updateSupportTicket('${escapeHtml(ticket.id)}','RESOLVED')">Đã xử lý</button>` : escapeHtml(ticket.status)}</td>
+  </tr>`).join('') || '<tr><td colspan="5">Không có ticket.</td></tr>';
+  const queue = document.getElementById('staffSupportQueueBody');
+  if (queue) queue.innerHTML = rows;
+  const incident = document.getElementById('incidentTicketsBody');
+  if (incident) incident.innerHTML = tickets.map(ticket => `<tr>
+    <td><span class="code-display">${escapeHtml(ticket.id)}</span></td><td>${escapeHtml(ticket.customerName || '')}</td><td><strong>${escapeHtml(ticket.unitCode || '')}</strong></td>
+    <td>${escapeHtml(ticket.description || ticket.category || '')}</td><td><span class="badge ${ticket.priority === 'URGENT' ? 'badge-danger' : 'badge-warning'}">${escapeHtml(ticket.priority)}</span></td>
+    <td>${ticket.status === 'OPEN' ? `<button class="btn btn-primary btn-sm" onclick="updateSupportTicket('${escapeHtml(ticket.id)}','IN_PROGRESS')">Tiếp nhận</button>` : ticket.status === 'IN_PROGRESS' ? `<button class="btn btn-success btn-sm" onclick="updateSupportTicket('${escapeHtml(ticket.id)}','RESOLVED')">Hoàn tất</button>` : escapeHtml(ticket.status)}</td>
+  </tr>`).join('') || '<tr><td colspan="6">Không có sự cố.</td></tr>';
+}
+
+async function updateSupportTicket(ticketId, status, extra = {}) {
+  try {
+    const response = await apiFetch(`/api/tasks/tickets/${encodeURIComponent(ticketId)}`, {
+      method: 'PATCH', body: JSON.stringify({ status, ...extra })
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể cập nhật ticket.');
+    showToast(`Ticket ${ticketId}: ${status}`);
+    await loadSupportTickets();
+  } catch (error) {
+    showToast(error.message || 'Không thể cập nhật ticket.');
+  }
+}
+
+async function closeSupportTicket(ticketId) {
+  const rating = Number(prompt('Đánh giá dịch vụ từ 1 đến 5:', '5'));
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) return;
+  await updateSupportTicket(ticketId, 'CLOSED', { rating, feedback: 'Customer confirmed resolution.' });
 }
 
 // ==============================================================================
@@ -1347,61 +1641,145 @@ function switchStaffTaskTab(tab) {
   document.getElementById('btnTaskReturn').classList.toggle('btn-outline', tab !== 'RETURN');
   document.getElementById('btnTaskSupport').classList.toggle('btn-primary', tab === 'SUPPORT');
   document.getElementById('btnTaskSupport').classList.toggle('btn-outline', tab !== 'SUPPORT');
+  loadDailyTasks();
 }
 
-function startCheckinForCustomer(rsv, cust, unit) {
+async function loadDailyTasks() {
+  if (!authToken || !['STAFF', 'FMANAGER', 'FACILITY_MANAGER'].includes(currentActor)) return;
+  try {
+    const response = await apiFetch(`/api/tasks/daily?date=${new Date().toISOString().slice(0, 10)}`);
+    const result = await response.json();
+    if (!response.ok || !result.success) return;
+    const tasks = result.data || [];
+    const checkinBody = document.getElementById('checkinTasksBody');
+    const returnBody = document.getElementById('returnTasksBody');
+    const checkins = tasks.filter(task => task.taskType === 'CHECKIN');
+    const returns = tasks.filter(task => task.taskType === 'RETURN');
+    if (checkinBody) checkinBody.innerHTML = checkins.map(task => `
+      <tr>
+        <td><strong>${task.deadline || ''}</strong></td><td>${task.staff || ''}</td><td>-</td>
+        <td><span class="code-display">${task.reservationId || ''}</span></td><td>${task.unitCode || 'Chưa gán'}</td>
+        <td><span class="badge ${task.status === 'COMPLETED' ? 'badge-success' : 'badge-warning'}">${task.status}</span></td>
+        <td><button class="btn btn-primary btn-sm" onclick="startCheckinForCustomer('${task.reservationId || ''}')">Tiến hành Check-in</button> ${task.status !== 'COMPLETED' ? `<button class="btn btn-outline btn-sm" onclick="updateDailyTask('${task.id}','${task.status === 'PENDING' ? 'IN_PROGRESS' : 'COMPLETED'}')">${task.status === 'PENDING' ? 'Nhận việc' : 'Hoàn tất'}</button>` : ''}</td>
+      </tr>`).join('') || '<tr><td colspan="7">Không có lịch check-in hôm nay.</td></tr>';
+    if (returnBody) returnBody.innerHTML = returns.map(task => `
+      <tr>
+        <td>${task.deadline || ''}</td><td>${task.staff || ''}</td>
+        <td><span class="code-display">${task.contractId || ''}</span></td><td>${task.unitCode || ''}</td>
+        <td>-</td><td><button class="btn btn-primary btn-sm" onclick="startReturnInspection('${task.contractId || ''}', '${task.unitCode || ''}')">Bắt đầu nghiệm thu</button> ${task.status !== 'COMPLETED' ? `<button class="btn btn-outline btn-sm" onclick="updateDailyTask('${task.id}','${task.status === 'PENDING' ? 'IN_PROGRESS' : 'COMPLETED'}')">${task.status === 'PENDING' ? 'Nhận việc' : 'Hoàn tất'}</button>` : ''}</td>
+      </tr>`).join('') || '<tr><td colspan="6">Không có lịch trả kho hôm nay.</td></tr>';
+  } catch (error) {
+    console.warn('[Tasks] Unable to load daily tasks', error);
+  }
+}
+
+async function updateDailyTask(taskId, status) {
+  try {
+    const response = await apiFetch(`/api/tasks/${encodeURIComponent(taskId)}/status`, {
+      method: 'PATCH', body: JSON.stringify({ status })
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể cập nhật nhiệm vụ.');
+    await loadDailyTasks();
+  } catch (error) {
+    showToast(error.message || 'Không thể cập nhật nhiệm vụ.');
+  }
+}
+
+function startCheckinForCustomer(rsv) {
   navigateToScreen('SCR-S02');
   const input = document.getElementById('txtSearchReservation');
   if (input) input.value = rsv;
-  showToast(`Đang tra cứu hồ sơ đơn đặt chỗ ${rsv} của khách ${cust}...`);
+  showToast(`Đang tra cứu hồ sơ đơn đặt chỗ ${rsv}...`);
 }
 
-function lookupReservation() {
-  showToast('Xác thực hồ sơ đơn đặt RSV-8821 thành công! Đủ điều kiện nhận bàn giao kho.');
-}
-
-function completeHandoverProtocol() {
-  const target = mockUnits.find(u => u.code === 'A-102');
-  if (target) {
-    target.status = 'occupied';
-    target.tenant = 'Trần Văn Bảo';
+async function lookupReservation() {
+  const reservationId = document.getElementById('txtSearchReservation')?.value.trim();
+  if (!reservationId) return showToast('Nhập mã reservation, CCCD hoặc số điện thoại cần tra cứu.');
+  try {
+    let response = await apiFetch(`/api/reservations/${encodeURIComponent(reservationId)}`);
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      response = await apiFetch(`/api/reservations/lookup?query=${encodeURIComponent(reservationId)}`);
+      const lookupResult = await response.json();
+      if (!response.ok || !lookupResult.success || !lookupResult.data?.length) {
+        throw new Error(lookupResult.message || 'Không tìm thấy reservation.');
+      }
+      currentReservation = lookupResult.data[0];
+    } else {
+      currentReservation = result.data;
+    }
+    showToast(`Reservation ${currentReservation.id}: ${currentReservation.status}, Unit ${currentReservation.unitCode || 'chưa gán'}.`);
+  } catch (error) {
+    showToast(error.message || 'Không thể tra cứu reservation.');
   }
-  renderMatrixGrid();
-
-  showToast('🎉 Hoàn tất Bàn giao kho! Hợp đồng CTR-2026-001 chính thức có hiệu lực.');
-  const uName = currentUser ? currentUser.name : 'Nguyễn Văn Tuấn';
-  addAuditLog(uName, 'STAFF', 'HANDOVER_COMPLETE', 'Hoàn tất bàn giao Unit A-102 cho Trần Văn Bảo');
-
-  setTimeout(() => {
-    navigateToScreen('SCR-S04');
-    showToast('Phòng A-102 đã chuyển sang trạng thái: OCCUPIED (Đang thuê)');
-  }, 1000);
 }
 
-function completeReturnInspection() {
-  const target = mockUnits.find(u => u.code === 'A-102');
-  if (target) {
-    target.status = 'cleaning';
-    target.tenant = null;
+async function completeHandoverProtocol() {
+  if (!currentReservation?.id) return showToast('Tra cứu reservation trước khi bàn giao.');
+  try {
+    const response = await apiFetch('/api/contracts/handover', {
+      method: 'POST',
+      body: JSON.stringify({
+        reservationId: currentReservation.id,
+        customerSignatureConfirmed: true,
+        lock: document.getElementById('handoverLock')?.value || null,
+        rfid: document.getElementById('handoverRfid')?.value || null,
+        unitConditionNotes: 'Staff xác nhận checklist bàn giao đạt yêu cầu.'
+      })
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể hoàn tất bàn giao.');
+    currentContract = result.data;
+    showToast(`Bàn giao thành công; hợp đồng ${currentContract.id} đã ACTIVE.`);
+    addAuditLog(currentUser.name, currentActor, 'HANDOVER_COMPLETE', `Bàn giao ${currentContract.unitCode}`);
+    loadDailyTasks();
+  } catch (error) {
+    showToast(error.message || 'Không thể hoàn tất bàn giao.');
   }
-  renderMatrixGrid();
-
-  showToast('Xác nhận Nghiệm thu thành công! Hoàn trả cọc 1.500.000đ về MBBank của khách.');
-  const uName = currentUser ? currentUser.name : 'Nguyễn Văn Tuấn';
-  addAuditLog(uName, 'STAFF', 'RETURN_INSPECTION', 'Nghiệm thu trả kho Unit A-102 & duyệt hoàn cọc');
-
-  setTimeout(() => {
-    navigateToScreen('SCR-S04');
-    showToast('Phòng A-102 đã chuyển sang trạng thái: CLEANING (Đang vệ sinh)');
-  }, 1000);
 }
 
-function openEmergencyPinModal() {
-  const tempPin = Math.floor(100000 + Math.random() * 900000);
-  alert(`[GIAO THỨC KHẨN CẤP TẠI QUẦY]\nMã PIN tạm thời hiệu lực 60 phút cho khách là: ${tempPin}\nHệ thống đã gửi SMS tới số điện thoại chính chủ.`);
-  showToast(`Đã cấp mã PIN tạm thời: ${tempPin} (Hiệu lực 60 phút)`);
-  const uName = currentUser ? currentUser.name : 'Nguyễn Văn Tuấn';
-  addAuditLog(uName, 'STAFF', 'EMERGENCY_PIN', `Cấp mã PIN tạm thời 60p cho Unit A-102`);
+function startReturnInspection(contractId, unitCode) {
+  currentContract = { id: contractId, unitCode };
+  navigateToScreen('SCR-S05');
+}
+
+async function completeReturnInspection() {
+  if (!currentContract?.unitCode) return showToast('Chọn contract từ danh sách lịch trả trước.');
+  try {
+    const response = await apiFetch('/api/contracts/return-inspection', {
+      method: 'POST',
+      body: JSON.stringify({
+        unitCode: currentContract.unitCode,
+        cleanlinessStatus: 'CLEAN',
+        damageNotes: '',
+        deductions: 0
+      })
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể lưu inspection.');
+    showToast(`Nghiệm thu đã lưu. Yêu cầu hoàn ${Number(result.data.refundAmount || 0).toLocaleString('vi-VN')} đ đang chờ Manager duyệt.`);
+    addAuditLog(currentUser.name, currentActor, 'RETURN_INSPECTION', `Inspection ${result.data.inspectionId}`);
+    loadDailyTasks();
+  } catch (error) {
+    showToast(error.message || 'Không thể lưu inspection.');
+  }
+}
+
+async function openEmergencyPinModal() {
+  const unitCode = currentContract?.unitCode || 'A-102';
+  try {
+    const response = await apiFetch('/api/tasks/emergency-pin', {
+      method: 'POST', body: JSON.stringify({ unitCode })
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể cấp PIN tạm thời.');
+    const pinData = result.data;
+    alert(`[GIAO THỨC KHẨN CẤP TẠI QUẦY]\nMã PIN tạm thời hiệu lực ${pinData.expiresInMinutes} phút: ${pinData.tempPin}`);
+    showToast(`Đã cấp mã PIN tạm thời cho Unit ${unitCode}.`);
+  } catch (error) {
+    showToast(error.message || 'Không thể cấp PIN tạm thời.');
+  }
 }
 
 function openLostKeyModal() {
@@ -1417,7 +1795,10 @@ function renderMatrixGrid() {
   const container = document.getElementById('matrixGridContainer');
   if (!container) return;
 
-  container.innerHTML = mockUnits.map(u => {
+  const units = managedUnits || mockUnits;
+  container.innerHTML = units.map(u => {
+    const type = u.type || 'M';
+    const size = u.sizeDesc || u.size || `${u.sizeSqm || 0} m²`;
     let badgeText = 'Trống';
     if (u.status === 'occupied') badgeText = 'Đang dùng';
     else if (u.status === 'reserved') badgeText = 'Đã đặt';
@@ -1427,32 +1808,198 @@ function renderMatrixGrid() {
     return `
       <div class="matrix-cell ${u.status}" onclick="openUnitStatusModal('${u.code}')">
         <div style="font-weight:800; font-size:15px; margin-bottom:2px;">${u.code}</div>
-        <div style="font-size:11px; opacity:0.85;">${u.size}</div>
+        <div style="font-size:11px; opacity:0.85;">${size}</div>
         <div style="font-size:10px; font-weight:700; text-transform:uppercase; margin-top:4px;">${badgeText}</div>
       </div>
     `;
   }).join('');
 }
 
+async function loadManagedUnits() {
+  if (!authToken || !['FMANAGER', 'FACILITY_MANAGER'].includes(currentActor)) {
+    managedUnits = null;
+    renderMatrixGrid();
+    return;
+  }
+  try {
+    const response = await apiFetch('/api/facilities/units/manage');
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không tải được danh sách Unit.');
+    managedUnits = result.data || [];
+    renderMatrixGrid();
+    const tbody = document.getElementById('managedUnitsBody');
+    if (tbody) tbody.innerHTML = managedUnits.map(unit => `
+      <tr>
+        <td><span class="code-display">${unit.code}</span></td><td>${unit.type}</td>
+        <td>${unit.sizeDesc || `${unit.sizeSqm} m²`}</td>
+        <td>${Number(unit.pricePerMonth || 0).toLocaleString('vi-VN')} đ</td>
+        <td>${unit.tenantName || '—'}</td><td><span class="badge badge-neutral">${unit.status}</span></td>
+        <td><button class="btn btn-outline btn-sm" onclick="openUnitStatusModal('${unit.code}')">Sửa trạng thái</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteManagedUnit('${unit.code}')">Xóa</button></td>
+      </tr>`).join('') || '<tr><td colspan="7">Chi nhánh chưa có Unit.</td></tr>';
+  } catch (error) {
+    showToast(error.message || 'Không thể tải sơ đồ kho.');
+  }
+}
+
+async function loadFacilities() {
+  if (!authToken || currentActor !== 'OPS_MGR') return;
+  try {
+    const response = await apiFetch('/api/facilities');
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không tải được chi nhánh.');
+    knownFacilities = result.data || [];
+    const grid = document.getElementById('facilityCardsGrid');
+    if (grid) grid.innerHTML = knownFacilities.map(facility => `
+      <div class="ui-card">
+        <h3 style="font-size:16px; font-weight:800; margin-bottom:8px; color:#1e40af;">${facility.name}</h3>
+        <div style="font-size:13px; color:#64748b; margin-bottom:12px;">${facility.address}, ${facility.city}</div>
+        <div style="font-size:12px; margin-bottom:16px;">
+          <div>🏢 Quy mô: <strong>${facility.totalUnits || 0} Unit</strong></div>
+          <div>☎ Hotline: <strong>${facility.hotline || '—'}</strong></div>
+          <div>⚡ Trạng thái: <span class="badge badge-success">${facility.status}</span></div>
+        </div>
+        <button class="btn btn-outline btn-block btn-sm" onclick="openFacilityForm('${facility.code}')">Cấu hình chi nhánh</button>
+      </div>`).join('');
+  } catch (error) {
+    showToast(error.message || 'Không tải được chi nhánh.');
+  }
+}
+
+function openFacilityForm(code = null) {
+  editingFacilityCode = code;
+  const facility = knownFacilities.find(item => item.code === code);
+  document.getElementById('facilityFormTitle').innerText = facility ? 'Cấu hình chi nhánh' : 'Thêm chi nhánh';
+  document.getElementById('facilityFormCode').value = facility?.code || '';
+  document.getElementById('facilityFormCode').disabled = Boolean(facility);
+  document.getElementById('facilityFormName').value = facility?.name || '';
+  document.getElementById('facilityFormAddress').value = facility?.address || '';
+  document.getElementById('facilityFormCity').value = facility?.city || '';
+  document.getElementById('facilityFormHotline').value = facility?.hotline || '';
+  openModal('modalFacilityForm');
+}
+
+async function submitFacilityForm() {
+  const body = {
+    code: document.getElementById('facilityFormCode').value.trim().toUpperCase(),
+    name: document.getElementById('facilityFormName').value.trim(),
+    address: document.getElementById('facilityFormAddress').value.trim(),
+    city: document.getElementById('facilityFormCity').value.trim(),
+    hotline: document.getElementById('facilityFormHotline').value.trim()
+  };
+  const isEdit = Boolean(editingFacilityCode);
+  try {
+    const response = await apiFetch(isEdit ? `/api/facilities/${encodeURIComponent(editingFacilityCode)}` : '/api/facilities', {
+      method: isEdit ? 'PUT' : 'POST', body: JSON.stringify(body)
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể lưu chi nhánh.');
+    closeModal('modalFacilityForm');
+    showToast(isEdit ? 'Đã cập nhật chi nhánh.' : 'Đã thêm chi nhánh.');
+    await loadFacilities();
+  } catch (error) {
+    showToast(error.message || 'Không thể lưu chi nhánh.');
+  }
+}
+
+async function loadPendingRefunds() {
+  if (!authToken || !['FMANAGER', 'FACILITY_MANAGER'].includes(currentActor)) return;
+  const tbody = document.getElementById('pendingRefundsBody');
+  if (!tbody) return;
+  try {
+    const response = await apiFetch('/api/contracts/refunds/pending');
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không tải được refund requests.');
+    const refunds = result.data || [];
+    tbody.innerHTML = refunds.map(refund => `
+      <tr><td>${refund.contractId || refund.reservationId}</td><td>${refund.inspectionId || 'Reservation cancellation'}</td>
+      <td>${Number(refund.approvedAmount || 0).toLocaleString('vi-VN')} đ</td>
+      <td><button class="btn btn-success btn-sm" onclick="approveRefund('${refund.contractId || ''}', '${refund.reservationId || ''}')">Duyệt hoàn cọc</button></td></tr>
+    `).join('') || '<tr><td colspan="4">Không có yêu cầu đang chờ.</td></tr>';
+  } catch (error) {
+    tbody.innerHTML = `<tr><td colspan="4">${error.message}</td></tr>`;
+  }
+}
+
+async function loadManagerContracts() {
+  if (!authToken || !['FMANAGER', 'FACILITY_MANAGER'].includes(currentActor)) return;
+  const tbody = document.getElementById('managerContractsBody');
+  if (!tbody) return;
+  try {
+    const response = await apiFetch('/api/contracts');
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không tải được contracts.');
+    const contracts = result.data || [];
+    tbody.innerHTML = contracts.map(contract => {
+      const status = contract.status || 'ACTIVE';
+      const badge = status === 'OVERDUE' ? 'badge-danger' : status === 'EXPIRING_SOON' ? 'badge-warning' : 'badge-success';
+      const action = status === 'OVERDUE'
+        ? `<button class="btn btn-danger btn-sm" onclick="triggerOverdueLockout('${escapeHtml(contract.id)}','${escapeHtml(contract.unitCode)}','${escapeHtml(contract.customerName)}')">Khóa PIN</button>`
+        : `<button class="btn btn-outline btn-sm" onclick="showToast('Đã ghi nhận yêu cầu nhắc gia hạn cho ${escapeHtml(contract.customerName)}.')">Nhắc gia hạn</button>`;
+      return `<tr><td><span class="code-display">${escapeHtml(contract.id)}</span></td><td>${escapeHtml(contract.customerName)}</td><td>${escapeHtml(contract.unitCode)}</td><td>${escapeHtml(contract.endDate)}</td><td><span class="badge ${badge}">${escapeHtml(status)}</span></td><td>${action}</td></tr>`;
+    }).join('') || '<tr><td colspan="6">Không có contract.</td></tr>';
+  } catch (error) {
+    tbody.innerHTML = `<tr><td colspan="6">${escapeHtml(error.message)}</td></tr>`;
+  }
+}
+
+async function approveRefund(contractId, reservationId = '') {
+  try {
+    const endpoint = reservationId
+      ? `/api/contracts/reservations/${encodeURIComponent(reservationId)}/refund/approve`
+      : `/api/contracts/${encodeURIComponent(contractId)}/refund/approve`;
+    const response = await apiFetch(endpoint, { method: 'PATCH' });
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể duyệt hoàn cọc.');
+    showToast(`Đã duyệt hoàn cọc cho ${reservationId || contractId}.`);
+    await loadPendingRefunds();
+    await loadManagedUnits();
+  } catch (error) {
+    showToast(error.message || 'Không thể duyệt hoàn cọc.');
+  }
+}
+
 function openUnitStatusModal(code) {
-  selectedUnitForModal = mockUnits.find(u => u.code === code);
+  selectedUnitForModal = (managedUnits || mockUnits).find(u => u.code === code);
   if (!selectedUnitForModal) return;
 
   document.getElementById('mdlUnitStatusTitle').innerText = `Cập nhật Trạng thái Phòng Kho ${code}`;
-  document.getElementById('mdlUnitStatusName').innerText = `Phòng ${code} (${selectedUnitForModal.size} - Gói ${selectedUnitForModal.type})`;
+  document.getElementById('mdlUnitStatusName').innerText = `Phòng ${code} (${selectedUnitForModal.sizeDesc || selectedUnitForModal.size} - Gói ${selectedUnitForModal.type})`;
   document.getElementById('selUnitNewStatus').value = selectedUnitForModal.status.toUpperCase();
   openModal('modalUnitStatus');
 }
 
-function saveUnitStatusChange() {
+async function saveUnitStatusChange() {
   if (!selectedUnitForModal) return;
   const newStatus = document.getElementById('selUnitNewStatus').value.toLowerCase();
-  selectedUnitForModal.status = newStatus;
-  renderMatrixGrid();
-  closeModal('modalUnitStatus');
-  showToast(`Đã cập nhật trạng thái kho ${selectedUnitForModal.code} thành: ${newStatus.toUpperCase()}`);
-  const uName = currentUser ? currentUser.name : 'Nhân viên';
-  addAuditLog(uName, currentActor || 'STAFF', 'UPDATE_UNIT_STATUS', `Cập nhật trạng thái Unit ${selectedUnitForModal.code} -> ${newStatus}`);
+  try {
+    const response = await apiFetch(`/api/facilities/units/${encodeURIComponent(selectedUnitForModal.code)}/status`, {
+      method: 'PATCH', body: JSON.stringify({ status: newStatus })
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể cập nhật Unit.');
+    closeModal('modalUnitStatus');
+    showToast(`Đã cập nhật trạng thái kho ${selectedUnitForModal.code}: ${newStatus.toUpperCase()}`);
+    addAuditLog(currentUser.name, currentActor, 'UPDATE_UNIT_STATUS', `Unit ${selectedUnitForModal.code} -> ${newStatus}`);
+    await loadManagedUnits();
+  } catch (error) {
+    showToast(error.message || 'Không thể cập nhật Unit.');
+  }
+}
+
+async function deleteManagedUnit(code) {
+  if (!confirm(`Xóa Unit ${code}? Chỉ Unit trống và không còn lịch sử hợp đồng/đặt chỗ mới được xóa.`)) return;
+  try {
+    const response = await apiFetch(`/api/facilities/units/${encodeURIComponent(code)}`, { method: 'DELETE' });
+    if (!response.ok) {
+      const result = await response.json();
+      throw new Error(result.message || 'Không thể xóa Unit.');
+    }
+    showToast(`Đã xóa Unit ${code}.`);
+    await loadManagedUnits();
+  } catch (error) {
+    showToast(error.message || 'Không thể xóa Unit.');
+  }
 }
 
 // Keypad Simulator (SCR-S07)
@@ -1476,18 +2023,29 @@ function updateKeypadDisplay() {
   display.innerText = !keypadInput ? '------' : keypadInput.padEnd(6, '-');
 }
 
-function submitKeypadPin() {
+async function submitKeypadPin() {
   const result = document.getElementById('keypadStatusResult');
   if (!result) return;
-  if (keypadInput === '842916' || keypadInput === '894210') {
+  const unitCode = currentContract?.unitCode;
+  if (!unitCode || keypadInput.length !== 6) {
+    showToast('Chọn hợp đồng đang thuê và nhập đủ 6 số PIN.');
+    return;
+  }
+  try {
+    const response = await apiFetch('/api/contracts/verify-pin', {
+      method: 'POST', body: JSON.stringify({ unitCode, pin: keypadInput })
+    });
+    const responseData = await response.json();
+    if (!response.ok || !responseData.success) throw new Error(responseData.message || 'Không thể xác minh PIN.');
+    if (responseData.data?.authorized) {
     result.innerHTML = `
       <div style="background:#ecfdf5; border:1px solid #10b981; border-radius:10px; padding:16px; text-align:center; color:#047857; margin-top:16px;">
         <div style="font-size:24px; font-weight:800; margin-bottom:4px;">🔓 ACCESS GRANTED</div>
-        <div style="font-size:13px; font-weight:600;">Khóa điện tử Unit A-102 đã mở! Thời gian mở cửa: 05:00</div>
+        <div style="font-size:13px; font-weight:600;">Khóa điện tử Unit ${unitCode} đã mở! Thời gian mở cửa: 05:00</div>
       </div>
     `;
     showToast('🔓 Cửa kho mở thành công!');
-  } else {
+    } else {
     result.innerHTML = `
       <div style="background:#fef2f2; border:1px solid #ef4444; border-radius:10px; padding:16px; text-align:center; color:#b91c1c; margin-top:16px;">
         <div style="font-size:24px; font-weight:800; margin-bottom:4px;">🔒 ACCESS DENIED</div>
@@ -1495,6 +2053,9 @@ function submitKeypadPin() {
       </div>
     `;
     showToast('❌ Mã PIN không đúng! Vui lòng thử lại.');
+    }
+  } catch (error) {
+    showToast(error.message || 'Không thể xác minh PIN.');
   }
 }
 
@@ -1502,72 +2063,123 @@ function submitKeypadPin() {
 // FACILITY MANAGER WORKFLOWS
 // ==============================================================================
 
-function assignUnitToReservation(rsvId, unitCode) {
-  const target = mockUnits.find(u => u.code === unitCode);
-  if (target) {
-    target.status = 'reserved';
-    target.tenant = 'Trần Văn Bảo';
-    renderMatrixGrid();
+async function assignUnitToReservation(rsvId, unitCode) {
+  try {
+    const response = await apiFetch(`/api/reservations/${encodeURIComponent(rsvId)}/assign`, {
+      method: 'PATCH', body: JSON.stringify({ unitCode })
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể gán Unit.');
+    showToast(`Đã gán ${unitCode} cho reservation ${rsvId}.`);
+    addAuditLog(currentUser.name, currentActor, 'ASSIGN_UNIT', `${unitCode} -> ${rsvId}`);
+    await loadManagedUnits();
+  } catch (error) {
+    showToast(error.message || 'Không thể gán Unit.');
   }
-  showToast(`Đã gán phòng kho ${unitCode} cho đơn đặt chỗ ${rsvId}! Khách hàng đã nhận được thông báo.`);
-  const uName = currentUser ? currentUser.name : 'Phạm Hải Đăng';
-  addAuditLog(uName, 'FACILITY_MGR', 'ASSIGN_UNIT', `Gán kho ${unitCode} cho đơn đặt chỗ ${rsvId}`);
 }
 
-function dispatchStaffTask() {
+async function loadAssignableReservations() {
+  if (!authToken || !['FMANAGER', 'FACILITY_MANAGER'].includes(currentActor)) return;
+  const tbody = document.getElementById('assignableReservationsBody');
+  if (!tbody) return;
+  try {
+    const reservationsResponse = await apiFetch('/api/reservations');
+    const reservationsResult = await reservationsResponse.json();
+    if (!reservationsResponse.ok || !reservationsResult.success) throw new Error(reservationsResult.message || 'Không tải được reservations.');
+    const reservations = (reservationsResult.data || []).filter(item => item.status === 'RESERVED' && !item.unitCode);
+    const rows = await Promise.all(reservations.map(async reservation => {
+      const unitResponse = await apiFetch(`/api/facilities/units?facilityCode=${encodeURIComponent(currentUser.facilityCode)}&type=${encodeURIComponent(reservation.unitType)}`);
+      const unitResult = await unitResponse.json();
+      if (!unitResponse.ok || !unitResult.success) throw new Error(unitResult.message || 'Không tải được Unit trống.');
+      const units = unitResult.data || [];
+      const selectId = `assignUnit-${reservation.id.replace(/[^a-zA-Z0-9_-]/g, '')}`;
+      const choices = units.map(unit => `<option value="${unit.code}">${unit.code} (${unit.sizeDesc || unit.sizeSqm + ' m²'})</option>`).join('');
+      return `<tr>
+        <td><span class="code-display">${reservation.id}</span></td><td>${reservation.customerName}</td>
+        <td>${reservation.unitType}</td><td>${reservation.durationMonths} tháng</td>
+        <td><span class="badge badge-success">Đã cọc</span></td>
+        <td>${units.length ? `<select id="${selectId}" class="form-control">${choices}</select>` : 'Không còn Unit trống'}</td>
+        <td><button class="btn btn-primary btn-sm" ${units.length ? '' : 'disabled'} onclick="assignUnitToReservation('${reservation.id}', document.getElementById('${selectId}').value)">Gán kho</button></td>
+      </tr>`;
+    }));
+    tbody.innerHTML = rows.join('') || '<tr><td colspan="7">Không có reservation đang chờ gán Unit.</td></tr>';
+  } catch (error) {
+    tbody.innerHTML = `<tr><td colspan="7">${error.message}</td></tr>`;
+  }
+}
+
+async function dispatchStaffTask() {
   const taskName = document.getElementById('txtTaskTitle').value.trim();
   const staffName = document.getElementById('selTaskStaff').value;
   if (!taskName) {
     alert('Vui lòng nhập tên công việc!');
     return;
   }
-  showToast(`Đã phân công việc "${taskName}" cho nhân viên ${staffName}!`);
-  const uName = currentUser ? currentUser.name : 'Phạm Hải Đăng';
-  addAuditLog(uName, 'FACILITY_MGR', 'DISPATCH_TASK', `Phân công việc "${taskName}" cho ${staffName}`);
-  document.getElementById('txtTaskTitle').value = '';
+  try {
+    const response = await apiFetch('/api/tasks/dispatch', {
+      method: 'POST',
+      body: JSON.stringify({ title: taskName, staff: staffName, taskType: inferTaskType(taskName), date: new Date().toISOString().slice(0, 10) })
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể phân công task.');
+    showToast(`Đã phân công việc "${taskName}" cho ${staffName}.`);
+    addAuditLog(currentUser.name, currentActor, 'DISPATCH_TASK', `Task ${result.data.id} -> ${staffName}`);
+    document.getElementById('txtTaskTitle').value = '';
+    loadDailyTasks();
+  } catch (error) {
+    showToast(error.message || 'Không thể phân công task.');
+  }
 }
 
-function submitCreateUnitByManager() {
+function inferTaskType(title) {
+  const value = title.toLowerCase();
+  if (value.includes('check-in') || value.includes('bàn giao')) return 'CHECKIN';
+  if (value.includes('trả') || value.includes('nghiệm thu')) return 'RETURN';
+  if (value.includes('bảo trì') || value.includes('vệ sinh')) return 'MAINTENANCE';
+  return 'SUPPORT';
+}
+
+async function submitCreateUnitByManager() {
   const code = document.getElementById('txtNewUnitCode').value.trim().toUpperCase();
   const type = document.getElementById('selNewUnitType').value;
   const size = parseFloat(document.getElementById('txtNewUnitSize').value) || 5.0;
   const price = parseInt(document.getElementById('txtNewUnitPrice').value) || 1450000;
-  const status = document.getElementById('selNewUnitInitialStatus').value;
 
   if (!code) {
     alert('Vui lòng nhập mã phòng kho!');
     return;
   }
 
-  const exists = mockUnits.find(u => u.code === code);
-  if (exists) {
-    alert(`Mã phòng kho ${code} đã tồn tại trong cơ sở!`);
-    return;
+  try {
+    const response = await apiFetch('/api/facilities/units', {
+      method: 'POST',
+      body: JSON.stringify({
+        code, type, sizeDesc: `${size.toFixed(1)} m²`, sizeSqm: size, pricePerMonth: price,
+        facilityCode: currentUser.facilityCode, floor: Number((document.getElementById('txtNewUnitLocation').value.match(/\d+/) || [1])[0]),
+        status: document.getElementById('selNewUnitInitialStatus').value
+      })
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể tạo Unit.');
+    closeModal('modalAddUnit');
+    showToast(`Đã thêm Unit ${code}.`);
+    addAuditLog(currentUser.name, currentActor, 'CREATE_UNIT', `Unit ${code} (${size}m²)`);
+    await loadManagedUnits();
+  } catch (error) {
+    showToast(error.message || 'Không thể tạo Unit.');
   }
-
-  const newUnit = {
-    code,
-    type,
-    size: `${size.toFixed(1)} m²`,
-    status,
-    price,
-    tenant: null,
-    pin: '842916'
-  };
-
-  mockUnits.push(newUnit);
-  renderMatrixGrid();
-  closeModal('modalAddUnit');
-  showToast(`Đã thêm phòng kho mới: ${code} vào cơ sở!`);
-  const uName = currentUser ? currentUser.name : 'Quản lý cơ sở';
-  addAuditLog(uName, 'FACILITY_MGR', 'CREATE_UNIT', `Thêm phòng kho mới ${code} (${size}m²)`);
 }
 
-function triggerOverdueLockout(contractId, unitCode, customerName) {
-  if (confirm(`Xác nhận kích hoạt Giao thức Khóa An Ninh Quá Hạn nợ cước cho phòng ${unitCode} (${customerName})? Mã PIN sẽ bị vô hiệu hóa tạm thời.`)) {
-    showToast(`🔒 Đã khóa an ninh Unit ${unitCode}! Mã PIN tạm vô hiệu hóa đến khi hoàn tất công nợ.`);
-    const uName = currentUser ? currentUser.name : 'Phạm Hải Đăng';
-    addAuditLog(uName, 'FACILITY_MGR', 'OVERDUE_LOCKOUT', `Khóa an ninh phòng ${unitCode} do quá hạn nợ cước (${contractId})`);
+async function triggerOverdueLockout(contractId, unitCode, customerName) {
+  if (!confirm(`Xác nhận khóa PIN Unit ${unitCode} của ${customerName} do quá hạn?`)) return;
+  try {
+    const response = await apiFetch(`/api/contracts/${encodeURIComponent(contractId)}/overdue-lockout`, { method: 'PATCH' });
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể khóa PIN.');
+    showToast(`Đã khóa PIN Unit ${unitCode}.`);
+    await loadManagerContracts();
+  } catch (error) {
+    showToast(error.message || 'Không thể khóa PIN.');
   }
 }
 
@@ -1575,10 +2187,100 @@ function triggerOverdueLockout(contractId, unitCode, customerName) {
 // BUSINESS OPERATIONS MANAGER WORKFLOWS
 // ==============================================================================
 
-function savePricingPolicy() {
-  showToast('Đã lưu và ban hành chính sách giá & tỷ lệ cọc mới trên toàn hệ thống!');
-  const uName = currentUser ? currentUser.name : 'Đặng Hoàng Long';
-  addAuditLog(uName, 'OPS_MGR', 'UPDATE_PRICE_POLICY', 'Ban hành khung giá cọc và chiết khấu mới toàn chuỗi');
+async function loadPricingPolicies() {
+  if (!authToken || currentActor !== 'OPS_MGR') return;
+  try {
+    const response = await apiFetch('/api/policies');
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không tải được chính sách.');
+    const data = result.data;
+    document.getElementById('policyPriceS').value = data.basePrices.S;
+    document.getElementById('policyPriceM').value = data.basePrices.M;
+    document.getElementById('policyPriceL').value = data.basePrices.L;
+    document.getElementById('policyPriceClimate').value = data.basePrices.CLIMATE;
+    document.getElementById('policyDepositRule').value = data.depositRule;
+    document.getElementById('policyDiscount3').value = Number(data.durationDiscounts['3']) * 100;
+    document.getElementById('policyDiscount6').value = Number(data.durationDiscounts['6']) * 100;
+    document.getElementById('policyDiscount12').value = Number(data.durationDiscounts['12']) * 100;
+    document.getElementById('policyFeeCleaning').value = data.extraFees.cleaning;
+    document.getElementById('policyFeeNewLock').value = data.extraFees.newLock;
+    document.getElementById('policyFeeOverdue').value = data.extraFees.overduePenaltyPerDay;
+    if (document.getElementById('policyGracePeriod')) document.getElementById('policyGracePeriod').value = data.gracePeriodDays ?? 3;
+  } catch (error) {
+    showToast(error.message || 'Không tải được chính sách.');
+  }
+}
+
+async function loadChainStats() {
+  if (!authToken || currentActor !== 'OPS_MGR') return;
+  try {
+    const month = new Date().toISOString().slice(0, 7);
+    const response = await apiFetch(`/api/policies/stats?month=${month}`);
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không tải được báo cáo chuỗi.');
+    const stats = result.data;
+    document.getElementById('chainFacilityCount').innerText = `${stats.totalBranches} Chi nhánh`;
+    document.getElementById('chainTotalUnits').innerText = `${stats.totalUnits} Kho`;
+    document.getElementById('chainUnitBreakdown').innerText = `${stats.occupiedUnits} Đang thuê • ${stats.availableUnits} Trống • ${stats.reservedUnits} Giữ chỗ`;
+    document.getElementById('chainOccupancyRate').innerText = stats.occupancyRate;
+    document.getElementById('chainMonthlyRevenue').innerText = `${Number(stats.monthlyRevenue || 0).toLocaleString('vi-VN')} đ`;
+    const tbody = document.getElementById('chainFacilitiesBody');
+    if (tbody) tbody.innerHTML = (stats.facilities || []).map((facility, index) => `
+      <tr><td><strong>${index + 1}. ${facility.facilityName}</strong></td><td>-</td>
+      <td>${facility.totalUnits}</td><td>${facility.occupiedUnits}</td><td>${facility.occupancyRate}</td>
+      <td>${Number(facility.monthlyRevenue || 0).toLocaleString('vi-VN')} đ</td>
+      <td><span class="badge badge-primary">Live</span></td></tr>`).join('');
+  } catch (error) {
+    showToast(error.message || 'Không tải được báo cáo chuỗi.');
+  }
+}
+
+async function loadFacilityReport() {
+  if (!authToken || currentActor !== 'FMANAGER') return;
+  try {
+    const month = new Date().toISOString().slice(0, 7);
+    const response = await apiFetch(`/api/policies/reports/facility?month=${month}`);
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không tải được báo cáo chi nhánh.');
+    const report = result.data;
+    const revenue = document.getElementById('facilityMonthlyRevenue');
+    const deposits = document.getElementById('facilityHeldDeposits');
+    if (revenue) revenue.innerText = `${Number(report.monthlyRevenue || 0).toLocaleString('vi-VN')} đ`;
+    if (deposits) deposits.innerText = `${Number(report.heldDepositFunds || 0).toLocaleString('vi-VN')} đ`;
+  } catch (error) {
+    showToast(error.message || 'Không tải được báo cáo chi nhánh.');
+  }
+}
+
+async function savePricingPolicy() {
+  const numberValue = id => Number(document.getElementById(id)?.value);
+  const updates = {
+    basePrices: {
+      S: numberValue('policyPriceS'), M: numberValue('policyPriceM'),
+      L: numberValue('policyPriceL'), CLIMATE: numberValue('policyPriceClimate')
+    },
+    depositRule: document.getElementById('policyDepositRule').value,
+    durationDiscounts: {
+      '3': numberValue('policyDiscount3') / 100,
+      '6': numberValue('policyDiscount6') / 100,
+      '12': numberValue('policyDiscount12') / 100
+    },
+    extraFees: {
+      cleaning: numberValue('policyFeeCleaning'),
+      newLock: numberValue('policyFeeNewLock'),
+      overduePenaltyPerDay: numberValue('policyFeeOverdue')
+    },
+    gracePeriodDays: numberValue('policyGracePeriod')
+  };
+  try {
+    const response = await apiFetch('/api/policies', { method: 'PATCH', body: JSON.stringify(updates) });
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể lưu chính sách.');
+    showToast('Đã lưu chính sách giá, cọc và phí vào hệ thống.');
+    addAuditLog(currentUser.name, currentActor, 'UPDATE_PRICE_POLICY', 'Cập nhật khung giá, tiền cọc, chiết khấu và phụ phí');
+  } catch (error) {
+    showToast(error.message || 'Không thể lưu chính sách.');
+  }
 }
 
 function saveGeneralPolicy() {
@@ -1587,29 +2289,28 @@ function saveGeneralPolicy() {
   addAuditLog(uName, 'OPS_MGR', 'UPDATE_GENERAL_POLICY', 'Cập nhật chính sách an toàn, cọc và thời gian ân hạn');
 }
 
-function exportFinancialReport() {
-  showToast('Đang kết xuất báo cáo tài chính 5 chi nhánh (File: SelfStorage_Report_2026.csv)...');
-  
-  // Real CSV export generation
-  setTimeout(() => {
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + "Chi nhánh,Tổng số kho,Kho đang thuê,Tỷ lệ lấp đầy (%),Doanh thu tháng (VNĐ),Trạng thái\n"
-      + "Cơ sở Cầu Giấy (120 Duy Tân),120,98,81.67%,145200000,Hoạt động tốt\n"
-      + "Cơ sở Quận 7 (Nguyễn Thị Thập),150,132,88.00%,198000000,Hoạt động tốt\n"
-      + "Cơ sở Nam Từ Liêm (Khu CNC),100,80,80.00%,118500000,Hoạt động tốt\n"
-      + "Cơ sở Tân Bình (Cộng Hòa),110,93,84.55%,137800000,Hoạt động tốt\n"
-      + "Cơ sở Đà Nẵng (Hải Châu),80,60,75.00%,88500000,Cần tối ưu marketing\n";
-    
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "SelfStorage_Bao_Cao_Chuoi_2026.csv");
-    document.body.appendChild(link);
+async function exportFinancialReport() {
+  try {
+    const month = new Date().toISOString().slice(0, 7);
+    const response = await apiFetch(`/api/policies/stats?month=${month}`);
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không tải được báo cáo.');
+    const rows = result.data.facilities || [];
+    const csvRows = [
+      ['Facility', 'Total units', 'Available', 'Reserved', 'Occupied', 'Occupancy rate', 'Monthly revenue'],
+      ...rows.map(row => [row.facilityName, row.totalUnits, row.availableUnits, row.reservedUnits,
+        row.occupiedUnits, row.occupancyRate, row.monthlyRevenue])
+    ];
+    const csv = '\uFEFF' + csvRows.map(row => row.map(value => `"${String(value ?? '').replaceAll('"', '""')}"`).join(',')).join('\r\n');
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    link.download = `SelfStorage_Report_${month}.csv`;
     link.click();
-    document.body.removeChild(link);
-
-    showToast('✅ Tải xuống báo cáo tài chính thành công!');
-  }, 1000);
+    URL.revokeObjectURL(link.href);
+    showToast('Đã tải báo cáo hiện tại từ backend.');
+  } catch (error) {
+    showToast(error.message || 'Không thể xuất báo cáo.');
+  }
 }
 
 // ==============================================================================
