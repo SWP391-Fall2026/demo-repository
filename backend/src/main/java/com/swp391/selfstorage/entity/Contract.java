@@ -32,10 +32,10 @@ public class Contract {
     private String facilityCode;
 
     @Column(name = "start_date")
-    private String startDate;
+    private LocalDate startDate;
 
     @Column(name = "end_date")
-    private String endDate;
+    private LocalDate endDate;
 
     @Column(name = "duration_months")
     private Integer durationMonths = 1;
@@ -56,7 +56,16 @@ public class Contract {
     private String rfidCard;
 
     @Column(name = "status")
-    private String status = "ACTIVE"; // ACTIVE, EXPIRING_SOON, OVERDUE, TERMINATED
+    private String status = "ACTIVE"; // ACTIVE, EXPIRING_SOON, OVERDUE, CHECKOUT_REQUESTED, TERMINATED
+
+    @Column(name = "checkout_requested_at")
+    private LocalDateTime checkoutRequestedAt;
+
+    @Column(name = "checkout_requested_date")
+    private LocalDate checkoutRequestedDate;
+
+    @Column(name = "last_renewal_at")
+    private LocalDateTime lastRenewalAt;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -84,11 +93,11 @@ public class Contract {
     public String getFacilityCode() { return facilityCode; }
     public void setFacilityCode(String facilityCode) { this.facilityCode = facilityCode; }
 
-    public String getStartDate() { return startDate; }
-    public void setStartDate(String startDate) { this.startDate = startDate; }
+    public LocalDate getStartDate() { return startDate; }
+    public void setStartDate(LocalDate startDate) { this.startDate = startDate; }
 
-    public String getEndDate() { return endDate; }
-    public void setEndDate(String endDate) { this.endDate = endDate; }
+    public LocalDate getEndDate() { return endDate; }
+    public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
 
     public Integer getDurationMonths() { return durationMonths; }
     public void setDurationMonths(Integer durationMonths) { this.durationMonths = durationMonths; }
@@ -110,6 +119,15 @@ public class Contract {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public LocalDateTime getCheckoutRequestedAt() { return checkoutRequestedAt; }
+    public void setCheckoutRequestedAt(LocalDateTime checkoutRequestedAt) { this.checkoutRequestedAt = checkoutRequestedAt; }
+
+    public LocalDate getCheckoutRequestedDate() { return checkoutRequestedDate; }
+    public void setCheckoutRequestedDate(LocalDate checkoutRequestedDate) { this.checkoutRequestedDate = checkoutRequestedDate; }
+
+    public LocalDateTime getLastRenewalAt() { return lastRenewalAt; }
+    public void setLastRenewalAt(LocalDateTime lastRenewalAt) { this.lastRenewalAt = lastRenewalAt; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
