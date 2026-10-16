@@ -1,7 +1,7 @@
 /**
  * ==============================================================================
  * SELFSTORAGE PRO - CORE APPLICATION JAVASCRIPT
- * Há»‡ thá»‘ng Quáº£n lÃ½ & Cho thuÃª Kho LÆ°u trá»¯ Tá»± phá»¥c vá»¥
+ * Hệ thống Quản lý & Cho thuê Kho Lưu trữ Tự phục vụ
  * ==============================================================================
  */
 
@@ -36,128 +36,128 @@ function apiFetch(path, options = {}) {
   return fetch(`${API_BASE}${path}`, { ...options, headers });
 }
 
-// Mock Units (Floor 1 - Area A, Cáº§u Giáº¥y Branch)
+// Mock Units (Floor 1 - Area A, Cầu Giấy Branch)
 let mockUnits = [
-  { code: 'A-101', type: 'S', size: '2.0 mÂ²', status: 'available', price: 800000, tenant: null, pin: '842916' },
-  { code: 'A-102', type: 'M', size: '5.0 mÂ²', status: 'reserved', price: 1450000, tenant: 'Tráº§n VÄƒn Báº£o', pin: '842916' },
-  { code: 'A-103', type: 'M', size: '5.0 mÂ²', status: 'occupied', price: 1450000, tenant: 'LÃª HoÃ ng Nam', pin: '771239' },
-  { code: 'A-104', type: 'L', size: '10.0 mÂ²', status: 'occupied', price: 2800000, tenant: 'CÃ´ng ty Alpha Logistics', pin: '918234' },
-  { code: 'A-105', type: 'S', size: '3.0 mÂ²', status: 'available', price: 950000, tenant: null, pin: '842916' },
-  { code: 'A-106', type: 'M', size: '5.0 mÂ²', status: 'occupied', price: 1450000, tenant: 'HoÃ ng Minh ChÃ¢u', pin: '629104' },
-  { code: 'A-107', type: 'L', size: '12.0 mÂ²', status: 'maintenance', price: 3200000, tenant: null, pin: '000000' },
-  { code: 'A-108', type: 'M', size: '6.0 mÂ²', status: 'cleaning', price: 1600000, tenant: null, pin: '000000' },
-  { code: 'A-109', type: 'S', size: '2.5 mÂ²', status: 'occupied', price: 850000, tenant: 'Pháº¡m Thu Trang', pin: '512984' },
-  { code: 'A-110', type: 'M', size: '5.0 mÂ²', status: 'available', price: 1450000, tenant: null, pin: '842916' },
-  { code: 'A-111', type: 'L', size: '10.0 mÂ²', status: 'occupied', price: 2800000, tenant: 'VÅ© Quá»‘c Äáº¡t', pin: '491204' },
-  { code: 'A-112', type: 'M', size: '5.0 mÂ²', status: 'available', price: 1450000, tenant: null, pin: '842916' },
-  { code: 'A-113', type: 'L', size: '12.0 mÂ²', status: 'occupied', price: 3200000, tenant: 'CÃ´ng ty CP Äáº§u tÆ° Ã ChÃ¢u', pin: '948123' },
-  { code: 'A-114', type: 'S', size: '2.0 mÂ²', status: 'available', price: 800000, tenant: null, pin: '842916' },
-  { code: 'A-115', type: 'M', size: '5.0 mÂ²', status: 'reserved', price: 1450000, tenant: 'Nguyá»…n Kiá»u Oanh', pin: '842916' },
-  { code: 'A-116', type: 'S', size: '3.0 mÂ²', status: 'cleaning', price: 950000, tenant: null, pin: '000000' },
-  { code: 'A-117', type: 'L', size: '10.0 mÂ²', status: 'available', price: 2800000, tenant: null, pin: '842916' },
-  { code: 'A-118', type: 'M', size: '5.0 mÂ²', status: 'available', price: 1450000, tenant: null, pin: '842916' }
+  { code: 'A-101', type: 'S', size: '2.0 m²', status: 'available', price: 800000, tenant: null, pin: '842916' },
+  { code: 'A-102', type: 'M', size: '5.0 m²', status: 'reserved', price: 1450000, tenant: 'Trần Văn Bảo', pin: '842916' },
+  { code: 'A-103', type: 'M', size: '5.0 m²', status: 'occupied', price: 1450000, tenant: 'Lê Hoàng Nam', pin: '771239' },
+  { code: 'A-104', type: 'L', size: '10.0 m²', status: 'occupied', price: 2800000, tenant: 'Công ty Alpha Logistics', pin: '918234' },
+  { code: 'A-105', type: 'S', size: '3.0 m²', status: 'available', price: 950000, tenant: null, pin: '842916' },
+  { code: 'A-106', type: 'M', size: '5.0 m²', status: 'occupied', price: 1450000, tenant: 'Hoàng Minh Châu', pin: '629104' },
+  { code: 'A-107', type: 'L', size: '12.0 m²', status: 'maintenance', price: 3200000, tenant: null, pin: '000000' },
+  { code: 'A-108', type: 'M', size: '6.0 m²', status: 'cleaning', price: 1600000, tenant: null, pin: '000000' },
+  { code: 'A-109', type: 'S', size: '2.5 m²', status: 'occupied', price: 850000, tenant: 'Phạm Thu Trang', pin: '512984' },
+  { code: 'A-110', type: 'M', size: '5.0 m²', status: 'available', price: 1450000, tenant: null, pin: '842916' },
+  { code: 'A-111', type: 'L', size: '10.0 m²', status: 'occupied', price: 2800000, tenant: 'Vũ Quốc Đạt', pin: '491204' },
+  { code: 'A-112', type: 'M', size: '5.0 m²', status: 'available', price: 1450000, tenant: null, pin: '842916' },
+  { code: 'A-113', type: 'L', size: '12.0 m²', status: 'occupied', price: 3200000, tenant: 'Công ty CP Đầu tư Á Châu', pin: '948123' },
+  { code: 'A-114', type: 'S', size: '2.0 m²', status: 'available', price: 800000, tenant: null, pin: '842916' },
+  { code: 'A-115', type: 'M', size: '5.0 m²', status: 'reserved', price: 1450000, tenant: 'Nguyễn Kiều Oanh', pin: '842916' },
+  { code: 'A-116', type: 'S', size: '3.0 m²', status: 'cleaning', price: 950000, tenant: null, pin: '000000' },
+  { code: 'A-117', type: 'L', size: '10.0 m²', status: 'available', price: 2800000, tenant: null, pin: '842916' },
+  { code: 'A-118', type: 'M', size: '5.0 m²', status: 'available', price: 1450000, tenant: null, pin: '842916' }
 ];
 
 // Mock Users Database (5 Required Accounts + Extras)
 let mockUsers = [
-  { id: 'USR-01', name: 'Tráº§n VÄƒn Báº£o', dob: '1998-05-12', gender: 'Nam', username: 'customer', password: '1', email: 'customer@selfstorage.vn', phone: '0987.654.321', cccd: '001202019988', role: 'CUSTOMER', roleTitle: 'KhÃ¡ch hÃ ng thuÃª kho', facility: 'HÃ  Ná»™i - Cáº§u Giáº¥y', facilityCode: 'HN-CG', status: 'ACTIVE' },
-  { id: 'USR-02', name: 'Nguyá»…n VÄƒn Tuáº¥n', dob: '1994-08-20', gender: 'Nam', username: 'staff', password: '3', email: 'staff@selfstorage.vn', phone: '0912.345.678', cccd: '001201044556', role: 'STAFF', roleTitle: 'NhÃ¢n viÃªn cÆ¡ sá»Ÿ', facility: 'HÃ  Ná»™i - Cáº§u Giáº¥y', facilityCode: 'HN-CG', status: 'ACTIVE' },
-  { id: 'USR-03', name: 'LÃª Thá»‹ Mai', dob: '1996-03-15', gender: 'Ná»¯', username: 'staff2', password: '3', email: 'mai.lt@selfstorage.vn', phone: '0903.112.233', cccd: '001203099881', role: 'STAFF', roleTitle: 'NhÃ¢n viÃªn cÆ¡ sá»Ÿ', facility: 'HÃ  Ná»™i - Cáº§u Giáº¥y', facilityCode: 'HN-CG', status: 'ACTIVE' },
-  { id: 'USR-04', name: 'Pháº¡m Háº£i ÄÄƒng', dob: '1988-11-25', gender: 'Nam', username: 'manager', password: '4', email: 'manager@selfstorage.vn', phone: '0934.567.890', cccd: '001200055443', role: 'FMANAGER', roleTitle: 'Quáº£n lÃ½ cÆ¡ sá»Ÿ', facility: 'HÃ  Ná»™i - Cáº§u Giáº¥y', facilityCode: 'HN-CG', status: 'ACTIVE' },
-  { id: 'USR-05', name: 'Tráº§n Quang Vinh', dob: '1990-07-10', gender: 'Nam', username: 'manager_q7', password: '4', email: 'vinh.tq@selfstorage.vn', phone: '0978.889.900', cccd: '079201088997', role: 'FMANAGER', roleTitle: 'Quáº£n lÃ½ cÆ¡ sá»Ÿ', facility: 'TP.HCM - Quáº­n 7', facilityCode: 'HCM-Q7', status: 'ACTIVE' },
-  { id: 'USR-06', name: 'Äáº·ng HoÃ ng Long', dob: '1985-02-18', gender: 'Nam', username: 'business', password: '5', email: 'business@selfstorage.vn', phone: '0918.777.666', cccd: '001200011223', role: 'OPS_MGR', roleTitle: 'Quáº£n lÃ½ váº­n hÃ nh toÃ n chuá»—i', facility: 'ToÃ n há»‡ thá»‘ng (HQ)', facilityCode: 'HQ', status: 'ACTIVE' },
-  { id: 'USR-07', name: 'Quáº£n trá»‹ viÃªn Há»‡ thá»‘ng', dob: '1992-09-09', gender: 'Nam', username: 'admin', password: '2', email: 'admin@selfstorage.vn', phone: '0909.999.000', cccd: '001200000001', role: 'ADMIN', roleTitle: 'Quáº£n trá»‹ há»‡ thá»‘ng', facility: 'ToÃ n há»‡ thá»‘ng (HQ)', facilityCode: 'HQ', status: 'ACTIVE' },
-  { id: 'USR-08', name: 'Nguyá»…n Kiá»u Oanh', dob: '1999-12-05', gender: 'Ná»¯', username: 'oanhnguyen', password: '1', email: 'oanh.nk@gmail.com', phone: '0988.123.456', cccd: '079201998811', role: 'CUSTOMER', roleTitle: 'KhÃ¡ch hÃ ng thuÃª kho', facility: 'TP.HCM - Quáº­n 7', facilityCode: 'HCM-Q7', status: 'ACTIVE' }
+  { id: 'USR-01', name: 'Trần Văn Bảo', dob: '1998-05-12', gender: 'Nam', username: 'customer', password: '1', email: 'customer@selfstorage.vn', phone: '0987.654.321', cccd: '001202019988', role: 'CUSTOMER', roleTitle: 'Khách hàng thuê kho', facility: 'Hà Nội - Cầu Giấy', facilityCode: 'HN-CG', status: 'ACTIVE' },
+  { id: 'USR-02', name: 'Nguyễn Văn Tuấn', dob: '1994-08-20', gender: 'Nam', username: 'staff', password: '3', email: 'staff@selfstorage.vn', phone: '0912.345.678', cccd: '001201044556', role: 'STAFF', roleTitle: 'Nhân viên cơ sở', facility: 'Hà Nội - Cầu Giấy', facilityCode: 'HN-CG', status: 'ACTIVE' },
+  { id: 'USR-03', name: 'Lê Thị Mai', dob: '1996-03-15', gender: 'Nữ', username: 'staff2', password: '3', email: 'mai.lt@selfstorage.vn', phone: '0903.112.233', cccd: '001203099881', role: 'STAFF', roleTitle: 'Nhân viên cơ sở', facility: 'Hà Nội - Cầu Giấy', facilityCode: 'HN-CG', status: 'ACTIVE' },
+  { id: 'USR-04', name: 'Phạm Hải Đăng', dob: '1988-11-25', gender: 'Nam', username: 'manager', password: '4', email: 'manager@selfstorage.vn', phone: '0934.567.890', cccd: '001200055443', role: 'FMANAGER', roleTitle: 'Quản lý cơ sở', facility: 'Hà Nội - Cầu Giấy', facilityCode: 'HN-CG', status: 'ACTIVE' },
+  { id: 'USR-05', name: 'Trần Quang Vinh', dob: '1990-07-10', gender: 'Nam', username: 'manager_q7', password: '4', email: 'vinh.tq@selfstorage.vn', phone: '0978.889.900', cccd: '079201088997', role: 'FMANAGER', roleTitle: 'Quản lý cơ sở', facility: 'TP.HCM - Quận 7', facilityCode: 'HCM-Q7', status: 'ACTIVE' },
+  { id: 'USR-06', name: 'Đặng Hoàng Long', dob: '1985-02-18', gender: 'Nam', username: 'business', password: '5', email: 'business@selfstorage.vn', phone: '0918.777.666', cccd: '001200011223', role: 'OPS_MGR', roleTitle: 'Quản lý vận hành toàn chuỗi', facility: 'Toàn hệ thống (HQ)', facilityCode: 'HQ', status: 'ACTIVE' },
+  { id: 'USR-07', name: 'Quản trị viên Hệ thống', dob: '1992-09-09', gender: 'Nam', username: 'admin', password: '2', email: 'admin@selfstorage.vn', phone: '0909.999.000', cccd: '001200000001', role: 'ADMIN', roleTitle: 'Quản trị hệ thống', facility: 'Toàn hệ thống (HQ)', facilityCode: 'HQ', status: 'ACTIVE' },
+  { id: 'USR-08', name: 'Nguyễn Kiều Oanh', dob: '1999-12-05', gender: 'Nữ', username: 'oanhnguyen', password: '1', email: 'oanh.nk@gmail.com', phone: '0988.123.456', cccd: '079201998811', role: 'CUSTOMER', roleTitle: 'Khách hàng thuê kho', facility: 'TP.HCM - Quận 7', facilityCode: 'HCM-Q7', status: 'ACTIVE' }
 ];
 
 // Mock Support Tickets
 let mockSupportTickets = [
-  { id: 'TCK-2026-01', unit: 'A-102', category: 'Káº¹t khÃ³a / KhÃ³a cÆ¡', priority: 'NORMAL', desc: 'á»” khÃ³a cÆ¡ hÆ¡i rÃ­t khi tra chÃ¬a vÃ o buá»•i sÃ¡ng sá»›m.', status: 'Äang xá»­ lÃ½', time: '10:15 HÃ´m nay' }
+  { id: 'TCK-2026-01', unit: 'A-102', category: 'Kẹt khóa / Khóa cơ', priority: 'NORMAL', desc: 'Ổ khóa cơ hơi rít khi tra chìa vào buổi sáng sớm.', status: 'Đang xử lý', time: '10:15 Hôm nay' }
 ];
 
 // Mock Audit Logs
 let mockAuditLogs = [
-  { time: '12:35:10 HÃ´m nay', user: 'Nguyá»…n VÄƒn Tuáº¥n', role: 'STAFF', action: 'HANDOVER_UNIT', detail: 'HoÃ n táº¥t bÃ n giao kho A-102 cho khÃ¡ch Tráº§n VÄƒn Báº£o (RSV-8821)', ip: '192.168.1.45', status: 'SUCCESS' },
-  { time: '12:15:02 HÃ´m nay', user: 'Tráº§n VÄƒn Báº£o', role: 'CUSTOMER', action: 'PAYMENT_CONFIRM', detail: 'Thanh toÃ¡n cá»c 1.450.000 VNÄ qua VietQR TxID: 998124', ip: '113.190.23.8', status: 'SUCCESS' },
-  { time: '11:50:40 HÃ´m nay', user: 'Pháº¡m Háº£i ÄÄƒng', role: 'FACILITY_MGR', action: 'ASSIGN_UNIT', detail: 'GÃ¡n kho A-102 cho Ä‘Æ¡n Ä‘áº·t chá»— RSV-8821', ip: '192.168.1.12', status: 'SUCCESS' },
-  { time: '10:30:15 HÃ´m nay', user: 'Tráº§n VÄƒn Báº£o', role: 'CUSTOMER', action: 'CREATE_RESERVATION', detail: 'Táº¡o Ä‘Æ¡n Ä‘áº·t giá»¯ chá»— Kho M (5.0mÂ²) táº¡i Cáº§u Giáº¥y', ip: '113.190.23.8', status: 'SUCCESS' },
-  { time: '09:40:22 HÃ´m nay', user: 'Äáº·ng HoÃ ng Long', role: 'OPS_MGR', action: 'UPDATE_POLICY', detail: 'Cáº­p nháº­t má»©c chiáº¿t kháº¥u thuÃª 12 thÃ¡ng lÃªn 15%', ip: '192.168.0.2', status: 'SUCCESS' },
-  { time: '08:15:00 HÃ´m nay', user: 'Quáº£n trá»‹ viÃªn Há»‡ thá»‘ng', role: 'SYSTEM_ADMIN', action: 'USER_LOGIN', detail: 'ÄÄƒng nháº­p vÃ o báº£ng Ä‘iá»u khiá»ƒn quáº£n trá»‹ táº­p trung', ip: '192.168.0.1', status: 'SUCCESS' }
+  { time: '12:35:10 Hôm nay', user: 'Nguyễn Văn Tuấn', role: 'STAFF', action: 'HANDOVER_UNIT', detail: 'Hoàn tất bàn giao kho A-102 cho khách Trần Văn Bảo (RSV-8821)', ip: '192.168.1.45', status: 'SUCCESS' },
+  { time: '12:15:02 Hôm nay', user: 'Trần Văn Bảo', role: 'CUSTOMER', action: 'PAYMENT_CONFIRM', detail: 'Thanh toán cọc 1.450.000 VNĐ qua VietQR TxID: 998124', ip: '113.190.23.8', status: 'SUCCESS' },
+  { time: '11:50:40 Hôm nay', user: 'Phạm Hải Đăng', role: 'FACILITY_MGR', action: 'ASSIGN_UNIT', detail: 'Gán kho A-102 cho đơn đặt chỗ RSV-8821', ip: '192.168.1.12', status: 'SUCCESS' },
+  { time: '10:30:15 Hôm nay', user: 'Trần Văn Bảo', role: 'CUSTOMER', action: 'CREATE_RESERVATION', detail: 'Tạo đơn đặt giữ chỗ Kho M (5.0m²) tại Cầu Giấy', ip: '113.190.23.8', status: 'SUCCESS' },
+  { time: '09:40:22 Hôm nay', user: 'Đặng Hoàng Long', role: 'OPS_MGR', action: 'UPDATE_POLICY', detail: 'Cập nhật mức chiết khấu thuê 12 tháng lên 15%', ip: '192.168.0.2', status: 'SUCCESS' },
+  { time: '08:15:00 Hôm nay', user: 'Quản trị viên Hệ thống', role: 'SYSTEM_ADMIN', action: 'USER_LOGIN', detail: 'Đăng nhập vào bảng điều khiển quản trị tập trung', ip: '192.168.0.1', status: 'SUCCESS' }
 ];
 
 // Screen Catalog metadata strictly separated by Actor
 const ACTOR_SCREENS = {
   CUSTOMER: [
-    { id: 'SCR-C00', code: 'SCR-C00', name: 'Trang chá»§ & Giá»›i thiá»‡u', desc: 'Landing Page, danh má»¥c gÃ³i kho & quy trÃ¬nh thuÃª 4 bÆ°á»›c' },
-    { id: 'SCR-C01', code: 'SCR-C01', name: 'Catalog & Báº£ng giÃ¡', desc: 'Xem cÆ¡ sá»Ÿ lÆ°u trá»¯, loáº¡i kho, kÃ­ch thÆ°á»›c, giÃ¡ thuÃª vÃ  kho kháº£ dá»¥ng' },
-    { id: 'SCR-C02', code: 'SCR-C02', name: 'Äáº·t giá»¯ chá»— trá»±c tuyáº¿n', desc: 'Chá»n chi nhÃ¡nh, loáº¡i kho, ngÃ y báº¯t Ä‘áº§u, thá»i háº¡n thuÃª & tÃ­nh cá»c' },
-    { id: 'SCR-C03', code: 'SCR-C03', name: 'Thanh toÃ¡n cÃ¡c khoáº£n phÃ­', desc: 'Thanh toÃ¡n tiá»n cá»c, tiá»n thuÃª Ä‘á»‹nh ká»³, gia háº¡n, phá»¥ phÃ­ qua VietQR' },
-    { id: 'SCR-C04', code: 'SCR-C04', name: 'Tháº» háº¹n Check-in Pass', desc: 'Thá»§ tá»¥c check-in nháº­n phÃ²ng kho bÃ n giao theo lá»‹ch háº¹n' },
-    { id: 'SCR-C05', code: 'SCR-C05', name: 'Quáº£n lÃ½ kho Ä‘ang thuÃª', desc: 'Quáº£n lÃ½ cÃ¡c phÃ²ng kho Ä‘ang thuÃª, xem & Ä‘á»•i mÃ£ PIN Ä‘iá»‡n tá»­' },
-    { id: 'SCR-C06', code: 'SCR-C06', name: 'Gá»­i yÃªu cáº§u há»— trá»£ sá»± cá»‘', desc: 'Gá»­i ticket há»— trá»£: á»• khÃ³a, mÃ£ PIN, áº©m má»‘c, thanh toÃ¡n, hÃ ng hÃ³a' }
+    { id: 'SCR-C00', code: 'SCR-C00', name: 'Trang chủ & Giới thiệu', desc: 'Landing Page, danh mục gói kho & quy trình thuê 4 bước' },
+    { id: 'SCR-C01', code: 'SCR-C01', name: 'Catalog & Bảng giá', desc: 'Xem cơ sở lưu trữ, loại kho, kích thước, giá thuê và kho khả dụng' },
+    { id: 'SCR-C02', code: 'SCR-C02', name: 'Đặt giữ chỗ trực tuyến', desc: 'Chọn chi nhánh, loại kho, ngày bắt đầu, thời hạn thuê & tính cọc' },
+    { id: 'SCR-C03', code: 'SCR-C03', name: 'Thanh toán các khoản phí', desc: 'Thanh toán tiền cọc, tiền thuê định kỳ, gia hạn, phụ phí qua VietQR' },
+    { id: 'SCR-C04', code: 'SCR-C04', name: 'Thẻ hẹn Check-in Pass', desc: 'Thủ tục check-in nhận phòng kho bàn giao theo lịch hẹn' },
+    { id: 'SCR-C05', code: 'SCR-C05', name: 'Quản lý kho đang thuê', desc: 'Quản lý các phòng kho đang thuê, xem & đổi mã PIN điện tử' },
+    { id: 'SCR-C06', code: 'SCR-C06', name: 'Gửi yêu cầu hỗ trợ sự cố', desc: 'Gửi ticket hỗ trợ: ổ khóa, mã PIN, ẩm mốc, thanh toán, hàng hóa' }
   ],
   STAFF: [
-    { id: 'SCR-S01', code: 'SCR-S01', name: 'Lá»‹ch cÃ´ng viá»‡c hÃ ng ngÃ y', desc: 'Theo dÃµi danh sÃ¡ch khÃ¡ch háº¹n nháº­n kho, tráº£ kho & sá»± cá»‘ ca trá»±c' },
-    { id: 'SCR-S02', code: 'SCR-S02', name: 'Kiá»ƒm tra Ä‘Æ¡n Ä‘áº·t chá»—', desc: 'Kiá»ƒm tra vÃ  xÃ¡c thá»±c Ä‘Æ¡n Ä‘áº·t giá»¯ chá»— cá»§a khÃ¡ch hÃ ng khi Ä‘áº¿n' },
-    { id: 'SCR-S03', code: 'SCR-S03', name: 'Há»— trá»£ check-in & BÃ n giao', desc: 'BiÃªn báº£n bÃ n giao kho, á»• khÃ³a, tháº» tá»« hoáº·c mÃ£ truy cáº­p PIN' },
-    { id: 'SCR-S04', code: 'SCR-S04', name: 'Cáº­p nháº­t tráº¡ng thÃ¡i phÃ²ng kho', desc: 'SÆ¡ Ä‘á»“ máº·t báº±ng kho & cáº­p nháº­t tráº¡ng thÃ¡i kho tá»©c thÃ¬' },
-    { id: 'SCR-S05', code: 'SCR-S05', name: 'Kiá»ƒm tra & Nghiá»‡m thu khi tráº£ kho', desc: 'Kiá»ƒm tra vÃ  xÃ¡c nháº­n tÃ¬nh tráº¡ng thá»±c táº¿ cá»§a phÃ²ng kho khi khÃ¡ch tráº£' },
-    { id: 'SCR-S06', code: 'SCR-S06', name: 'Xá»­ lÃ½ sá»± cá»‘ táº¡i chá»—', desc: 'Tiáº¿p nháº­n xá»­ lÃ½ táº¡i quáº§y: cáº¥p mÃ£ PIN táº¡m, máº¥t chÃ¬a, hÆ° háº¡i' },
-    { id: 'SCR-S07', code: 'SCR-S07', name: 'MÃ´ phá»ng Má»Ÿ khÃ³a kho', desc: 'BÃ n phÃ­m nháº­p mÃ£ PIN thá»±c Ä‘á»‹a kiá»ƒm tra má»Ÿ cá»­a' }
+    { id: 'SCR-S01', code: 'SCR-S01', name: 'Lịch công việc hàng ngày', desc: 'Theo dõi danh sách khách hẹn nhận kho, trả kho & sự cố ca trực' },
+    { id: 'SCR-S02', code: 'SCR-S02', name: 'Kiểm tra đơn đặt chỗ', desc: 'Kiểm tra và xác thực đơn đặt giữ chỗ của khách hàng khi đến' },
+    { id: 'SCR-S03', code: 'SCR-S03', name: 'Hỗ trợ check-in & Bàn giao', desc: 'Biên bản bàn giao kho, ổ khóa, thẻ từ hoặc mã truy cập PIN' },
+    { id: 'SCR-S04', code: 'SCR-S04', name: 'Cập nhật trạng thái phòng kho', desc: 'Sơ đồ mặt bằng kho & cập nhật trạng thái kho tức thì' },
+    { id: 'SCR-S05', code: 'SCR-S05', name: 'Kiểm tra & Nghiệm thu khi trả kho', desc: 'Kiểm tra và xác nhận tình trạng thực tế của phòng kho khi khách trả' },
+    { id: 'SCR-S06', code: 'SCR-S06', name: 'Xử lý sự cố tại chỗ', desc: 'Tiếp nhận xử lý tại quầy: cấp mã PIN tạm, mất chìa, hư hại' },
+    { id: 'SCR-S07', code: 'SCR-S07', name: 'Mô phỏng Mở khóa kho', desc: 'Bàn phím nhập mã PIN thực địa kiểm tra mở cửa' }
   ],
   FMANAGER: [
-    { id: 'SCR-M01', code: 'SCR-M01', name: 'Tá»•ng quan chi nhÃ¡nh', desc: 'Dashboard Ä‘iá»u hÃ nh cÆ¡ sá»Ÿ: 120 kho, 82% láº¥p Ä‘áº§y, 145M VNÄ' },
-    { id: 'SCR-M02', code: 'SCR-M02', name: 'Quáº£n lÃ½ kho táº¡i chi nhÃ¡nh', desc: 'Quáº£n lÃ½ danh má»¥c phÃ²ng kho: loáº¡i kho, kÃ­ch thÆ°á»›c, vá»‹ trÃ­, giÃ¡, tráº¡ng thÃ¡i' },
-    { id: 'SCR-M03', code: 'SCR-M03', name: 'GÃ¡n phÃ²ng kho phÃ¹ há»£p', desc: 'GÃ¡n phÃ²ng kho trá»‘ng phÃ¹ há»£p cho khÃ¡ch theo loáº¡i kho & thá»i háº¡n' },
-    { id: 'SCR-M04', code: 'SCR-M04', name: 'PhÃ¢n cÃ´ng nhÃ¢n viÃªn', desc: 'PhÃ¢n cÃ´ng nhÃ¢n viÃªn cÆ¡ sá»Ÿ thá»±c hiá»‡n há»— trá»£ bÃ n giao, nghiá»‡m thu, sá»± cá»‘' },
-    { id: 'SCR-M05', code: 'SCR-M05', name: 'GiÃ¡m sÃ¡t khÃ¡ch hÃ ng & Há»£p Ä‘á»“ng', desc: 'GiÃ¡m sÃ¡t há»£p Ä‘á»“ng, thá»i háº¡n, thanh toÃ¡n vÃ  xá»­ lÃ½ quÃ¡ háº¡n ná»£ cÆ°á»›c' },
-    { id: 'SCR-M06', code: 'SCR-M06', name: 'BÃ¡o cÃ¡o váº­n hÃ nh chi nhÃ¡nh', desc: 'Xem bÃ¡o cÃ¡o chi nhÃ¡nh: kho trá»‘ng, kho Ä‘ang thuÃª, doanh thu, láº¥p Ä‘áº§y' }
+    { id: 'SCR-M01', code: 'SCR-M01', name: 'Tổng quan chi nhánh', desc: 'Dashboard điều hành cơ sở: 120 kho, 82% lấp đầy, 145M VNĐ' },
+    { id: 'SCR-M02', code: 'SCR-M02', name: 'Quản lý kho tại chi nhánh', desc: 'Quản lý danh mục phòng kho: loại kho, kích thước, vị trí, giá, trạng thái' },
+    { id: 'SCR-M03', code: 'SCR-M03', name: 'Gán phòng kho phù hợp', desc: 'Gán phòng kho trống phù hợp cho khách theo loại kho & thời hạn' },
+    { id: 'SCR-M04', code: 'SCR-M04', name: 'Phân công nhân viên', desc: 'Phân công nhân viên cơ sở thực hiện hỗ trợ bàn giao, nghiệm thu, sự cố' },
+    { id: 'SCR-M05', code: 'SCR-M05', name: 'Giám sát khách hàng & Hợp đồng', desc: 'Giám sát hợp đồng, thời hạn, thanh toán và xử lý quá hạn nợ cước' },
+    { id: 'SCR-M06', code: 'SCR-M06', name: 'Báo cáo vận hành chi nhánh', desc: 'Xem báo cáo chi nhánh: kho trống, kho đang thuê, doanh thu, lấp đầy' }
   ],
   OPS_MGR: [
-    { id: 'SCR-O01', code: 'SCR-O01', name: 'Tá»•ng quan toÃ n chuá»—i', desc: 'Dashboard 5 chi nhÃ¡nh toÃ n quá»‘c, 560 kho, 648M VNÄ/thÃ¡ng' },
-    { id: 'SCR-O02', code: 'SCR-O02', name: 'Quáº£n lÃ½ chuá»—i chi nhÃ¡nh', desc: 'Quáº£n lÃ½ danh sÃ¡ch táº¥t cáº£ cÃ¡c chi nhÃ¡nh cÆ¡ sá»Ÿ kho toÃ n há»‡ thá»‘ng' },
-    { id: 'SCR-O03', code: 'SCR-O03', name: 'Khung giÃ¡ & Phá»¥ phÃ­', desc: 'Quáº£n lÃ½ khung giÃ¡ thuÃª, biá»ƒu phÃ­ phá»¥, phÃ­ pháº¡t, chiáº¿t kháº¥u' },
-    { id: 'SCR-O04', code: 'SCR-O04', name: 'BÃ¡o cÃ¡o toÃ n há»‡ thá»‘ng & Xuáº¥t file', desc: 'Xem vÃ  xuáº¥t cÃ¡c bÃ¡o cÃ¡o cáº¥p há»‡ thá»‘ng theo chi nhÃ¡nh, doanh thu' },
-    { id: 'SCR-O05', code: 'SCR-O05', name: 'Ban hÃ nh chÃ­nh sÃ¡ch cho thuÃª', desc: 'Thiáº¿t láº­p chÃ­nh sÃ¡ch tiá»n cá»c, gia háº¡n, há»§y Ä‘Æ¡n, tráº£ kho, an toÃ n' }
+    { id: 'SCR-O01', code: 'SCR-O01', name: 'Tổng quan toàn chuỗi', desc: 'Dashboard 5 chi nhánh toàn quốc, 560 kho, 648M VNĐ/tháng' },
+    { id: 'SCR-O02', code: 'SCR-O02', name: 'Quản lý chuỗi chi nhánh', desc: 'Quản lý danh sách tất cả các chi nhánh cơ sở kho toàn hệ thống' },
+    { id: 'SCR-O03', code: 'SCR-O03', name: 'Khung giá & Phụ phí', desc: 'Quản lý khung giá thuê, biểu phí phụ, phí phạt, chiết khấu' },
+    { id: 'SCR-O04', code: 'SCR-O04', name: 'Báo cáo toàn hệ thống & Xuất file', desc: 'Xem và xuất các báo cáo cấp hệ thống theo chi nhánh, doanh thu' },
+    { id: 'SCR-O05', code: 'SCR-O05', name: 'Ban hành chính sách cho thuê', desc: 'Thiết lập chính sách tiền cọc, gia hạn, hủy đơn, trả kho, an toàn' }
   ],
   ADMIN: [
-    { id: 'SCR-A01', code: 'SCR-A01', name: 'Tá»•ng quan há»‡ thá»‘ng', desc: 'Dashboard quáº£n trá»‹: 1.284 ngÆ°á»i dÃ¹ng, 5 cÆ¡ sá»Ÿ, Uptime 99.98%' },
-    { id: 'SCR-A02', code: 'SCR-A02', name: 'Quáº£n trá»‹ tÃ i khoáº£n ngÆ°á»i dÃ¹ng', desc: 'Danh sÃ¡ch ngÆ°á»i dÃ¹ng: táº¡o má»›i, phÃ¢n quyá»n, khÃ³a/má»Ÿ khÃ³a tÃ i khoáº£n' },
-    { id: 'SCR-A03', code: 'SCR-A03', name: 'PhÃ¢n vai trÃ² ngÆ°á»i dÃ¹ng (Roles)', desc: 'GÃ¡n vai trÃ² cho Customer, Staff, Facility Manager, Ops Manager' },
-    { id: 'SCR-A04', code: 'SCR-A04', name: 'Cáº¥u hÃ¬nh quyá»n truy cáº­p dá»¯ liá»‡u', desc: 'Cáº¥u hÃ¬nh quyá»n dá»¯ liá»‡u dá»±a trÃªn vai trÃ² & chi nhÃ¡nh Ä‘Æ°á»£c phÃ¢n cÃ´ng' },
-    { id: 'SCR-A05', code: 'SCR-A05', name: 'Nháº­t kÃ½ hoáº¡t Ä‘á»™ng & ÄÄƒng nháº­p', desc: 'Theo dÃµi lá»‹ch sá»­ Ä‘Äƒng nháº­p vÃ  nháº­t kÃ½ hoáº¡t Ä‘á»™ng thá»i gian thá»±c' }
+    { id: 'SCR-A01', code: 'SCR-A01', name: 'Tổng quan hệ thống', desc: 'Dashboard quản trị: 1.284 người dùng, 5 cơ sở, Uptime 99.98%' },
+    { id: 'SCR-A02', code: 'SCR-A02', name: 'Quản trị tài khoản người dùng', desc: 'Danh sách người dùng: tạo mới, phân quyền, khóa/mở khóa tài khoản' },
+    { id: 'SCR-A03', code: 'SCR-A03', name: 'Phân vai trò người dùng (Roles)', desc: 'Gán vai trò cho Customer, Staff, Facility Manager, Ops Manager' },
+    { id: 'SCR-A04', code: 'SCR-A04', name: 'Cấu hình quyền truy cập dữ liệu', desc: 'Cấu hình quyền dữ liệu dựa trên vai trò & chi nhánh được phân công' },
+    { id: 'SCR-A05', code: 'SCR-A05', name: 'Nhật ký hoạt động & Đăng nhập', desc: 'Theo dõi lịch sử đăng nhập và nhật ký hoạt động thời gian thực' }
   ]
 };
 
 // Role styling & display mappings
 const ROLE_METADATA = {
   CUSTOMER: {
-    title: 'KhÃ¡ch hÃ ng thuÃª kho',
-    badgeText: 'KhÃ¡ch hÃ ng',
+    title: 'Khách hàng thuê kho',
+    badgeText: 'Khách hàng',
     color: '#2563eb',
     defaultScreen: 'SCR-C00'
   },
   STAFF: {
-    title: 'NhÃ¢n viÃªn cÆ¡ sá»Ÿ',
-    badgeText: 'NhÃ¢n viÃªn kho',
+    title: 'Nhân viên cơ sở',
+    badgeText: 'Nhân viên kho',
     color: '#0d9488',
     defaultScreen: 'SCR-S01'
   },
   FMANAGER: {
-    title: 'Quáº£n lÃ½ cÆ¡ sá»Ÿ',
-    badgeText: 'Quáº£n lÃ½ cÆ¡ sá»Ÿ',
+    title: 'Quản lý cơ sở',
+    badgeText: 'Quản lý cơ sở',
     color: '#7c3aed',
     defaultScreen: 'SCR-M01'
   },
   OPS_MGR: {
-    title: 'Quáº£n lÃ½ váº­n hÃ nh toÃ n chuá»—i',
-    badgeText: 'GÄ Váº­n hÃ nh',
+    title: 'Quản lý vận hành toàn chuỗi',
+    badgeText: 'GĐ Vận hành',
     color: '#ea580c',
     defaultScreen: 'SCR-O01'
   },
   ADMIN: {
-    title: 'Quáº£n trá»‹ há»‡ thá»‘ng',
-    badgeText: 'Quáº£n trá»‹ viÃªn',
+    title: 'Quản trị hệ thống',
+    badgeText: 'Quản trị viên',
     color: '#e11d48',
     defaultScreen: 'SCR-A01'
   }
@@ -263,7 +263,7 @@ function quickFillAndLogin(username, password) {
 async function executeLogin(username, password) {
   hideAuthAlert();
   if (!username || !password) {
-    showAuthAlert('ThÃ´ng tin khÃ´ng há»£p lá»‡!');
+    showAuthAlert('Thông tin không hợp lệ!');
     return;
   }
 
@@ -279,11 +279,11 @@ async function executeLogin(username, password) {
       authToken = data.token || null;
       if (authToken) localStorage.setItem('selfstorage_auth_token', authToken);
       applyUserSession(data.data);
-      showToast(`ðŸŽ‰ ${data.message}`);
-      addAuditLog(data.data.name, data.data.role, 'USER_LOGIN', `ÄÄƒng nháº­p thÃ nh cÃ´ng vá»›i tÃ i khoáº£n @${data.data.username}`);
+      showToast(`🎉 ${data.message}`);
+      addAuditLog(data.data.name, data.data.role, 'USER_LOGIN', `Đăng nhập thành công với tài khoản @${data.data.username}`);
       return;
     } else if (res.status === 401) {
-      showAuthAlert('ThÃ´ng tin khÃ´ng há»£p lá»‡!');
+      showAuthAlert('Thông tin không hợp lệ!');
       return;
     }
   } catch (err) {
@@ -299,18 +299,18 @@ async function executeLogin(username, password) {
   );
 
   if (!found) {
-    showAuthAlert('ThÃ´ng tin khÃ´ng há»£p lá»‡!');
+    showAuthAlert('Thông tin không hợp lệ!');
     return;
   }
 
   if (found.status === 'LOCKED') {
-    showAuthAlert('ðŸ”’ TÃ i khoáº£n cá»§a báº¡n Ä‘Ã£ bá»‹ khÃ³a! Vui lÃ²ng liÃªn há»‡ Quáº£n trá»‹ viÃªn há»‡ thá»‘ng.');
+    showAuthAlert('🔒 Tài khoản của bạn đã bị khóa! Vui lòng liên hệ Quản trị viên hệ thống.');
     return;
   }
 
   applyUserSession(found);
-  showToast(`ðŸŽ‰ ÄÄƒng nháº­p thÃ nh cÃ´ng! ChÃ o má»«ng ${found.name} (${found.roleTitle || found.role})`);
-  addAuditLog(found.name, found.role, 'USER_LOGIN', `ÄÄƒng nháº­p thÃ nh cÃ´ng vá»›i tÃ i khoáº£n @${found.username}`);
+  showToast(`🎉 Đăng nhập thành công! Chào mừng ${found.name} (${found.roleTitle || found.role})`);
+  addAuditLog(found.name, found.role, 'USER_LOGIN', `Đăng nhập thành công với tài khoản @${found.username}`);
 }
 
 function setFieldError(fieldId, errorMsg) {
@@ -337,70 +337,70 @@ function validateField(fieldId) {
 
   switch (fieldId) {
     case 'regFullName': {
-      if (!val) { setFieldError(fieldId, 'ThÃ´ng tin khÃ´ng há»£p lá»‡!'); return false; }
-      if (val.length < 2 || val.length > 50) { setFieldError(fieldId, 'ThÃ´ng tin khÃ´ng há»£p lá»‡!'); return false; }
-      const nameRegex = /^[a-zA-ZÃ€ÃÃ‚ÃƒÃˆÃ‰ÃŠÃŒÃÃ’Ã“Ã”Ã•Ã™ÃšÄ‚ÄÄ¨Å¨Æ Ã Ã¡Ã¢Ã£Ã¨Ã©ÃªÃ¬Ã­Ã²Ã³Ã´ÃµÃ¹ÃºÄƒÄ‘Ä©Å©Æ¡Æ¯Ä‚áº áº¢áº¤áº¦áº¨áºªáº¬áº®áº°áº²áº´áº¶áº¸áººáº¼á»€á»€á»‚Æ°Äƒáº¡áº£áº¥áº§áº©áº«áº­áº¯áº±áº³áºµáº·áº¹áº»áº½á»á»á»ƒá»„á»†á»ˆá»Šá»Œá»Žá»á»’á»”á»–á»˜á»šá»œá»žá» á»¢á»¤á»¦á»¨á»ªá»…á»‡á»‰á»‹á»á»á»‘á»“á»•á»—á»™á»›á»á»Ÿá»¡á»£á»¥á»§á»©á»«á»¬á»®á»°á»²á»´Ãá»¶á»¸á»­á»¯á»±á»³á»µá»·á»¹\s]+$/;
-      if (!nameRegex.test(val)) { setFieldError(fieldId, 'ThÃ´ng tin khÃ´ng há»£p lá»‡!'); return false; }
+      if (!val) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
+      if (val.length < 2 || val.length > 50) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
+      const nameRegex = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/;
+      if (!nameRegex.test(val)) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
       setFieldError(fieldId, ''); return true;
     }
     case 'regUsername': {
-      if (!val) { setFieldError(fieldId, 'ThÃ´ng tin khÃ´ng há»£p lá»‡!'); return false; }
-      if (!/^[a-zA-Z0-9_]{4,20}$/.test(val)) { setFieldError(fieldId, 'ThÃ´ng tin khÃ´ng há»£p lá»‡!'); return false; }
-      if (/^[0-9]/.test(val)) { setFieldError(fieldId, 'ThÃ´ng tin khÃ´ng há»£p lá»‡!'); return false; }
+      if (!val) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
+      if (!/^[a-zA-Z0-9_]{4,20}$/.test(val)) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
+      if (/^[0-9]/.test(val)) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
       const exists = mockUsers.some(u => u.username.toLowerCase() === val.toLowerCase());
-      if (exists) { setFieldError(fieldId, 'ThÃ´ng tin khÃ´ng há»£p lá»‡!'); return false; }
+      if (exists) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
       setFieldError(fieldId, ''); return true;
     }
     case 'regDob': {
-      if (!val) { setFieldError(fieldId, 'ThÃ´ng tin khÃ´ng há»£p lá»‡!'); return false; }
+      if (!val) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
       const bDate = new Date(val);
       const now = new Date();
-      if (bDate > now) { setFieldError(fieldId, 'ThÃ´ng tin khÃ´ng há»£p lá»‡!'); return false; }
+      if (bDate > now) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
       let age = now.getFullYear() - bDate.getFullYear();
       const m = now.getMonth() - bDate.getMonth();
       if (m < 0 || (m === 0 && now.getDate() < bDate.getDate())) age--;
-      if (age < 18 || age > 100) { setFieldError(fieldId, 'ThÃ´ng tin khÃ´ng há»£p lá»‡!'); return false; }
+      if (age < 18 || age > 100) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
       setFieldError(fieldId, ''); return true;
     }
     case 'regGender': {
-      if (!val) { setFieldError(fieldId, 'ThÃ´ng tin khÃ´ng há»£p lá»‡!'); return false; }
+      if (!val) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
       setFieldError(fieldId, ''); return true;
     }
     case 'regPhone': {
       const cleanP = val.replace(/[\s.-]/g, '');
-      if (!cleanP) { setFieldError(fieldId, 'ThÃ´ng tin khÃ´ng há»£p lá»‡!'); return false; }
+      if (!cleanP) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
       if (!/^(03|05|07|08|09)[0-9]{8}$/.test(cleanP)) {
-        setFieldError(fieldId, 'ThÃ´ng tin khÃ´ng há»£p lá»‡!'); return false;
+        setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false;
       }
       if (/^(\d)\1{9}$/.test(cleanP) || cleanP === '0123456789' || cleanP === '0987654321') {
-        setFieldError(fieldId, 'ThÃ´ng tin khÃ´ng há»£p lá»‡!'); return false;
+        setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false;
       }
       setFieldError(fieldId, ''); return true;
     }
     case 'regEmail': {
       const cleanE = val.toLowerCase();
-      if (!cleanE) { setFieldError(fieldId, 'ThÃ´ng tin khÃ´ng há»£p lá»‡!'); return false; }
+      if (!cleanE) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
       const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
       if (!emailRegex.test(cleanE) || cleanE.includes('..')) {
-        setFieldError(fieldId, 'ThÃ´ng tin khÃ´ng há»£p lá»‡!'); return false;
+        setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false;
       }
       const domain = cleanE.split('@')[1];
       if (['test.com', 'example.com', 'fake.com', 'mailinator.com', 'abc.xyz'].includes(domain)) {
-        setFieldError(fieldId, 'ThÃ´ng tin khÃ´ng há»£p lá»‡!'); return false;
+        setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false;
       }
       const exists = mockUsers.some(u => u.email.toLowerCase() === cleanE);
-      if (exists) { setFieldError(fieldId, 'ThÃ´ng tin khÃ´ng há»£p lá»‡!'); return false; }
+      if (exists) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
       setFieldError(fieldId, ''); return true;
     }
     case 'regCccd': {
       const cleanC = val.replace(/\s/g, '');
-      if (!cleanC) { setFieldError(fieldId, 'ThÃ´ng tin khÃ´ng há»£p lá»‡!'); return false; }
+      if (!cleanC) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
       if (!/^[0-9]{12}$/.test(cleanC)) {
-        setFieldError(fieldId, 'ThÃ´ng tin khÃ´ng há»£p lá»‡!'); return false;
+        setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false;
       }
       const prov = cleanC.substring(0, 3);
       if (!VALID_PROVINCES.includes(prov)) {
-        setFieldError(fieldId, 'ThÃ´ng tin khÃ´ng há»£p lá»‡!'); return false;
+        setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false;
       }
       // Cross validation with DOB & Gender
       const dobVal = document.getElementById('regDob')?.value;
@@ -412,27 +412,27 @@ function validateField(fieldId) {
         else if (bYear >= 2000 && bYear <= 2099) expCode = (genderVal === 'Nam') ? 2 : 3;
         const actualCode = parseInt(cleanC.charAt(3), 10);
         if (expCode !== -1 && actualCode !== expCode) {
-          setFieldError(fieldId, 'ThÃ´ng tin khÃ´ng há»£p lá»‡!');
+          setFieldError(fieldId, 'Thông tin không hợp lệ!');
           return false;
         }
         const expYear = String(bYear).slice(-2);
         const actYear = cleanC.substring(4, 6);
         if (expYear !== actYear) {
-          setFieldError(fieldId, 'ThÃ´ng tin khÃ´ng há»£p lá»‡!');
+          setFieldError(fieldId, 'Thông tin không hợp lệ!');
           return false;
         }
       }
       setFieldError(fieldId, ''); return true;
     }
     case 'regPassword': {
-      if (!val) { setFieldError(fieldId, 'ThÃ´ng tin khÃ´ng há»£p lá»‡!'); return false; }
-      if (val.length < 6) { setFieldError(fieldId, 'ThÃ´ng tin khÃ´ng há»£p lá»‡!'); return false; }
+      if (!val) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
+      if (val.length < 6) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
       setFieldError(fieldId, ''); return true;
     }
     case 'regPasswordConfirm': {
       const pw = document.getElementById('regPassword')?.value || '';
-      if (!val) { setFieldError(fieldId, 'ThÃ´ng tin khÃ´ng há»£p lá»‡!'); return false; }
-      if (val !== pw) { setFieldError(fieldId, 'ThÃ´ng tin khÃ´ng há»£p lá»‡!'); return false; }
+      if (!val) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
+      if (val !== pw) { setFieldError(fieldId, 'Thông tin không hợp lệ!'); return false; }
       setFieldError(fieldId, ''); return true;
     }
   }
@@ -468,7 +468,7 @@ async function handleRegisterFormSubmit(e) {
   hideAuthAlert();
 
   if (!validateAllRegistrationFields()) {
-    showAuthAlert('ThÃ´ng tin khÃ´ng há»£p lá»‡!');
+    showAuthAlert('Thông tin không hợp lệ!');
     return;
   }
 
@@ -526,7 +526,7 @@ function openOtpVerificationModal(email, code) {
   openModal('modalEmailVerify');
   setupOtpDigitInputs();
   startOtpCountdown(60);
-  showToast(`ðŸ“§ ÄÃ£ gá»­i mÃ£ xÃ¡c minh 6 sá»‘ tá»›i ${email}!`);
+  showToast(`📧 Đã gửi mã xác minh 6 số tới ${email}!`);
 }
 
 function setupOtpDigitInputs() {
@@ -583,7 +583,7 @@ function autoFillOtp() {
     inputs[i].value = code[i] || '';
     inputs[i].classList.add('filled');
   }
-  showToast('ÄÃ£ tá»± Ä‘á»™ng Ä‘iá»n mÃ£ xÃ¡c nháº­n!');
+  showToast('Đã tự động điền mã xác nhận!');
 }
 
 function checkOtpAutoSubmit() {
@@ -603,7 +603,7 @@ async function submitOtpVerification() {
   const alertBox = document.getElementById('otpErrorAlert');
   if (enteredCode.length !== 6) {
     if (alertBox) {
-      alertBox.innerText = 'ThÃ´ng tin khÃ´ng há»£p lá»‡!';
+      alertBox.innerText = 'Thông tin không hợp lệ!';
       alertBox.style.display = 'block';
     }
     return;
@@ -611,7 +611,7 @@ async function submitOtpVerification() {
 
   if (!currentPendingRegistration) {
     if (alertBox) {
-      alertBox.innerText = 'ThÃ´ng tin khÃ´ng há»£p lá»‡!';
+      alertBox.innerText = 'Thông tin không hợp lệ!';
       alertBox.style.display = 'block';
     }
     return;
@@ -619,7 +619,7 @@ async function submitOtpVerification() {
 
   if (Date.now() > currentPendingRegistration.expiresAt) {
     if (alertBox) {
-      alertBox.innerText = 'MÃ£ xÃ¡c minh Ä‘Ã£ háº¿t háº¡n!';
+      alertBox.innerText = 'Mã xác minh đã hết hạn!';
       alertBox.style.display = 'block';
     }
     return;
@@ -643,7 +643,7 @@ async function submitOtpVerification() {
       return;
     } else if (!res.ok) {
       if (alertBox) {
-        alertBox.innerText = resData.message || 'ThÃ´ng tin khÃ´ng há»£p lá»‡!';
+        alertBox.innerText = resData.message || 'Thông tin không hợp lệ!';
         alertBox.style.display = 'block';
       }
       return;
@@ -655,7 +655,7 @@ async function submitOtpVerification() {
   // 2. Local verification fallback
   if (enteredCode !== currentPendingRegistration.otpCode) {
     if (alertBox) {
-      alertBox.innerText = 'ThÃ´ng tin khÃ´ng há»£p lá»‡!';
+      alertBox.innerText = 'Thông tin không hợp lệ!';
       alertBox.style.display = 'block';
     }
     return;
@@ -673,7 +673,7 @@ async function submitOtpVerification() {
     phone: u.phone,
     cccd: u.cccd,
     role: 'CUSTOMER',
-    roleTitle: 'KhÃ¡ch hÃ ng thuÃª kho',
+    roleTitle: 'Khách hàng thuê kho',
     facility: u.facility,
     facilityCode: 'HN-CG',
     status: 'ACTIVE',
@@ -690,8 +690,8 @@ function completeRegistrationSuccess(user) {
   currentPendingRegistration = null;
 
   applyUserSession(user);
-  showToast(`ðŸŽ‰ ÄÄƒng kÃ½ & xÃ¡c thá»±c email thÃ nh cÃ´ng! ChÃ o má»«ng ${user.name}`);
-  addAuditLog(user.name, 'CUSTOMER', 'USER_REGISTER', `ÄÄƒng kÃ½ & xÃ¡c thá»±c thÃ nh cÃ´ng tÃ i khoáº£n @${user.username}`);
+  showToast(`🎉 Đăng ký & xác thực email thành công! Chào mừng ${user.name}`);
+  addAuditLog(user.name, 'CUSTOMER', 'USER_REGISTER', `Đăng ký & xác thực thành công tài khoản @${user.username}`);
 }
 
 function startOtpCountdown(seconds = 60) {
@@ -710,7 +710,7 @@ function startOtpCountdown(seconds = 60) {
       clearInterval(otpCountdownInterval);
       if (btnResend) {
         btnResend.style.pointerEvents = 'auto';
-        btnResend.innerHTML = 'Gá»­i láº¡i mÃ£ má»›i';
+        btnResend.innerHTML = 'Gửi lại mã mới';
       }
     }
   }, 1000);
@@ -730,7 +730,7 @@ async function resendOtpCode() {
     const responseData = await response.json();
     if (!response.ok || !responseData.code) {
       if (alertBox) {
-        alertBox.innerText = responseData.message || 'KhÃ´ng thá»ƒ gá»­i láº¡i mÃ£ lÃºc nÃ y.';
+        alertBox.innerText = responseData.message || 'Không thể gửi lại mã lúc này.';
         alertBox.style.display = 'block';
       }
       return;
@@ -744,7 +744,7 @@ async function resendOtpCode() {
   document.getElementById('simulatedOtpCode').innerText = currentPendingRegistration.otpCode;
 
   startOtpCountdown(60);
-  showToast('ðŸ“¬ ÄÃ£ gá»­i láº¡i mÃ£ xÃ¡c minh má»›i vÃ o email cá»§a báº¡n!');
+  showToast('📬 Đã gửi lại mã xác minh mới vào email của bạn!');
 }
 
 function applyUserSession(user) {
@@ -781,7 +781,7 @@ function applyUserSession(user) {
   }
   if (document.getElementById('ddUserName')) document.getElementById('ddUserName').innerText = user.name;
   if (document.getElementById('ddUserEmail')) document.getElementById('ddUserEmail').innerText = user.email || `${user.username}@selfstorage.vn`;
-  if (document.getElementById('ddUserRoleText')) document.getElementById('ddUserRoleText').innerText = `Vai trÃ²: ${meta.title}`;
+  if (document.getElementById('ddUserRoleText')) document.getElementById('ddUserRoleText').innerText = `Vai trò: ${meta.title}`;
 
   // Branch selector adjustment for staff/manager
   if (user.facility && document.getElementById('activeBranchSelect')) {
@@ -803,7 +803,7 @@ function applyUserSession(user) {
     navigateToScreen('SCR-C00');
     setTimeout(() => {
       openReservationModal(name, size, price, { facilityCode, unitType });
-      showToast(`ChÃ o má»«ng ${user.name}! Báº¡n cÃ³ thá»ƒ tiáº¿p tá»¥c hoÃ n táº¥t Ä‘Æ¡n Ä‘áº·t kho.`);
+      showToast(`Chào mừng ${user.name}! Bạn có thể tiếp tục hoàn tất đơn đặt kho.`);
     }, 400);
     return;
   }
@@ -826,7 +826,7 @@ function applyLoggedOutState() {
   if (branchWrap) branchWrap.style.display = 'none';
 
   if (document.getElementById('headerRoleIndicator')) {
-    document.getElementById('headerRoleIndicator').innerText = 'KHO ÄÆ N | Há»† THá»NG KHO Tá»° QUáº¢N';
+    document.getElementById('headerRoleIndicator').innerText = 'KHO ĐƠN | HỆ THỐNG KHO TỰ QUẢN';
   }
 
   renderAppNavLinks();
@@ -835,10 +835,10 @@ function applyLoggedOutState() {
 
 function logoutUser() {
   if (currentUser) {
-    addAuditLog(currentUser.name, currentActor, 'USER_LOGOUT', `ÄÄƒng xuáº¥t khá»i há»‡ thá»‘ng (@${currentUser.username})`);
+    addAuditLog(currentUser.name, currentActor, 'USER_LOGOUT', `Đăng xuất khỏi hệ thống (@${currentUser.username})`);
   }
   applyLoggedOutState();
-  showToast('ðŸ‘‹ ÄÃ£ Ä‘Äƒng xuáº¥t khá»i há»‡ thá»‘ng thÃ nh cÃ´ng.');
+  showToast('👋 Đã đăng xuất khỏi hệ thống thành công.');
 }
 
 function getInitials(name) {
@@ -880,57 +880,57 @@ function renderAppNavLinks() {
 
   if (!currentUser) {
     nav.innerHTML = `
-      <span class="nav-item-link ${currentScreen === 'SCR-C00' ? 'active' : ''}" onclick="navigateToScreen('SCR-C00')">Trang chá»§</span>
-      <span class="nav-item-link" onclick="scrollToLandingSection('sectionBranchStockPreview')">Sá»‘ lÆ°á»£ng kho cÃ¡c nÆ¡i</span>
-      <span class="nav-item-link" onclick="scrollToLandingSection('landing-pricing')">Báº£ng giÃ¡ kho</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-C01' ? 'active' : ''}" onclick="navigateToScreen('SCR-C01')">Tra cá»©u chi nhÃ¡nh</span>
-      <span class="nav-item-link" onclick="scrollToLandingSection('landing-facilities')">CÆ¡ sá»Ÿ lÆ°u trá»¯</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-C00' ? 'active' : ''}" onclick="navigateToScreen('SCR-C00')">Trang chủ</span>
+      <span class="nav-item-link" onclick="scrollToLandingSection('sectionBranchStockPreview')">Số lượng kho các nơi</span>
+      <span class="nav-item-link" onclick="scrollToLandingSection('landing-pricing')">Bảng giá kho</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-C01' ? 'active' : ''}" onclick="navigateToScreen('SCR-C01')">Tra cứu chi nhánh</span>
+      <span class="nav-item-link" onclick="scrollToLandingSection('landing-facilities')">Cơ sở lưu trữ</span>
     `;
     return;
   }
 
   if (currentActor === 'CUSTOMER') {
     nav.innerHTML = `
-      <span class="nav-item-link ${currentScreen === 'SCR-C00' ? 'active' : ''}" onclick="navigateToScreen('SCR-C00')">Trang chá»§</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-C01' ? 'active' : ''}" onclick="navigateToScreen('SCR-C01')">TÃ¬m kho & Báº£ng giÃ¡</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-C02' ? 'active' : ''}" onclick="navigateToScreen('SCR-C02')">Äáº·t giá»¯ chá»—</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-C04' ? 'active' : ''}" onclick="navigateToScreen('SCR-C04')">Tháº» Check-in</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-C05' ? 'active' : ''}" onclick="navigateToScreen('SCR-C05')">Kho cá»§a tÃ´i & MÃ£ PIN</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-C06' ? 'active' : ''}" onclick="navigateToScreen('SCR-C06')">Há»— trá»£ sá»± cá»‘</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-C00' ? 'active' : ''}" onclick="navigateToScreen('SCR-C00')">Trang chủ</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-C01' ? 'active' : ''}" onclick="navigateToScreen('SCR-C01')">Tìm kho &amp; Bảng giá</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-C02' ? 'active' : ''}" onclick="navigateToScreen('SCR-C02')">Đặt giữ chỗ</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-C04' ? 'active' : ''}" onclick="navigateToScreen('SCR-C04')">Thẻ Check-in</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-C05' ? 'active' : ''}" onclick="navigateToScreen('SCR-C05')">Kho của tôi &amp; Mã PIN</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-C06' ? 'active' : ''}" onclick="navigateToScreen('SCR-C06')">Hỗ trợ sự cố</span>
     `;
   } else if (currentActor === 'STAFF') {
     nav.innerHTML = `
-      <span class="nav-item-link ${currentScreen === 'SCR-S01' ? 'active' : ''}" onclick="navigateToScreen('SCR-S01')">Ca trá»±c hÃ´m nay</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-S02' ? 'active' : ''}" onclick="navigateToScreen('SCR-S02')">Tra cá»©u Ä‘Æ¡n</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-S03' ? 'active' : ''}" onclick="navigateToScreen('SCR-S03')">BÃ n giao kho</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-S04' ? 'active' : ''}" onclick="navigateToScreen('SCR-S04')">SÆ¡ Ä‘á»“ máº·t báº±ng</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-S05' ? 'active' : ''}" onclick="navigateToScreen('SCR-S05')">Nghiá»‡m thu tráº£ kho</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-S06' ? 'active' : ''}" onclick="navigateToScreen('SCR-S06')">BÃ n sá»± cá»‘</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-S07' ? 'active' : ''}" onclick="navigateToScreen('SCR-S07')">Má»Ÿ khÃ³a sá»‘</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-S01' ? 'active' : ''}" onclick="navigateToScreen('SCR-S01')">Ca trực hôm nay</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-S02' ? 'active' : ''}" onclick="navigateToScreen('SCR-S02')">Tra cứu đơn</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-S03' ? 'active' : ''}" onclick="navigateToScreen('SCR-S03')">Bàn giao kho</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-S04' ? 'active' : ''}" onclick="navigateToScreen('SCR-S04')">Sơ đồ mặt bằng</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-S05' ? 'active' : ''}" onclick="navigateToScreen('SCR-S05')">Nghiệm thu trả kho</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-S06' ? 'active' : ''}" onclick="navigateToScreen('SCR-S06')">Bàn sự cố</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-S07' ? 'active' : ''}" onclick="navigateToScreen('SCR-S07')">Mở khóa số</span>
     `;
   } else if (currentActor === 'FMANAGER') {
     nav.innerHTML = `
-      <span class="nav-item-link ${currentScreen === 'SCR-M01' ? 'active' : ''}" onclick="navigateToScreen('SCR-M01')">Tá»•ng quan cÆ¡ sá»Ÿ</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-M02' ? 'active' : ''}" onclick="navigateToScreen('SCR-M02')">Quáº£n lÃ½ kho</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-M03' ? 'active' : ''}" onclick="navigateToScreen('SCR-M03')">GÃ¡n phÃ²ng kho</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-M04' ? 'active' : ''}" onclick="navigateToScreen('SCR-M04')">PhÃ¢n cÃ´ng viá»‡c</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-M05' ? 'active' : ''}" onclick="navigateToScreen('SCR-M05')">Há»£p Ä‘á»“ng & Ná»£</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-M06' ? 'active' : ''}" onclick="navigateToScreen('SCR-M06')">BÃ¡o cÃ¡o váº­n hÃ nh</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-M01' ? 'active' : ''}" onclick="navigateToScreen('SCR-M01')">Tổng quan cơ sở</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-M02' ? 'active' : ''}" onclick="navigateToScreen('SCR-M02')">Quản lý kho</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-M03' ? 'active' : ''}" onclick="navigateToScreen('SCR-M03')">Gán phòng kho</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-M04' ? 'active' : ''}" onclick="navigateToScreen('SCR-M04')">Phân công việc</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-M05' ? 'active' : ''}" onclick="navigateToScreen('SCR-M05')">Hợp đồng &amp; Nợ</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-M06' ? 'active' : ''}" onclick="navigateToScreen('SCR-M06')">Báo cáo vận hành</span>
     `;
   } else if (currentActor === 'OPS_MGR') {
     nav.innerHTML = `
-      <span class="nav-item-link ${currentScreen === 'SCR-O01' ? 'active' : ''}" onclick="navigateToScreen('SCR-O01')">Tá»•ng quan chuá»—i</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-O02' ? 'active' : ''}" onclick="navigateToScreen('SCR-O02')">5 Chi nhÃ¡nh</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-O03' ? 'active' : ''}" onclick="navigateToScreen('SCR-O03')">Báº£ng giÃ¡ & Cá»c</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-O04' ? 'active' : ''}" onclick="navigateToScreen('SCR-O04')">BÃ¡o cÃ¡o doanh thu</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-O05' ? 'active' : ''}" onclick="navigateToScreen('SCR-O05')">ChÃ­nh sÃ¡ch chung</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-O01' ? 'active' : ''}" onclick="navigateToScreen('SCR-O01')">Tổng quan chuỗi</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-O02' ? 'active' : ''}" onclick="navigateToScreen('SCR-O02')">5 Chi nhánh</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-O03' ? 'active' : ''}" onclick="navigateToScreen('SCR-O03')">Bảng giá &amp; Cọc</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-O04' ? 'active' : ''}" onclick="navigateToScreen('SCR-O04')">Báo cáo doanh thu</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-O05' ? 'active' : ''}" onclick="navigateToScreen('SCR-O05')">Chính sách chung</span>
     `;
   } else if (currentActor === 'ADMIN') {
     nav.innerHTML = `
-      <span class="nav-item-link ${currentScreen === 'SCR-A01' ? 'active' : ''}" onclick="navigateToScreen('SCR-A01')">Tá»•ng quan Admin</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-A02' ? 'active' : ''}" onclick="navigateToScreen('SCR-A02')">TÃ i khoáº£n</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-A03' ? 'active' : ''}" onclick="navigateToScreen('SCR-A03')">PhÃ¢n quyá»n RBAC</span>
-      <span class="nav-item-link ${currentScreen === 'SCR-A04' ? 'active' : ''}" onclick="navigateToScreen('SCR-A04')">GÃ¡n cÆ¡ sá»Ÿ</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-A01' ? 'active' : ''}" onclick="navigateToScreen('SCR-A01')">Tổng quan Admin</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-A02' ? 'active' : ''}" onclick="navigateToScreen('SCR-A02')">Tài khoản</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-A03' ? 'active' : ''}" onclick="navigateToScreen('SCR-A03')">Phân quyền RBAC</span>
+      <span class="nav-item-link ${currentScreen === 'SCR-A04' ? 'active' : ''}" onclick="navigateToScreen('SCR-A04')">Gán cơ sở</span>
       <span class="nav-item-link ${currentScreen === 'SCR-A05' ? 'active' : ''}" onclick="navigateToScreen('SCR-A05')">Audit Logs</span>
     `;
   }
@@ -966,13 +966,13 @@ function navigateToScreen(screenId) {
       return;
     }
     if (screenId === 'SCR-C02') {
-      pendingReservationIntent = { name: 'Kho TiÃªu Chuáº©n M', size: '5.0 mÂ²', price: 1450000 };
-      showToast('â„¹ï¸ Vui lÃ²ng Ä‘Äƒng nháº­p hoáº·c Ä‘Äƒng kÃ½ tÃ i khoáº£n Ä‘á»ƒ tiáº¿p tá»¥c Ä‘áº·t giá»¯ chá»—!');
+      pendingReservationIntent = { name: 'Kho Tiêu Chuẩn M', size: '5.0 m²', price: 1450000 };
+      showToast('ℹ️ Vui lòng đăng nhập hoặc đăng ký tài khoản để tiếp tục đặt giữ chỗ!');
       openAuthScreen('LOGIN');
-      showAuthAlert('Vui lÃ²ng Ä‘Äƒng nháº­p hoáº·c Ä‘Äƒng kÃ½ tÃ i khoáº£n Ä‘á»ƒ tiáº¿p tá»¥c Ä‘áº·t giá»¯ chá»— kho!');
+      showAuthAlert('Vui lòng đăng nhập hoặc đăng ký tài khoản để tiếp tục đặt giữ chỗ kho!');
       return;
     }
-    showToast('âš ï¸ Vui lÃ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ truy cáº­p tÃ­nh nÄƒng nÃ y!');
+    showToast('⚠️ Vui lòng đăng nhập để truy cập tính năng này!');
     openAuthScreen('LOGIN');
     return;
   }
@@ -992,7 +992,7 @@ function navigateToScreen(screenId) {
 
   if (!isAllowed) {
     const meta = ROLE_METADATA[currentActor] || {};
-    showToast(`â›” Báº¡n khÃ´ng cÃ³ quyá»n truy cáº­p mÃ n hÃ¬nh nÃ y! TÃ­nh nÄƒng nÃ y chá»‰ dÃ nh cho vai trÃ² tÆ°Æ¡ng á»©ng.`);
+    showToast(`⛔ Bạn không có quyền truy cập màn hình này! Tính năng này chỉ dành cho vai trò tương ứng.`);
     return;
   }
 
@@ -1020,21 +1020,21 @@ function displayScreen(screenId) {
 }
 
 function handleBranchChange(val) {
-  showToast(`ðŸ“ ÄÃ£ chá»n cÆ¡ sá»Ÿ: ${val}`);
+  showToast(`📍 Đã chọn cơ sở: ${val}`);
 }
 
 // ==============================================================================
 // CUSTOMER ACTOR WORKFLOWS
 // ==============================================================================
 
-let currentDetailUnit = { name: 'Kho TiÃªu Chuáº©n Medium (M)', size: '5.0 mÂ²', volume: '12.5 mÂ³', price: 1450000 };
+let currentDetailUnit = { name: 'Kho Tiêu Chuẩn Medium (M)', size: '5.0 m²', volume: '12.5 m³', price: 1450000 };
 
 function openUnitDetailModal(name, size, volume, price) {
   currentDetailUnit = { name, size, volume, price };
   document.getElementById('mdlDetailUnitTitle').innerText = name;
   document.getElementById('mdlDetailSize').innerText = size;
   document.getElementById('mdlDetailVol').innerText = volume;
-  document.getElementById('mdlDetailPrice').innerText = price.toLocaleString('vi-VN') + ' Ä‘/thÃ¡ng';
+  document.getElementById('mdlDetailPrice').innerText = price.toLocaleString('vi-VN') + ' đ/tháng';
   openModal('modalUnitDetail');
 }
 
@@ -1042,7 +1042,7 @@ function handleDetailModalBookNow() {
   if (currentDetailUnit) {
     openReservationModal(currentDetailUnit.name, currentDetailUnit.size, currentDetailUnit.price);
   } else {
-    openReservationModal('Kho TiÃªu Chuáº©n Medium (M)', '5.0 mÂ²', 1450000);
+    openReservationModal('Kho Tiêu Chuẩn Medium (M)', '5.0 m²', 1450000);
   }
 }
 
@@ -1058,13 +1058,13 @@ function openReservationModal(name, size, price, bookingContext = {}) {
   };
   if (!currentUser) {
     pendingReservationIntent = { ...currentBookingContext };
-    showToast('â„¹ï¸ Vui lÃ²ng Ä‘Äƒng nháº­p hoáº·c Ä‘Äƒng kÃ½ tÃ i khoáº£n Ä‘á»ƒ tiáº¿p tá»¥c Ä‘áº·t giá»¯ chá»— kho!');
+    showToast('ℹ️ Vui lòng đăng nhập hoặc đăng ký tài khoản để tiếp tục đặt giữ chỗ kho!');
     openAuthScreen('LOGIN');
-    showAuthAlert(`Vui lÃ²ng Ä‘Äƒng nháº­p hoáº·c Ä‘Äƒng kÃ½ tÃ i khoáº£n Ä‘á»ƒ Ä‘áº·t: ${name} (${size})!`);
+    showAuthAlert(`Vui lòng đăng nhập hoặc đăng ký tài khoản để đặt: ${name} (${size})!`);
     return;
   }
   document.getElementById('mdlRsvUnitName').innerText = `${name} (${size})`;
-  document.getElementById('mdlRsvPrice').innerText = price.toLocaleString('vi-VN') + ' Ä‘/thÃ¡ng';
+  document.getElementById('mdlRsvPrice').innerText = price.toLocaleString('vi-VN') + ' đ/tháng';
   const renterName = document.getElementById('quickRsvName');
   const renterPhone = document.getElementById('quickRsvPhone');
   if (renterName) renterName.value = currentUser.name || '';
@@ -1074,9 +1074,9 @@ function openReservationModal(name, size, price, bookingContext = {}) {
 
 function inferUnitType(name) {
   const value = String(name || '').toUpperCase();
-  if (value.includes('CLIMATE') || value.includes('Láº NH')) return 'CLIMATE';
+  if (value.includes('CLIMATE') || value.includes('LẠNH')) return 'CLIMATE';
   if (value.includes('XL')) return 'L';
-  if (value.includes('SIZE L') || value.includes('Lá»šN') || value.includes('KHO L')) return 'L';
+  if (value.includes('SIZE L') || value.includes('LỚN') || value.includes('KHO L')) return 'L';
   if (value.includes('SIZE S') || value.includes('MINI') || value.includes('KHO S')) return 'S';
   return 'M';
 }
@@ -1084,68 +1084,68 @@ function inferUnitType(name) {
 // Data & Renderer: Real-time Branch Warehouse Inventory for Guest Explorer
 const branchStockData = {
   'HN-CG': {
-    name: 'CÆ¡ sá»Ÿ Cáº§u Giáº¥y (120 Duy TÃ¢n, HÃ  Ná»™i)',
+    name: 'Cơ sở Cầu Giấy (120 Duy Tân, Hà Nội)',
     total: 120,
     available: 34,
     reserved: 8,
     occupied: 78,
     units: [
-      { code: 'CG-101', name: 'Kho Mini S', size: '2.0 mÂ²', vol: '4.9 mÂ³', price: 650000, stock: 12, floor: 'Táº§ng 1 (Khu A)' },
-      { code: 'CG-102', name: 'Kho TiÃªu Chuáº©n M', size: '5.0 mÂ²', vol: '12.5 mÂ³', price: 1450000, stock: 14, floor: 'Táº§ng 1 (Khu A)' },
-      { code: 'CG-205', name: 'Kho Lá»›n L', size: '10.0 mÂ²', vol: '25.0 mÂ³', price: 2800000, stock: 6, floor: 'Táº§ng 2 (Khu B)' },
-      { code: 'CG-301', name: 'Kho Khoang Lá»›n XL', size: '16.0 mÂ²', vol: '40.0 mÂ³', price: 4200000, stock: 2, floor: 'Táº§ng trá»‡t (Lá»‘i xe táº£i)' }
+      { code: 'CG-101', name: 'Kho Mini S', size: '2.0 m²', vol: '4.9 m³', price: 650000, stock: 12, floor: 'Tầng 1 (Khu A)' },
+      { code: 'CG-102', name: 'Kho Tiêu Chuẩn M', size: '5.0 m²', vol: '12.5 m³', price: 1450000, stock: 14, floor: 'Tầng 1 (Khu A)' },
+      { code: 'CG-205', name: 'Kho Lớn L', size: '10.0 m²', vol: '25.0 m³', price: 2800000, stock: 6, floor: 'Tầng 2 (Khu B)' },
+      { code: 'CG-301', name: 'Kho Khoang Lớn XL', size: '16.0 m²', vol: '40.0 m³', price: 4200000, stock: 2, floor: 'Tầng trệt (Lối xe tải)' }
     ]
   },
   'HCM-Q7': {
-    name: 'CÆ¡ sá»Ÿ Quáº­n 7 (Nguyá»…n Thá»‹ Tháº­p, TP.HCM)',
+    name: 'Cơ sở Quận 7 (Nguyễn Thị Thập, TP.HCM)',
     total: 150,
     available: 42,
     reserved: 10,
     occupied: 98,
     units: [
-      { code: 'Q7-101', name: 'Kho Mini S', size: '2.0 mÂ²', vol: '4.9 mÂ³', price: 700000, stock: 16, floor: 'Táº§ng 1' },
-      { code: 'Q7-105', name: 'Kho TiÃªu Chuáº©n M', size: '5.0 mÂ²', vol: '12.5 mÂ³', price: 1500000, stock: 18, floor: 'Táº§ng 1 - Khu mÃ¡t' },
-      { code: 'Q7-202', name: 'Kho Lá»›n L', size: '10.0 mÂ²', vol: '25.0 mÂ³', price: 2900000, stock: 6, floor: 'Táº§ng 2' },
-      { code: 'Q7-308', name: 'Kho Doanh Nghiá»‡p XL', size: '18.0 mÂ²', vol: '45.0 mÂ³', price: 4600000, stock: 2, floor: 'Táº§ng trá»‡t' }
+      { code: 'Q7-101', name: 'Kho Mini S', size: '2.0 m²', vol: '4.9 m³', price: 700000, stock: 16, floor: 'Tầng 1' },
+      { code: 'Q7-105', name: 'Kho Tiêu Chuẩn M', size: '5.0 m²', vol: '12.5 m³', price: 1500000, stock: 18, floor: 'Tầng 1 - Khu mát' },
+      { code: 'Q7-202', name: 'Kho Lớn L', size: '10.0 m²', vol: '25.0 m³', price: 2900000, stock: 6, floor: 'Tầng 2' },
+      { code: 'Q7-308', name: 'Kho Doanh Nghiệp XL', size: '18.0 m²', vol: '45.0 m³', price: 4600000, stock: 2, floor: 'Tầng trệt' }
     ]
   },
   'HN-NTL': {
-    name: 'CÆ¡ sá»Ÿ Nam Tá»« LiÃªm (Khu CÃ´ng Nghá»‡ Cao, HÃ  Ná»™i)',
+    name: 'Cơ sở Nam Từ Liêm (Khu Công Nghệ Cao, Hà Nội)',
     total: 110,
     available: 29,
     reserved: 5,
     occupied: 76,
     units: [
-      { code: 'NTL-101', name: 'Kho Mini S', size: '2.0 mÂ²', vol: '4.9 mÂ³', price: 620000, stock: 10, floor: 'Táº§ng 1' },
-      { code: 'NTL-104', name: 'Kho TiÃªu Chuáº©n M', size: '5.0 mÂ²', vol: '12.5 mÂ³', price: 1400000, stock: 12, floor: 'Táº§ng 1' },
-      { code: 'NTL-201', name: 'Kho Lá»›n L', size: '10.0 mÂ²', vol: '25.0 mÂ³', price: 2700000, stock: 5, floor: 'Táº§ng 2' },
-      { code: 'NTL-302', name: 'Kho Khoang Lá»›n XL', size: '16.0 mÂ²', vol: '40.0 mÂ³', price: 4100000, stock: 2, floor: 'Táº§ng trá»‡t' }
+      { code: 'NTL-101', name: 'Kho Mini S', size: '2.0 m²', vol: '4.9 m³', price: 620000, stock: 10, floor: 'Tầng 1' },
+      { code: 'NTL-104', name: 'Kho Tiêu Chuẩn M', size: '5.0 m²', vol: '12.5 m³', price: 1400000, stock: 12, floor: 'Tầng 1' },
+      { code: 'NTL-201', name: 'Kho Lớn L', size: '10.0 m²', vol: '25.0 m³', price: 2700000, stock: 5, floor: 'Tầng 2' },
+      { code: 'NTL-302', name: 'Kho Khoang Lớn XL', size: '16.0 m²', vol: '40.0 m³', price: 4100000, stock: 2, floor: 'Tầng trệt' }
     ]
   },
   'HCM-TB': {
-    name: 'CÆ¡ sá»Ÿ TÃ¢n BÃ¬nh (Cá»™ng HÃ²a / KCN TÃ¢n BÃ¬nh, TP.HCM)',
+    name: 'Cơ sở Tân Bình (Cộng Hòa / KCN Tân Bình, TP.HCM)',
     total: 140,
     available: 38,
     reserved: 7,
     occupied: 95,
     units: [
-      { code: 'TB-101', name: 'Kho Mini S', size: '2.0 mÂ²', vol: '4.9 mÂ³', price: 680000, stock: 15, floor: 'Táº§ng 1' },
-      { code: 'TB-106', name: 'Kho TiÃªu Chuáº©n M', size: '5.0 mÂ²', vol: '12.5 mÂ³', price: 1480000, stock: 14, floor: 'Táº§ng 1' },
-      { code: 'TB-203', name: 'Kho Lá»›n L', size: '10.0 mÂ²', vol: '25.0 mÂ³', price: 2850000, stock: 7, floor: 'Táº§ng 2' },
-      { code: 'TB-305', name: 'Kho Doanh Nghiá»‡p XL', size: '16.0 mÂ²', vol: '40.0 mÂ³', price: 4300000, stock: 2, floor: 'Táº§ng trá»‡t' }
+      { code: 'TB-101', name: 'Kho Mini S', size: '2.0 m²', vol: '4.9 m³', price: 680000, stock: 15, floor: 'Tầng 1' },
+      { code: 'TB-106', name: 'Kho Tiêu Chuẩn M', size: '5.0 m²', vol: '12.5 m³', price: 1480000, stock: 14, floor: 'Tầng 1' },
+      { code: 'TB-203', name: 'Kho Lớn L', size: '10.0 m²', vol: '25.0 m³', price: 2850000, stock: 7, floor: 'Tầng 2' },
+      { code: 'TB-305', name: 'Kho Doanh Nghiệp XL', size: '16.0 m²', vol: '40.0 m³', price: 4300000, stock: 2, floor: 'Tầng trệt' }
     ]
   },
   'DN-HC': {
-    name: 'CÆ¡ sá»Ÿ Háº£i ChÃ¢u (Nguyá»…n VÄƒn Linh, ÄÃ  Náºµng)',
+    name: 'Cơ sở Hải Châu (Nguyễn Văn Linh, Đà Nẵng)',
     total: 90,
     available: 24,
     reserved: 4,
     occupied: 62,
     units: [
-      { code: 'HC-101', name: 'Kho Mini S', size: '2.0 mÂ²', vol: '4.9 mÂ³', price: 600000, stock: 8, floor: 'Táº§ng 1' },
-      { code: 'HC-103', name: 'Kho TiÃªu Chuáº©n M', size: '5.0 mÂ²', vol: '12.5 mÂ³', price: 1350000, stock: 10, floor: 'Táº§ng 1' },
-      { code: 'HC-201', name: 'Kho Lá»›n L', size: '10.0 mÂ²', vol: '25.0 mÂ³', price: 2600000, stock: 4, floor: 'Táº§ng 2' },
-      { code: 'HC-301', name: 'Kho Khoang Lá»›n XL', size: '15.0 mÂ²', vol: '38.0 mÂ³', price: 3900000, stock: 2, floor: 'Táº§ng trá»‡t' }
+      { code: 'HC-101', name: 'Kho Mini S', size: '2.0 m²', vol: '4.9 m³', price: 600000, stock: 8, floor: 'Tầng 1' },
+      { code: 'HC-103', name: 'Kho Tiêu Chuẩn M', size: '5.0 m²', vol: '12.5 m³', price: 1350000, stock: 10, floor: 'Tầng 1' },
+      { code: 'HC-201', name: 'Kho Lớn L', size: '10.0 m²', vol: '25.0 m³', price: 2600000, stock: 4, floor: 'Tầng 2' },
+      { code: 'HC-301', name: 'Kho Khoang Lớn XL', size: '15.0 m²', vol: '38.0 m³', price: 3900000, stock: 2, floor: 'Tầng trệt' }
     ]
   }
 };
@@ -1158,7 +1158,7 @@ async function renderLandingBranchInventory(facilityCode = 'HN-CG') {
     if (response.ok) {
       const result = await response.json();
       const inventory = result.data || result;
-      const typeNames = { S: 'Kho Mini S', M: 'Kho TiÃªu Chuáº©n M', L: 'Kho Lá»›n L', CLIMATE: 'Kho kiá»ƒm soÃ¡t nhiá»‡t áº©m' };
+      const typeNames = { S: 'Kho Mini S', M: 'Kho Tiêu Chuẩn M', L: 'Kho Lớn L', CLIMATE: 'Kho kiểm soát nhiệt ẩm' };
       data = {
         name: inventory.facilityName,
         total: Number(inventory.total || 0),
@@ -1169,12 +1169,12 @@ async function renderLandingBranchInventory(facilityCode = 'HN-CG') {
           code: unit.code,
           type: unit.type,
           name: typeNames[unit.type] || `Kho ${unit.type}`,
-          size: unit.sizeDesc || `${unit.sizeSqm} mÂ²`,
-          vol: `${Number(unit.volumeM3 || 0).toFixed(1)} mÂ³`,
+          size: unit.sizeDesc || `${unit.sizeSqm} m²`,
+          vol: `${Number(unit.volumeM3 || 0).toFixed(1)} m³`,
           price: Number(unit.pricePerMonth || 0),
           stock: unit.status === 'available' ? 1 : 0,
           status: unit.status,
-          floor: unit.floor == null ? 'ChÆ°a cáº­p nháº­t táº§ng' : `Táº§ng ${unit.floor}`
+          floor: unit.floor == null ? 'Chưa cập nhật tầng' : `Tầng ${unit.floor}`
         }))
       };
     }
@@ -1187,19 +1187,19 @@ async function renderLandingBranchInventory(facilityCode = 'HN-CG') {
   if (statsBar) {
     statsBar.innerHTML = `
       <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 16px;">
-        <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">Tá»•ng phÃ²ng kho</div>
-        <div style="font-size:22px; font-weight:800; color:#0f172a; margin-top:2px;">${data.total} <span style="font-size:13px; font-weight:600; color:#64748b;">phÃ²ng</span></div>
+        <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">Tổng phòng kho</div>
+        <div style="font-size:22px; font-weight:800; color:#0f172a; margin-top:2px;">${data.total} <span style="font-size:13px; font-weight:600; color:#64748b;">phòng</span></div>
       </div>
       <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:12px 16px;">
-        <div style="font-size:11px; font-weight:700; color:#166534; text-transform:uppercase;">ðŸŸ¢ CÃ²n trá»‘ng sáºµn sÃ ng</div>
+        <div style="font-size:11px; font-weight:700; color:#166534; text-transform:uppercase;">🟢 Còn trống sẵn sàng</div>
         <div style="font-size:22px; font-weight:800; color:#15803d; margin-top:2px;">${data.available} <span style="font-size:13px; font-weight:600; color:#166534;">kho</span></div>
       </div>
       <div style="background:#fefce8; border:1px solid #fef08a; border-radius:10px; padding:12px 16px;">
-        <div style="font-size:11px; font-weight:700; color:#854d0e; text-transform:uppercase;">ðŸŸ¡ KhÃ¡ch Ä‘ang giá»¯ chá»—</div>
+        <div style="font-size:11px; font-weight:700; color:#854d0e; text-transform:uppercase;">🟡 Khách đang giữ chỗ</div>
         <div style="font-size:22px; font-weight:800; color:#ca8a04; margin-top:2px;">${data.reserved} <span style="font-size:13px; font-weight:600; color:#854d0e;">kho</span></div>
       </div>
       <div style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; padding:12px 16px;">
-        <div style="font-size:11px; font-weight:700; color:#475569; text-transform:uppercase;">ðŸ”´ Äang cho thuÃª</div>
+        <div style="font-size:11px; font-weight:700; color:#475569; text-transform:uppercase;">🔴 Đang cho thuê</div>
         <div style="font-size:22px; font-weight:800; color:#334155; margin-top:2px;">${data.occupied} <span style="font-size:13px; font-weight:600; color:#475569;">kho</span></div>
       </div>
     `;
@@ -1208,11 +1208,11 @@ async function renderLandingBranchInventory(facilityCode = 'HN-CG') {
   if (unitsGrid) {
     unitsGrid.innerHTML = data.units.map(u => {
       const stateLabels = {
-        available: ['CÃ²n trá»‘ng', 'badge-success'],
-        reserved: ['Äang giá»¯ chá»—', 'badge-warning'],
-        occupied: ['Äang cho thuÃª', 'badge-secondary'],
-        cleaning: ['Äang vá»‡ sinh', 'badge-warning'],
-        maintenance: ['Báº£o trÃ¬', 'badge-danger']
+        available: ['Còn trống', 'badge-success'],
+        reserved: ['Đang giữ chỗ', 'badge-warning'],
+        occupied: ['Đang cho thuê', 'badge-secondary'],
+        cleaning: ['Đang vệ sinh', 'badge-warning'],
+        maintenance: ['Bảo trì', 'badge-danger']
       };
       const state = stateLabels[u.status || 'available'] || stateLabels.available;
       return `
@@ -1224,26 +1224,26 @@ async function renderLandingBranchInventory(facilityCode = 'HN-CG') {
           </div>
           <h4 style="font-size:16px; font-weight:800; color:#0f172a; margin-bottom:4px;">${u.name}</h4>
           <div style="font-size:12.5px; color:#64748b; margin-bottom:10px;">
-            ðŸ“ Diá»‡n tÃ­ch: <strong>${u.size}</strong> â€¢ Thá»ƒ tÃ­ch: <strong>${u.vol}</strong><br>
-            ðŸ“ Vá»‹ trÃ­: ${u.floor}
+            📐 Diện tích: <strong>${u.size}</strong> • Thể tích: <strong>${u.vol}</strong><br>
+            📍 Vị trí: ${u.floor}
           </div>
           <div style="font-size:12px; color:#475569; display:flex; flex-direction:column; gap:3px; margin-bottom:14px; background:#f8fafc; padding:8px 10px; border-radius:8px;">
-            <div>ðŸ”’ KhÃ³a Ä‘iá»‡n tá»­ PIN + ChÃ¬a Titan</div>
-            <div>â„ï¸ Cáº£m biáº¿n áº©m 55-65% chá»‘ng má»‘c</div>
-            <div>ðŸ›¡ï¸ Camera báº£o vá»‡ trá»±c diá»‡n 24/7</div>
+            <div>🔒 Khóa điện tử PIN + Chìa Titan</div>
+            <div>❄️ Cảm biến ẩm 55-65% chống mốc</div>
+            <div>🛡️ Camera bảo vệ trực diện 24/7</div>
           </div>
         </div>
         <div>
           <div style="margin-bottom:12px;">
-            <span style="font-size:19px; font-weight:800; color:#1e40af;">${u.price.toLocaleString('vi-VN')} Ä‘</span>
-            <span style="font-size:12px; color:#64748b;">/thÃ¡ng</span>
+            <span style="font-size:19px; font-weight:800; color:#1e40af;">${u.price.toLocaleString('vi-VN')} đ</span>
+            <span style="font-size:12px; color:#64748b;">/tháng</span>
           </div>
           <div style="display:flex; gap:8px;">
             <button class="btn btn-outline btn-sm" style="flex:1; justify-content:center; font-weight:700; padding:7px 8px; font-size:12px;" onclick="openUnitDetailModal('${u.name}', '${u.size}', '${u.vol}', ${u.price})">
-              ðŸ” Chi tiáº¿t
+              🔍 Chi tiết
             </button>
             <button class="btn btn-primary btn-sm" ${u.status && u.status !== 'available' ? 'disabled' : ''} style="flex:1; justify-content:center; font-weight:700; padding:7px 8px; font-size:12px;" onclick="openReservationModal('${u.name}', '${u.size}', ${u.price}, {facilityCode:'${facilityCode}', unitType:'${u.type || inferUnitType(u.name)}'})">
-              âš¡ Äáº·t kho
+              ⚡ Đặt kho
             </button>
           </div>
         </div>
@@ -1262,10 +1262,10 @@ function calculateCost() {
   else if (dur === 12) discountRate = 0.15;
 
   const discountAmt = Math.round(baseMonthly * dur * discountRate);
-  document.getElementById('sumDuration').innerText = dur + ' ThÃ¡ng';
-  document.getElementById('sumDiscount').innerText = '- ' + discountAmt.toLocaleString('vi-VN') + ' Ä‘';
-  document.getElementById('sumDeposit').innerText = baseMonthly.toLocaleString('vi-VN') + ' Ä‘';
-  document.getElementById('sumPayNow').innerText = baseMonthly.toLocaleString('vi-VN') + ' Ä‘';
+  document.getElementById('sumDuration').innerText = dur + ' Tháng';
+  document.getElementById('sumDiscount').innerText = '- ' + discountAmt.toLocaleString('vi-VN') + ' đ';
+  document.getElementById('sumDeposit').innerText = baseMonthly.toLocaleString('vi-VN') + ' đ';
+  document.getElementById('sumPayNow').innerText = baseMonthly.toLocaleString('vi-VN') + ' đ';
 }
 
 async function confirmReservation() {
@@ -1273,7 +1273,7 @@ async function confirmReservation() {
     pendingReservationIntent = { ...currentBookingContext };
     closeModal('modalReservation');
     openAuthScreen('LOGIN');
-    showAuthAlert('Vui lÃ²ng Ä‘Äƒng nháº­p láº¡i Ä‘á»ƒ Ä‘áº·t giá»¯ chá»—.');
+    showAuthAlert('Vui lòng đăng nhập lại để đặt giữ chỗ.');
     return;
   }
   const durationMonths = Number(document.getElementById('quickRsvDuration')?.value || 3);
@@ -1287,7 +1287,7 @@ async function confirmReservation() {
     const response = await apiFetch('/api/reservations', { method: 'POST', body: JSON.stringify(body) });
     const result = await response.json();
     if (!response.ok || !result.success || !result.data) {
-      throw new Error(result.message || 'KhÃ´ng thá»ƒ táº¡o reservation.');
+      throw new Error(result.message || 'Không thể tạo reservation.');
     }
     currentReservation = result.data;
     currentBookingContext.depositAmount = Number(currentReservation.depositAmount || 0);
@@ -1295,10 +1295,10 @@ async function confirmReservation() {
     closeModal('modalReservation');
     navigateToScreen('SCR-C03');
     setPaymentType('DEPOSIT');
-    showToast(`ÄÃ£ táº¡o Ä‘Æ¡n ${currentReservation.id}. Thanh toÃ¡n cá»c Ä‘á»ƒ giá»¯ chá»—.`);
-    addAuditLog(currentUser.name, 'CUSTOMER', 'CREATE_RESERVATION', `Táº¡o reservation ${currentReservation.id}`);
+    showToast(`Đã tạo đơn ${currentReservation.id}. Thanh toán cọc để giữ chỗ.`);
+    addAuditLog(currentUser.name, 'CUSTOMER', 'CREATE_RESERVATION', `Tạo reservation ${currentReservation.id}`);
   } catch (error) {
-    showToast(error.message || 'KhÃ´ng thá»ƒ káº¿t ná»‘i backend Ä‘á»ƒ táº¡o Ä‘Æ¡n.');
+    showToast(error.message || 'Không thể kết nối backend để tạo đơn.');
   }
 }
 
@@ -1311,32 +1311,32 @@ function setPaymentType(type) {
   const qrDesc = document.getElementById('qrTransferContent');
 
   if (type === 'DEPOSIT') {
-    title.innerText = 'HÃ³a Ä‘Æ¡n tiá»n cá»c giá»¯ chá»— (Security Deposit)';
-    const reservationId = currentReservation?.id || 'ChÆ°a cÃ³ reservation';
+    title.innerText = 'Hóa đơn tiền cọc giữ chỗ (Security Deposit)';
+    const reservationId = currentReservation?.id || 'Chưa có reservation';
     const deposit = Number(currentReservation?.depositAmount || currentBookingContext.depositAmount || currentBookingContext.price || 0);
-    item.innerText = `Tiá»n cá»c ${currentBookingContext.name || 'kho'} (MÃ£ Ä‘Æ¡n: ${reservationId})`;
-    total.innerText = deposit.toLocaleString('vi-VN') + ' Ä‘';
-    amt.innerText = deposit.toLocaleString('vi-VN') + ' Ä‘';
+    item.innerText = `Tiền cọc ${currentBookingContext.name || 'kho'} (Mã đơn: ${reservationId})`;
+    total.innerText = deposit.toLocaleString('vi-VN') + ' đ';
+    amt.innerText = deposit.toLocaleString('vi-VN') + ' đ';
     qrDesc.innerText = `TT COC ${reservationId}`;
   } else if (type === 'RENT') {
-    title.innerText = 'HÃ³a Ä‘Æ¡n cÆ°á»›c thuÃª phÃ²ng kho ká»³ Ä‘áº§u';
+    title.innerText = 'Hóa đơn cước thuê phòng kho kỳ đầu';
     const rent = Number(currentBookingContext.price || 0);
-    item.innerText = `Tiá»n thuÃª ká»³ Ä‘áº§u (${currentReservation?.unitCode || 'chá» Manager gÃ¡n Unit'})`;
-    total.innerText = rent.toLocaleString('vi-VN') + ' Ä‘';
-    amt.innerText = rent.toLocaleString('vi-VN') + ' Ä‘';
+    item.innerText = `Tiền thuê kỳ đầu (${currentReservation?.unitCode || 'chờ Manager gán Unit'})`;
+    total.innerText = rent.toLocaleString('vi-VN') + ' đ';
+    amt.innerText = rent.toLocaleString('vi-VN') + ' đ';
     qrDesc.innerText = `THUE ${currentReservation?.id || ''}`;
   } else if (type === 'RENEW') {
-    title.innerText = 'HÃ³a Ä‘Æ¡n gia háº¡n há»£p Ä‘á»“ng thuÃª kho';
+    title.innerText = 'Hóa đơn gia hạn hợp đồng thuê kho';
     const quote = currentRenewalQuote || { durationMonths: 1, totalAmount: 0, contractId: '' };
-    item.innerText = `Gia háº¡n ${quote.durationMonths} thÃ¡ng (${quote.contractId})`;
-    total.innerText = Number(quote.totalAmount || 0).toLocaleString('vi-VN') + ' Ä‘';
-    amt.innerText = Number(quote.totalAmount || 0).toLocaleString('vi-VN') + ' Ä‘';
+    item.innerText = `Gia hạn ${quote.durationMonths} tháng (${quote.contractId})`;
+    total.innerText = Number(quote.totalAmount || 0).toLocaleString('vi-VN') + ' đ';
+    amt.innerText = Number(quote.totalAmount || 0).toLocaleString('vi-VN') + ' đ';
     qrDesc.innerText = `GIA HAN ${quote.contractId}`;
   } else if (type === 'EXTRA') {
-    title.innerText = 'HÃ³a Ä‘Æ¡n phá»¥ phÃ­ dá»‹ch vá»¥ phÃ¡t sinh';
-    item.innerText = 'PhÃ­ vá»‡ sinh chuyÃªn sÃ¢u & thay á»• khÃ³a cÆ¡ má»›i';
-    total.innerText = '200.000 Ä‘';
-    amt.innerText = '200.000 Ä‘';
+    title.innerText = 'Hóa đơn phụ phí dịch vụ phát sinh';
+    item.innerText = 'Phí vệ sinh chuyên sâu & thay ổ khóa cơ mới';
+    total.innerText = '200.000 đ';
+    amt.innerText = '200.000 đ';
     qrDesc.innerText = 'PHU PHI UNIT A102';
   }
 }
@@ -1360,13 +1360,13 @@ function startPaymentCountdown() {
 async function simulatePaymentSuccess() {
   if (!authToken || ((currentPaymentType === 'DEPOSIT' || currentPaymentType === 'RENT') && !currentReservation?.id)
       || (currentPaymentType === 'RENEW' && !currentRenewalQuote?.contractId)) {
-    showToast('Thiáº¿u thÃ´ng tin há»£p Ä‘á»“ng hoáº·c reservation Ä‘á»ƒ thanh toÃ¡n.');
+    showToast('Thiếu thông tin hợp đồng hoặc reservation để thanh toán.');
     return;
   }
   const isDeposit = currentPaymentType === 'DEPOSIT';
   const isRenew = currentPaymentType === 'RENEW';
   if (!isDeposit && currentPaymentType !== 'RENT' && !isRenew) {
-    showToast('Loáº¡i thanh toÃ¡n nÃ y chÆ°a Ä‘Æ°á»£c ná»‘i vá»›i backend.');
+    showToast('Loại thanh toán này chưa được nối với backend.');
     return;
   }
   const amount = isDeposit
@@ -1382,49 +1382,49 @@ async function simulatePaymentSuccess() {
       body: JSON.stringify(body)
     });
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'Thanh toÃ¡n tháº¥t báº¡i.');
+    if (!response.ok || !result.success) throw new Error(result.message || 'Thanh toán thất bại.');
     if (isDeposit) currentReservation.status = 'RESERVED';
-    showToast(`Thanh toÃ¡n thÃ nh cÃ´ng. MÃ£ giao dá»‹ch ${result.data?.transactionCode || result.data?.id || ''}`);
-    addAuditLog(currentUser.name, 'CUSTOMER', 'PAYMENT_CONFIRM', `Thanh toÃ¡n ${currentPaymentType} cho ${currentReservation.id}`);
+    showToast(`Thanh toán thành công. Mã giao dịch ${result.data?.transactionCode || result.data?.id || ''}`);
+    addAuditLog(currentUser.name, 'CUSTOMER', 'PAYMENT_CONFIRM', `Thanh toán ${currentPaymentType} cho ${currentReservation.id}`);
     if (isDeposit) {
       setTimeout(() => {
         navigateToScreen('SCR-C04');
-        showToast(`Reservation ${currentReservation.id} Ä‘Ã£ Ä‘Æ°á»£c giá»¯ chá»—; chá» Manager gÃ¡n Unit.`);
+        showToast(`Reservation ${currentReservation.id} đã được giữ chỗ; chờ Manager gán Unit.`);
       }, 500);
     } else if (isRenew) {
       currentRenewalQuote = null;
       await loadMyContracts();
-      showToast('Há»£p Ä‘á»“ng Ä‘Ã£ Ä‘Æ°á»£c gia háº¡n vÃ  PIN Ä‘Ã£ Ä‘Æ°á»£c kÃ­ch hoáº¡t.');
+      showToast('Hợp đồng đã được gia hạn và PIN đã được kích hoạt.');
     }
   } catch (error) {
-    showToast(error.message || 'KhÃ´ng thá»ƒ káº¿t ná»‘i backend Ä‘á»ƒ thanh toÃ¡n.');
+    showToast(error.message || 'Không thể kết nối backend để thanh toán.');
   }
 }
 
 function togglePinVisibility() {
   const pin = currentContract?.pinCode;
-  if (!pin) return showToast('ChÆ°a cÃ³ PIN cá»§a há»£p Ä‘á»“ng Ä‘ang hoáº¡t Ä‘á»™ng.');
+  if (!pin) return showToast('Chưa có PIN của hợp đồng đang hoạt động.');
   isPinVisible = !isPinVisible;
   const box = document.getElementById('pinDisplayBox');
   const btn = document.getElementById('btnPinEyeText');
   if (isPinVisible) {
     box.innerText = pin.split('').join(' ');
     box.style.color = '#10b981';
-    btn.innerText = 'ðŸ”’ áº¨n mÃ£ PIN';
+    btn.innerText = '🔒 Ẩn mã PIN';
   } else {
-    box.innerText = 'â— â— â— â— â— â—';
+    box.innerText = '● ● ● ● ● ●';
     box.style.color = '#38bdf8';
-    btn.innerText = 'ðŸ‘ï¸ Hiá»‡n mÃ£ PIN';
+    btn.innerText = '👁️ Hiện mã PIN';
   }
 }
 
 function copyPinCode() {
   const pin = currentContract?.pinCode;
-  if (!pin) return showToast('ChÆ°a cÃ³ PIN cá»§a há»£p Ä‘á»“ng Ä‘ang hoáº¡t Ä‘á»™ng.');
+  if (!pin) return showToast('Chưa có PIN của hợp đồng đang hoạt động.');
   navigator.clipboard.writeText(pin).then(() => {
-    showToast('ÄÃ£ sao chÃ©p mÃ£ PIN.');
+    showToast('Đã sao chép mã PIN.');
   }).catch(() => {
-    showToast('KhÃ´ng thá»ƒ sao chÃ©p PIN trÃªn trÃ¬nh duyá»‡t nÃ y.');
+    showToast('Không thể sao chép PIN trên trình duyệt này.');
   });
 }
 
@@ -1436,41 +1436,41 @@ async function saveNewPin() {
   const p1 = document.getElementById('txtNewPin').value;
   const p2 = document.getElementById('txtConfirmPin').value;
   if (p1.length !== 6 || p1 !== p2) {
-    alert('MÃ£ PIN pháº£i gá»“m Ä‘Ãºng 6 chá»¯ sá»‘ vÃ  hai láº§n nháº­p pháº£i giá»‘ng nhau!');
+    alert('Mã PIN phải gồm đúng 6 chữ số và hai lần nhập phải giống nhau!');
     return;
   }
-  if (!currentContract?.unitCode) return showToast('ChÆ°a táº£i há»£p Ä‘á»“ng Ä‘ang thuÃª.');
+  if (!currentContract?.unitCode) return showToast('Chưa tải hợp đồng đang thuê.');
   try {
     const response = await apiFetch(`/api/contracts/${encodeURIComponent(currentContract.unitCode)}/pin`, {
       method: 'PATCH', body: JSON.stringify({ newPin: p1 })
     });
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'KhÃ´ng thá»ƒ Ä‘á»•i PIN.');
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể đổi PIN.');
     currentContract = result.data;
     closeModal('modalChangePin');
-    showToast('ÄÃ£ Ä‘á»•i mÃ£ PIN má»›i trÃªn há»£p Ä‘á»“ng vÃ  Unit.');
-    addAuditLog(currentUser.name, currentActor, 'UPDATE_PIN', `Äá»•i PIN Unit ${currentContract.unitCode}`);
+    showToast('Đã đổi mã PIN mới trên hợp đồng và Unit.');
+    addAuditLog(currentUser.name, currentActor, 'UPDATE_PIN', `Đổi PIN Unit ${currentContract.unitCode}`);
   } catch (error) {
-    showToast(error.message || 'KhÃ´ng thá»ƒ Ä‘á»•i PIN.');
+    showToast(error.message || 'Không thể đổi PIN.');
   }
 }
 
 async function openRenewalModal(unit) {
   if (!currentContracts.length) await loadMyContracts();
   const contract = currentContracts.find(item => item.unitCode === unit && ['ACTIVE', 'EXPIRING_SOON', 'OVERDUE'].includes(item.status));
-  if (!contract) return showToast(`KhÃ´ng tÃ¬m tháº¥y há»£p Ä‘á»“ng cÃ³ thá»ƒ gia háº¡n cá»§a Unit ${unit}.`);
-  const monthsText = prompt('Sá»‘ thÃ¡ng muá»‘n gia háº¡n (1-36):', '1');
+  if (!contract) return showToast(`Không tìm thấy hợp đồng có thể gia hạn của Unit ${unit}.`);
+  const monthsText = prompt('Số tháng muốn gia hạn (1-36):', '1');
   const months = Number(monthsText || 1);
-  if (!Number.isInteger(months) || months < 1 || months > 36) return showToast('Sá»‘ thÃ¡ng gia háº¡n khÃ´ng há»£p lá»‡.');
+  if (!Number.isInteger(months) || months < 1 || months > 36) return showToast('Số tháng gia hạn không hợp lệ.');
   try {
     const response = await apiFetch(`/api/contracts/${encodeURIComponent(contract.id)}/renewal-quote?months=${months}`);
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'KhÃ´ng thá»ƒ tÃ­nh phÃ­ gia háº¡n.');
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể tính phí gia hạn.');
     currentRenewalQuote = result.data;
     navigateToScreen('SCR-C03');
     setPaymentType('RENEW');
   } catch (error) {
-    showToast(error.message || 'KhÃ´ng thá»ƒ tÃ­nh phÃ­ gia háº¡n.');
+    showToast(error.message || 'Không thể tính phí gia hạn.');
   }
 }
 
@@ -1478,20 +1478,20 @@ async function openCheckoutRequestModal(unit) {
   if (!currentContracts.length) await loadMyContracts();
   const contract = currentContracts.find(item => item.unitCode === unit
     && ['ACTIVE', 'EXPIRING_SOON', 'OVERDUE'].includes(item.status));
-  if (!contract) return showToast(`KhÃ´ng tÃ¬m tháº¥y há»£p Ä‘á»“ng Ä‘ang thuÃª cá»§a Unit ${unit}.`);
-  if (confirm(`Báº¡n cÃ³ cháº¯c cháº¯n muá»‘n gá»­i yÃªu cáº§u tráº£ phÃ²ng kho ${unit}? Lá»‹ch háº¹n nghiá»‡m thu sáº½ Ä‘Æ°á»£c chuyá»ƒn Ä‘áº¿n NhÃ¢n viÃªn ca trá»±c.`)) {
+  if (!contract) return showToast(`Không tìm thấy hợp đồng đang thuê của Unit ${unit}.`);
+  if (confirm(`Bạn có chắc chắn muốn gửi yêu cầu trả phòng kho ${unit}? Lịch hẹn nghiệm thu sẽ được chuyển đến Nhân viên ca trực.`)) {
     try {
       const response = await apiFetch('/api/contracts/checkout-request', {
         method: 'POST',
         body: JSON.stringify({ contractId: contract.id, requestedDate: new Date().toISOString().slice(0, 10) })
       });
       const result = await response.json();
-      if (!response.ok || !result.success) throw new Error(result.message || 'KhÃ´ng thá»ƒ gá»­i yÃªu cáº§u tráº£ kho.');
+      if (!response.ok || !result.success) throw new Error(result.message || 'Không thể gửi yêu cầu trả kho.');
       currentContract = result.data;
-      showToast(`ÄÃ£ táº¡o lá»‹ch nghiá»‡m thu cho Unit ${unit}.`);
+      showToast(`Đã tạo lịch nghiệm thu cho Unit ${unit}.`);
       addAuditLog(currentUser.name, currentActor, 'REQUEST_CHECKOUT', `Checkout ${contract.id}`);
     } catch (error) {
-      showToast(error.message || 'KhÃ´ng thá»ƒ gá»­i yÃªu cáº§u tráº£ kho.');
+      showToast(error.message || 'Không thể gửi yêu cầu trả kho.');
     }
   }
 }
@@ -1501,39 +1501,39 @@ async function loadMyContracts() {
   try {
     const response = await apiFetch('/api/contracts');
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'KhÃ´ng táº£i Ä‘Æ°á»£c há»£p Ä‘á»“ng.');
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không tải được hợp đồng.');
     currentContracts = result.data || [];
     currentContract = currentContracts.find(contract => contract.status === 'ACTIVE') || currentContracts[0] || null;
   } catch (error) {
-    showToast(error.message || 'KhÃ´ng táº£i Ä‘Æ°á»£c há»£p Ä‘á»“ng.');
+    showToast(error.message || 'Không tải được hợp đồng.');
   }
 }
 
 async function submitSupportTicket() {
   if (!authToken || currentActor !== 'CUSTOMER') {
-    return showToast('Vui l?ng ??ng nh?p b?ng t?i kho?n kh?ch h?ng.');
+    return showToast('Vui lòng đăng nhập bằng tài khoản khách hàng.');
   }
   const desc = document.getElementById('ticketDesc')?.value.trim();
   const unit = document.getElementById('ticketUnitSelect')?.value;
   const category = document.getElementById('ticketCategorySelect')?.value || 'GENERAL';
   const priorityText = document.getElementById('ticketPrioritySelect')?.value || '';
-  const priority = priorityText.toLowerCase().includes('kh?n') ? 'URGENT'
+  const priority = priorityText.toLowerCase().includes('khẩn') ? 'URGENT'
     : priorityText.toLowerCase().includes('cao') ? 'HIGH' : 'NORMAL';
   const attachmentUrl = document.getElementById('ticketAttachmentUrl')?.value.trim();
-  if (!desc || !unit) return showToast('Ch?n kho v? nh?p m? t? s? c?.');
+  if (!desc || !unit) return showToast('Chọn kho và nhập mô tả sự cố.');
   try {
     const response = await apiFetch('/api/tasks/tickets', {
       method: 'POST',
       body: JSON.stringify({ unitCode: unit, category, description: desc, priority, attachmentUrl })
     });
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'Kh?ng th? t?o ticket.');
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể tạo ticket.');
     document.getElementById('ticketDesc').value = '';
     if (document.getElementById('ticketAttachmentUrl')) document.getElementById('ticketAttachmentUrl').value = '';
-    showToast(`?? t?o ticket ${result.data.id} v? chuy?n ??n nh?n vi?n c? s?.`);
+    showToast(`Đã tạo ticket ${result.data.id} và chuyển đến nhân viên cơ sở.`);
     await loadSupportTickets();
   } catch (error) {
-    showToast(error.message || 'Kh?ng th? t?o ticket.');
+    showToast(error.message || 'Không thể tạo ticket.');
   }
 }
 
@@ -1546,11 +1546,11 @@ async function loadSupportTickets() {
       const rented = currentContracts.filter(contract => ['ACTIVE', 'EXPIRING_SOON', 'OVERDUE'].includes(contract.status));
       if (unitSelect) unitSelect.innerHTML = rented.map(contract =>
         `<option value="${escapeHtml(contract.unitCode)}">Unit ${escapeHtml(contract.unitCode)} (${escapeHtml(contract.facilityCode || '')})</option>`
-      ).join('') || '<option value="">Ch?a c? kho ?ang thu?</option>';
+      ).join('') || '<option value="">Chưa có kho đang thuê</option>';
     }
     const response = await apiFetch('/api/tasks/tickets');
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'Kh?ng t?i ???c ticket.');
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không tải được ticket.');
     const tickets = result.data || [];
     renderSupportTicketsTable(tickets);
     renderStaffSupportTickets(tickets);
@@ -1583,8 +1583,8 @@ function renderSupportTicketsTable(tickets = []) {
       </div>
       <div style="font-weight:700; margin:5px 0;">${escapeHtml(ticket.category || ticket.title)}</div>
       <div style="font-size:13px; color:#475569;">${escapeHtml(ticket.description || '')}</div>
-      <div style="font-size:12px; color:#64748b; margin-top:5px;">Unit ${escapeHtml(ticket.unitCode)} ? ${escapeHtml(ticket.priority)}${ticket.staffAssigned ? ` ? ${escapeHtml(ticket.staffAssigned)}` : ''}</div>
-      ${ticket.status === 'RESOLVED' ? `<button class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="closeSupportTicket('${escapeHtml(ticket.id)}')">??ng ticket</button>` : ''}
+      <div style="font-size:12px; color:#64748b; margin-top:5px;">Unit ${escapeHtml(ticket.unitCode)} · ${escapeHtml(ticket.priority)}${ticket.staffAssigned ? ` · ${escapeHtml(ticket.staffAssigned)}` : ''}</div>
+      ${ticket.status === 'RESOLVED' ? `<button class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="closeSupportTicket('${escapeHtml(ticket.id)}')">Đóng ticket</button>` : ''}
     </div>`).join('');
 }
 
@@ -1594,16 +1594,16 @@ function renderStaffSupportTickets(tickets = []) {
     <td>${escapeHtml(ticket.category || ticket.title)}</td>
     <td>${escapeHtml(ticket.unitCode || '')}</td>
     <td><span class="badge ${ticket.priority === 'URGENT' ? 'badge-danger' : 'badge-warning'}">${escapeHtml(ticket.priority)}</span></td>
-    <td>${ticket.status === 'OPEN' ? `<button class="btn btn-primary btn-sm" onclick="updateSupportTicket('${escapeHtml(ticket.id)}','IN_PROGRESS')">Ti?p nh?n</button>` : ticket.status === 'IN_PROGRESS' ? `<button class="btn btn-success btn-sm" onclick="updateSupportTicket('${escapeHtml(ticket.id)}','RESOLVED')">?? x? l?</button>` : escapeHtml(ticket.status)}</td>
-  </tr>`).join('') || '<tr><td colspan="5">Kh?ng c? ticket.</td></tr>';
+    <td>${ticket.status === 'OPEN' ? `<button class="btn btn-primary btn-sm" onclick="updateSupportTicket('${escapeHtml(ticket.id)}','IN_PROGRESS')">Tiếp nhận</button>` : ticket.status === 'IN_PROGRESS' ? `<button class="btn btn-success btn-sm" onclick="updateSupportTicket('${escapeHtml(ticket.id)}','RESOLVED')">Đã xử lý</button>` : escapeHtml(ticket.status)}</td>
+  </tr>`).join('') || '<tr><td colspan="5">Không có ticket.</td></tr>';
   const queue = document.getElementById('staffSupportQueueBody');
   if (queue) queue.innerHTML = rows;
   const incident = document.getElementById('incidentTicketsBody');
   if (incident) incident.innerHTML = tickets.map(ticket => `<tr>
     <td><span class="code-display">${escapeHtml(ticket.id)}</span></td><td>${escapeHtml(ticket.customerName || '')}</td><td><strong>${escapeHtml(ticket.unitCode || '')}</strong></td>
     <td>${escapeHtml(ticket.description || ticket.category || '')}</td><td><span class="badge ${ticket.priority === 'URGENT' ? 'badge-danger' : 'badge-warning'}">${escapeHtml(ticket.priority)}</span></td>
-    <td>${ticket.status === 'OPEN' ? `<button class="btn btn-primary btn-sm" onclick="updateSupportTicket('${escapeHtml(ticket.id)}','IN_PROGRESS')">Ti?p nh?n</button>` : ticket.status === 'IN_PROGRESS' ? `<button class="btn btn-success btn-sm" onclick="updateSupportTicket('${escapeHtml(ticket.id)}','RESOLVED')">Ho?n t?t</button>` : escapeHtml(ticket.status)}</td>
-  </tr>`).join('') || '<tr><td colspan="6">Kh?ng c? s? c?.</td></tr>';
+    <td>${ticket.status === 'OPEN' ? `<button class="btn btn-primary btn-sm" onclick="updateSupportTicket('${escapeHtml(ticket.id)}','IN_PROGRESS')">Tiếp nhận</button>` : ticket.status === 'IN_PROGRESS' ? `<button class="btn btn-success btn-sm" onclick="updateSupportTicket('${escapeHtml(ticket.id)}','RESOLVED')">Hoàn tất</button>` : escapeHtml(ticket.status)}</td>
+  </tr>`).join('') || '<tr><td colspan="6">Không có sự cố.</td></tr>';
 }
 
 async function updateSupportTicket(ticketId, status, extra = {}) {
@@ -1612,16 +1612,16 @@ async function updateSupportTicket(ticketId, status, extra = {}) {
       method: 'PATCH', body: JSON.stringify({ status, ...extra })
     });
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'Kh?ng th? c?p nh?t ticket.');
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể cập nhật ticket.');
     showToast(`Ticket ${ticketId}: ${status}`);
     await loadSupportTickets();
   } catch (error) {
-    showToast(error.message || 'Kh?ng th? c?p nh?t ticket.');
+    showToast(error.message || 'Không thể cập nhật ticket.');
   }
 }
 
 async function closeSupportTicket(ticketId) {
-  const rating = Number(prompt('??nh gi? d?ch v? t? 1 ??n 5:', '5'));
+  const rating = Number(prompt('Đánh giá dịch vụ từ 1 đến 5:', '5'));
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) return;
   await updateSupportTicket(ticketId, 'CLOSED', { rating, feedback: 'Customer confirmed resolution.' });
 }
@@ -1658,16 +1658,16 @@ async function loadDailyTasks() {
     if (checkinBody) checkinBody.innerHTML = checkins.map(task => `
       <tr>
         <td><strong>${task.deadline || ''}</strong></td><td>${task.staff || ''}</td><td>-</td>
-        <td><span class="code-display">${task.reservationId || ''}</span></td><td>${task.unitCode || 'ChÆ°a gÃ¡n'}</td>
+        <td><span class="code-display">${task.reservationId || ''}</span></td><td>${task.unitCode || 'Chưa gán'}</td>
         <td><span class="badge ${task.status === 'COMPLETED' ? 'badge-success' : 'badge-warning'}">${task.status}</span></td>
-        <td><button class="btn btn-primary btn-sm" onclick="startCheckinForCustomer('${task.reservationId || ''}')">Ti?n h?nh Check-in</button> ${task.status !== 'COMPLETED' ? `<button class="btn btn-outline btn-sm" onclick="updateDailyTask('${task.id}','${task.status === 'PENDING' ? 'IN_PROGRESS' : 'COMPLETED'}')">${task.status === 'PENDING' ? 'Nh?n vi?c' : 'Ho?n t?t'}</button>` : ''}</td>
-      </tr>`).join('') || '<tr><td colspan="7">KhÃ´ng cÃ³ lá»‹ch check-in hÃ´m nay.</td></tr>';
+        <td><button class="btn btn-primary btn-sm" onclick="startCheckinForCustomer('${task.reservationId || ''}')">Tiến hành Check-in</button> ${task.status !== 'COMPLETED' ? `<button class="btn btn-outline btn-sm" onclick="updateDailyTask('${task.id}','${task.status === 'PENDING' ? 'IN_PROGRESS' : 'COMPLETED'}')">${task.status === 'PENDING' ? 'Nhận việc' : 'Hoàn tất'}</button>` : ''}</td>
+      </tr>`).join('') || '<tr><td colspan="7">Không có lịch check-in hôm nay.</td></tr>';
     if (returnBody) returnBody.innerHTML = returns.map(task => `
       <tr>
         <td>${task.deadline || ''}</td><td>${task.staff || ''}</td>
         <td><span class="code-display">${task.contractId || ''}</span></td><td>${task.unitCode || ''}</td>
-        <td>-</td><td><button class="btn btn-primary btn-sm" onclick="startReturnInspection('${task.contractId || ''}', '${task.unitCode || ''}')">B?t ??u nghi?m thu</button> ${task.status !== 'COMPLETED' ? `<button class="btn btn-outline btn-sm" onclick="updateDailyTask('${task.id}','${task.status === 'PENDING' ? 'IN_PROGRESS' : 'COMPLETED'}')">${task.status === 'PENDING' ? 'Nh?n vi?c' : 'Ho?n t?t'}</button>` : ''}</td>
-      </tr>`).join('') || '<tr><td colspan="6">KhÃ´ng cÃ³ lá»‹ch tráº£ kho hÃ´m nay.</td></tr>';
+        <td>-</td><td><button class="btn btn-primary btn-sm" onclick="startReturnInspection('${task.contractId || ''}', '${task.unitCode || ''}')">Bắt đầu nghiệm thu</button> ${task.status !== 'COMPLETED' ? `<button class="btn btn-outline btn-sm" onclick="updateDailyTask('${task.id}','${task.status === 'PENDING' ? 'IN_PROGRESS' : 'COMPLETED'}')">${task.status === 'PENDING' ? 'Nhận việc' : 'Hoàn tất'}</button>` : ''}</td>
+      </tr>`).join('') || '<tr><td colspan="6">Không có lịch trả kho hôm nay.</td></tr>';
   } catch (error) {
     console.warn('[Tasks] Unable to load daily tasks', error);
   }
@@ -1679,10 +1679,10 @@ async function updateDailyTask(taskId, status) {
       method: 'PATCH', body: JSON.stringify({ status })
     });
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'Kh?ng th? c?p nh?t nhi?m v?.');
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể cập nhật nhiệm vụ.');
     await loadDailyTasks();
   } catch (error) {
-    showToast(error.message || 'Kh?ng th? c?p nh?t nhi?m v?.');
+    showToast(error.message || 'Không thể cập nhật nhiệm vụ.');
   }
 }
 
@@ -1690,12 +1690,12 @@ function startCheckinForCustomer(rsv) {
   navigateToScreen('SCR-S02');
   const input = document.getElementById('txtSearchReservation');
   if (input) input.value = rsv;
-  showToast(`Äang tra cá»©u há»“ sÆ¡ Ä‘Æ¡n Ä‘áº·t chá»— ${rsv}...`);
+  showToast(`Đang tra cứu hồ sơ đơn đặt chỗ ${rsv}...`);
 }
 
 async function lookupReservation() {
   const reservationId = document.getElementById('txtSearchReservation')?.value.trim();
-  if (!reservationId) return showToast('Nháº­p mÃ£ reservation, CCCD hoáº·c sá»‘ Ä‘iá»‡n thoáº¡i cáº§n tra cá»©u.');
+  if (!reservationId) return showToast('Nhập mã reservation, CCCD hoặc số điện thoại cần tra cứu.');
   try {
     let response = await apiFetch(`/api/reservations/${encodeURIComponent(reservationId)}`);
     const result = await response.json();
@@ -1703,20 +1703,20 @@ async function lookupReservation() {
       response = await apiFetch(`/api/reservations/lookup?query=${encodeURIComponent(reservationId)}`);
       const lookupResult = await response.json();
       if (!response.ok || !lookupResult.success || !lookupResult.data?.length) {
-        throw new Error(lookupResult.message || 'KhÃ´ng tÃ¬m tháº¥y reservation.');
+        throw new Error(lookupResult.message || 'Không tìm thấy reservation.');
       }
       currentReservation = lookupResult.data[0];
     } else {
       currentReservation = result.data;
     }
-    showToast(`Reservation ${currentReservation.id}: ${currentReservation.status}, Unit ${currentReservation.unitCode || 'chÆ°a gÃ¡n'}.`);
+    showToast(`Reservation ${currentReservation.id}: ${currentReservation.status}, Unit ${currentReservation.unitCode || 'chưa gán'}.`);
   } catch (error) {
-    showToast(error.message || 'KhÃ´ng thá»ƒ tra cá»©u reservation.');
+    showToast(error.message || 'Không thể tra cứu reservation.');
   }
 }
 
 async function completeHandoverProtocol() {
-  if (!currentReservation?.id) return showToast('Tra cá»©u reservation trÆ°á»›c khi bÃ n giao.');
+  if (!currentReservation?.id) return showToast('Tra cứu reservation trước khi bàn giao.');
   try {
     const response = await apiFetch('/api/contracts/handover', {
       method: 'POST',
@@ -1725,17 +1725,17 @@ async function completeHandoverProtocol() {
         customerSignatureConfirmed: true,
         lock: document.getElementById('handoverLock')?.value || null,
         rfid: document.getElementById('handoverRfid')?.value || null,
-        unitConditionNotes: 'Staff xÃ¡c nháº­n checklist bÃ n giao Ä‘áº¡t yÃªu cáº§u.'
+        unitConditionNotes: 'Staff xác nhận checklist bàn giao đạt yêu cầu.'
       })
     });
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'KhÃ´ng thá»ƒ hoÃ n táº¥t bÃ n giao.');
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể hoàn tất bàn giao.');
     currentContract = result.data;
-    showToast(`BÃ n giao thÃ nh cÃ´ng; há»£p Ä‘á»“ng ${currentContract.id} Ä‘Ã£ ACTIVE.`);
-    addAuditLog(currentUser.name, currentActor, 'HANDOVER_COMPLETE', `BÃ n giao ${currentContract.unitCode}`);
+    showToast(`Bàn giao thành công; hợp đồng ${currentContract.id} đã ACTIVE.`);
+    addAuditLog(currentUser.name, currentActor, 'HANDOVER_COMPLETE', `Bàn giao ${currentContract.unitCode}`);
     loadDailyTasks();
   } catch (error) {
-    showToast(error.message || 'KhÃ´ng thá»ƒ hoÃ n táº¥t bÃ n giao.');
+    showToast(error.message || 'Không thể hoàn tất bàn giao.');
   }
 }
 
@@ -1745,7 +1745,7 @@ function startReturnInspection(contractId, unitCode) {
 }
 
 async function completeReturnInspection() {
-  if (!currentContract?.unitCode) return showToast('Chá»n contract tá»« danh sÃ¡ch lá»‹ch tráº£ trÆ°á»›c.');
+  if (!currentContract?.unitCode) return showToast('Chọn contract từ danh sách lịch trả trước.');
   try {
     const response = await apiFetch('/api/contracts/return-inspection', {
       method: 'POST',
@@ -1757,12 +1757,12 @@ async function completeReturnInspection() {
       })
     });
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'KhÃ´ng thá»ƒ lÆ°u inspection.');
-    showToast(`Nghiá»‡m thu Ä‘Ã£ lÆ°u. YÃªu cáº§u hoÃ n ${Number(result.data.refundAmount || 0).toLocaleString('vi-VN')} Ä‘ Ä‘ang chá» Manager duyá»‡t.`);
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể lưu inspection.');
+    showToast(`Nghiệm thu đã lưu. Yêu cầu hoàn ${Number(result.data.refundAmount || 0).toLocaleString('vi-VN')} đ đang chờ Manager duyệt.`);
     addAuditLog(currentUser.name, currentActor, 'RETURN_INSPECTION', `Inspection ${result.data.inspectionId}`);
     loadDailyTasks();
   } catch (error) {
-    showToast(error.message || 'KhÃ´ng thá»ƒ lÆ°u inspection.');
+    showToast(error.message || 'Không thể lưu inspection.');
   }
 }
 
@@ -1773,20 +1773,20 @@ async function openEmergencyPinModal() {
       method: 'POST', body: JSON.stringify({ unitCode })
     });
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'KhÃ´ng thá»ƒ cáº¥p PIN táº¡m thá»i.');
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể cấp PIN tạm thời.');
     const pinData = result.data;
-    alert(`[GIAO THá»¨C KHáº¨N Cáº¤P Táº I QUáº¦Y]\nMÃ£ PIN táº¡m thá»i hiá»‡u lá»±c ${pinData.expiresInMinutes} phÃºt: ${pinData.tempPin}`);
-    showToast(`ÄÃ£ cáº¥p mÃ£ PIN táº¡m thá»i cho Unit ${unitCode}.`);
+    alert(`[GIAO THỨC KHẨN CẤP TẠI QUẦY]\nMã PIN tạm thời hiệu lực ${pinData.expiresInMinutes} phút: ${pinData.tempPin}`);
+    showToast(`Đã cấp mã PIN tạm thời cho Unit ${unitCode}.`);
   } catch (error) {
-    showToast(error.message || 'KhÃ´ng thá»ƒ cáº¥p PIN táº¡m thá»i.');
+    showToast(error.message || 'Không thể cấp PIN tạm thời.');
   }
 }
 
 function openLostKeyModal() {
-  if (confirm('Láº­p biÃªn báº£n máº¥t chÃ¬a khÃ³a cÆ¡, thu phá»¥ phÃ­ thay á»• khÃ³a má»›i 150.000 VNÄ?')) {
-    showToast('ÄÃ£ láº­p biÃªn báº£n máº¥t chÃ¬a vÃ  phÃ¢n cÃ´ng ká»¹ thuáº­t thay á»• khÃ³a má»›i!');
-    const uName = currentUser ? currentUser.name : 'Nguyá»…n VÄƒn Tuáº¥n';
-    addAuditLog(uName, 'STAFF', 'LOST_KEY_PROTOCOL', 'Thu phá»¥ phÃ­ 150.000Ä‘ vÃ  thay khÃ³a Unit A-102');
+  if (confirm('Lập biên bản mất chìa khóa cơ, thu phụ phí thay ổ khóa mới 150.000 VNĐ?')) {
+    showToast('Đã lập biên bản mất chìa và phân công kỹ thuật thay ổ khóa mới!');
+    const uName = currentUser ? currentUser.name : 'Nguyễn Văn Tuấn';
+    addAuditLog(uName, 'STAFF', 'LOST_KEY_PROTOCOL', 'Thu phụ phí 150.000đ và thay khóa Unit A-102');
   }
 }
 
@@ -1798,12 +1798,12 @@ function renderMatrixGrid() {
   const units = managedUnits || mockUnits;
   container.innerHTML = units.map(u => {
     const type = u.type || 'M';
-    const size = u.sizeDesc || u.size || `${u.sizeSqm || 0} mÂ²`;
-    let badgeText = 'Trá»‘ng';
-    if (u.status === 'occupied') badgeText = 'Äang dÃ¹ng';
-    else if (u.status === 'reserved') badgeText = 'ÄÃ£ Ä‘áº·t';
-    else if (u.status === 'maintenance') badgeText = 'Báº£o trÃ¬';
-    else if (u.status === 'cleaning') badgeText = 'Vá»‡ sinh';
+    const size = u.sizeDesc || u.size || `${u.sizeSqm || 0} m²`;
+    let badgeText = 'Trống';
+    if (u.status === 'occupied') badgeText = 'Đang dùng';
+    else if (u.status === 'reserved') badgeText = 'Đã đặt';
+    else if (u.status === 'maintenance') badgeText = 'Bảo trì';
+    else if (u.status === 'cleaning') badgeText = 'Vệ sinh';
 
     return `
       <div class="matrix-cell ${u.status}" onclick="openUnitStatusModal('${u.code}')">
@@ -1824,21 +1824,21 @@ async function loadManagedUnits() {
   try {
     const response = await apiFetch('/api/facilities/units/manage');
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'KhÃ´ng táº£i Ä‘Æ°á»£c danh sÃ¡ch Unit.');
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không tải được danh sách Unit.');
     managedUnits = result.data || [];
     renderMatrixGrid();
     const tbody = document.getElementById('managedUnitsBody');
     if (tbody) tbody.innerHTML = managedUnits.map(unit => `
       <tr>
         <td><span class="code-display">${unit.code}</span></td><td>${unit.type}</td>
-        <td>${unit.sizeDesc || `${unit.sizeSqm} mÂ²`}</td>
-        <td>${Number(unit.pricePerMonth || 0).toLocaleString('vi-VN')} Ä‘</td>
-        <td>${unit.tenantName || 'â€”'}</td><td><span class="badge badge-neutral">${unit.status}</span></td>
-        <td><button class="btn btn-outline btn-sm" onclick="openUnitStatusModal('${unit.code}')">Sá»­a tráº¡ng thÃ¡i</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteManagedUnit('${unit.code}')">XÃ³a</button></td>
-      </tr>`).join('') || '<tr><td colspan="7">Chi nhÃ¡nh chÆ°a cÃ³ Unit.</td></tr>';
+        <td>${unit.sizeDesc || `${unit.sizeSqm} m²`}</td>
+        <td>${Number(unit.pricePerMonth || 0).toLocaleString('vi-VN')} đ</td>
+        <td>${unit.tenantName || '—'}</td><td><span class="badge badge-neutral">${unit.status}</span></td>
+        <td><button class="btn btn-outline btn-sm" onclick="openUnitStatusModal('${unit.code}')">Sửa trạng thái</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteManagedUnit('${unit.code}')">Xóa</button></td>
+      </tr>`).join('') || '<tr><td colspan="7">Chi nhánh chưa có Unit.</td></tr>';
   } catch (error) {
-    showToast(error.message || 'KhÃ´ng thá»ƒ táº£i sÆ¡ Ä‘á»“ kho.');
+    showToast(error.message || 'Không thể tải sơ đồ kho.');
   }
 }
 
@@ -1847,7 +1847,7 @@ async function loadFacilities() {
   try {
     const response = await apiFetch('/api/facilities');
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'KhÃ´ng táº£i Ä‘Æ°á»£c chi nhÃ¡nh.');
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không tải được chi nhánh.');
     knownFacilities = result.data || [];
     const grid = document.getElementById('facilityCardsGrid');
     if (grid) grid.innerHTML = knownFacilities.map(facility => `
@@ -1855,21 +1855,21 @@ async function loadFacilities() {
         <h3 style="font-size:16px; font-weight:800; margin-bottom:8px; color:#1e40af;">${facility.name}</h3>
         <div style="font-size:13px; color:#64748b; margin-bottom:12px;">${facility.address}, ${facility.city}</div>
         <div style="font-size:12px; margin-bottom:16px;">
-          <div>ðŸ¢ Quy mÃ´: <strong>${facility.totalUnits || 0} Unit</strong></div>
-          <div>â˜Ž Hotline: <strong>${facility.hotline || 'â€”'}</strong></div>
-          <div>âš¡ Tráº¡ng thÃ¡i: <span class="badge badge-success">${facility.status}</span></div>
+          <div>🏢 Quy mô: <strong>${facility.totalUnits || 0} Unit</strong></div>
+          <div>☎ Hotline: <strong>${facility.hotline || '—'}</strong></div>
+          <div>⚡ Trạng thái: <span class="badge badge-success">${facility.status}</span></div>
         </div>
-        <button class="btn btn-outline btn-block btn-sm" onclick="openFacilityForm('${facility.code}')">Cáº¥u hÃ¬nh chi nhÃ¡nh</button>
+        <button class="btn btn-outline btn-block btn-sm" onclick="openFacilityForm('${facility.code}')">Cấu hình chi nhánh</button>
       </div>`).join('');
   } catch (error) {
-    showToast(error.message || 'KhÃ´ng táº£i Ä‘Æ°á»£c chi nhÃ¡nh.');
+    showToast(error.message || 'Không tải được chi nhánh.');
   }
 }
 
 function openFacilityForm(code = null) {
   editingFacilityCode = code;
   const facility = knownFacilities.find(item => item.code === code);
-  document.getElementById('facilityFormTitle').innerText = facility ? 'Cáº¥u hÃ¬nh chi nhÃ¡nh' : 'ThÃªm chi nhÃ¡nh';
+  document.getElementById('facilityFormTitle').innerText = facility ? 'Cấu hình chi nhánh' : 'Thêm chi nhánh';
   document.getElementById('facilityFormCode').value = facility?.code || '';
   document.getElementById('facilityFormCode').disabled = Boolean(facility);
   document.getElementById('facilityFormName').value = facility?.name || '';
@@ -1893,12 +1893,12 @@ async function submitFacilityForm() {
       method: isEdit ? 'PUT' : 'POST', body: JSON.stringify(body)
     });
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'KhÃ´ng thá»ƒ lÆ°u chi nhÃ¡nh.');
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể lưu chi nhánh.');
     closeModal('modalFacilityForm');
-    showToast(isEdit ? 'ÄÃ£ cáº­p nháº­t chi nhÃ¡nh.' : 'ÄÃ£ thÃªm chi nhÃ¡nh.');
+    showToast(isEdit ? 'Đã cập nhật chi nhánh.' : 'Đã thêm chi nhánh.');
     await loadFacilities();
   } catch (error) {
-    showToast(error.message || 'KhÃ´ng thá»ƒ lÆ°u chi nhÃ¡nh.');
+    showToast(error.message || 'Không thể lưu chi nhánh.');
   }
 }
 
@@ -1909,13 +1909,13 @@ async function loadPendingRefunds() {
   try {
     const response = await apiFetch('/api/contracts/refunds/pending');
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'KhÃ´ng táº£i Ä‘Æ°á»£c refund requests.');
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không tải được refund requests.');
     const refunds = result.data || [];
     tbody.innerHTML = refunds.map(refund => `
       <tr><td>${refund.contractId || refund.reservationId}</td><td>${refund.inspectionId || 'Reservation cancellation'}</td>
-      <td>${Number(refund.approvedAmount || 0).toLocaleString('vi-VN')} Ä‘</td>
-      <td><button class="btn btn-success btn-sm" onclick="approveRefund('${refund.contractId || ''}', '${refund.reservationId || ''}')">Duyá»‡t hoÃ n cá»c</button></td></tr>
-    `).join('') || '<tr><td colspan="4">KhÃ´ng cÃ³ yÃªu cáº§u Ä‘ang chá».</td></tr>';
+      <td>${Number(refund.approvedAmount || 0).toLocaleString('vi-VN')} đ</td>
+      <td><button class="btn btn-success btn-sm" onclick="approveRefund('${refund.contractId || ''}', '${refund.reservationId || ''}')">Duyệt hoàn cọc</button></td></tr>
+    `).join('') || '<tr><td colspan="4">Không có yêu cầu đang chờ.</td></tr>';
   } catch (error) {
     tbody.innerHTML = `<tr><td colspan="4">${error.message}</td></tr>`;
   }
@@ -1928,16 +1928,16 @@ async function loadManagerContracts() {
   try {
     const response = await apiFetch('/api/contracts');
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'KhÃ´ng táº£i Ä‘Æ°á»£c contracts.');
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không tải được contracts.');
     const contracts = result.data || [];
     tbody.innerHTML = contracts.map(contract => {
       const status = contract.status || 'ACTIVE';
       const badge = status === 'OVERDUE' ? 'badge-danger' : status === 'EXPIRING_SOON' ? 'badge-warning' : 'badge-success';
       const action = status === 'OVERDUE'
-        ? `<button class="btn btn-danger btn-sm" onclick="triggerOverdueLockout('${escapeHtml(contract.id)}','${escapeHtml(contract.unitCode)}','${escapeHtml(contract.customerName)}')">KhÃ³a PIN</button>`
-        : `<button class="btn btn-outline btn-sm" onclick="showToast('ÄÃ£ ghi nháº­n yÃªu cáº§u nháº¯c gia háº¡n cho ${escapeHtml(contract.customerName)}.')">Nháº¯c gia háº¡n</button>`;
+        ? `<button class="btn btn-danger btn-sm" onclick="triggerOverdueLockout('${escapeHtml(contract.id)}','${escapeHtml(contract.unitCode)}','${escapeHtml(contract.customerName)}')">Khóa PIN</button>`
+        : `<button class="btn btn-outline btn-sm" onclick="showToast('Đã ghi nhận yêu cầu nhắc gia hạn cho ${escapeHtml(contract.customerName)}.')">Nhắc gia hạn</button>`;
       return `<tr><td><span class="code-display">${escapeHtml(contract.id)}</span></td><td>${escapeHtml(contract.customerName)}</td><td>${escapeHtml(contract.unitCode)}</td><td>${escapeHtml(contract.endDate)}</td><td><span class="badge ${badge}">${escapeHtml(status)}</span></td><td>${action}</td></tr>`;
-    }).join('') || '<tr><td colspan="6">KhÃ´ng cÃ³ contract.</td></tr>';
+    }).join('') || '<tr><td colspan="6">Không có contract.</td></tr>';
   } catch (error) {
     tbody.innerHTML = `<tr><td colspan="6">${escapeHtml(error.message)}</td></tr>`;
   }
@@ -1950,12 +1950,12 @@ async function approveRefund(contractId, reservationId = '') {
       : `/api/contracts/${encodeURIComponent(contractId)}/refund/approve`;
     const response = await apiFetch(endpoint, { method: 'PATCH' });
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'KhÃ´ng thá»ƒ duyá»‡t hoÃ n cá»c.');
-    showToast(`ÄÃ£ duyá»‡t hoÃ n cá»c cho ${reservationId || contractId}.`);
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể duyệt hoàn cọc.');
+    showToast(`Đã duyệt hoàn cọc cho ${reservationId || contractId}.`);
     await loadPendingRefunds();
     await loadManagedUnits();
   } catch (error) {
-    showToast(error.message || 'KhÃ´ng thá»ƒ duyá»‡t hoÃ n cá»c.');
+    showToast(error.message || 'Không thể duyệt hoàn cọc.');
   }
 }
 
@@ -1963,8 +1963,8 @@ function openUnitStatusModal(code) {
   selectedUnitForModal = (managedUnits || mockUnits).find(u => u.code === code);
   if (!selectedUnitForModal) return;
 
-  document.getElementById('mdlUnitStatusTitle').innerText = `Cáº­p nháº­t Tráº¡ng thÃ¡i PhÃ²ng Kho ${code}`;
-  document.getElementById('mdlUnitStatusName').innerText = `PhÃ²ng ${code} (${selectedUnitForModal.sizeDesc || selectedUnitForModal.size} - GÃ³i ${selectedUnitForModal.type})`;
+  document.getElementById('mdlUnitStatusTitle').innerText = `Cập nhật Trạng thái Phòng Kho ${code}`;
+  document.getElementById('mdlUnitStatusName').innerText = `Phòng ${code} (${selectedUnitForModal.sizeDesc || selectedUnitForModal.size} - Gói ${selectedUnitForModal.type})`;
   document.getElementById('selUnitNewStatus').value = selectedUnitForModal.status.toUpperCase();
   openModal('modalUnitStatus');
 }
@@ -1977,28 +1977,28 @@ async function saveUnitStatusChange() {
       method: 'PATCH', body: JSON.stringify({ status: newStatus })
     });
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'KhÃ´ng thá»ƒ cáº­p nháº­t Unit.');
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể cập nhật Unit.');
     closeModal('modalUnitStatus');
-    showToast(`ÄÃ£ cáº­p nháº­t tráº¡ng thÃ¡i kho ${selectedUnitForModal.code}: ${newStatus.toUpperCase()}`);
+    showToast(`Đã cập nhật trạng thái kho ${selectedUnitForModal.code}: ${newStatus.toUpperCase()}`);
     addAuditLog(currentUser.name, currentActor, 'UPDATE_UNIT_STATUS', `Unit ${selectedUnitForModal.code} -> ${newStatus}`);
     await loadManagedUnits();
   } catch (error) {
-    showToast(error.message || 'KhÃ´ng thá»ƒ cáº­p nháº­t Unit.');
+    showToast(error.message || 'Không thể cập nhật Unit.');
   }
 }
 
 async function deleteManagedUnit(code) {
-  if (!confirm(`XÃ³a Unit ${code}? Chá»‰ Unit trá»‘ng vÃ  khÃ´ng cÃ²n lá»‹ch sá»­ há»£p Ä‘á»“ng/Ä‘áº·t chá»— má»›i Ä‘Æ°á»£c xÃ³a.`)) return;
+  if (!confirm(`Xóa Unit ${code}? Chỉ Unit trống và không còn lịch sử hợp đồng/đặt chỗ mới được xóa.`)) return;
   try {
     const response = await apiFetch(`/api/facilities/units/${encodeURIComponent(code)}`, { method: 'DELETE' });
     if (!response.ok) {
       const result = await response.json();
-      throw new Error(result.message || 'KhÃ´ng thá»ƒ xÃ³a Unit.');
+      throw new Error(result.message || 'Không thể xóa Unit.');
     }
-    showToast(`ÄÃ£ xÃ³a Unit ${code}.`);
+    showToast(`Đã xóa Unit ${code}.`);
     await loadManagedUnits();
   } catch (error) {
-    showToast(error.message || 'KhÃ´ng thá»ƒ xÃ³a Unit.');
+    showToast(error.message || 'Không thể xóa Unit.');
   }
 }
 
@@ -2028,7 +2028,7 @@ async function submitKeypadPin() {
   if (!result) return;
   const unitCode = currentContract?.unitCode;
   if (!unitCode || keypadInput.length !== 6) {
-    showToast('Chá»n há»£p Ä‘á»“ng Ä‘ang thuÃª vÃ  nháº­p Ä‘á»§ 6 sá»‘ PIN.');
+    showToast('Chọn hợp đồng đang thuê và nhập đủ 6 số PIN.');
     return;
   }
   try {
@@ -2036,26 +2036,26 @@ async function submitKeypadPin() {
       method: 'POST', body: JSON.stringify({ unitCode, pin: keypadInput })
     });
     const responseData = await response.json();
-    if (!response.ok || !responseData.success) throw new Error(responseData.message || 'KhÃ´ng thá»ƒ xÃ¡c minh PIN.');
+    if (!response.ok || !responseData.success) throw new Error(responseData.message || 'Không thể xác minh PIN.');
     if (responseData.data?.authorized) {
     result.innerHTML = `
       <div style="background:#ecfdf5; border:1px solid #10b981; border-radius:10px; padding:16px; text-align:center; color:#047857; margin-top:16px;">
-        <div style="font-size:24px; font-weight:800; margin-bottom:4px;">ðŸ”“ ACCESS GRANTED</div>
-        <div style="font-size:13px; font-weight:600;">KhÃ³a Ä‘iá»‡n tá»­ Unit ${unitCode} Ä‘Ã£ má»Ÿ! Thá»i gian má»Ÿ cá»­a: 05:00</div>
+        <div style="font-size:24px; font-weight:800; margin-bottom:4px;">🔓 ACCESS GRANTED</div>
+        <div style="font-size:13px; font-weight:600;">Khóa điện tử Unit ${unitCode} đã mở! Thời gian mở cửa: 05:00</div>
       </div>
     `;
-    showToast('ðŸ”“ Cá»­a kho má»Ÿ thÃ nh cÃ´ng!');
+    showToast('🔓 Cửa kho mở thành công!');
     } else {
     result.innerHTML = `
       <div style="background:#fef2f2; border:1px solid #ef4444; border-radius:10px; padding:16px; text-align:center; color:#b91c1c; margin-top:16px;">
-        <div style="font-size:24px; font-weight:800; margin-bottom:4px;">ðŸ”’ ACCESS DENIED</div>
-        <div style="font-size:13px; font-weight:600;">MÃ£ PIN khÃ´ng chÃ­nh xÃ¡c hoáº·c Ä‘Ã£ háº¿t hiá»‡u lá»±c!</div>
+        <div style="font-size:24px; font-weight:800; margin-bottom:4px;">🔒 ACCESS DENIED</div>
+        <div style="font-size:13px; font-weight:600;">Mã PIN không chính xác hoặc đã hết hiệu lực!</div>
       </div>
     `;
-    showToast('âŒ MÃ£ PIN khÃ´ng Ä‘Ãºng! Vui lÃ²ng thá»­ láº¡i.');
+    showToast('❌ Mã PIN không đúng! Vui lòng thử lại.');
     }
   } catch (error) {
-    showToast(error.message || 'KhÃ´ng thá»ƒ xÃ¡c minh PIN.');
+    showToast(error.message || 'Không thể xác minh PIN.');
   }
 }
 
@@ -2069,12 +2069,12 @@ async function assignUnitToReservation(rsvId, unitCode) {
       method: 'PATCH', body: JSON.stringify({ unitCode })
     });
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'KhÃ´ng thá»ƒ gÃ¡n Unit.');
-    showToast(`ÄÃ£ gÃ¡n ${unitCode} cho reservation ${rsvId}.`);
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể gán Unit.');
+    showToast(`Đã gán ${unitCode} cho reservation ${rsvId}.`);
     addAuditLog(currentUser.name, currentActor, 'ASSIGN_UNIT', `${unitCode} -> ${rsvId}`);
     await loadManagedUnits();
   } catch (error) {
-    showToast(error.message || 'KhÃ´ng thá»ƒ gÃ¡n Unit.');
+    showToast(error.message || 'Không thể gán Unit.');
   }
 }
 
@@ -2085,24 +2085,24 @@ async function loadAssignableReservations() {
   try {
     const reservationsResponse = await apiFetch('/api/reservations');
     const reservationsResult = await reservationsResponse.json();
-    if (!reservationsResponse.ok || !reservationsResult.success) throw new Error(reservationsResult.message || 'KhÃ´ng táº£i Ä‘Æ°á»£c reservations.');
+    if (!reservationsResponse.ok || !reservationsResult.success) throw new Error(reservationsResult.message || 'Không tải được reservations.');
     const reservations = (reservationsResult.data || []).filter(item => item.status === 'RESERVED' && !item.unitCode);
     const rows = await Promise.all(reservations.map(async reservation => {
       const unitResponse = await apiFetch(`/api/facilities/units?facilityCode=${encodeURIComponent(currentUser.facilityCode)}&type=${encodeURIComponent(reservation.unitType)}`);
       const unitResult = await unitResponse.json();
-      if (!unitResponse.ok || !unitResult.success) throw new Error(unitResult.message || 'KhÃ´ng táº£i Ä‘Æ°á»£c Unit trá»‘ng.');
+      if (!unitResponse.ok || !unitResult.success) throw new Error(unitResult.message || 'Không tải được Unit trống.');
       const units = unitResult.data || [];
       const selectId = `assignUnit-${reservation.id.replace(/[^a-zA-Z0-9_-]/g, '')}`;
-      const choices = units.map(unit => `<option value="${unit.code}">${unit.code} (${unit.sizeDesc || unit.sizeSqm + ' mÂ²'})</option>`).join('');
+      const choices = units.map(unit => `<option value="${unit.code}">${unit.code} (${unit.sizeDesc || unit.sizeSqm + ' m²'})</option>`).join('');
       return `<tr>
         <td><span class="code-display">${reservation.id}</span></td><td>${reservation.customerName}</td>
-        <td>${reservation.unitType}</td><td>${reservation.durationMonths} thÃ¡ng</td>
-        <td><span class="badge badge-success">ÄÃ£ cá»c</span></td>
-        <td>${units.length ? `<select id="${selectId}" class="form-control">${choices}</select>` : 'KhÃ´ng cÃ²n Unit trá»‘ng'}</td>
-        <td><button class="btn btn-primary btn-sm" ${units.length ? '' : 'disabled'} onclick="assignUnitToReservation('${reservation.id}', document.getElementById('${selectId}').value)">GÃ¡n kho</button></td>
+        <td>${reservation.unitType}</td><td>${reservation.durationMonths} tháng</td>
+        <td><span class="badge badge-success">Đã cọc</span></td>
+        <td>${units.length ? `<select id="${selectId}" class="form-control">${choices}</select>` : 'Không còn Unit trống'}</td>
+        <td><button class="btn btn-primary btn-sm" ${units.length ? '' : 'disabled'} onclick="assignUnitToReservation('${reservation.id}', document.getElementById('${selectId}').value)">Gán kho</button></td>
       </tr>`;
     }));
-    tbody.innerHTML = rows.join('') || '<tr><td colspan="7">KhÃ´ng cÃ³ reservation Ä‘ang chá» gÃ¡n Unit.</td></tr>';
+    tbody.innerHTML = rows.join('') || '<tr><td colspan="7">Không có reservation đang chờ gán Unit.</td></tr>';
   } catch (error) {
     tbody.innerHTML = `<tr><td colspan="7">${error.message}</td></tr>`;
   }
@@ -2112,7 +2112,7 @@ async function dispatchStaffTask() {
   const taskName = document.getElementById('txtTaskTitle').value.trim();
   const staffName = document.getElementById('selTaskStaff').value;
   if (!taskName) {
-    alert('Vui lÃ²ng nháº­p tÃªn cÃ´ng viá»‡c!');
+    alert('Vui lòng nhập tên công việc!');
     return;
   }
   try {
@@ -2121,21 +2121,21 @@ async function dispatchStaffTask() {
       body: JSON.stringify({ title: taskName, staff: staffName, taskType: inferTaskType(taskName), date: new Date().toISOString().slice(0, 10) })
     });
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'KhÃ´ng thá»ƒ phÃ¢n cÃ´ng task.');
-    showToast(`ÄÃ£ phÃ¢n cÃ´ng viá»‡c "${taskName}" cho ${staffName}.`);
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể phân công task.');
+    showToast(`Đã phân công việc "${taskName}" cho ${staffName}.`);
     addAuditLog(currentUser.name, currentActor, 'DISPATCH_TASK', `Task ${result.data.id} -> ${staffName}`);
     document.getElementById('txtTaskTitle').value = '';
     loadDailyTasks();
   } catch (error) {
-    showToast(error.message || 'KhÃ´ng thá»ƒ phÃ¢n cÃ´ng task.');
+    showToast(error.message || 'Không thể phân công task.');
   }
 }
 
 function inferTaskType(title) {
   const value = title.toLowerCase();
-  if (value.includes('check-in') || value.includes('bÃ n giao')) return 'CHECKIN';
-  if (value.includes('tráº£') || value.includes('nghiá»‡m thu')) return 'RETURN';
-  if (value.includes('báº£o trÃ¬') || value.includes('vá»‡ sinh')) return 'MAINTENANCE';
+  if (value.includes('check-in') || value.includes('bàn giao')) return 'CHECKIN';
+  if (value.includes('trả') || value.includes('nghiệm thu')) return 'RETURN';
+  if (value.includes('bảo trì') || value.includes('vệ sinh')) return 'MAINTENANCE';
   return 'SUPPORT';
 }
 
@@ -2146,7 +2146,7 @@ async function submitCreateUnitByManager() {
   const price = parseInt(document.getElementById('txtNewUnitPrice').value) || 1450000;
 
   if (!code) {
-    alert('Vui lÃ²ng nháº­p mÃ£ phÃ²ng kho!');
+    alert('Vui lòng nhập mã phòng kho!');
     return;
   }
 
@@ -2154,32 +2154,32 @@ async function submitCreateUnitByManager() {
     const response = await apiFetch('/api/facilities/units', {
       method: 'POST',
       body: JSON.stringify({
-        code, type, sizeDesc: `${size.toFixed(1)} mÂ²`, sizeSqm: size, pricePerMonth: price,
+        code, type, sizeDesc: `${size.toFixed(1)} m²`, sizeSqm: size, pricePerMonth: price,
         facilityCode: currentUser.facilityCode, floor: Number((document.getElementById('txtNewUnitLocation').value.match(/\d+/) || [1])[0]),
         status: document.getElementById('selNewUnitInitialStatus').value
       })
     });
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'KhÃ´ng thá»ƒ táº¡o Unit.');
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể tạo Unit.');
     closeModal('modalAddUnit');
-    showToast(`ÄÃ£ thÃªm Unit ${code}.`);
-    addAuditLog(currentUser.name, currentActor, 'CREATE_UNIT', `Unit ${code} (${size}mÂ²)`);
+    showToast(`Đã thêm Unit ${code}.`);
+    addAuditLog(currentUser.name, currentActor, 'CREATE_UNIT', `Unit ${code} (${size}m²)`);
     await loadManagedUnits();
   } catch (error) {
-    showToast(error.message || 'KhÃ´ng thá»ƒ táº¡o Unit.');
+    showToast(error.message || 'Không thể tạo Unit.');
   }
 }
 
 async function triggerOverdueLockout(contractId, unitCode, customerName) {
-  if (!confirm(`XÃ¡c nháº­n khÃ³a PIN Unit ${unitCode} cá»§a ${customerName} do quÃ¡ háº¡n?`)) return;
+  if (!confirm(`Xác nhận khóa PIN Unit ${unitCode} của ${customerName} do quá hạn?`)) return;
   try {
     const response = await apiFetch(`/api/contracts/${encodeURIComponent(contractId)}/overdue-lockout`, { method: 'PATCH' });
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'KhÃ´ng thá»ƒ khÃ³a PIN.');
-    showToast(`ÄÃ£ khÃ³a PIN Unit ${unitCode}.`);
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể khóa PIN.');
+    showToast(`Đã khóa PIN Unit ${unitCode}.`);
     await loadManagerContracts();
   } catch (error) {
-    showToast(error.message || 'KhÃ´ng thá»ƒ khÃ³a PIN.');
+    showToast(error.message || 'Không thể khóa PIN.');
   }
 }
 
@@ -2192,7 +2192,7 @@ async function loadPricingPolicies() {
   try {
     const response = await apiFetch('/api/policies');
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'KhÃ´ng táº£i Ä‘Æ°á»£c chÃ­nh sÃ¡ch.');
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không tải được chính sách.');
     const data = result.data;
     document.getElementById('policyPriceS').value = data.basePrices.S;
     document.getElementById('policyPriceM').value = data.basePrices.M;
@@ -2207,7 +2207,7 @@ async function loadPricingPolicies() {
     document.getElementById('policyFeeOverdue').value = data.extraFees.overduePenaltyPerDay;
     if (document.getElementById('policyGracePeriod')) document.getElementById('policyGracePeriod').value = data.gracePeriodDays ?? 3;
   } catch (error) {
-    showToast(error.message || 'KhÃ´ng táº£i Ä‘Æ°á»£c chÃ­nh sÃ¡ch.');
+    showToast(error.message || 'Không tải được chính sách.');
   }
 }
 
@@ -2217,21 +2217,21 @@ async function loadChainStats() {
     const month = new Date().toISOString().slice(0, 7);
     const response = await apiFetch(`/api/policies/stats?month=${month}`);
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'KhÃ´ng táº£i Ä‘Æ°á»£c bÃ¡o cÃ¡o chuá»—i.');
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không tải được báo cáo chuỗi.');
     const stats = result.data;
-    document.getElementById('chainFacilityCount').innerText = `${stats.totalBranches} Chi nhÃ¡nh`;
+    document.getElementById('chainFacilityCount').innerText = `${stats.totalBranches} Chi nhánh`;
     document.getElementById('chainTotalUnits').innerText = `${stats.totalUnits} Kho`;
-    document.getElementById('chainUnitBreakdown').innerText = `${stats.occupiedUnits} Äang thuÃª â€¢ ${stats.availableUnits} Trá»‘ng â€¢ ${stats.reservedUnits} Giá»¯ chá»—`;
+    document.getElementById('chainUnitBreakdown').innerText = `${stats.occupiedUnits} Đang thuê • ${stats.availableUnits} Trống • ${stats.reservedUnits} Giữ chỗ`;
     document.getElementById('chainOccupancyRate').innerText = stats.occupancyRate;
-    document.getElementById('chainMonthlyRevenue').innerText = `${Number(stats.monthlyRevenue || 0).toLocaleString('vi-VN')} Ä‘`;
+    document.getElementById('chainMonthlyRevenue').innerText = `${Number(stats.monthlyRevenue || 0).toLocaleString('vi-VN')} đ`;
     const tbody = document.getElementById('chainFacilitiesBody');
     if (tbody) tbody.innerHTML = (stats.facilities || []).map((facility, index) => `
       <tr><td><strong>${index + 1}. ${facility.facilityName}</strong></td><td>-</td>
       <td>${facility.totalUnits}</td><td>${facility.occupiedUnits}</td><td>${facility.occupancyRate}</td>
-      <td>${Number(facility.monthlyRevenue || 0).toLocaleString('vi-VN')} Ä‘</td>
+      <td>${Number(facility.monthlyRevenue || 0).toLocaleString('vi-VN')} đ</td>
       <td><span class="badge badge-primary">Live</span></td></tr>`).join('');
   } catch (error) {
-    showToast(error.message || 'KhÃ´ng táº£i Ä‘Æ°á»£c bÃ¡o cÃ¡o chuá»—i.');
+    showToast(error.message || 'Không tải được báo cáo chuỗi.');
   }
 }
 
@@ -2241,14 +2241,14 @@ async function loadFacilityReport() {
     const month = new Date().toISOString().slice(0, 7);
     const response = await apiFetch(`/api/policies/reports/facility?month=${month}`);
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'KhÃ´ng táº£i Ä‘Æ°á»£c bÃ¡o cÃ¡o chi nhÃ¡nh.');
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không tải được báo cáo chi nhánh.');
     const report = result.data;
     const revenue = document.getElementById('facilityMonthlyRevenue');
     const deposits = document.getElementById('facilityHeldDeposits');
-    if (revenue) revenue.innerText = `${Number(report.monthlyRevenue || 0).toLocaleString('vi-VN')} Ä‘`;
-    if (deposits) deposits.innerText = `${Number(report.heldDepositFunds || 0).toLocaleString('vi-VN')} Ä‘`;
+    if (revenue) revenue.innerText = `${Number(report.monthlyRevenue || 0).toLocaleString('vi-VN')} đ`;
+    if (deposits) deposits.innerText = `${Number(report.heldDepositFunds || 0).toLocaleString('vi-VN')} đ`;
   } catch (error) {
-    showToast(error.message || 'KhÃ´ng táº£i Ä‘Æ°á»£c bÃ¡o cÃ¡o chi nhÃ¡nh.');
+    showToast(error.message || 'Không tải được báo cáo chi nhánh.');
   }
 }
 
@@ -2275,18 +2275,18 @@ async function savePricingPolicy() {
   try {
     const response = await apiFetch('/api/policies', { method: 'PATCH', body: JSON.stringify(updates) });
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'KhÃ´ng thá»ƒ lÆ°u chÃ­nh sÃ¡ch.');
-    showToast('ÄÃ£ lÆ°u chÃ­nh sÃ¡ch giÃ¡, cá»c vÃ  phÃ­ vÃ o há»‡ thá»‘ng.');
-    addAuditLog(currentUser.name, currentActor, 'UPDATE_PRICE_POLICY', 'Cáº­p nháº­t khung giÃ¡, tiá»n cá»c, chiáº¿t kháº¥u vÃ  phá»¥ phÃ­');
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không thể lưu chính sách.');
+    showToast('Đã lưu chính sách giá, cọc và phí vào hệ thống.');
+    addAuditLog(currentUser.name, currentActor, 'UPDATE_PRICE_POLICY', 'Cập nhật khung giá, tiền cọc, chiết khấu và phụ phí');
   } catch (error) {
-    showToast(error.message || 'KhÃ´ng thá»ƒ lÆ°u chÃ­nh sÃ¡ch.');
+    showToast(error.message || 'Không thể lưu chính sách.');
   }
 }
 
 function saveGeneralPolicy() {
-  showToast('ÄÃ£ ban hÃ nh Bá»™ quy chuáº©n & ChÃ­nh sÃ¡ch cho thuÃª chung toÃ n chuá»—i 5 cÆ¡ sá»Ÿ!');
-  const uName = currentUser ? currentUser.name : 'Äáº·ng HoÃ ng Long';
-  addAuditLog(uName, 'OPS_MGR', 'UPDATE_GENERAL_POLICY', 'Cáº­p nháº­t chÃ­nh sÃ¡ch an toÃ n, cá»c vÃ  thá»i gian Ã¢n háº¡n');
+  showToast('Đã ban hành Bộ quy chuẩn & Chính sách cho thuê chung toàn chuỗi 5 cơ sở!');
+  const uName = currentUser ? currentUser.name : 'Đặng Hoàng Long';
+  addAuditLog(uName, 'OPS_MGR', 'UPDATE_GENERAL_POLICY', 'Cập nhật chính sách an toàn, cọc và thời gian ân hạn');
 }
 
 async function exportFinancialReport() {
@@ -2294,7 +2294,7 @@ async function exportFinancialReport() {
     const month = new Date().toISOString().slice(0, 7);
     const response = await apiFetch(`/api/policies/stats?month=${month}`);
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'KhÃ´ng táº£i Ä‘Æ°á»£c bÃ¡o cÃ¡o.');
+    if (!response.ok || !result.success) throw new Error(result.message || 'Không tải được báo cáo.');
     const rows = result.data.facilities || [];
     const csvRows = [
       ['Facility', 'Total units', 'Available', 'Reserved', 'Occupied', 'Occupancy rate', 'Monthly revenue'],
@@ -2307,9 +2307,9 @@ async function exportFinancialReport() {
     link.download = `SelfStorage_Report_${month}.csv`;
     link.click();
     URL.revokeObjectURL(link.href);
-    showToast('ÄÃ£ táº£i bÃ¡o cÃ¡o hiá»‡n táº¡i tá»« backend.');
+    showToast('Đã tải báo cáo hiện tại từ backend.');
   } catch (error) {
-    showToast(error.message || 'KhÃ´ng thá»ƒ xuáº¥t bÃ¡o cÃ¡o.');
+    showToast(error.message || 'Không thể xuất báo cáo.');
   }
 }
 
@@ -2326,7 +2326,7 @@ function renderUserTable() {
       <td><span class="code-display">${u.id}</span></td>
       <td>
         <div style="font-weight:700; color:#0f172a;">${u.name}</div>
-        <div style="font-size:12px; color:#64748b;">${u.email} â€¢ <strong>@${u.username}</strong></div>
+        <div style="font-size:12px; color:#64748b;">${u.email} • <strong>@${u.username}</strong></div>
       </td>
       <td>${u.phone}</td>
       <td>
@@ -2340,12 +2340,12 @@ function renderUserTable() {
       <td>${u.facility}</td>
       <td>
         <span class="badge ${u.status === 'ACTIVE' ? 'badge-success' : 'badge-danger'}">
-          ${u.status === 'ACTIVE' ? 'ðŸŸ¢ Hoáº¡t Ä‘á»™ng' : 'ðŸ”´ KhÃ³a'}
+          ${u.status === 'ACTIVE' ? '🟢 Hoạt động' : '🔴 Khóa'}
         </span>
       </td>
       <td>
         <button class="btn btn-outline btn-sm" onclick="toggleLockUser('${u.id}')">
-          ${u.status === 'ACTIVE' ? 'KhÃ³a' : 'Má»Ÿ'}
+          ${u.status === 'ACTIVE' ? 'Khóa' : 'Mở'}
         </button>
       </td>
     </tr>
@@ -2357,9 +2357,9 @@ function toggleLockUser(userId) {
   if (!target) return;
   target.status = target.status === 'ACTIVE' ? 'LOCKED' : 'ACTIVE';
   renderUserTable();
-  showToast(`ÄÃ£ thay Ä‘á»•i tráº¡ng thÃ¡i tÃ i khoáº£n ${target.name} (@${target.username}) thÃ nh: ${target.status}!`);
-  const uName = currentUser ? currentUser.name : 'Quáº£n trá»‹ viÃªn';
-  addAuditLog(uName, 'ADMIN', 'TOGGLE_USER_STATUS', `Äá»•i tráº¡ng thÃ¡i tÃ i khoáº£n ${target.id} (@${target.username}) -> ${target.status}`);
+  showToast(`Đã thay đổi trạng thái tài khoản ${target.name} (@${target.username}) thành: ${target.status}!`);
+  const uName = currentUser ? currentUser.name : 'Quản trị viên';
+  addAuditLog(uName, 'ADMIN', 'TOGGLE_USER_STATUS', `Đổi trạng thái tài khoản ${target.id} (@${target.username}) -> ${target.status}`);
 }
 
 function submitCreateUserByAdmin() {
@@ -2373,13 +2373,13 @@ function submitCreateUserByAdmin() {
   const facility = document.getElementById('selNewUserFacility').value;
 
   if (!name || !username || !password || !email) {
-    alert('Vui lÃ²ng Ä‘iá»n Ä‘áº§y Ä‘á»§ cÃ¡c thÃ´ng tin báº¯t buá»™c (*)!');
+    alert('Vui lòng điền đầy đủ các thông tin bắt buộc (*)!');
     return;
   }
 
   const exists = mockUsers.find(u => u.username === username);
   if (exists) {
-    alert(`TÃªn Ä‘Äƒng nháº­p @${username} Ä‘Ã£ tá»“n táº¡i!`);
+    alert(`Tên đăng nhập @${username} đã tồn tại!`);
     return;
   }
 
@@ -2403,9 +2403,9 @@ function submitCreateUserByAdmin() {
   mockUsers.push(newUser);
   renderUserTable();
   closeModal('modalAddUser');
-  showToast(`ÄÃ£ táº¡o thÃ nh cÃ´ng tÃ i khoáº£n @${username} cho ${name} (${role})!`);
-  const uName = currentUser ? currentUser.name : 'Quáº£n trá»‹ viÃªn';
-  addAuditLog(uName, 'ADMIN', 'CREATE_USER', `Táº¡o tÃ i khoáº£n má»›i @${username} (${role})`);
+  showToast(`Đã tạo thành công tài khoản @${username} cho ${name} (${role})!`);
+  const uName = currentUser ? currentUser.name : 'Quản trị viên';
+  addAuditLog(uName, 'ADMIN', 'CREATE_USER', `Tạo tài khoản mới @${username} (${role})`);
 }
 
 function renderAuditLogsTable() {
@@ -2429,10 +2429,10 @@ function renderAuditLogsTable() {
 
 function addAuditLog(user, role, action, detail) {
   const now = new Date();
-  const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')} HÃ´m nay`;
+  const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')} Hôm nay`;
   mockAuditLogs.unshift({
     time: timeStr,
-    user: user || 'Há»‡ thá»‘ng',
+    user: user || 'Hệ thống',
     role: role || 'SYSTEM',
     action: action,
     detail: detail,
