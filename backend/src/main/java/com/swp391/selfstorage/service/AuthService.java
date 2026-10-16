@@ -79,6 +79,9 @@ public class AuthService {
             recordLogin(user.getUsername(), user.getName(), user.getRole(), ip, device, "BLOCKED");
             throw new IllegalArgumentException("Tài khoản đã bị khóa!");
         }
+        if (!user.isEmailVerified()) {
+            throw new IllegalArgumentException("Email chưa được xác minh!");
+        }
 
         recordLogin(user.getUsername(), user.getName(), user.getRole(), ip, device, "SUCCESS");
 
@@ -119,14 +122,16 @@ public class AuthService {
         }
 
         // Giới tính
-        if (data.getGender() == null || (!data.getGender().equals("Nam") && !data.getGender().equals("Nữ") && !data.getGender().equals("Khác"))) {
+        if (data.getGender() == null || (!data.getGender().equals("Nam") && !data.getGender().equals("Nữ"))) {
             throw new IllegalArgumentException("Thông tin không hợp lệ!");
         }
 
         // Số điện thoại
         if (data.getPhone() == null) throw new IllegalArgumentException("Thông tin không hợp lệ!");
         String cleanPhone = data.getPhone().replaceAll("[\\s.-]", "");
-        if (!cleanPhone.matches("^(03|05|07|08|09)[0-9]{8}$")) {
+        if (!cleanPhone.matches("^(03|05|07|08|09)[0-9]{8}$")
+            || cleanPhone.matches("(\\d)\\1{9}")
+            || Set.of("0999999999", "0123456789", "1234567890", "9876543210").contains(cleanPhone)) {
             throw new IllegalArgumentException("Thông tin không hợp lệ!");
         }
 
@@ -152,6 +157,17 @@ public class AuthService {
         if (!VALID_PROVINCES.contains(provinceCode)) {
             throw new IllegalArgumentException("Thông tin không hợp lệ!");
         }
+        int genderCentury = cleanCccd.charAt(3) - '0';
+        if (genderCentury < 0 || genderCentury > 3) {
+            throw new IllegalArgumentException("Thông tin không hợp lệ!");
+        }
+        int cccdBirthYear = (genderCentury < 2 ? 1900 : 2000)
+                + Integer.parseInt(cleanCccd.substring(4, 6));
+        boolean cccdIsMale = genderCentury % 2 == 0;
+        if (cccdBirthYear != dob.getYear()
+                || cccdIsMale != "Nam".equals(data.getGender())) {
+            throw new IllegalArgumentException("Thông tin không hợp lệ!");
+        }
 
         // Tên đăng nhập
         if (data.getUsername() == null) throw new IllegalArgumentException("Thông tin không hợp lệ!");
@@ -168,7 +184,7 @@ public class AuthService {
         if (data.getPassword() == null || data.getPassword().length() < 6) {
             throw new IllegalArgumentException("Thông tin không hợp lệ!");
         }
-        if (data.getConfirmPassword() != null && !data.getPassword().equals(data.getConfirmPassword())) {
+        if (data.getConfirmPassword() == null || !data.getPassword().equals(data.getConfirmPassword())) {
             throw new IllegalArgumentException("Thông tin không hợp lệ!");
         }
     }
@@ -176,25 +192,47 @@ public class AuthService {
     public ApiResponse<Map<String, Object>> generateAndSendOtp(RegisterRequest data) {
         validateRegistrationData(data);
 
-        String code = String.valueOf((int) (100000 + Math.random() * 900000));
-        long expiresAt = System.currentTimeMillis() + 5 * 60 * 1000; // 5 phút
-
         String cleanEmail = data.getEmail().trim().toLowerCase();
-        pendingOtps.put(cleanEmail, new PendingOtpData(code, data, expiresAt));
+        PendingOtpData pending = createOtp(data);
+        pendingOtps.put(cleanEmail, pending);
 
-        System.out.println("[AuthService] 📬 Đã gửi mã xác minh email tới [" + cleanEmail + "]: Mã OTP = " + code);
+        System.out.println("[AuthService] 📬 Đã gửi mã xác minh email tới [" + cleanEmail + "]: Mã OTP = " + pending.code);
 
         Map<String, Object> respData = new HashMap<>();
         respData.put("email", cleanEmail);
-        respData.put("code", code);
+        respData.put("code", pending.code);
 
         ApiResponse<Map<String, Object>> resp = ApiResponse.ok(
                 "Mã xác minh đã được gửi tới email " + cleanEmail + "!",
                 respData
         );
-        resp.setCode(code);
+        resp.setCode(pending.code);
         resp.setEmail(cleanEmail);
         return resp;
+    }
+
+    public ApiResponse<Map<String, Object>> resendOtp(String email) {
+        String cleanEmail = email == null ? "" : email.trim().toLowerCase();
+        PendingOtpData current = pendingOtps.get(cleanEmail);
+        if (current == null || System.currentTimeMillis() > current.expiresAt) {
+            pendingOtps.remove(cleanEmail);
+            throw new IllegalArgumentException("Phiên xác minh không tồn tại hoặc đã hết hạn. Vui lòng đăng ký lại!");
+        }
+        long now = System.currentTimeMillis();
+        if (now < current.resendAfter) {
+            long waitSeconds = Math.max(1, (current.resendAfter - now + 999) / 1000);
+            throw new IllegalArgumentException("Vui lòng chờ " + waitSeconds + " giây trước khi gửi lại mã.");
+        }
+        PendingOtpData replacement = createOtp(current.data);
+        pendingOtps.put(cleanEmail, replacement);
+        System.out.println("[AuthService] 📬 Đã gửi lại mã xác minh email tới [" + cleanEmail + "]: Mã OTP = " + replacement.code);
+        Map<String, Object> data = new HashMap<>();
+        data.put("email", cleanEmail);
+        data.put("code", replacement.code);
+        ApiResponse<Map<String, Object>> response = ApiResponse.ok("Đã gửi lại mã xác minh mới tới " + cleanEmail + "!", data);
+        response.setCode(replacement.code);
+        response.setEmail(cleanEmail);
+        return response;
     }
 
     public ApiResponse<UserDto> verifyOtpAndRegister(String email, String code, String ip) {
@@ -230,8 +268,7 @@ public class AuthService {
         String cleanUsername = data.getUsername().trim().toLowerCase();
         String cleanEmail = data.getEmail().trim().toLowerCase();
 
-        long count = userRepository.count();
-        String userId = "USR-0" + (count + 1);
+        String userId = "USR-" + UUID.randomUUID();
 
         User user = new User();
         user.setId(userId);
@@ -246,6 +283,7 @@ public class AuthService {
         user.setFacility(data.getFacility() != null ? data.getFacility() : "Hà Nội - Cầu Giấy");
         user.setFacilityCode(data.getFacilityCode() != null ? data.getFacilityCode() : "HN-CG");
         user.setStatus("ACTIVE");
+        user.setEmailVerified(true);
         user.setCreatedAt(LocalDateTime.now());
 
         User saved = userRepository.save(user);
@@ -280,6 +318,12 @@ public class AuthService {
         return m;
     }
 
+    private static PendingOtpData createOtp(RegisterRequest data) {
+        long now = System.currentTimeMillis();
+        String code = String.valueOf(100000 + new java.security.SecureRandom().nextInt(900000));
+        return new PendingOtpData(code, data, now + 5 * 60 * 1000, now + 60 * 1000);
+    }
+
     private void recordLogin(String username, String name, String role, String ip, String device, String status) {
         try {
             String timeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
@@ -294,11 +338,13 @@ public class AuthService {
         final String code;
         final RegisterRequest data;
         final long expiresAt;
+        final long resendAfter;
 
-        PendingOtpData(String code, RegisterRequest data, long expiresAt) {
+        PendingOtpData(String code, RegisterRequest data, long expiresAt, long resendAfter) {
             this.code = code;
             this.data = data;
             this.expiresAt = expiresAt;
+            this.resendAfter = resendAfter;
         }
     }
 }

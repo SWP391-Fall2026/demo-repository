@@ -39,11 +39,14 @@ CREATE TABLE IF NOT EXISTS public.units (
   facility_code TEXT REFERENCES public.facilities(code) ON DELETE CASCADE,
   type TEXT NOT NULL CHECK (type IN ('S', 'M', 'L', 'CLIMATE')),
   size_desc TEXT,
+  floor INT,
   size_sqm NUMERIC(5,2) NOT NULL,
   price_per_month NUMERIC(12,2) NOT NULL,
   status TEXT NOT NULL DEFAULT 'available' CHECK (status IN ('available', 'reserved', 'occupied', 'cleaning', 'maintenance')),
   tenant_name TEXT,
-  pin_code TEXT DEFAULT '842916'
+  pin_code TEXT DEFAULT '842916',
+  temporary_pin TEXT,
+  temporary_pin_expires_at TIMESTAMPTZ
 );
 
 -- 4. BẢNG RESERVATIONS (ĐƠN ĐẶT GIỮ CHỖ TRỰC TUYẾN)
@@ -59,6 +62,7 @@ CREATE TABLE IF NOT EXISTS public.reservations (
   start_date DATE NOT NULL,
   deposit_amount NUMERIC(12,2) NOT NULL,
   status TEXT DEFAULT 'PENDING_PAYMENT' CHECK (status IN ('PENDING_PAYMENT', 'RESERVED', 'CHECKED_IN', 'CANCELLED', 'EXPIRED')),
+  appointment TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -75,6 +79,9 @@ CREATE TABLE IF NOT EXISTS public.contracts (
   monthly_fee NUMERIC(12,2) NOT NULL,
   deposit_fee NUMERIC(12,2) NOT NULL,
   status TEXT DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'EXPIRING_SOON', 'OVERDUE', 'TERMINATED')),
+  last_renewal_at TIMESTAMPTZ,
+  checkout_requested_at TIMESTAMPTZ,
+  checkout_requested_date DATE,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -88,6 +95,7 @@ CREATE TABLE IF NOT EXISTS public.payments (
   amount NUMERIC(12,2) NOT NULL,
   payment_method TEXT DEFAULT 'VIETQR_NAPAS247',
   transaction_code TEXT,
+  time_str TEXT,
   status TEXT DEFAULT 'PAID' CHECK (status IN ('PENDING', 'PAID', 'FAILED', 'REFUNDED')),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -96,14 +104,70 @@ CREATE TABLE IF NOT EXISTS public.payments (
 CREATE TABLE IF NOT EXISTS public.support_tickets (
   id TEXT PRIMARY KEY,
   user_id TEXT REFERENCES public.users(id),
+  facility_code TEXT,
   customer_name TEXT NOT NULL,
   unit_code TEXT,
+  title TEXT,
   category TEXT NOT NULL,
   priority TEXT DEFAULT 'NORMAL' CHECK (priority IN ('NORMAL', 'HIGH', 'URGENT')),
   description TEXT NOT NULL,
+  attachment_url TEXT,
   status TEXT DEFAULT 'OPEN' CHECK (status IN ('OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED')),
+  staff_assigned TEXT,
+  notes TEXT,
+  rating INT,
+  feedback TEXT,
+  resolved_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- 8A. BUSINESS POLICIES (PRICING, DEPOSIT, GRACE PERIOD)
+CREATE TABLE IF NOT EXISTS public.business_policies (
+  policy_key TEXT PRIMARY KEY,
+  policy_value TEXT NOT NULL,
+  updated_by TEXT,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 8B. HANDOVER, INSPECTION AND REFUND AUDIT RECORDS
+CREATE TABLE IF NOT EXISTS public.handover_records (
+  id TEXT PRIMARY KEY,
+  contract_id TEXT NOT NULL,
+  reservation_id TEXT NOT NULL,
+  staff_id TEXT NOT NULL,
+  handover_date TIMESTAMPTZ NOT NULL,
+  lock_type TEXT,
+  unit_condition_notes TEXT,
+  customer_signature_confirmed BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE TABLE IF NOT EXISTS public.inspection_records (
+  id TEXT PRIMARY KEY,
+  contract_id TEXT NOT NULL,
+  staff_id TEXT NOT NULL,
+  inspection_date TIMESTAMPTZ NOT NULL,
+  cleanliness_status TEXT,
+  damage_notes TEXT,
+  penalty_fee NUMERIC(12,2) NOT NULL DEFAULT 0,
+  deposit_refund_amount NUMERIC(12,2) NOT NULL DEFAULT 0,
+  is_cleared BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE TABLE IF NOT EXISTS public.refund_requests (
+  id TEXT PRIMARY KEY,
+  contract_id TEXT,
+  reservation_id TEXT,
+  inspection_id TEXT,
+  payment_id TEXT,
+  facility_code TEXT NOT NULL,
+  approved_amount NUMERIC(12,2) NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'PENDING',
+  completed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE public.refund_requests ADD COLUMN IF NOT EXISTS reservation_id TEXT;
+ALTER TABLE public.refund_requests ALTER COLUMN contract_id DROP NOT NULL;
+ALTER TABLE public.refund_requests ALTER COLUMN inspection_id DROP NOT NULL;
 
 -- 8. BẢNG STAFF_TASKS (NHIỆM VỤ CA TRỰC NHÂN VIÊN)
 CREATE TABLE IF NOT EXISTS public.staff_tasks (
@@ -116,6 +180,23 @@ CREATE TABLE IF NOT EXISTS public.staff_tasks (
   priority TEXT DEFAULT 'MEDIUM',
   status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'IN_PROGRESS', 'COMPLETED')),
   due_date DATE DEFAULT CURRENT_DATE
+);
+
+-- Spring Boot entity table used by DailyTaskRepository.
+CREATE TABLE IF NOT EXISTS public.daily_tasks (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  staff TEXT NOT NULL,
+  deadline TEXT,
+  status TEXT DEFAULT 'PENDING',
+  facility_code TEXT,
+  staff_id TEXT,
+  task_type TEXT,
+  unit_code TEXT,
+  reservation_id TEXT,
+  contract_id TEXT,
+  due_date DATE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- 9. BẢNG AUDIT_LOGS (NHẬT KÝ THAO TÁC HỆ THỐNG)
@@ -214,6 +295,11 @@ ALTER TABLE public.contracts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.support_tickets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.staff_tasks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.daily_tasks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.business_policies ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.handover_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.inspection_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.refund_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.login_history ENABLE ROW LEVEL SECURITY;
 
@@ -241,6 +327,21 @@ CREATE POLICY "Public access support_tickets" ON public.support_tickets FOR ALL 
 
 DROP POLICY IF EXISTS "Public access staff_tasks" ON public.staff_tasks;
 CREATE POLICY "Public access staff_tasks" ON public.staff_tasks FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public access daily_tasks" ON public.daily_tasks;
+CREATE POLICY "Public access daily_tasks" ON public.daily_tasks FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public access business_policies" ON public.business_policies;
+CREATE POLICY "Public access business_policies" ON public.business_policies FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public access handover_records" ON public.handover_records;
+CREATE POLICY "Public access handover_records" ON public.handover_records FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public access inspection_records" ON public.inspection_records;
+CREATE POLICY "Public access inspection_records" ON public.inspection_records FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public access refund_requests" ON public.refund_requests;
+CREATE POLICY "Public access refund_requests" ON public.refund_requests FOR ALL USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Public access audit_logs" ON public.audit_logs;
 CREATE POLICY "Public access audit_logs" ON public.audit_logs FOR ALL USING (true) WITH CHECK (true);

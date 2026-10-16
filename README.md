@@ -27,6 +27,18 @@ mvn spring-boot:run
 ```
 *Backend Spring Boot API sẽ lắng nghe tại: `http://localhost:8080`*
 
+Backend dùng Supabase PostgreSQL qua JDBC. `SUPABASE_ANON_KEY` chỉ dùng cho Supabase REST/Auth, không thay thế Database Password của PostgreSQL. Cấu hình trước khi chạy:
+
+```powershell
+$env:SUPABASE_DB_URL="jdbc:postgresql://db.<project-ref>.supabase.co:5432/postgres?sslmode=require"
+$env:SUPABASE_DB_USER="postgres"
+$env:SUPABASE_DB_PASSWORD="<Database Password>"
+cd backend
+mvn spring-boot:run
+```
+
+Nếu direct host/port `5432` timeout, lấy **Session Pooler** trong Supabase Dashboard → Connect → Connection pooling. URL thường có dạng `jdbc:postgresql://aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=require`; user pooler có dạng `postgres.<project-ref>`.
+
 ### Bước 2: Khởi động Frontend Web
 ```bash
 # Cách 1: Đứng tại thư mục gốc chạy:
