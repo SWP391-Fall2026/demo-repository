@@ -31,7 +31,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class PolicyAnalyticsService {
     private static final Set<String> POLICY_KEYS = Set.of(
-            "basePrices", "depositRule", "durationDiscounts", "extraFees", "gracePeriodDays");
+            "basePrices", "depositRule", "durationDiscounts", "extraFees", "gracePeriodDays", "generalRules");
 
     private final BusinessPolicyRepository policyRepository;
     private final FacilityRepository facilityRepository;
@@ -254,6 +254,11 @@ public class PolicyAnalyticsService {
         defaults.put("durationDiscounts", discounts);
         defaults.put("extraFees", fees);
         defaults.put("gracePeriodDays", 3);
+        Map<String, Object> generalRules = new LinkedHashMap<>();
+        generalRules.put("serviceStandard", "24/7 camera, access control and fire safety");
+        generalRules.put("insuranceNotice", "Customer must not store prohibited or hazardous goods");
+        generalRules.put("prohibitedItems", "Flammable, explosive, toxic, illegal goods and live animals");
+        defaults.put("generalRules", generalRules);
         return defaults;
     }
 
@@ -282,9 +287,17 @@ public class PolicyAnalyticsService {
                 case "basePrices" -> Set.of("S", "M", "L", "CLIMATE").contains(name);
                 case "durationDiscounts" -> Set.of("3", "6", "12").contains(name);
                 case "extraFees" -> Set.of("cleaning", "newLock", "overduePenaltyPerDay").contains(name);
+                case "generalRules" -> Set.of("serviceStandard", "insuranceNotice", "prohibitedItems").contains(name);
                 default -> false;
             };
             if (!allowed) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported policy item: " + name);
+            if ("generalRules".equals(key)) {
+                if (!(input instanceof String text) || text.isBlank() || text.length() > 2000) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "General rule must be non-empty text");
+                }
+                merged.put(name, text.trim());
+                return;
+            }
             if (!(input instanceof Number number)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, key + "." + name + " must be numeric");
             }

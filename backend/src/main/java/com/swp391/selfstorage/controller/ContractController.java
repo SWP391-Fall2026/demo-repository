@@ -77,8 +77,14 @@ public class ContractController {
             @AuthenticationPrincipal UserDetails principal,
             @RequestBody Map<String, String> body) {
         String contractId = body.get("contractId");
-        LocalDate requestedDate = body.get("requestedDate") == null
-                ? LocalDate.now() : LocalDate.parse(body.get("requestedDate"));
+        LocalDate requestedDate;
+        try {
+            requestedDate = body.get("requestedDate") == null
+                    ? LocalDate.now() : LocalDate.parse(body.get("requestedDate"));
+        } catch (RuntimeException exception) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "requestedDate must use yyyy-MM-dd format");
+        }
         Contract contract = contractService.requestCheckout(principal.getUsername(), contractId, requestedDate);
         return ResponseEntity.ok(ApiResponse.ok(contract));
     }

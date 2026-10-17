@@ -197,6 +197,8 @@ window.addEventListener('DOMContentLoaded', async () => {
   renderSupportTicketsTable();
   startPaymentCountdown();
   renderLandingBranchInventory('HN-CG');
+  if (authToken && currentActor === 'ADMIN') { loadAdminUsers(); loadAuditLogs(); loadLoginHistory(); }
+  if (authToken) loadNotifications();
 });
 
 // ==============================================================================
@@ -1008,8 +1010,11 @@ function navigateToScreen(screenId) {
   if (screenId === 'SCR-O01' || screenId === 'SCR-O04') loadChainStats();
   if (screenId === 'SCR-M06') loadFacilityReport();
   if (screenId === 'SCR-C05') loadMyContracts();
+  if (screenId === 'SCR-C05') loadNotifications();
   if (screenId === 'SCR-C06' || screenId === 'SCR-S06') loadSupportTickets();
   if (screenId === 'SCR-S01') loadSupportTickets();
+  if (screenId === 'SCR-A02') loadAdminUsers();
+  if (screenId === 'SCR-A05') { loadAuditLogs(); loadLoginHistory(); }
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -2317,95 +2322,59 @@ async function exportFinancialReport() {
 // SYSTEM ADMINISTRATOR WORKFLOWS
 // ==============================================================================
 
+async function loadAdminUsers() {
+  if (!authToken || currentActor !== 'ADMIN') return;
+  try {
+    const response = await apiFetch('/api/auth/users');
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Unable to load users.');
+    mockUsers = result.data || [];
+    renderUserTable();
+  } catch (error) { showToast(error.message || 'Unable to load users.'); }
+}
+
 function renderUserTable() {
   const tbody = document.getElementById('tblUsersBody');
   if (!tbody) return;
-
   tbody.innerHTML = mockUsers.map(u => `
-    <tr>
-      <td><span class="code-display">${u.id}</span></td>
-      <td>
-        <div style="font-weight:700; color:#0f172a;">${u.name}</div>
-        <div style="font-size:12px; color:#64748b;">${u.email} • <strong>@${u.username}</strong></div>
-      </td>
-      <td>${u.phone}</td>
-      <td>
-        <span class="badge ${
-          u.role === 'CUSTOMER' ? 'badge-primary' :
-          u.role === 'STAFF' ? 'badge-teal' :
-          u.role === 'FMANAGER' ? 'badge-purple' :
-          u.role === 'OPS_MGR' ? 'badge-warning' : 'badge-danger'
-        }">${u.role}</span>
-      </td>
-      <td>${u.facility}</td>
-      <td>
-        <span class="badge ${u.status === 'ACTIVE' ? 'badge-success' : 'badge-danger'}">
-          ${u.status === 'ACTIVE' ? '🟢 Hoạt động' : '🔴 Khóa'}
-        </span>
-      </td>
-      <td>
-        <button class="btn btn-outline btn-sm" onclick="toggleLockUser('${u.id}')">
-          ${u.status === 'ACTIVE' ? 'Khóa' : 'Mở'}
-        </button>
-      </td>
-    </tr>
-  `).join('');
+    <tr><td><span class="code-display">${u.id}</span></td>
+      <td><div style="font-weight:700;color:#0f172a;">${u.name || ''}</div><div style="font-size:12px;color:#64748b;">${u.email || ''} - <strong>@${u.username || ''}</strong></div></td>
+      <td>${u.phone || ''}</td><td><span class="badge">${u.role || ''}</span></td><td>${u.facility || u.facilityCode || ''}</td>
+      <td><span class="badge ${u.status === 'ACTIVE' ? 'badge-success' : 'badge-danger'}">${u.status || ''}</span></td>
+      <td><button class="btn btn-outline btn-sm" onclick="toggleLockUser('${u.id}')">${u.status === 'ACTIVE' ? 'Lock' : 'Unlock'}</button></td></tr>`).join('');
 }
 
-function toggleLockUser(userId) {
-  const target = mockUsers.find(u => u.id === userId);
-  if (!target) return;
-  target.status = target.status === 'ACTIVE' ? 'LOCKED' : 'ACTIVE';
-  renderUserTable();
-  showToast(`Đã thay đổi trạng thái tài khoản ${target.name} (@${target.username}) thành: ${target.status}!`);
-  const uName = currentUser ? currentUser.name : 'Quản trị viên';
-  addAuditLog(uName, 'ADMIN', 'TOGGLE_USER_STATUS', `Đổi trạng thái tài khoản ${target.id} (@${target.username}) -> ${target.status}`);
+async function toggleLockUser(userId) {
+  try {
+    const response = await apiFetch(`/api/auth/users/${encodeURIComponent(userId)}/toggle-lock`, { method: 'PATCH' });
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Unable to change account status.');
+    await loadAdminUsers();
+    showToast(`Account status: ${result.data.status}.`);
+  } catch (error) { showToast(error.message || 'Unable to change account status.'); }
 }
 
-function submitCreateUserByAdmin() {
-  const name = document.getElementById('txtNewUserName').value.trim();
-  const username = document.getElementById('txtNewUserUsername').value.trim().toLowerCase();
-  const password = document.getElementById('txtNewUserPassword').value.trim();
-  const phone = document.getElementById('txtNewUserPhone').value.trim();
-  const email = document.getElementById('txtNewUserEmail').value.trim();
-  const cccd = document.getElementById('txtNewUserCccd').value.trim();
-  const role = document.getElementById('selNewUserRole').value;
-  const facility = document.getElementById('selNewUserFacility').value;
-
-  if (!name || !username || !password || !email) {
-    alert('Vui lòng điền đầy đủ các thông tin bắt buộc (*)!');
-    return;
-  }
-
-  const exists = mockUsers.find(u => u.username === username);
-  if (exists) {
-    alert(`Tên đăng nhập @${username} đã tồn tại!`);
-    return;
-  }
-
-  const meta = ROLE_METADATA[role] || ROLE_METADATA.CUSTOMER;
-
-  const newUser = {
-    id: `USR-0${mockUsers.length + 1}`,
-    name,
-    username,
-    password,
-    phone: phone || '0900.000.000',
-    email,
-    cccd: cccd || '0012020xxxxx',
-    role,
-    roleTitle: meta.title,
-    facility,
-    facilityCode: 'HN-CG',
-    status: 'ACTIVE'
+async function submitCreateUserByAdmin() {
+  const payload = {
+    name: document.getElementById('txtNewUserName').value.trim(),
+    username: document.getElementById('txtNewUserUsername').value.trim().toLowerCase(),
+    password: document.getElementById('txtNewUserPassword').value.trim(),
+    phone: document.getElementById('txtNewUserPhone').value.trim(),
+    email: document.getElementById('txtNewUserEmail').value.trim(),
+    cccd: document.getElementById('txtNewUserCccd').value.trim(),
+    role: document.getElementById('selNewUserRole').value,
+    facility: document.getElementById('selNewUserFacility').value,
+    facilityCode: ['HN-CG', 'HCM-Q7', 'HN-NTL', 'HCM-TB', 'DN-HC', 'HQ'][document.getElementById('selNewUserFacility').selectedIndex] || 'HQ'
   };
-
-  mockUsers.push(newUser);
-  renderUserTable();
-  closeModal('modalAddUser');
-  showToast(`Đã tạo thành công tài khoản @${username} cho ${name} (${role})!`);
-  const uName = currentUser ? currentUser.name : 'Quản trị viên';
-  addAuditLog(uName, 'ADMIN', 'CREATE_USER', `Tạo tài khoản mới @${username} (${role})`);
+  if (!payload.name || !payload.username || !payload.password || !payload.email) { alert('Fill required fields.'); return; }
+  try {
+    const response = await apiFetch('/api/auth/users', { method: 'POST', body: JSON.stringify(payload) });
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Unable to create account.');
+    closeModal('modalAddUser');
+    await loadAdminUsers();
+    showToast(`Created @${payload.username}.`);
+  } catch (error) { showToast(error.message || 'Unable to create account.'); }
 }
 
 function renderAuditLogsTable() {
@@ -2427,6 +2396,43 @@ function renderAuditLogsTable() {
   `).join('');
 }
 
+async function loadAuditLogs() {
+  if (!authToken || currentActor !== 'ADMIN') return;
+  try {
+    const response = await apiFetch('/api/audit-logs');
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Unable to load audit logs.');
+    mockAuditLogs = (result.data || []).map(log => ({
+      time: log.timeStr || log.createdAt || '', user: log.userName || '', role: log.role || '',
+      action: log.action || '', detail: log.detail || '', ip: log.ip || '', status: log.status || 'SUCCESS'
+    }));
+    renderAuditLogsTable();
+  } catch (error) { showToast(error.message || 'Unable to load audit logs.'); }
+}
+
+async function loadLoginHistory() {
+  if (!authToken || currentActor !== 'ADMIN') return;
+  const tbody = document.getElementById('tblLoginHistoryBody');
+  if (!tbody) return;
+  try {
+    const response = await apiFetch('/api/auth/login-history');
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Unable to load login history.');
+    tbody.innerHTML = (result.data || []).map(log => `<tr><td>${log.time || log.createdAt || ''}</td><td>${log.name || ''}<br><small>@${log.username || ''}</small></td><td>${log.role || ''}</td><td>${log.ip || ''}</td><td>${log.device || ''}</td><td><span class="badge ${log.status === 'SUCCESS' ? 'badge-success' : 'badge-danger'}">${log.status || ''}</span></td></tr>`).join('');
+  } catch (error) { showToast(error.message || 'Unable to load login history.'); }
+}
+
+async function loadNotifications() {
+  if (!authToken) return;
+  try {
+    const response = await apiFetch('/api/notifications');
+    const result = await response.json();
+    if (!response.ok || !result.success) return;
+    const unread = (result.data || []).filter(item => !item.read);
+    if (unread.length) showToast(`${unread.length} notification(s): ${unread[0].title}`);
+  } catch (_) { /* notification failure must not block core flows */ }
+}
+
 function addAuditLog(user, role, action, detail) {
   const now = new Date();
   const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')} Hôm nay`;
@@ -2440,6 +2446,9 @@ function addAuditLog(user, role, action, detail) {
     status: 'SUCCESS'
   });
   renderAuditLogsTable();
+  if (authToken) {
+    apiFetch('/api/audit-logs', { method: 'POST', body: JSON.stringify({ action, detail, status: 'SUCCESS' }) }).catch(() => {});
+  }
 }
 
 
@@ -2467,4 +2476,51 @@ function showToast(message) {
   setTimeout(() => {
     toast.classList.remove('show');
   }, 3200);
+}
+
+async function fetchFinancialReportRows() {
+  const month = new Date().toISOString().slice(0, 7);
+  const response = await apiFetch(`/api/policies/stats?month=${month}`);
+  const result = await response.json();
+  if (!response.ok || !result.success) throw new Error(result.message || 'Unable to load report.');
+  return { month, stats: result.data, rows: result.data.facilities || [] };
+}
+
+async function exportFinancialReport() {
+  try {
+    const { month, rows } = await fetchFinancialReportRows();
+    const esc = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+    const body = rows.map(row => `<tr><td>${esc(row.facilityName)}</td><td>${row.totalUnits || 0}</td><td>${row.availableUnits || 0}</td><td>${row.reservedUnits || 0}</td><td>${row.occupiedUnits || 0}</td><td>${esc(row.occupancyRate)}</td><td>${row.monthlyRevenue || 0}</td></tr>`).join('');
+    const workbook = `<html><head><meta charset="UTF-8"></head><body><h2>SelfStorage financial report ${month}</h2><table border="1"><thead><tr><th>Facility</th><th>Total units</th><th>Available</th><th>Reserved</th><th>Occupied</th><th>Occupancy rate</th><th>Monthly revenue</th></tr></thead><tbody>${body}</tbody></table></body></html>`;
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(new Blob([`\uFEFF${workbook}`], { type: 'application/vnd.ms-excel' }));
+    link.download = `SelfStorage_Report_${month}.xls`;
+    link.click(); URL.revokeObjectURL(link.href);
+    showToast('Excel report downloaded.');
+  } catch (error) { showToast(error.message || 'Unable to export report.'); }
+}
+
+async function printFinancialReport() {
+  try {
+    const { month, stats, rows } = await fetchFinancialReportRows();
+    const win = window.open('', '_blank', 'width=1100,height=800');
+    if (!win) throw new Error('Popup blocked. Allow popups to print PDF.');
+    const body = rows.map(row => `<tr><td>${row.facilityName || ''}</td><td>${row.totalUnits || 0}</td><td>${row.availableUnits || 0}</td><td>${row.reservedUnits || 0}</td><td>${row.occupiedUnits || 0}</td><td>${row.occupancyRate || ''}</td><td>${Number(row.monthlyRevenue || 0).toLocaleString('vi-VN')} VND</td></tr>`).join('');
+    win.document.write(`<html><head><title>SelfStorage report ${month}</title><style>body{font-family:Arial;padding:24px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #999;padding:8px;text-align:left}</style></head><body><h1>SelfStorage financial report ${month}</h1><p>Total revenue: ${Number(stats.monthlyRevenue || 0).toLocaleString('vi-VN')} VND</p><table><tr><th>Facility</th><th>Total</th><th>Available</th><th>Reserved</th><th>Occupied</th><th>Occupancy</th><th>Revenue</th></tr>${body}</table><script>window.onload=()=>window.print()<\/script></body></html>`);
+    win.document.close();
+  } catch (error) { showToast(error.message || 'Unable to print report.'); }
+}
+
+async function saveGeneralPolicy() {
+  try {
+    const updates = { generalRules: {
+      serviceStandard: '24/7 camera, access control and fire safety',
+      insuranceNotice: 'Customer must not store prohibited or hazardous goods',
+      prohibitedItems: 'Flammable, explosive, toxic, illegal goods and live animals'
+    }};
+    const response = await apiFetch('/api/policies', { method: 'PATCH', body: JSON.stringify(updates) });
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Unable to save general policy.');
+    showToast('General rental policy saved.');
+  } catch (error) { showToast(error.message || 'Unable to save general policy.'); }
 }
