@@ -305,7 +305,7 @@ public class AuthService {
     }
 
     public List<LoginHistory> getLoginHistory() {
-        return loginHistoryRepository.findAllByOrderByIdDesc();
+        return loginHistoryRepository.findAllByOrderByCreatedAtDesc();
     }
 
     public Map<String, Object> getPendingOtp(String email) {
