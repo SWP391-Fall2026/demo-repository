@@ -2,14 +2,15 @@ package com.swp391.selfstorage.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "login_history")
 public class LoginHistory {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "id", nullable = false, length = 100)
+    private String id;
 
     @Column(name = "username")
     private String username;
@@ -38,6 +39,7 @@ public class LoginHistory {
     public LoginHistory() {}
 
     public LoginHistory(String username, String name, String role, String time, String ip, String device, String status) {
+        this.id = UUID.randomUUID().toString();
         this.username = username;
         this.name = name;
         this.role = role;
@@ -48,8 +50,13 @@ public class LoginHistory {
         this.createdAt = LocalDateTime.now();
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    @PrePersist
+    private void ensureId() {
+        if (id == null || id.isBlank()) id = UUID.randomUUID().toString();
+    }
+
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
