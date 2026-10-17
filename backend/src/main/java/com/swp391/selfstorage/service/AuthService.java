@@ -1,6 +1,7 @@
 package com.swp391.selfstorage.service;
 
 import com.swp391.selfstorage.dto.ApiResponse;
+import com.swp391.selfstorage.dto.AdminUserRequest;
 import com.swp391.selfstorage.dto.LoginRequest;
 import com.swp391.selfstorage.dto.RegisterRequest;
 import com.swp391.selfstorage.dto.UserDto;
@@ -67,8 +68,11 @@ public class AuthService {
         }
 
         // Kiểm tra mật khẩu (hỗ trợ cả tài khoản mẫu ban đầu '1','2','3','4','5' và mật khẩu đã mã hóa BCrypt)
-        boolean passwordMatches = req.getPassword().trim().equals(user.getPassword()) ||
-                passwordEncoder.matches(req.getPassword().trim(), user.getPassword());
+        String rawPassword = req.getPassword().trim();
+        boolean encodedPassword = user.getPassword() != null && user.getPassword().startsWith("$2");
+        boolean passwordMatches = encodedPassword
+                ? passwordEncoder.matches(rawPassword, user.getPassword())
+                : rawPassword.equals(user.getPassword());
 
         if (!passwordMatches) {
             recordLogin(user.getUsername(), user.getName(), user.getRole(), ip, device, "FAILED");
@@ -78,6 +82,10 @@ public class AuthService {
         if ("LOCKED".equalsIgnoreCase(user.getStatus()) || "DISABLED".equalsIgnoreCase(user.getStatus())) {
             recordLogin(user.getUsername(), user.getName(), user.getRole(), ip, device, "BLOCKED");
             throw new IllegalArgumentException("Tài khoản đã bị khóa!");
+        }
+        if (!encodedPassword) {
+            user.setPassword(passwordEncoder.encode(rawPassword));
+            userRepository.save(user);
         }
         if (!user.isEmailVerified()) {
             throw new IllegalArgumentException("Email chưa được xác minh!");
@@ -300,9 +308,87 @@ public class AuthService {
     public UserDto toggleLockUser(String id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng"));
+        if ("ADMIN".equals(user.getRole()) && "ACTIVE".equalsIgnoreCase(user.getStatus())
+                && userRepository.findAll().stream().filter(candidate -> "ADMIN".equals(candidate.getRole())
+                && "ACTIVE".equalsIgnoreCase(candidate.getStatus())).count() <= 1) {
+            throw new IllegalArgumentException("Cannot lock the last active admin");
+        }
         user.setStatus("ACTIVE".equalsIgnoreCase(user.getStatus()) ? "LOCKED" : "ACTIVE");
         return new UserDto(userRepository.save(user));
     }
+
+    public UserDto createUserByAdmin(AdminUserRequest request) {
+        if (request == null) throw new IllegalArgumentException("Invalid account payload");
+        String username = required(request.getUsername(), "username").toLowerCase(Locale.ROOT);
+        String email = required(request.getEmail(), "email").toLowerCase(Locale.ROOT);
+        if (!username.matches("^[a-zA-Z][a-zA-Z0-9_]{3,19}$")) throw new IllegalArgumentException("Invalid username");
+        if (request.getPassword() == null || request.getPassword().trim().length() < 6) throw new IllegalArgumentException("Password must contain at least 6 characters");
+        if (userRepository.existsByUsername(username) || userRepository.existsByEmail(email)) throw new IllegalArgumentException("Username or email already exists");
+        User user = new User();
+        user.setId("USR-" + UUID.randomUUID());
+        user.setName(required(request.getName(), "name")); user.setUsername(username);
+        user.setPassword(passwordEncoder.encode(request.getPassword().trim())); user.setEmail(email);
+        user.setPhone(clean(request.getPhone())); user.setCccd(clean(request.getCccd()));
+        applyRoleAndFacility(user, request.getRole(), request.getFacility(), request.getFacilityCode());
+        user.setStatus(normalizeStatus(request.getStatus())); user.setEmailVerified(true); user.setCreatedAt(LocalDateTime.now());
+        return new UserDto(userRepository.save(user));
+    }
+
+    public UserDto updateUserByAdmin(String id, AdminUserRequest request) {
+        User user = userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        if (request == null) throw new IllegalArgumentException("Invalid payload");
+        if (request.getName() != null && !request.getName().isBlank()) user.setName(request.getName().trim());
+        if (request.getEmail() != null && !request.getEmail().isBlank()) {
+            String email = request.getEmail().trim().toLowerCase(Locale.ROOT);
+            userRepository.findByEmail(email).filter(other -> !other.getId().equals(id)).ifPresent(other -> { throw new IllegalArgumentException("Email already exists"); });
+            user.setEmail(email);
+        }
+        if (request.getPhone() != null) user.setPhone(request.getPhone().trim());
+        if (request.getCccd() != null) user.setCccd(request.getCccd().trim());
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            if (request.getPassword().trim().length() < 6) throw new IllegalArgumentException("Password must contain at least 6 characters");
+            user.setPassword(passwordEncoder.encode(request.getPassword().trim()));
+        }
+        if (request.getRole() != null && "ADMIN".equals(user.getRole()) && !"ADMIN".equalsIgnoreCase(request.getRole())
+                && userRepository.findAll().stream().filter(candidate -> "ADMIN".equals(candidate.getRole())
+                && "ACTIVE".equalsIgnoreCase(candidate.getStatus())).count() <= 1) {
+            throw new IllegalArgumentException("Cannot remove the last active admin");
+        }
+        if (request.getRole() != null || request.getFacility() != null || request.getFacilityCode() != null) {
+            applyRoleAndFacility(user, request.getRole() == null ? user.getRole() : request.getRole(),
+                    request.getFacility() == null ? user.getFacility() : request.getFacility(),
+                    request.getFacilityCode() == null ? user.getFacilityCode() : request.getFacilityCode());
+        }
+        if (request.getStatus() != null) {
+            String status = normalizeStatus(request.getStatus());
+            if ("ADMIN".equals(user.getRole()) && "ACTIVE".equalsIgnoreCase(user.getStatus()) && "LOCKED".equals(status)
+                    && userRepository.findAll().stream().filter(candidate -> "ADMIN".equals(candidate.getRole())
+                    && "ACTIVE".equalsIgnoreCase(candidate.getStatus())).count() <= 1) {
+                throw new IllegalArgumentException("Cannot lock the last active admin");
+            }
+            user.setStatus(status);
+        }
+        return new UserDto(userRepository.save(user));
+    }
+
+    private void applyRoleAndFacility(User user, String roleInput, String facility, String facilityCode) {
+        String role = roleInput == null ? "CUSTOMER" : roleInput.trim().toUpperCase(Locale.ROOT);
+        if (!Set.of("CUSTOMER", "STAFF", "FMANAGER", "OPS_MGR", "ADMIN").contains(role)) throw new IllegalArgumentException("Invalid role");
+        user.setRole(role);
+        user.setRoleTitle(Map.of("CUSTOMER", "Storage Customer", "STAFF", "Facility Staff", "FMANAGER", "Facility Manager", "OPS_MGR", "Business Operations Manager", "ADMIN", "System Administrator").get(role));
+        user.setFacility(facility == null || facility.isBlank() ? "HQ" : facility.trim());
+        String code = facilityCode == null || facilityCode.isBlank() ? ("CUSTOMER".equals(role) ? "HN-CG" : "HQ") : facilityCode.trim().toUpperCase(Locale.ROOT);
+        if (!Set.of("HN-CG", "HCM-Q7", "HN-NTL", "HCM-TB", "DN-HC", "HQ").contains(code)) throw new IllegalArgumentException("Invalid facility scope");
+        user.setFacilityCode(code);
+    }
+
+    private static String normalizeStatus(String value) {
+        String status = value == null || value.isBlank() ? "ACTIVE" : value.trim().toUpperCase(Locale.ROOT);
+        if (!Set.of("ACTIVE", "LOCKED", "DISABLED").contains(status)) throw new IllegalArgumentException("Invalid status");
+        return status;
+    }
+    private static String required(String value, String field) { if (value == null || value.trim().isBlank()) throw new IllegalArgumentException("Missing " + field); return value.trim(); }
+    private static String clean(String value) { return value == null ? "" : value.trim(); }
 
     public List<LoginHistory> getLoginHistory() {
         return loginHistoryRepository.findAllByOrderByCreatedAtDesc();

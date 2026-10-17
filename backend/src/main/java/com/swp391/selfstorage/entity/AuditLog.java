@@ -11,7 +11,8 @@ public class AuditLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "time_str")
+    // Keep entity mapping aligned with docs/supabase_schema.sql.
+    @Column(name = "time_display")
     private String timeStr;
 
     @Column(name = "user_name")
@@ -26,7 +27,7 @@ public class AuditLog {
     @Column(name = "detail", length = 1000)
     private String detail;
 
-    @Column(name = "ip")
+    @Column(name = "ip_address")
     private String ip;
 
     @Column(name = "status")

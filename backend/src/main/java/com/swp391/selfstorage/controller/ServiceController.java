@@ -26,6 +26,7 @@ public class ServiceController {
         services.add(Map.of("name", "Task & Incident Service", "endpoint", "/api/tasks"));
         services.add(Map.of("name", "Policy & Analytics Service", "endpoint", "/api/policies"));
         services.add(Map.of("name", "Audit Log Service", "endpoint", "/api/audit-logs"));
+        services.add(Map.of("name", "Notification Service", "endpoint", "/api/notifications"));
 
         resp.put("services", services);
         return ResponseEntity.ok(resp);
