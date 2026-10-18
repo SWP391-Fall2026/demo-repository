@@ -1,21 +1,22 @@
 {
-  "name": "self-storage-facility-rental-system",
-  "version": "1.0.0",
-  "description": "Hệ thống Quản lý và Cho thuê Kho Lưu trữ Tự phục vụ (Self-Storage Management System)",
-  "main": "frontend/server.js",
-  "scripts": {
-    "start": "node frontend/server.js",
-    "dev": "node frontend/server.js",
-    "start:frontend": "node frontend/server.js",
-    "start:backend": "cd backend && mvn spring-boot:run",
-    "build:backend": "cd backend && mvn clean package -DskipTests"
-  },
-  "keywords": [
-    "self-storage",
-    "swp391",
-    "springboot",
-    "java"
+  "name": "storage-rental",
+  "private": true,
+  "version": "2.0.0",
+  "workspaces": [
+    "frontend"
   ],
-  "author": "SWP391 Team",
-  "license": "MIT"
+  "scripts": {
+    "dev": "npm run dev --workspace frontend",
+    "build": "npm run build --workspace frontend",
+    "test:frontend": "npm run test --workspace frontend",
+    "test:backend": "mvn -f backend/pom.xml test",
+    "start:backend": "mvn -f backend/pom.xml spring-boot:run",
+    "check": "npm run build && npm run test:frontend && npm run check:contract",
+    "check:contract": "node scripts/check-contract.mjs",
+    "start:local": "mvn -f backend/pom.xml spring-boot:run -Dspring-boot.run.profiles=local"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.10",
+    "prettier-plugin-java": "^2.11.0"
+  }
 }

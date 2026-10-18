@@ -1,0 +1,286 @@
+{
+  "offline_reviewed_at_utc": "2026-10-18T13:06:31+00:00",
+  "offline_reviewed_at_asia_ho_chi_minh": "2026-10-18T20:06:31+07:00",
+  "g0_status": "BLOCKED_NO_OPERATOR_CONFIRMED_READONLY_CONNECTION",
+  "live_query_time": null,
+  "approved_connection_alias": null,
+  "operator_approval": null,
+  "verified_database": null,
+  "verified_schema": null,
+  "verified_current_role": null,
+  "verified_session_role": null,
+  "verified_postgresql_version": null,
+  "verified_privilege_scope": null,
+  "accepted_live_metadata": [],
+  "quality_queries_created": 0,
+  "quality_queries_executed": 0,
+  "database_queries_executed": 0,
+  "historical_evidence": {
+    "id": "HIST-AUDIT-USER-SNAPSHOT",
+    "source": "Previous user-supplied audit_logs information_schema result, retained in mapping-inventory.json",
+    "capture_time": null,
+    "database": null,
+    "role": null,
+    "version": null,
+    "schema_reported_by_user": "public",
+    "accepted_as_current_g0_evidence": false
+  },
+  "artifact_hashes": {
+    "schema-diff.md": "80d6d0f362cb150a48864e2ca49eafcc4e4bd305161deb62363c663caaa83396",
+    "mapping-inventory.json": "c88d78502dfdfaa33457128df91201e3379d5cb3acaa704d161ac4e01f76a05b",
+    "new-column-plan.md": "312e9d05d640fc8c558ad83665447a4d0e4fa9fd9b0c2a37fa6f12035357f7bd",
+    "constraints-and-dependencies.md": "a6ef061168d58e9058107d47c5b6902be403b8a463b809e0d524f3c1f3ee496c",
+    "risks-and-decisions.md": "3b00e65cfbb38a8500dddada73087fa2374dda467bb8d33e6b3524a2c36a44b5",
+    "tests-and-rollback.md": "7c1579a77480e02762580b513a28e57f109dd0ce4472105ec5fb10793734ce1e",
+    "sql/00_metadata_readonly.sql": "0f55ff659caa153b95ab07190157b14f8e949413c04dde0f16490ed4b19aa043",
+    "sql/01_quality_queries_readonly.sql": "7e6ccd6782d4501715bd8e15b954bfd4343fff9df53d5c71e32f5a7a83c6f331",
+    "validation-report.md": "fb077e6d711623e8ca56af9445f199f4c43507b757d9a02ff062532557c73b7b",
+    "sql/draft_10_audit.sql": "413e7c3254ea9a9f5b2944fbe2e63e68008ff553195356918e3bdcac01e66013",
+    "sql/draft_20_rental_inventory.sql": "a21cacf7c6154868213996dc1419ef9a135c5f94343680e6f7636e05928cbcf6",
+    "sql/draft_30_billing.sql": "4fcb130203399cdec1727165ede52cafa7d1ca2e29a6b1570e9ad716d2a5c211",
+    "sql/draft_40_constraints.sql": "59a02b775bdf012020983c986c385e05b381600f658729b23ea9203927c20db3",
+    "sql/draft_50_validate_constraints.sql": "529dc2cca99cf5e2d39b96e7be021222f3347ddbdca893fef64d840f09cff370"
+  },
+  "source_checks": [
+    {
+      "entity": "AuditLog",
+      "table": "audit_logs",
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/audit/entity/AuditLog.java",
+      "sha256": "66583517420ed2998c370dcee588032f564e78b924e8ed2466c0c19ed1c81e8a",
+      "matches_inventory_baseline": true
+    },
+    {
+      "entity": "Invoice",
+      "table": "invoices",
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/entity/Invoice.java",
+      "sha256": "b67377d2dcad37a0ab87f6b267a099555642c89f1ce6b32a91c3fd17b3acd983",
+      "matches_inventory_baseline": true
+    },
+    {
+      "entity": "Payment",
+      "table": "payments",
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/entity/Payment.java",
+      "sha256": "a9a35917afe71cd387bd0b9fb661f8295d0956f529104a304d7d99c3c4b2d1ec",
+      "matches_inventory_baseline": true
+    },
+    {
+      "entity": "RefundRequest",
+      "table": "refund_requests",
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/entity/RefundRequest.java",
+      "sha256": "8e40da662cd8f633062eefca88db04b76b8678834133365943d9e7ee5c6cd433",
+      "matches_inventory_baseline": true
+    },
+    {
+      "entity": "RefundTransaction",
+      "table": "refund_transactions",
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/entity/RefundTransaction.java",
+      "sha256": "a2e81acbb0871a9734b724d19a336ace8225385bc7ff842b59441cbe53f6d4af",
+      "matches_inventory_baseline": true
+    },
+    {
+      "entity": "Facility",
+      "table": "facilities",
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/entity/Facility.java",
+      "sha256": "ccb6e4f468db2a914f89a7e1a211d3e5528a858b245ee24305ba39b1ac31d4c8",
+      "matches_inventory_baseline": true
+    },
+    {
+      "entity": "Unit",
+      "table": "units",
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/entity/Unit.java",
+      "sha256": "168bbef7b61ebcbcecd652fff3f98694cc7fa9ec99342bb972fe1a930750378b",
+      "matches_inventory_baseline": true
+    },
+    {
+      "entity": "LoginHistory",
+      "table": "login_history",
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/entity/LoginHistory.java",
+      "sha256": "211981b54cc1b9d237f30ec310cd6437d6eee445232cb5d98521f716170b86ce",
+      "matches_inventory_baseline": true
+    },
+    {
+      "entity": "User",
+      "table": "users",
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/entity/User.java",
+      "sha256": "5c6150b7a6a3152667792fb0711cf2a72cdb17fdf6dc205cba1d50c23f54719f",
+      "matches_inventory_baseline": true
+    },
+    {
+      "entity": "BusinessPolicy",
+      "table": "business_policies",
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/policy/entity/BusinessPolicy.java",
+      "sha256": "3d8c3bf9d68c87465167888625891af7b38950af924b977217ad72848aec3809",
+      "matches_inventory_baseline": true
+    },
+    {
+      "entity": "Contract",
+      "table": "contracts",
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/entity/Contract.java",
+      "sha256": "371c1b2792a0dfe8c412e8c9f17d56024254e9d918bddb935641b2372cbc7a3a",
+      "matches_inventory_baseline": true
+    },
+    {
+      "entity": "HandoverRecord",
+      "table": "handover_records",
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/entity/HandoverRecord.java",
+      "sha256": "57f000ae9eddb29417ba9675435e7b80647c422494193a8fdf7520fcfc83159a",
+      "matches_inventory_baseline": true
+    },
+    {
+      "entity": "InspectionRecord",
+      "table": "inspection_records",
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/entity/InspectionRecord.java",
+      "sha256": "79bee963c5b78242325472a95d355447c23c496bc9c2d5901af4c5a955334212",
+      "matches_inventory_baseline": true
+    },
+    {
+      "entity": "Reservation",
+      "table": "reservations",
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/entity/Reservation.java",
+      "sha256": "28b72b896330703848066c0a06cb15ca030564ce387a743aa8b063b541322a55",
+      "matches_inventory_baseline": true
+    },
+    {
+      "entity": "SupportTicket",
+      "table": "support_tickets",
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/support/entity/SupportTicket.java",
+      "sha256": "e4582945c2e84cd6f04cee791f2e369df949bf6b3c3dccb3fadacef582572bb9",
+      "matches_inventory_baseline": true
+    },
+    {
+      "entity": "DailyTask",
+      "table": "daily_tasks",
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/entity/DailyTask.java",
+      "sha256": "46c39849fbefe5ef02515d0a293a3f94c7351913c28607610a3f9b9aa5d206bb",
+      "matches_inventory_baseline": true
+    }
+  ],
+  "source_evidence": [
+    {
+      "id": "AUDIT_ACTOR_FACILITY",
+      "file": "backend/src/main/java/com/swp391/selfstorage/modules/audit/service/AuditLogService.java",
+      "line": 39,
+      "evidence_kind": "SOURCE_OR_REQUIREMENT_NOT_LIVE",
+      "sha256": "df09964cb6690fd7a8bd1f28bc90fa84ed68e619702c997d4f7cd2490e2e22bc"
+    },
+    {
+      "id": "RESERVATION_EVENT_FACILITY",
+      "file": "backend/src/main/java/com/swp391/selfstorage/application/workflow/CreateReservationWorkflow.java",
+      "line": 98,
+      "evidence_kind": "SOURCE_OR_REQUIREMENT_NOT_LIVE",
+      "sha256": "07ef1d9544f44b395143e2e70b5ce854fcfb63d013b45a9ab910a3a4f7e9b0af"
+    },
+    {
+      "id": "SCOPE_BY_ACTOR",
+      "file": "backend/src/main/java/com/swp391/selfstorage/common/security/ActorContext.java",
+      "line": 60,
+      "evidence_kind": "SOURCE_OR_REQUIREMENT_NOT_LIVE",
+      "sha256": "b69612e32af3f22411d5602fe4192fe6836b379518e00f83045cb6bdc4f68c4d"
+    },
+    {
+      "id": "BUSINESS_CLOCK",
+      "file": "backend/src/main/java/com/swp391/selfstorage/config/ClockConfig.java",
+      "line": 11,
+      "evidence_kind": "SOURCE_OR_REQUIREMENT_NOT_LIVE",
+      "sha256": "c8c156e787d30edfbd06215b07878fc2f32ab3b502b29c6f57fba83238f58c20"
+    },
+    {
+      "id": "INVOICE_OPTIONAL_KIND",
+      "file": "backend/src/main/java/com/swp391/selfstorage/modules/billing/repository/InvoiceRepository.java",
+      "line": 18,
+      "evidence_kind": "SOURCE_OR_REQUIREMENT_NOT_LIVE",
+      "sha256": "b4305fdeea191e3fea905f0aa8d03f4ed06efaaa21008e983a8d05a6ebf68eb7"
+    },
+    {
+      "id": "INVOICE_RENEWAL_PENDING",
+      "file": "backend/src/main/java/com/swp391/selfstorage/modules/billing/service/InvoiceService.java",
+      "line": 18,
+      "evidence_kind": "SOURCE_OR_REQUIREMENT_NOT_LIVE",
+      "sha256": "6cccc9a0089fed047f05b43525444f103c637b256434ebf28139be3eae197b36"
+    },
+    {
+      "id": "RENEWAL_MULTI_PERIOD",
+      "file": "backend/src/main/java/com/swp391/selfstorage/modules/rental/service/RenewalService.java",
+      "line": 84,
+      "evidence_kind": "SOURCE_OR_REQUIREMENT_NOT_LIVE",
+      "sha256": "0a1c6ae6ebb31788b052bb7c4d5f9ceb4b3af499358a17049fbd9ae8565ac245"
+    },
+    {
+      "id": "PAYMENT_KEY_GLOBAL",
+      "file": "backend/src/main/java/com/swp391/selfstorage/application/workflow/PayInvoiceWorkflow.java",
+      "line": 58,
+      "evidence_kind": "SOURCE_OR_REQUIREMENT_NOT_LIVE",
+      "sha256": "8f03e3aeac2701cf37646a6f77f6632cf8e2477296e5bdf24d26bb8837b4fe46"
+    },
+    {
+      "id": "REFUND_KEY_PAYMENT_SCOPE",
+      "file": "backend/src/main/java/com/swp391/selfstorage/modules/billing/service/RefundRequestService.java",
+      "line": 83,
+      "evidence_kind": "SOURCE_OR_REQUIREMENT_NOT_LIVE",
+      "sha256": "503ff9b7050c10193c10389a43e2a2b05aebabc5a31dbabe0298eed3037a6ba2"
+    },
+    {
+      "id": "REFUND_QUOTA",
+      "file": "backend/src/main/java/com/swp391/selfstorage/modules/billing/service/RefundRequestService.java",
+      "line": 136,
+      "evidence_kind": "SOURCE_OR_REQUIREMENT_NOT_LIVE",
+      "sha256": "503ff9b7050c10193c10389a43e2a2b05aebabc5a31dbabe0298eed3037a6ba2"
+    },
+    {
+      "id": "REFUND_SINGLE_EVIDENCE",
+      "file": "backend/src/main/java/com/swp391/selfstorage/modules/billing/service/RefundExecutionService.java",
+      "line": 60,
+      "evidence_kind": "SOURCE_OR_REQUIREMENT_NOT_LIVE",
+      "sha256": "8364ad2b9320e228bd974e3cdb567bc1efa5ce7e07a50af6aed7c691c0a653ab"
+    },
+    {
+      "id": "REFUND_SINGLE_CONFIRM",
+      "file": "backend/src/main/java/com/swp391/selfstorage/modules/billing/service/RefundExecutionService.java",
+      "line": 114,
+      "evidence_kind": "SOURCE_OR_REQUIREMENT_NOT_LIVE",
+      "sha256": "8364ad2b9320e228bd974e3cdb567bc1efa5ce7e07a50af6aed7c691c0a653ab"
+    },
+    {
+      "id": "CLIENT_VOLATILE_KEY",
+      "file": "frontend/src/shared/api/idempotent-request.ts",
+      "line": 5,
+      "evidence_kind": "SOURCE_OR_REQUIREMENT_NOT_LIVE",
+      "sha256": "b86c994eb4eb0cab7022b868e8bceaf1352a896c3d758aa7f19eb1cc0fb4b785"
+    },
+    {
+      "id": "SRS_AUDIT",
+      "file": "docs/requirements/srs.md",
+      "line": 405,
+      "evidence_kind": "SOURCE_OR_REQUIREMENT_NOT_LIVE",
+      "sha256": "b622c6c89188f79da280d3f1cb2bdbc31bf7c3fb0e2e64feffe853e9c0687475"
+    },
+    {
+      "id": "SRS_INVOICE",
+      "file": "docs/requirements/srs.md",
+      "line": 400,
+      "evidence_kind": "SOURCE_OR_REQUIREMENT_NOT_LIVE",
+      "sha256": "b622c6c89188f79da280d3f1cb2bdbc31bf7c3fb0e2e64feffe853e9c0687475"
+    },
+    {
+      "id": "SRS_ACCOUNTING",
+      "file": "docs/requirements/srs.md",
+      "line": 367,
+      "evidence_kind": "SOURCE_OR_REQUIREMENT_NOT_LIVE",
+      "sha256": "b622c6c89188f79da280d3f1cb2bdbc31bf7c3fb0e2e64feffe853e9c0687475"
+    },
+    {
+      "id": "APPROVED_INVOICE_PAYMENT",
+      "file": "docs/requirements/decision-log.md",
+      "line": 129,
+      "evidence_kind": "SOURCE_OR_REQUIREMENT_NOT_LIVE",
+      "sha256": "07d02d75acd8220d0f5b95531e7fcaa96f45193400d14a3e2435e00deb970d9a"
+    },
+    {
+      "id": "APPROVED_REFUND_QUOTA",
+      "file": "docs/requirements/decision-log.md",
+      "line": 168,
+      "evidence_kind": "SOURCE_OR_REQUIREMENT_NOT_LIVE",
+      "sha256": "07d02d75acd8220d0f5b95531e7fcaa96f45193400d14a3e2435e00deb970d9a"
+    }
+  ]
+}
