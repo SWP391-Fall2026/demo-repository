@@ -1,0 +1,432 @@
+storage-rental/
+├── .github/
+│   └── workflows/
+│       ├── auto-assign.yml
+│       └── proof-html.yml
+├── artifacts/
+│   ├── local-role-smoke.json
+│   ├── react-reservation-smoke.png
+│   └── README.md
+├── backend/
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/
+│   │   │   │   └── com/
+│   │   │   │       └── swp391/
+│   │   │   │           └── selfstorage/
+│   │   │   │               ├── application/
+│   │   │   │               │   └── workflow/
+│   │   │   │               │       ├── AssignUnitWorkflow.java
+│   │   │   │               │       ├── CancelReservationWorkflow.java
+│   │   │   │               │       ├── CompleteReturnWorkflow.java
+│   │   │   │               │       ├── CreateReservationWorkflow.java
+│   │   │   │               │       ├── HandoverWorkflow.java
+│   │   │   │               │       ├── NoShowWorkflow.java
+│   │   │   │               │       ├── PayInvoiceWorkflow.java
+│   │   │   │               │       └── RequestCheckoutWorkflow.java
+│   │   │   │               ├── common/
+│   │   │   │               │   ├── exception/
+│   │   │   │               │   │   └── GlobalExceptionHandler.java
+│   │   │   │               │   ├── security/
+│   │   │   │               │   │   └── ActorContext.java
+│   │   │   │               │   ├── storage/
+│   │   │   │               │   │   └── AttachmentStorage.java
+│   │   │   │               │   └── web/
+│   │   │   │               │       ├── ApiResponse.java
+│   │   │   │               │       └── Inputs.java
+│   │   │   │               ├── config/
+│   │   │   │               │   ├── ClockConfig.java
+│   │   │   │               │   └── LocalDataInitializer.java
+│   │   │   │               ├── modules/
+│   │   │   │               │   ├── audit/
+│   │   │   │               │   │   ├── controller/
+│   │   │   │               │   │   │   └── AuditLogController.java
+│   │   │   │               │   │   ├── entity/
+│   │   │   │               │   │   │   └── AuditLog.java
+│   │   │   │               │   │   ├── repository/
+│   │   │   │               │   │   │   └── AuditLogRepository.java
+│   │   │   │               │   │   ├── service/
+│   │   │   │               │   │   │   └── AuditLogService.java
+│   │   │   │               │   │   └── package-info.java
+│   │   │   │               │   ├── billing/
+│   │   │   │               │   │   ├── controller/
+│   │   │   │               │   │   │   ├── InvoiceController.java
+│   │   │   │               │   │   │   ├── PaymentController.java
+│   │   │   │               │   │   │   └── RefundController.java
+│   │   │   │               │   │   ├── entity/
+│   │   │   │               │   │   │   ├── Invoice.java
+│   │   │   │               │   │   │   ├── Payment.java
+│   │   │   │               │   │   │   ├── RefundRequest.java
+│   │   │   │               │   │   │   └── RefundTransaction.java
+│   │   │   │               │   │   ├── repository/
+│   │   │   │               │   │   │   ├── InvoiceRepository.java
+│   │   │   │               │   │   │   ├── PaymentRepository.java
+│   │   │   │               │   │   │   ├── RefundRequestRepository.java
+│   │   │   │               │   │   │   └── RefundTransactionRepository.java
+│   │   │   │               │   │   ├── service/
+│   │   │   │               │   │   │   ├── InvoiceService.java
+│   │   │   │               │   │   │   ├── PaymentService.java
+│   │   │   │               │   │   │   ├── RefundExecutionService.java
+│   │   │   │               │   │   │   ├── RefundLimitCalculator.java
+│   │   │   │               │   │   │   └── RefundRequestService.java
+│   │   │   │               │   │   └── package-info.java
+│   │   │   │               │   ├── facility/
+│   │   │   │               │   │   ├── controller/
+│   │   │   │               │   │   │   ├── FacilityController.java
+│   │   │   │               │   │   │   └── ServiceController.java
+│   │   │   │               │   │   ├── entity/
+│   │   │   │               │   │   │   ├── Facility.java
+│   │   │   │               │   │   │   └── Unit.java
+│   │   │   │               │   │   ├── repository/
+│   │   │   │               │   │   │   ├── FacilityRepository.java
+│   │   │   │               │   │   │   └── UnitRepository.java
+│   │   │   │               │   │   ├── service/
+│   │   │   │               │   │   │   └── FacilityService.java
+│   │   │   │               │   │   └── package-info.java
+│   │   │   │               │   ├── identity/
+│   │   │   │               │   │   ├── controller/
+│   │   │   │               │   │   │   ├── AuthController.java
+│   │   │   │               │   │   │   └── UserAdminController.java
+│   │   │   │               │   │   ├── dto/
+│   │   │   │               │   │   │   ├── LoginRequest.java
+│   │   │   │               │   │   │   ├── RegisterRequest.java
+│   │   │   │               │   │   │   ├── UserDto.java
+│   │   │   │               │   │   │   └── VerifyOtpRequest.java
+│   │   │   │               │   │   ├── entity/
+│   │   │   │               │   │   │   ├── LoginHistory.java
+│   │   │   │               │   │   │   └── User.java
+│   │   │   │               │   │   ├── repository/
+│   │   │   │               │   │   │   ├── LoginHistoryRepository.java
+│   │   │   │               │   │   │   └── UserRepository.java
+│   │   │   │               │   │   ├── service/
+│   │   │   │               │   │   │   ├── AuthService.java
+│   │   │   │               │   │   │   └── UserAdminService.java
+│   │   │   │               │   │   └── package-info.java
+│   │   │   │               │   ├── policy/
+│   │   │   │               │   │   ├── controller/
+│   │   │   │               │   │   │   └── PolicyController.java
+│   │   │   │               │   │   ├── entity/
+│   │   │   │               │   │   │   └── BusinessPolicy.java
+│   │   │   │               │   │   ├── repository/
+│   │   │   │               │   │   │   └── BusinessPolicyRepository.java
+│   │   │   │               │   │   ├── service/
+│   │   │   │               │   │   │   └── PolicyService.java
+│   │   │   │               │   │   └── package-info.java
+│   │   │   │               │   ├── rental/
+│   │   │   │               │   │   ├── controller/
+│   │   │   │               │   │   │   └── ContractController.java
+│   │   │   │               │   │   ├── entity/
+│   │   │   │               │   │   │   ├── Contract.java
+│   │   │   │               │   │   │   ├── HandoverRecord.java
+│   │   │   │               │   │   │   └── InspectionRecord.java
+│   │   │   │               │   │   ├── job/
+│   │   │   │               │   │   │   └── RentalExpiryJob.java
+│   │   │   │               │   │   ├── repository/
+│   │   │   │               │   │   │   ├── ContractRepository.java
+│   │   │   │               │   │   │   ├── HandoverRecordRepository.java
+│   │   │   │               │   │   │   └── InspectionRecordRepository.java
+│   │   │   │               │   │   ├── service/
+│   │   │   │               │   │   │   ├── AccessCodeService.java
+│   │   │   │               │   │   │   ├── ContractService.java
+│   │   │   │               │   │   │   ├── OverdueFeeCalculator.java
+│   │   │   │               │   │   │   └── RenewalService.java
+│   │   │   │               │   │   └── package-info.java
+│   │   │   │               │   ├── reporting/
+│   │   │   │               │   │   ├── controller/
+│   │   │   │               │   │   │   └── ReportController.java
+│   │   │   │               │   │   ├── service/
+│   │   │   │               │   │   │   └── ReportService.java
+│   │   │   │               │   │   └── package-info.java
+│   │   │   │               │   ├── reservation/
+│   │   │   │               │   │   ├── controller/
+│   │   │   │               │   │   │   └── ReservationController.java
+│   │   │   │               │   │   ├── dto/
+│   │   │   │               │   │   │   └── CreateReservationRequest.java
+│   │   │   │               │   │   ├── entity/
+│   │   │   │               │   │   │   └── Reservation.java
+│   │   │   │               │   │   ├── job/
+│   │   │   │               │   │   │   └── ReservationMonitoringJob.java
+│   │   │   │               │   │   ├── repository/
+│   │   │   │               │   │   │   └── ReservationRepository.java
+│   │   │   │               │   │   ├── service/
+│   │   │   │               │   │   │   ├── CancellationPolicy.java
+│   │   │   │               │   │   │   ├── NoShowRules.java
+│   │   │   │               │   │   │   └── ReservationService.java
+│   │   │   │               │   │   └── package-info.java
+│   │   │   │               │   ├── support/
+│   │   │   │               │   │   ├── controller/
+│   │   │   │               │   │   │   └── SupportTicketController.java
+│   │   │   │               │   │   ├── entity/
+│   │   │   │               │   │   │   └── SupportTicket.java
+│   │   │   │               │   │   ├── repository/
+│   │   │   │               │   │   │   └── SupportTicketRepository.java
+│   │   │   │               │   │   ├── service/
+│   │   │   │               │   │   │   └── SupportTicketService.java
+│   │   │   │               │   │   └── package-info.java
+│   │   │   │               │   └── workforce/
+│   │   │   │               │       ├── controller/
+│   │   │   │               │       │   └── TaskController.java
+│   │   │   │               │       ├── entity/
+│   │   │   │               │       │   └── DailyTask.java
+│   │   │   │               │       ├── repository/
+│   │   │   │               │       │   └── DailyTaskRepository.java
+│   │   │   │               │       ├── service/
+│   │   │   │               │       │   └── TaskService.java
+│   │   │   │               │       └── package-info.java
+│   │   │   │               ├── security/
+│   │   │   │               │   ├── CustomUserDetailsService.java
+│   │   │   │               │   ├── JwtAuthenticationFilter.java
+│   │   │   │               │   ├── JwtUtil.java
+│   │   │   │               │   └── SecurityConfig.java
+│   │   │   │               └── SelfStorageApplication.java
+│   │   │   └── resources/
+│   │   │       ├── application-local.properties
+│   │   │       └── application.properties
+│   │   └── test/
+│   │       ├── java/
+│   │       │   └── com/
+│   │       │       └── swp391/
+│   │       │           └── selfstorage/
+│   │       │               ├── BusinessRulesTest.java
+│   │       │               └── RentalLifecycleTest.java
+│   │       └── resources/
+│   │           ├── mockito-extensions/
+│   │           │   └── org.mockito.plugins.MockMaker
+│   │           └── application-test.properties
+│   ├── .env.example
+│   └── pom.xml
+├── contracts/
+│   ├── openapi/
+│   │   └── storage-rental.openapi.json
+│   ├── README.md
+│   └── route-inventory.json
+├── database/
+│   ├── migrations/
+│   │   └── 001_scope_extensions.sql
+│   ├── reference/
+│   │   ├── current-schema-as-is.sql
+│   │   └── legacy-repository-schema.sql
+│   └── README.md
+├── design/
+│   ├── canvas_crops/
+│   ├── legacy/
+│   │   ├── html-templates/
+│   │   │   ├── SCR_03_Customer_Catalog_Explorer.html
+│   │   │   ├── SCR_04_Customer_Unit_Reservation.html
+│   │   │   ├── SCR_05_Customer_Payment_Invoices.html
+│   │   │   ├── SCR_06_Customer_Scheduled_Checkin_Pass.html
+│   │   │   ├── SCR_07_Customer_My_Rented_Units.html
+│   │   │   ├── SCR_09_Customer_Support_Ticket.html
+│   │   │   ├── SCR_10_Staff_Daily_Task_Board.html
+│   │   │   ├── SCR_11_Staff_Reservation_Lookup.html
+│   │   │   ├── SCR_12_Staff_Checkin_Handover.html
+│   │   │   ├── SCR_13_Staff_Return_Inspection.html
+│   │   │   ├── SCR_14_Staff_Onsite_Incident_Desk.html
+│   │   │   └── SCR_16_Staff_Unit_Status_Matrix.html
+│   │   └── viewers/
+│   │       ├── Figma_Design_Gallery.html
+│   │       ├── Screens_Preview.html
+│   │       └── Self_Storage_Figma_Prototype.html
+│   ├── reference/
+│   │   ├── figma/
+│   │   │   ├── crops/
+│   │   │   │   ├── row_01.jpg
+│   │   │   │   ├── row_02.jpg
+│   │   │   │   ├── row_03.jpg
+│   │   │   │   ├── row_04.jpg
+│   │   │   │   ├── row_05.jpg
+│   │   │   │   ├── row_06.jpg
+│   │   │   │   ├── row_07.jpg
+│   │   │   │   ├── row_08.jpg
+│   │   │   │   └── row_09.jpg
+│   │   │   ├── canvas-overview.jpg
+│   │   │   └── full-canvas.png
+│   │   └── screenshots/
+│   │       ├── SCR_03_Customer_Catalog_Explorer.png
+│   │       ├── SCR_04_Customer_Unit_Reservation.png
+│   │       ├── SCR_05_Customer_Payment_Invoices.png
+│   │       ├── SCR_06_Customer_Scheduled_Checkin_Pass.png
+│   │       ├── SCR_07_Customer_My_Rented_Units.png
+│   │       ├── SCR_09_Customer_Support_Ticket.png
+│   │       ├── SCR_10_Staff_Daily_Task_Board.png
+│   │       ├── SCR_11_Staff_Reservation_Lookup.png
+│   │       ├── SCR_12_Staff_Checkin_Handover.png
+│   │       ├── SCR_13_Staff_Return_Inspection.png
+│   │       ├── SCR_14_Staff_Onsite_Incident_Desk.png
+│   │       └── SCR_16_Staff_Unit_Status_Matrix.png
+│   ├── Screens_Bao_Cao/
+│   │   └── html_templates/
+│   ├── specifications/
+│   │   └── figma-design-spec.md
+│   └── figma-links.md
+├── docs/
+│   ├── architecture/
+│   │   ├── current-tree.txt
+│   │   ├── implementation-structure.md
+│   │   ├── migration-map.md
+│   │   ├── project-structure.md
+│   │   └── refactoring-status.md
+│   ├── archive/
+│   │   ├── baseline-v2/
+│   │   │   ├── scope-v2.md
+│   │   │   └── srs-v2.md
+│   │   ├── prototype-runtime/
+│   │   │   ├── app.js
+│   │   │   ├── DataInitializer.java
+│   │   │   ├── index.html
+│   │   │   ├── README.md
+│   │   │   ├── render_screens.js
+│   │   │   ├── server.js
+│   │   │   └── style.css
+│   │   ├── source-packages/
+│   │   │   ├── scope-v2.1.ooxml.tar
+│   │   │   └── srs-v2.ooxml.tar
+│   │   └── viewers/
+│   │       ├── Self_Storage_Scope_Viewer.html
+│   │       └── Self_Storage_SRS_v2_Viewer.html
+│   ├── guides/
+│   │   └── database-migration.md
+│   └── requirements/
+│       ├── decision-log.md
+│       ├── scope.md
+│       ├── screen-route-map.md
+│       └── srs.md
+├── frontend/
+│   ├── css/
+│   ├── images/
+│   ├── js/
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── guards/
+│   │   │   │   └── RoleGuard.tsx
+│   │   │   ├── layouts/
+│   │   │   │   └── AppShell.tsx
+│   │   │   ├── App.tsx
+│   │   │   └── router.tsx
+│   │   ├── assets/
+│   │   │   └── images/
+│   │   │       ├── facility_cau_giay.jpg
+│   │   │       ├── facility_clean.jpg
+│   │   │       ├── facility_quan_7.jpg
+│   │   │       ├── facility_tan_binh.jpg
+│   │   │       └── hero_storage.jpg
+│   │   ├── features/
+│   │   │   ├── audit/
+│   │   │   │   ├── api/
+│   │   │   │   │   └── audit.api.ts
+│   │   │   │   └── pages/
+│   │   │   │       └── AuditAndLoginHistoryPage.tsx
+│   │   │   ├── billing/
+│   │   │   │   ├── api/
+│   │   │   │   │   └── billing.api.ts
+│   │   │   │   └── pages/
+│   │   │   │       ├── CustomerRefundRequestsPage.tsx
+│   │   │   │       ├── InvoicePaymentPage.tsx
+│   │   │   │       ├── PaymentHistoryPage.tsx
+│   │   │   │       ├── RefundApprovalPage.tsx
+│   │   │   │       ├── RefundConfirmationPage.tsx
+│   │   │   │       └── RefundExecutionPage.tsx
+│   │   │   ├── facility/
+│   │   │   │   ├── api/
+│   │   │   │   │   └── facility.api.ts
+│   │   │   │   └── pages/
+│   │   │   │       ├── CatalogPage.tsx
+│   │   │   │       ├── LandingPage.tsx
+│   │   │   │       ├── ManageFacilitiesPage.tsx
+│   │   │   │       ├── ManageUnitsPage.tsx
+│   │   │   │       ├── UnitReadinessApprovalPage.tsx
+│   │   │   │       └── UnitStatusPage.tsx
+│   │   │   ├── identity/
+│   │   │   │   ├── api/
+│   │   │   │   │   └── identity.api.ts
+│   │   │   │   ├── pages/
+│   │   │   │   │   ├── AuthPage.tsx
+│   │   │   │   │   ├── RoleCatalogPage.tsx
+│   │   │   │   │   ├── StaffFacilityAssignmentPage.tsx
+│   │   │   │   │   └── UserManagementPage.tsx
+│   │   │   │   └── session.ts
+│   │   │   ├── policy/
+│   │   │   │   ├── api/
+│   │   │   │   │   └── policy.api.ts
+│   │   │   │   └── pages/
+│   │   │   │       ├── FacilityOverdueCapPage.tsx
+│   │   │   │       ├── PricingPolicyPage.tsx
+│   │   │   │       └── RentalPolicyPage.tsx
+│   │   │   ├── rental/
+│   │   │   │   ├── api/
+│   │   │   │   │   └── rental.api.ts
+│   │   │   │   └── pages/
+│   │   │   │       ├── AccessSimulatorPage.tsx
+│   │   │   │       ├── FacilityContractsPage.tsx
+│   │   │   │       ├── HandoverPage.tsx
+│   │   │   │       ├── MyRentalsPage.tsx
+│   │   │   │       ├── RenewalQuotePage.tsx
+│   │   │   │       ├── ReturnInspectionPage.tsx
+│   │   │   │       └── ReturnRequestPage.tsx
+│   │   │   ├── reporting/
+│   │   │   │   ├── api/
+│   │   │   │   │   └── reporting.api.ts
+│   │   │   │   └── pages/
+│   │   │   │       ├── ChainDashboardPage.tsx
+│   │   │   │       ├── ChainReportPage.tsx
+│   │   │   │       ├── FacilityDashboardPage.tsx
+│   │   │   │       ├── FacilityReportPage.tsx
+│   │   │   │       └── SystemDashboardPage.tsx
+│   │   │   ├── reservation/
+│   │   │   │   ├── api/
+│   │   │   │   │   └── reservation.api.ts
+│   │   │   │   └── pages/
+│   │   │   │       ├── AssignUnitPage.tsx
+│   │   │   │       ├── CheckinPassPage.tsx
+│   │   │   │       ├── CreateReservationPage.tsx
+│   │   │   │       ├── NoShowReviewPage.tsx
+│   │   │   │       └── ReservationLookupPage.tsx
+│   │   │   ├── support/
+│   │   │   │   ├── api/
+│   │   │   │   │   └── support.api.ts
+│   │   │   │   └── pages/
+│   │   │   │       ├── CustomerSupportPage.tsx
+│   │   │   │       └── IncidentDeskPage.tsx
+│   │   │   └── workforce/
+│   │   │       ├── api/
+│   │   │       │   └── workforce.api.ts
+│   │   │       └── pages/
+│   │   │           ├── StaffAssignmentPage.tsx
+│   │   │           └── StaffTaskBoardPage.tsx
+│   │   ├── shared/
+│   │   │   ├── api/
+│   │   │   │   ├── http-client.ts
+│   │   │   │   ├── idempotent-request.test.ts
+│   │   │   │   ├── idempotent-request.ts
+│   │   │   │   └── use-remote.ts
+│   │   │   ├── lib/
+│   │   │   │   ├── field-labels.ts
+│   │   │   │   ├── format.test.ts
+│   │   │   │   └── format.ts
+│   │   │   ├── types/
+│   │   │   │   └── api.ts
+│   │   │   └── ui/
+│   │   │       ├── ActionResult.tsx
+│   │   │       ├── Form.tsx
+│   │   │       ├── ReportPage.tsx
+│   │   │       ├── resource-context.ts
+│   │   │       └── ResourcePage.tsx
+│   │   ├── styles/
+│   │   │   └── globals.css
+│   │   └── main.tsx
+│   ├── .env.example
+│   ├── index.html
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── vite.config.ts
+├── scripts/
+│   ├── check-contract.mjs
+│   ├── print-structure.mjs
+│   └── README.md
+├── var/
+│   └── README.md
+├── .env.example
+├── .gitignore
+├── package-lock.json
+├── package.json
+└── README.md

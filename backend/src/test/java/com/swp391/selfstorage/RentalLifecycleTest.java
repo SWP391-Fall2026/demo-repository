@@ -1,0 +1,469 @@
+package com.swp391.selfstorage;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import com.fasterxml.jackson.databind.*;
+import com.swp391.selfstorage.config.LocalDataInitializer;
+import com.swp391.selfstorage.modules.facility.repository.*;
+import com.swp391.selfstorage.modules.identity.repository.UserRepository;
+import com.swp391.selfstorage.modules.rental.repository.ContractRepository;
+import java.time.*;
+import java.util.*;
+import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.*;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
+@org.springframework.test.context.TestExecutionListeners(
+  listeners = {
+    org.springframework.test.context.support.DependencyInjectionTestExecutionListener.class,
+    org.springframework.test.context.web.ServletTestExecutionListener.class,
+  }
+)
+class RentalLifecycleTest {
+
+  @Test
+  void concurrentRefundRequestsReserveOriginalPaymentQuota() throws Exception {
+    var start = LocalDateTime.now().plusDays(3).withNano(0);
+    var reservation = postAs(
+      "customer",
+      "/reservations",
+      Map.of(
+        "facilityCode",
+        "HCM-Q7",
+        "unitType",
+        "M",
+        "startDate",
+        start.toLocalDate().toString(),
+        "rentalStartAt",
+        start.toString(),
+        "appointmentAt",
+        start.toString(),
+        "durationMonths",
+        1
+      ),
+      200
+    );
+    String rid = reservation.path("id").asText(),
+      invoiceId = "";
+    for (var invoice : getAs("customer", "/invoices")) {
+      if (
+        rid.equals(invoice.path("reservationId").asText()) &&
+        "DEPOSIT".equals(invoice.path("invoiceType").asText())
+      ) invoiceId = invoice.path("id").asText();
+    }
+    var payment = postAs(
+      "customer",
+      "/payments/simulate",
+      Map.of("invoiceId", invoiceId, "paymentMethod", "MOCK_CARD"),
+      200
+    );
+    postAs(
+      "customer",
+      "/reservations/" + rid + "/cancel",
+      Map.of("reason", "Hủy trước 24 giờ"),
+      200
+    );
+    String body = json.writeValueAsString(
+      Map.of(
+        "paymentId",
+        payment.path("id").asText(),
+        "amount",
+        1000000,
+        "reason",
+        "Kiểm tra giữ hạn mức đồng thời"
+      )
+    );
+    var gate = new java.util.concurrent.CountDownLatch(1);
+    try (var pool = java.util.concurrent.Executors.newFixedThreadPool(2)) {
+      java.util.concurrent.Callable<Integer> call = () -> {
+        gate.await();
+        return mvc
+          .perform(
+            post("/api/refunds")
+              .with(user("customer"))
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(body)
+          )
+          .andReturn()
+          .getResponse()
+          .getStatus();
+      };
+      var first = pool.submit(call);
+      var second = pool.submit(call);
+      gate.countDown();
+      assertEquals(
+        List.of(200, 400),
+        java.util.stream.Stream.of(
+          first.get(15, java.util.concurrent.TimeUnit.SECONDS),
+          second.get(15, java.util.concurrent.TimeUnit.SECONDS)
+        )
+          .sorted()
+          .toList()
+      );
+    }
+  }
+
+  @Autowired
+  MockMvc mvc;
+
+  @Autowired
+  ObjectMapper json;
+
+  @Autowired
+  FacilityRepository facilities;
+
+  @Autowired
+  UnitRepository units;
+
+  @Autowired
+  UserRepository users;
+
+  @Autowired
+  ContractRepository contracts;
+
+  @Autowired
+  PasswordEncoder passwords;
+
+  @BeforeEach
+  void seed() {
+    new LocalDataInitializer(facilities, units, users, passwords).run();
+  }
+
+  JsonNode postAs(String who, String path, Object body, int expected)
+    throws Exception {
+    var result = mvc
+      .perform(
+        post("/api" + path)
+          .with(user(who))
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(json.writeValueAsString(body))
+      )
+      .andExpect(status().is(expected))
+      .andReturn();
+    return json
+      .readTree(result.getResponse().getContentAsString())
+      .path("data");
+  }
+
+  JsonNode getAs(String who, String path) throws Exception {
+    return json
+      .readTree(
+        mvc
+          .perform(get("/api" + path).with(user(who)))
+          .andExpect(status().isOk())
+          .andReturn()
+          .getResponse()
+          .getContentAsString()
+      )
+      .path("data");
+  }
+
+  @Test
+  void rejectsAnonymousInvalidInputAndWrongRole() throws Exception {
+    mvc.perform(get("/api/contracts")).andExpect(status().isUnauthorized());
+    postAs("customer", "/reservations", Map.of(), 400);
+    postAs("staff", "/facilities", Map.of("code", "DENIED"), 403);
+    mvc
+      .perform(
+        post("/api/auth/login")
+          .contentType(MediaType.APPLICATION_JSON)
+          .content("{\"username\":\"customer\",\"password\":\"Demo123!\"}")
+      )
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.token").isNotEmpty());
+  }
+
+  @Test
+  void fullRentalAndManualRefundEnforceBranchQuotaAndSeparation()
+    throws Exception {
+    var start = LocalDateTime.now().plusDays(2).withNano(0);
+    var r = postAs(
+      "customer",
+      "/reservations",
+      Map.of(
+        "facilityCode",
+        "HN-CG",
+        "unitType",
+        "S",
+        "startDate",
+        start.toLocalDate().toString(),
+        "rentalStartAt",
+        start.toString(),
+        "appointmentAt",
+        start.toString(),
+        "durationMonths",
+        1
+      ),
+      200
+    );
+    var rid = r.path("id").asText();
+    assertFalse(rid.isBlank());
+    mvc
+      .perform(get("/api/reservations/" + rid).with(user("customer2")))
+      .andExpect(status().isNotFound());
+    JsonNode deposit = null,
+      rent = null;
+    for (var i : getAs("customer", "/invoices"))
+      if (rid.equals(i.path("reservationId").asText())) {
+        if ("DEPOSIT".equals(i.path("invoiceType").asText())) deposit = i;
+        else rent = i;
+      }
+    assertNotNull(deposit);
+    assertNotNull(rent);
+    String depositId = deposit.path("id").asText(),
+      rentId = rent.path("id").asText();
+    postAs(
+      "customer",
+      "/payments/simulate",
+      Map.of(
+        "invoiceId",
+        depositId,
+        "paymentMethod",
+        "MOCK_CARD",
+        "simulateFailure",
+        true
+      ),
+      200
+    );
+    var paid = postAs(
+      "customer",
+      "/payments/simulate",
+      Map.of("invoiceId", depositId, "paymentMethod", "MOCK_CARD"),
+      200
+    );
+    postAs(
+      "customer",
+      "/payments/simulate",
+      Map.of("invoiceId", depositId, "paymentMethod", "MOCK_CARD"),
+      409
+    );
+    mvc
+      .perform(
+        patch("/api/reservations/" + rid + "/assign-unit")
+          .with(user("manager_q7"))
+          .contentType(MediaType.APPLICATION_JSON)
+          .content("{\"unitCode\":\"HN-CG-001\"}")
+      )
+      .andExpect(status().isForbidden());
+    mvc
+      .perform(
+        patch("/api/reservations/" + rid + "/assign-unit")
+          .with(user("manager"))
+          .contentType(MediaType.APPLICATION_JSON)
+          .content("{\"unitCode\":\"HN-CG-001\"}")
+      )
+      .andExpect(status().isOk());
+    postAs(
+      "customer",
+      "/payments/simulate",
+      Map.of("invoiceId", rentId, "paymentMethod", "MOCK_CARD"),
+      200
+    );
+    var contract = postAs(
+      "staff",
+      "/contracts/handover",
+      Map.of(
+        "reservationId",
+        rid,
+        "customerSignatureConfirmed",
+        true,
+        "unitConditionNotes",
+        "Kho nguyên vẹn"
+      ),
+      200
+    );
+    String cid = contract.path("id").asText(),
+      pin = contract.path("pinCode").asText();
+    assertEquals(6, pin.length());
+    postAs(
+      "customer",
+      "/contracts/checkout-request",
+      Map.of("contractId", cid, "requestedDate", LocalDate.now().toString()),
+      200
+    );
+    assertEquals(pin, contracts.findById(cid).orElseThrow().getPinCode());
+    postAs(
+      "staff",
+      "/contracts/return-inspection",
+      Map.of(
+        "unitCode",
+        "HN-CG-001",
+        "cleanlinessStatus",
+        "CLEAN",
+        "damageNotes",
+        "Không hư hỏng"
+      ),
+      200
+    );
+    assertNull(contracts.findById(cid).orElseThrow().getPinCode());
+    assertEquals(
+      "cleaning",
+      units.findById("HN-CG-001").orElseThrow().getStatus()
+    );
+    postAs(
+      "manager",
+      "/facilities/units/HN-CG-001/ready/approve",
+      Map.of(),
+      409
+    );
+    postAs(
+      "staff",
+      "/facilities/units/HN-CG-001/ready",
+      Map.of("notes", "Đã vệ sinh"),
+      200
+    );
+    postAs(
+      "manager",
+      "/facilities/units/HN-CG-001/ready/approve",
+      Map.of(),
+      200
+    );
+    String paymentId = paid.path("id").asText();
+    var req = postAs(
+      "customer",
+      "/refunds",
+      Map.of(
+        "paymentId",
+        paymentId,
+        "amount",
+        500000,
+        "reason",
+        "Hoàn một phần tiền cọc"
+      ),
+      200
+    );
+    postAs(
+      "customer",
+      "/refunds",
+      Map.of(
+        "paymentId",
+        paymentId,
+        "amount",
+        400000,
+        "reason",
+        "Vượt hạn mức chờ duyệt"
+      ),
+      400
+    );
+    postAs(
+      "customer",
+      "/refunds/" + req.path("id").asText() + "/cancel",
+      Map.of(),
+      200
+    );
+    req = postAs(
+      "customer",
+      "/refunds",
+      Map.of(
+        "paymentId",
+        paymentId,
+        "amount",
+        800000,
+        "reason",
+        "Hoàn tiền cọc sau nghiệm thu"
+      ),
+      200
+    );
+    String ref = req.path("id").asText();
+    postAs(
+      "staff",
+      "/refunds/" + ref + "/decision",
+      Map.of(
+        "decision",
+        "APPROVE",
+        "approvedAmount",
+        800000,
+        "reason",
+        "Đủ điều kiện"
+      ),
+      403
+    );
+    postAs(
+      "manager_q7",
+      "/refunds/" + ref + "/decision",
+      Map.of(
+        "decision",
+        "APPROVE",
+        "approvedAmount",
+        800000,
+        "reason",
+        "Sai chi nhánh"
+      ),
+      403
+    );
+    postAs(
+      "manager",
+      "/refunds/" + ref + "/decision",
+      Map.of(
+        "decision",
+        "APPROVE",
+        "approvedAmount",
+        800000,
+        "reason",
+        "Đủ điều kiện"
+      ),
+      200
+    );
+    postAs("customer", "/refunds/" + ref + "/cancel", Map.of(), 409);
+    var proof = new MockMultipartFile(
+      "file",
+      "proof.pdf",
+      "application/pdf",
+      "%PDF-1.4\nmanual transfer proof".getBytes()
+    );
+    mvc
+      .perform(
+        multipart("/api/refunds/" + ref + "/evidence")
+          .file(proof)
+          .param("reference", "TEST-TRANSFER-001")
+          .with(user("staff"))
+      )
+      .andExpect(status().isOk());
+    postAs(
+      "staff",
+      "/refunds/" + ref + "/confirm",
+      Map.of("reason", "Staff không được xác nhận"),
+      403
+    );
+    postAs(
+      "manager",
+      "/refunds/" + ref + "/confirm",
+      Map.of("reason", "Đối chiếu bằng chứng thành công"),
+      200
+    );
+    postAs(
+      "manager",
+      "/refunds/" + ref + "/confirm",
+      Map.of("reason", "Lặp thao tác"),
+      409
+    );
+    postAs(
+      "customer",
+      "/refunds",
+      Map.of(
+        "paymentId",
+        paymentId,
+        "amount",
+        1,
+        "reason",
+        "Không còn hạn mức"
+      ),
+      400
+    );
+    mvc
+      .perform(get("/api/refunds/" + ref + "/evidence").with(user("customer2")))
+      .andExpect(status().isNotFound());
+  }
+}

@@ -1,0 +1,140 @@
+package com.swp391.selfstorage.application.workflow;
+
+import com.swp391.selfstorage.common.security.ActorContext;
+import com.swp391.selfstorage.common.web.*;
+import com.swp391.selfstorage.modules.audit.service.AuditLogService;
+import com.swp391.selfstorage.modules.billing.service.InvoiceService;
+import com.swp391.selfstorage.modules.facility.repository.*;
+import com.swp391.selfstorage.modules.identity.entity.User;
+import com.swp391.selfstorage.modules.reservation.dto.CreateReservationRequest;
+import com.swp391.selfstorage.modules.reservation.entity.Reservation;
+import com.swp391.selfstorage.modules.reservation.repository.ReservationRepository;
+import com.swp391.selfstorage.modules.reservation.service.ReservationService;
+import java.math.*;
+import java.time.*;
+import java.util.*;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class CreateReservationWorkflow {
+
+  private final ReservationRepository reservations;
+  private final FacilityRepository facilities;
+  private final UnitRepository units;
+  private final ReservationService service;
+  private final InvoiceService invoices;
+  private final ActorContext actor;
+  private final AuditLogService audit;
+  private final Clock clock;
+
+  public CreateReservationWorkflow(
+    ReservationRepository r,
+    FacilityRepository f,
+    UnitRepository u,
+    ReservationService s,
+    InvoiceService i,
+    ActorContext a,
+    AuditLogService au,
+    Clock c
+  ) {
+    reservations = r;
+    facilities = f;
+    units = u;
+    service = s;
+    invoices = i;
+    actor = a;
+    audit = au;
+    clock = c;
+  }
+
+  @Transactional
+  public Reservation execute(CreateReservationRequest d) {
+    var customer = actor.require("CUSTOMER");
+    var now = LocalDateTime.now(clock);
+    if (
+      d.rentalStartAt().isBefore(now) ||
+      !d.startDate().equals(d.rentalStartAt().toLocalDate()) ||
+      d.startDate().isBefore(now.toLocalDate()) ||
+      d.appointmentAt().isBefore(now)
+    ) throw Inputs.bad("Ngày thuê và lịch hẹn không được trong quá khứ");
+    facilities.lockByCode(d.facilityCode()).orElseThrow(Inputs::missing);
+    long available = units
+      .findByFacilityCode(d.facilityCode())
+      .stream()
+      .filter(
+        u ->
+          "available".equals(u.getStatus()) && d.unitType().equals(u.getType())
+      )
+      .count();
+    long held = reservations
+      .findByFacilityCode(d.facilityCode())
+      .stream()
+      .filter(
+        r ->
+          r.getUnitCode() == null &&
+          d.unitType().equals(r.getUnitType()) &&
+          ("RESERVED".equals(r.getStatus()) ||
+            ("PENDING_PAYMENT".equals(r.getStatus()) &&
+              r.getCreatedAt().plusHours(24).isAfter(now)))
+      )
+      .count();
+    if (available <= held) throw Inputs.conflict("Loại kho đã hết chỗ");
+    var quote = service.quote(
+      Map.of(
+        "facilityCode",
+        d.facilityCode(),
+        "unitType",
+        d.unitType(),
+        "durationMonths",
+        d.durationMonths()
+      )
+    );
+    Reservation r = new Reservation();
+    r.setId("RSV-" + UUID.randomUUID());
+    r.setUserId(customer.getId());
+    r.setCustomerName(customer.getName());
+    r.setCustomerPhone(customer.getPhone());
+    r.setFacilityCode(d.facilityCode());
+    r.setUnitType(d.unitType());
+    r.setDurationMonths(d.durationMonths());
+    r.setStartDate(d.startDate());
+    r.setRentalStartAt(d.rentalStartAt());
+    r.setAppointmentAt(d.appointmentAt());
+    r.setAppointment(d.appointmentAt().toString());
+    r.setDepositAmount((BigDecimal) quote.get("depositAmount"));
+    r.setMonthlyPriceSnapshot((BigDecimal) quote.get("monthlyRate"));
+    r.setStatus("PENDING_PAYMENT");
+    r.setCreatedAt(now);
+    r.setExtensionMinutes(0);
+    r.setExtensionUsed(false);
+    r.setIncidentOpen(false);
+    reservations.save(r);
+    invoices.issue(
+      r.getId(),
+      null,
+      r.getUserId(),
+      r.getFacilityCode(),
+      "DEPOSIT",
+      r.getDepositAmount(),
+      now.plusHours(24),
+      quote.toString()
+    );
+    invoices.issue(
+      r.getId(),
+      null,
+      r.getUserId(),
+      r.getFacilityCode(),
+      "RENT",
+      r.getMonthlyPriceSnapshot(),
+      d.appointmentAt(),
+      quote.toString()
+    );
+    audit.record(
+      "CREATE_RESERVATION",
+      r.getId(),
+      "Giữ giá 24 giờ và giữ số lượng theo loại kho"
+    );
+    return r;
+  }
+}

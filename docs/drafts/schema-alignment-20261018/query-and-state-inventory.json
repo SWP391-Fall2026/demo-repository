@@ -1,0 +1,368 @@
+{
+  "queries": [
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/repository/InvoiceRepository.java",
+      "line": 21,
+      "annotation": "\"select i from Invoice i where i.id=:id\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/repository/PaymentRepository.java",
+      "line": 17,
+      "annotation": "\"select p from Payment p where p.id=:id\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/repository/RefundRequestRepository.java",
+      "line": 17,
+      "annotation": "\"select r from RefundRequest r where r.id=:id\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/repository/FacilityRepository.java",
+      "line": 12,
+      "annotation": "\"select f from Facility f where f.code=:code\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/repository/UnitRepository.java",
+      "line": 15,
+      "annotation": "\"select u from Unit u where u.code=:code\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/repository/ContractRepository.java",
+      "line": 21,
+      "annotation": "\"select c from Contract c where c.id=:id\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/repository/ReservationRepository.java",
+      "line": 17,
+      "annotation": "\"select r from Reservation r where r.id=:id\""
+    }
+  ],
+  "state_writes": [
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/application/workflow/AssignUnitWorkflow.java",
+      "line": 65,
+      "setter": "Status",
+      "argument": "\"reserved\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/application/workflow/CancelReservationWorkflow.java",
+      "line": 50,
+      "setter": "Status",
+      "argument": "\"CANCELLED\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/application/workflow/CancelReservationWorkflow.java",
+      "line": 58,
+      "setter": "Status",
+      "argument": "\"available\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/application/workflow/CompleteReturnWorkflow.java",
+      "line": 95,
+      "setter": "Status",
+      "argument": "\"TERMINATED\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/application/workflow/CompleteReturnWorkflow.java",
+      "line": 99,
+      "setter": "Status",
+      "argument": "\"cleaning\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/application/workflow/CompleteReturnWorkflow.java",
+      "line": 104,
+      "setter": "ReadinessStatus",
+      "argument": "null"
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/application/workflow/CreateReservationWorkflow.java",
+      "line": 107,
+      "setter": "Status",
+      "argument": "\"PENDING_PAYMENT\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/application/workflow/HandoverWorkflow.java",
+      "line": 90,
+      "setter": "Status",
+      "argument": "\"ACTIVE\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/application/workflow/HandoverWorkflow.java",
+      "line": 102,
+      "setter": "Status",
+      "argument": "\"occupied\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/application/workflow/HandoverWorkflow.java",
+      "line": 105,
+      "setter": "Status",
+      "argument": "\"CHECKED_IN\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/application/workflow/NoShowWorkflow.java",
+      "line": 126,
+      "setter": "Status",
+      "argument": "\"NO_SHOW\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/application/workflow/NoShowWorkflow.java",
+      "line": 133,
+      "setter": "Status",
+      "argument": "\"available\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/application/workflow/PayInvoiceWorkflow.java",
+      "line": 112,
+      "setter": "InvoiceType",
+      "argument": "i.getInvoiceType()"
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/application/workflow/PayInvoiceWorkflow.java",
+      "line": 120,
+      "setter": "Status",
+      "argument": "failed ? \"FAILED\" : \"PAID\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/application/workflow/PayInvoiceWorkflow.java",
+      "line": 123,
+      "setter": "Status",
+      "argument": "\"PAID\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/application/workflow/PayInvoiceWorkflow.java",
+      "line": 127,
+      "setter": "Status",
+      "argument": "\"RESERVED\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/application/workflow/PayInvoiceWorkflow.java",
+      "line": 141,
+      "setter": "Status",
+      "argument": "\"ACTIVE\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/config/LocalDataInitializer.java",
+      "line": 44,
+      "setter": "Status",
+      "argument": "\"ACTIVE\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/config/LocalDataInitializer.java",
+      "line": 51,
+      "setter": "Type",
+      "argument": "type"
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/config/LocalDataInitializer.java",
+      "line": 61,
+      "setter": "Status",
+      "argument": "\"available\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/config/LocalDataInitializer.java",
+      "line": 83,
+      "setter": "Role",
+      "argument": "a[2]"
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/config/LocalDataInitializer.java",
+      "line": 88,
+      "setter": "Status",
+      "argument": "\"ACTIVE\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/service/InvoiceService.java",
+      "line": 57,
+      "setter": "InvoiceType",
+      "argument": "type"
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/service/InvoiceService.java",
+      "line": 59,
+      "setter": "Status",
+      "argument": "\"PENDING\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/service/RefundExecutionService.java",
+      "line": 96,
+      "setter": "Status",
+      "argument": "\"SUBMITTED\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/service/RefundExecutionService.java",
+      "line": 99,
+      "setter": "Status",
+      "argument": "\"EVIDENCE_SUBMITTED\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/service/RefundExecutionService.java",
+      "line": 129,
+      "setter": "Status",
+      "argument": "\"COMPLETED\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/service/RefundExecutionService.java",
+      "line": 131,
+      "setter": "Status",
+      "argument": "\"COMPLETED\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/service/RefundRequestService.java",
+      "line": 163,
+      "setter": "RefundType",
+      "argument": "\"DEPOSIT\".equals(p.getInvoiceType()) ? \"DEPOSIT\" : \"RENT\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/service/RefundRequestService.java",
+      "line": 170,
+      "setter": "Status",
+      "argument": "\"PENDING\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/service/RefundRequestService.java",
+      "line": 195,
+      "setter": "Status",
+      "argument": "\"CANCELLED\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/service/RefundRequestService.java",
+      "line": 215,
+      "setter": "Status",
+      "argument": "\"APPROVED\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/service/RefundRequestService.java",
+      "line": 217,
+      "setter": "Status",
+      "argument": "\"REJECTED\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/service/FacilityService.java",
+      "line": 77,
+      "setter": "Status",
+      "argument": "\"ACTIVE\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/service/FacilityService.java",
+      "line": 91,
+      "setter": "Type",
+      "argument": "Inputs.text(d, \"type\")"
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/service/FacilityService.java",
+      "line": 100,
+      "setter": "Status",
+      "argument": "\"available\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/service/FacilityService.java",
+      "line": 140,
+      "setter": "Status",
+      "argument": "\"available\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/service/FacilityService.java",
+      "line": 142,
+      "setter": "ReadinessStatus",
+      "argument": "\"APPROVED\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/service/FacilityService.java",
+      "line": 144,
+      "setter": "ReadinessStatus",
+      "argument": "\"PENDING\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java",
+      "line": 409,
+      "setter": "Role",
+      "argument": "\"CUSTOMER\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java",
+      "line": 417,
+      "setter": "Status",
+      "argument": "\"ACTIVE\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/service/UserAdminService.java",
+      "line": 70,
+      "setter": "Status",
+      "argument": "\"ACTIVE\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/service/UserAdminService.java",
+      "line": 87,
+      "setter": "Status",
+      "argument": "status"
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/service/UserAdminService.java",
+      "line": 103,
+      "setter": "Role",
+      "argument": "role"
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/job/RentalExpiryJob.java",
+      "line": 39,
+      "setter": "Status",
+      "argument": "\"OVERDUE\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/job/ReservationMonitoringJob.java",
+      "line": 42,
+      "setter": "Status",
+      "argument": "\"EXPIRED\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/job/ReservationMonitoringJob.java",
+      "line": 46,
+      "setter": "Status",
+      "argument": "\"CANCELLED\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/support/service/SupportTicketService.java",
+      "line": 62,
+      "setter": "Priority",
+      "argument": "\"NORMAL\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/support/service/SupportTicketService.java",
+      "line": 63,
+      "setter": "Status",
+      "argument": "\"OPEN\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/support/service/SupportTicketService.java",
+      "line": 90,
+      "setter": "Status",
+      "argument": "status"
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/service/TaskService.java",
+      "line": 80,
+      "setter": "Status",
+      "argument": "status"
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/service/TaskService.java",
+      "line": 97,
+      "setter": "TaskType",
+      "argument": "type"
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/service/TaskService.java",
+      "line": 103,
+      "setter": "Status",
+      "argument": "\"PENDING\""
+    },
+    {
+      "source": "backend/src/main/java/com/swp391/selfstorage/security/SecurityConfig.java",
+      "line": 41,
+      "setter": "Status",
+      "argument": "401"
+    }
+  ],
+  "relationship_enum_converter_version_annotations": [],
+  "native_sql_found": false,
+  "note": "Static source inventory; Java initializer/comment is not a DB default/enum. All seven @Query statements are JPQL pessimistic lock reads."
+}
