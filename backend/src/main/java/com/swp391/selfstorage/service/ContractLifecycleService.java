@@ -21,14 +21,16 @@ public class ContractLifecycleService {
     private final UnitRepository unitRepository;
     private final PolicyAnalyticsService policyAnalyticsService;
     private final PaymentRepository paymentRepository;
+    private final NotificationService notificationService;
 
     public ContractLifecycleService(ContractRepository contractRepository,
             UnitRepository unitRepository, PolicyAnalyticsService policyAnalyticsService,
-            PaymentRepository paymentRepository) {
+            PaymentRepository paymentRepository, NotificationService notificationService) {
         this.contractRepository = contractRepository;
         this.unitRepository = unitRepository;
         this.policyAnalyticsService = policyAnalyticsService;
         this.paymentRepository = paymentRepository;
+        this.notificationService = notificationService;
     }
 
     @Scheduled(fixedDelayString = "${app.contracts.lifecycle-check-ms:3600000}")
@@ -48,6 +50,9 @@ public class ContractLifecycleService {
                     contractRepository.save(contract);
                 }
                 createRenewalInvoiceIfMissing(contract);
+                notificationService.createOnce(contract.getUserId(), "Sắp hết hạn hợp đồng",
+                        "Hợp đồng " + contract.getId() + " sắp hết hạn ngày " + endDate + ". Vui lòng thanh toán gia hạn.",
+                        "RENEWAL", contract.getId());
                 continue;
             }
             if (daysUntilEnd < -graceDays) {
@@ -58,6 +63,9 @@ public class ContractLifecycleService {
                     unit.setPinCode("000000");
                     unitRepository.save(unit);
                 });
+                notificationService.createOnce(contract.getUserId(), "Kho bị khóa do quá hạn",
+                        "Hợp đồng " + contract.getId() + " đã quá thời gian ân hạn. PIN kho đã bị khóa.",
+                        "OVERDUE_LOCK", contract.getId());
             }
         }
     }

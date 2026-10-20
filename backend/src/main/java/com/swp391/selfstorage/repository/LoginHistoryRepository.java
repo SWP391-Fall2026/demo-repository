@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface LoginHistoryRepository extends JpaRepository<LoginHistory, Long> {
-    List<LoginHistory> findAllByOrderByIdDesc();
+public interface LoginHistoryRepository extends JpaRepository<LoginHistory, String> {
+    List<LoginHistory> findAllByOrderByCreatedAtDesc();
 }

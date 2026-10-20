@@ -4,6 +4,8 @@ import com.swp391.selfstorage.entity.*;
 import com.swp391.selfstorage.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -24,6 +26,7 @@ public class DataInitializer implements CommandLineRunner {
     private final DailyTaskRepository dailyTaskRepository;
     private final AuditLogRepository auditLogRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JdbcTemplate jdbcTemplate;
 
     public DataInitializer(UserRepository userRepository,
                            FacilityRepository facilityRepository,
@@ -33,7 +36,8 @@ public class DataInitializer implements CommandLineRunner {
                            ContractRepository contractRepository,
                            DailyTaskRepository dailyTaskRepository,
                            AuditLogRepository auditLogRepository,
-                           PasswordEncoder passwordEncoder) {
+                           PasswordEncoder passwordEncoder,
+                           JdbcTemplate jdbcTemplate) {
         this.userRepository = userRepository;
         this.facilityRepository = facilityRepository;
         this.unitRepository = unitRepository;
@@ -43,6 +47,7 @@ public class DataInitializer implements CommandLineRunner {
         this.dailyTaskRepository = dailyTaskRepository;
         this.auditLogRepository = auditLogRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
@@ -50,11 +55,13 @@ public class DataInitializer implements CommandLineRunner {
         seedFacilities();
         seedUnits();
         seedUsers();
+        migrateLegacyPasswords();
         seedReservations();
         seedContracts();
         seedPayments();
         seedTasks();
         seedAuditLogs();
+        migrateLegacyAuditColumns();
         System.out.println("[DataInitializer] ✅ Khởi tạo dữ liệu mẫu hệ thống hoàn tất.");
     }
 
@@ -129,8 +136,34 @@ public class DataInitializer implements CommandLineRunner {
                     new User("USR-05", "Đặng Hoàng Long", "business", "5", "business@selfstorage.vn", "0918.777.666", "001200011223", "OPS_MGR", "Quản lý vận hành toàn chuỗi", "Toàn hệ thống (HQ)", "HQ", "ACTIVE"),
                     new User("USR-06", "Quản trị viên Hệ thống", "admin", "2", "admin@selfstorage.vn", "0909.999.000", "001200000001", "ADMIN", "Quản trị hệ thống", "Toàn hệ thống (HQ)", "HQ", "ACTIVE")
             );
+            users.forEach(user -> user.setPassword(passwordEncoder.encode(user.getPassword())));
             userRepository.saveAll(users);
             System.out.println("[DataInitializer] 👥 Đã nạp 6 tài khoản mẫu 5 Roles (customer/1, admin/2, staff/3, manager/4, business/5).");
+        }
+    }
+
+    private void migrateLegacyPasswords() {
+        userRepository.findAll().stream()
+                .filter(user -> user.getPassword() != null && !user.getPassword().startsWith("$2"))
+                .forEach(user -> {
+                    user.setPassword(passwordEncoder.encode(user.getPassword()));
+                    userRepository.save(user);
+                });
+    }
+
+    private void migrateLegacyAuditColumns() {
+        // Older deployments used time_str/ip; copy them when those columns exist.
+        try {
+            jdbcTemplate.update("UPDATE audit_logs SET time_display = COALESCE(time_display, time_str) "
+                    + "WHERE time_display IS NULL");
+        } catch (DataAccessException ignored) {
+            // Fresh schema has no legacy columns; Hibernate mapping already matches it.
+        }
+        try {
+            jdbcTemplate.update("UPDATE audit_logs SET ip_address = COALESCE(ip_address, ip) "
+                    + "WHERE ip_address IS NULL");
+        } catch (DataAccessException ignored) {
+            // Fresh schema has no legacy columns; Hibernate mapping already matches it.
         }
     }
 
