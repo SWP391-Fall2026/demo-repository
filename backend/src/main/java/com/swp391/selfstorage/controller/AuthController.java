@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.*;
 
@@ -19,6 +21,16 @@ public class AuthController {
 
     public AuthController(AuthService authService) {
         this.authService = authService;
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<UserDto>> me(@AuthenticationPrincipal UserDetails principal) {
+        if (principal == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error("Chưa đăng nhập."));
+        try {
+            return ResponseEntity.ok(ApiResponse.ok(authService.getCurrentUser(principal.getUsername())));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error(e.getMessage()));
+        }
     }
 
     @PostMapping("/login")
@@ -132,5 +144,16 @@ public class AuthController {
         rbac.put("ADMIN", Arrays.asList("ALL_SYSTEM_ACCESS", "USER_MANAGEMENT", "RBAC_CONFIG", "VIEW_AUDIT_LOGS"));
 
         return ResponseEntity.ok(ApiResponse.ok(rbac));
+    }
+
+    @GetMapping("/facility-staff")
+    @PreAuthorize("hasAnyRole('FMANAGER', 'FACILITY_MANAGER')")
+    public ResponseEntity<ApiResponse<List<UserDto>>> getFacilityStaff(@AuthenticationPrincipal UserDetails principal) {
+        try {
+            List<UserDto> staff = authService.getFacilityStaff(principal.getUsername());
+            return ResponseEntity.ok(ApiResponse.list(staff.size(), staff));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.error(e.getMessage()));
+        }
     }
 }

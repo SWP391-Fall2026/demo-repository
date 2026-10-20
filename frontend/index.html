@@ -855,100 +855,14 @@
                 <option value="OVER_2M">&gt; 2.000.000 đ/tháng</option>
               </select>
             </div>
-            <button class="btn btn-primary" style="height:42px;" onclick="showToast('Đã lọc kết quả kho khả dụng!')">
+            <button class="btn btn-primary" style="height:42px;" onclick="loadCatalogUnits()">
               🔍 Tìm kho trống
             </button>
           </div>
         </div>
 
-        <!-- Catalog Grid -->
-        <div class="grid-3">
-          <div class="ui-card">
-            <div class="unit-card-3d-box">
-              <span style="font-size:32px;">🚪</span>
-              <span style="font-weight:700; font-size:14px; margin-top:6px;">UNIT S-101 (2.0 m²)</span>
-            </div>
-            <div class="ui-card-header">
-              <h4 class="ui-card-title">Kho Mini Cá Nhân (S)</h4>
-              <span class="badge badge-success">🟢 Sẵn sàng</span>
-            </div>
-            <p style="font-size:13px; color:#64748b; margin-bottom:12px;">Dài 1.5m x Rộng 1.3m x Cao 2.5m (4.9 m³). Tầng
-              1 - Khu A.</p>
-            <div
-              style="font-size:12px; color:#475569; display:flex; flex-direction:column; gap:4px; margin-bottom:14px;">
-              <div>🔒 Khóa mã PIN điện tử riêng</div>
-              <div>❄️ Kiểm soát ẩm tự động</div>
-              <div>⚡ Cọc 1 tháng (Hoàn 100% khi trả)</div>
-            </div>
-            <div
-              style="border-top:1px solid #f1f5f9; padding-top:12px; display:flex; justify-content:space-between; align-items:center;">
-              <div>
-                <span style="font-size:18px; font-weight:800; color:#1e40af;">800.000 đ</span>
-                <span style="font-size:12px; color:#64748b;">/tháng</span>
-              </div>
-              <button class="btn btn-primary btn-sm"
-                onclick="openUnitDetailModal('Kho Mini Cá Nhân (S)', '2.0 m²', '4.9 m³', 800000)">Xem chi tiết</button>
-            </div>
-          </div>
-
-          <div class="ui-card" style="border:2px solid #3b82f6;">
-            <div class="unit-card-3d-box" style="background:linear-gradient(135deg, #1e40af 0%, #0f172a 100%);">
-              <span style="font-size:32px;">🚪</span>
-              <span style="font-weight:700; font-size:14px; margin-top:6px;">UNIT A-102 (5.0 m²)</span>
-            </div>
-            <div class="ui-card-header">
-              <h4 class="ui-card-title">Kho Tiêu Chuẩn Medium (M)</h4>
-              <span class="badge badge-warning">🟡 Khách đang xem</span>
-            </div>
-            <p style="font-size:13px; color:#64748b; margin-bottom:12px;">Dài 2.5m x Rộng 2.0m x Cao 2.5m (12.5 m³).
-              Tầng 1 - Khu A (Gần thang máy).</p>
-            <div
-              style="font-size:12px; color:#475569; display:flex; flex-direction:column; gap:4px; margin-bottom:14px;">
-              <div>🔒 Khóa mã PIN điện tử + Ổ khóa chịu lực</div>
-              <div>❄️ Điều hòa kiểm soát nhiệt ẩm 24/7</div>
-              <div>⚡ Giảm 5% khi thuê từ 3 tháng</div>
-            </div>
-            <div
-              style="border-top:1px solid #f1f5f9; padding-top:12px; display:flex; justify-content:space-between; align-items:center;">
-              <div>
-                <span style="font-size:18px; font-weight:800; color:#1e40af;">1.450.000 đ</span>
-                <span style="font-size:12px; color:#64748b;">/tháng</span>
-              </div>
-              <button class="btn btn-primary btn-sm"
-                onclick="openUnitDetailModal('Kho Tiêu Chuẩn Medium (M)', '5.0 m²', '12.5 m³', 1450000)">Xem chi
-                tiết</button>
-            </div>
-          </div>
-
-          <div class="ui-card">
-            <div class="unit-card-3d-box">
-              <span style="font-size:32px;">🚪</span>
-              <span style="font-weight:700; font-size:14px; margin-top:6px;">UNIT L-205 (10.0 m²)</span>
-            </div>
-            <div class="ui-card-header">
-              <h4 class="ui-card-title">Kho Lớn Doanh Nghiệp (L)</h4>
-              <span class="badge badge-success">🟢 Sẵn sàng</span>
-            </div>
-            <p style="font-size:13px; color:#64748b; margin-bottom:12px;">Dài 4.0m x Rộng 2.5m x Cao 2.5m (25.0 m³).
-              Tầng 2 - Khu B.</p>
-            <div
-              style="font-size:12px; color:#475569; display:flex; flex-direction:column; gap:4px; margin-bottom:14px;">
-              <div>🔒 Cửa cuốn trợ lực + Thẻ từ RFID 24/7</div>
-              <div>📦 Chứa pallet hàng hóa & thiết bị</div>
-              <div>⚡ Giảm 10% khi thuê 6 tháng</div>
-            </div>
-            <div
-              style="border-top:1px solid #f1f5f9; padding-top:12px; display:flex; justify-content:space-between; align-items:center;">
-              <div>
-                <span style="font-size:18px; font-weight:800; color:#1e40af;">2.800.000 đ</span>
-                <span style="font-size:12px; color:#64748b;">/tháng</span>
-              </div>
-              <button class="btn btn-primary btn-sm"
-                onclick="openUnitDetailModal('Kho Lớn Doanh Nghiệp (L)', '10.0 m²', '25.0 m³', 2800000)">Xem chi
-                tiết</button>
-            </div>
-          </div>
-        </div>
+        <!-- Catalog Grid: populated from backend availability API -->
+        <div id="catalogUnitsGrid" class="grid-3"><div class="ui-card">Chọn bộ lọc rồi bấm “Tìm kho trống” để tải dữ liệu thực.</div></div>
       </section>
 
       <!-- SCR-C02: UNIT RESERVATION & BOOKING -->
@@ -990,7 +904,7 @@
             <div class="grid-2">
               <div class="form-group">
                 <label class="form-label">Ngày bắt đầu thuê (Start Date)</label>
-                <input type="date" class="form-control" value="2026-10-10">
+                <input type="date" class="form-control" id="rsvStartDate">
               </div>
               <div class="form-group">
                 <label class="form-label">Thời hạn thuê mong muốn</label>
@@ -1005,7 +919,7 @@
 
             <div class="form-group">
               <label class="form-label">Khung giờ hẹn đến cơ sở nhận bàn giao kho</label>
-              <select class="form-control">
+              <select class="form-control" id="rsvAppointment">
                 <option>08:30 - 09:30 (Sáng)</option>
                 <option>10:00 - 11:00 (Sáng)</option>
                 <option selected>14:00 - 15:00 (Chiều - Đề xuất)</option>
@@ -1103,8 +1017,7 @@
             đ</button>
           <button class="btn btn-secondary btn-sm" onclick="setPaymentType('RENEW')">3. Gia hạn hợp đồng - 1.450.000
             đ</button>
-          <button class="btn btn-secondary btn-sm" onclick="setPaymentType('EXTRA')">4. Phụ phí vệ sinh/ổ khóa - 200.000
-            đ</button>
+          <button class="btn btn-secondary btn-sm" disabled title="Phụ phí chỉ thanh toán khi backend phát hành hóa đơn">4. Phụ phí (chờ hóa đơn backend)</button>
         </div>
 
         <div class="grid-1-2">
@@ -1200,15 +1113,15 @@
               <div>
                 <div style="font-size:13px; margin-bottom:8px;">
                   <span style="color:#64748b;">Ngân hàng thụ hưởng:</span><br>
-                  <strong style="color:#0f172a;">Ngân hàng TMCP Quân Đội (MBBank)</strong>
+                  <strong id="paymentBankName" style="color:#0f172a;">Đang tải từ backend...</strong>
                 </div>
                 <div style="font-size:13px; margin-bottom:8px;">
                   <span style="color:#64748b;">Số tài khoản:</span><br>
-                  <span class="code-display" style="font-size:15px;">0988 7766 5522</span>
+                  <span id="paymentAccountNo" class="code-display" style="font-size:15px;">Đang tải...</span>
                 </div>
                 <div style="font-size:13px; margin-bottom:8px;">
                   <span style="color:#64748b;">Chủ tài khoản thụ hưởng:</span><br>
-                  <strong>CONG TY CP SELF STORAGE VIET NAM</strong>
+                  <strong id="paymentAccountName">Đang tải từ backend...</strong>
                 </div>
                 <div style="font-size:13px; margin-bottom:16px;">
                   <span style="color:#64748b;">Nội dung chuyển khoản chuẩn:</span><br>
@@ -1320,84 +1233,8 @@
           <button class="btn btn-outline" onclick="navigateToScreen('SCR-C06')">Báo cáo sự cố phòng kho</button>
         </div>
 
-        <div class="grid-4" style="margin-bottom:20px;">
-          <div class="stat-card">
-            <div class="stat-card-title">Kho đang thuê</div>
-            <div class="stat-card-value">02 Kho</div>
-            <div class="stat-card-meta">Unit A-102 & Unit B-205</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-card-title">Tổng diện tích</div>
-            <div class="stat-card-value">13.0 m²</div>
-            <div class="stat-card-meta">Thể tích lưu trữ: 32.5 m³</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-card-title">Hạn cước tiếp theo</div>
-            <div class="stat-card-value">24/10/2026</div>
-            <div class="stat-card-meta" style="color:#10b981;">Còn 30 ngày sử dụng</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-card-title">Tiền cọc bảo đảm</div>
-            <div class="stat-card-value">2.900.000 đ</div>
-            <div class="stat-card-meta">Đang được bảo đảm 100%</div>
-          </div>
-        </div>
+        <div id="myContractsContainer"><div class="ui-card">Đang tải hợp đồng từ backend...</div></div>
 
-        <!-- Unit 1 Card -->
-        <div class="ui-card" style="border-left:5px solid #2563eb;">
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
-            <div>
-              <span class="badge badge-primary" style="margin-bottom:6px;">HỢP ĐỒNG CTR-2026-001 • ACTIVE</span>
-              <h3 style="font-size:20px; font-weight:800; color:#0f172a;">Phòng Kho UNIT A-102 (Kho Medium 5.0 m²)</h3>
-              <div style="font-size:13px; color:#64748b;">Chi nhánh: Hà Nội - Cầu Giấy (120 Duy Tân) • Tầng 1 - Khu A
-              </div>
-            </div>
-            <div style="text-align:right;">
-              <span class="badge badge-success">🟢 Đang hoạt động bình thường</span>
-              <div style="font-size:12px; color:#64748b; margin-top:4px;">Thời hạn: 24/09/2026 - 24/12/2026</div>
-            </div>
-          </div>
-
-          <div class="grid-3"
-            style="align-items:center; background:#f8fafc; padding:20px; border-radius:12px; border:1px solid #e2e8f0; margin-bottom:18px;">
-            <div>
-              <div style="font-size:12px; color:#64748b; font-weight:600; margin-bottom:4px;">MÃ PIN ĐIỆN TỬ MỞ KHÓA:
-              </div>
-              <div
-                style="font-family:'JetBrains Mono', monospace; font-size:26px; font-weight:800; color:#38bdf8; letter-spacing:4px;"
-                id="pinDisplayBox">
-                ● ● ● ● ● ●
-              </div>
-              <div style="font-size:11px; color:#64748b; margin-top:4px;">Mã PIN dùng mở cửa kho và cửa cuốn tòa nhà
-                24/7</div>
-            </div>
-
-            <div style="display:flex; flex-direction:column; gap:8px;">
-              <button class="btn btn-outline btn-sm" onclick="togglePinVisibility()">
-                <span id="btnPinEyeText">👁️ Hiện mã PIN</span>
-              </button>
-              <button class="btn btn-outline btn-sm" onclick="copyPinCode()">
-                📋 Sao chép mã PIN
-              </button>
-              <button class="btn btn-outline btn-sm" onclick="openChangePinModal()">
-                🔄 Đổi mã PIN mới
-              </button>
-            </div>
-
-            <div style="display:flex; flex-direction:column; gap:8px;">
-              <button class="btn btn-primary btn-sm" onclick="openRenewalModal('A-102')">
-                Gia hạn hợp đồng thuê
-              </button>
-              <button class="btn btn-outline btn-sm" style="color:#ef4444; border-color:#fca5a5;"
-                onclick="openCheckoutRequestModal('A-102')">
-                Yêu cầu trả kho (Check-out)
-              </button>
-              <button class="btn btn-outline btn-sm" onclick="navigateToScreen('SCR-C06')">
-                Báo cáo sự cố phòng kho
-              </button>
-            </div>
-          </div>
-        </div>
       </section>
 
       <!-- SCR-C06: CUSTOMER SUPPORT TICKET -->
@@ -1510,23 +1347,23 @@
         <div class="grid-4">
           <div class="stat-card">
             <div class="stat-card-title">Hẹn Check-in hôm nay</div>
-            <div class="stat-card-value">05 Khách</div>
-            <div class="stat-card-meta"><span class="badge badge-success">02 Đã nhận</span> 03 Đang chờ</div>
+            <div class="stat-card-value" id="staffCheckinCount">-</div>
+            <div class="stat-card-meta">Dữ liệu từ backend</div>
           </div>
           <div class="stat-card">
             <div class="stat-card-title">Hẹn trả kho / Check-out</div>
-            <div class="stat-card-value">02 Khách</div>
-            <div class="stat-card-meta">Cần nghiệm thu hoàn cọc</div>
+            <div class="stat-card-value" id="staffReturnCount">-</div>
+            <div class="stat-card-meta">Dữ liệu từ backend</div>
           </div>
           <div class="stat-card">
             <div class="stat-card-title">Sự cố tại chỗ cần xử lý</div>
-            <div class="stat-card-value">03 Vấn đề</div>
-            <div class="stat-card-meta" style="color:#ef4444;">01 Ca khẩn cấp</div>
+            <div class="stat-card-value" id="staffSupportCount">-</div>
+            <div class="stat-card-meta" style="color:#64748b;">Dữ liệu từ backend</div>
           </div>
           <div class="stat-card">
             <div class="stat-card-title">Tỉ lệ kho trống cơ sở</div>
-            <div class="stat-card-value">18 / 120</div>
-            <div class="stat-card-meta">15% Diện tích khả dụng</div>
+            <div class="stat-card-value" id="staffAvailabilityCount">-</div>
+            <div class="stat-card-meta">Dữ liệu từ backend</div>
           </div>
         </div>
 
@@ -1679,8 +1516,8 @@
             <input type="text" class="form-control" id="txtSearchReservation" value="RSV-8821"
               placeholder="Nhập Mã đặt chỗ (RSV-...), Số CCCD hoặc Số điện thoại...">
             <button class="btn btn-primary" onclick="lookupReservation()">🔍 Tra cứu hồ sơ</button>
-            <button class="btn btn-secondary" onclick="showToast('Đang kết nối đầu đọc mã vạch / máy quét QR...')">📷
-              Quét mã QR</button>
+            <label class="btn btn-secondary" for="reservationQrInput">📷 Quét mã QR</label>
+            <input id="reservationQrInput" type="file" accept="image/*" capture="environment" style="display:none" onchange="handleReservationQrImage(event)">
           </div>
         </div>
 
@@ -2722,18 +2559,18 @@
         <div class="grid-3">
           <div class="stat-card">
             <div class="stat-card-title">Tổng doanh thu năm 2026</div>
-            <div class="stat-card-value">7.2 Tỷ</div>
-            <div class="stat-card-meta">Dự kiến đạt 112% kế hoạch</div>
+            <div class="stat-card-value" id="chainAnnualRevenue">-</div>
+            <div class="stat-card-meta">Kỳ báo cáo hiện tại từ backend</div>
           </div>
           <div class="stat-card">
             <div class="stat-card-title">Dòng tiền cọc đang lưu giữ</div>
-            <div class="stat-card-value">626.4 Tr</div>
-            <div class="stat-card-meta">Tại các tài khoản chuyên dụng</div>
+            <div class="stat-card-value" id="chainHeldDeposits">-</div>
+            <div class="stat-card-meta">Theo giao dịch backend</div>
           </div>
           <div class="stat-card">
             <div class="stat-card-title">Tổng khách hàng active</div>
-            <div class="stat-card-value">1.190 User</div>
-            <div class="stat-card-meta">Khách cá nhân và doanh nghiệp</div>
+            <div class="stat-card-value" id="chainCustomerCount">-</div>
+            <div class="stat-card-meta">Không tải dữ liệu giả</div>
           </div>
         </div>
       </section>
@@ -2751,7 +2588,7 @@
         <div class="ui-card">
           <h3 style="font-size:16px; font-weight:700; margin-bottom:14px; color:#b91c1c;">🚫 Danh mục vật phẩm nghiêm
             cấm lưu trữ (Bảo vệ PCCC)</h3>
-          <div style="font-size:13px; color:#475569; line-height:1.7;">
+          <div id="generalPolicyText" style="font-size:13px; color:#475569; line-height:1.7;">
             • Chất dễ cháy nổ, xăng dầu, bình gas, pháo hoa.<br>
             • Hàng tươi sống, thực phẩm dễ thối rữa, động vật sống.<br>
             • Chất độc hại, hóa chất ăn mòn, chất thải nguy hại.<br>
@@ -2776,23 +2613,23 @@
         <div class="grid-4">
           <div class="stat-card">
             <div class="stat-card-title">Tổng tài khoản</div>
-            <div class="stat-card-value">1.284 User</div>
-            <div class="stat-card-meta">1.190 Khách • 94 Nhân sự nội bộ</div>
+            <div class="stat-card-value" id="adminUserCount">-</div>
+            <div class="stat-card-meta">Theo API quản trị</div>
           </div>
           <div class="stat-card">
             <div class="stat-card-title">Cơ sở kết nối</div>
-            <div class="stat-card-value">05 Chi nhánh</div>
-            <div class="stat-card-meta">Đồng bộ dữ liệu thời gian thực</div>
+            <div class="stat-card-value" id="adminFacilityCount">-</div>
+            <div class="stat-card-meta">Theo API cơ sở</div>
           </div>
           <div class="stat-card">
             <div class="stat-card-title">Server Uptime</div>
-            <div class="stat-card-value">99.98%</div>
-            <div class="stat-card-meta" style="color:#10b981;">Tải CPU: 18% • RAM: 34%</div>
+            <div class="stat-card-value">N/A</div>
+            <div class="stat-card-meta">Backend chưa cung cấp health metrics</div>
           </div>
           <div class="stat-card">
             <div class="stat-card-title">Nhật ký Audit hôm nay</div>
-            <div class="stat-card-value">412 Events</div>
-            <div class="stat-card-meta">Bảo mật hoàn hảo, 0 cảnh báo</div>
+            <div class="stat-card-value" id="adminAuditCount">-</div>
+            <div class="stat-card-meta">Theo API audit log</div>
           </div>
         </div>
 

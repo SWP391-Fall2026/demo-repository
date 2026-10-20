@@ -115,7 +115,7 @@ public class FacilityService {
             }
 
     public List<Unit> getManagedUnits(String username, String status, String type) {
-        User manager = requireManager(username);
+        User manager = requireFacilityOperator(username);
         List<Unit> units = unitRepository.findByFacilityCode(manager.getFacilityCode());
         return units.stream()
                 .filter(unit -> status == null || status.isBlank() || status.equalsIgnoreCase(unit.getStatus()))
@@ -168,7 +168,7 @@ public class FacilityService {
 
     @Transactional
     public Unit updateUnitStatus(String username, String code, String newStatus, String tenant) {
-        User manager = requireManager(username);
+        User manager = requireFacilityOperator(username);
         Unit unit = findManagedUnit(manager, code);
         String status = requiredText(newStatus, "Unit status is required").toLowerCase(Locale.ROOT);
         if (status.equalsIgnoreCase(unit.getStatus())) return unit;
@@ -241,6 +241,18 @@ public class FacilityService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
         if (!Set.of("FMANAGER", "FACILITY_MANAGER").contains(user.getRole())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Facility manager role required");
+        }
+        if (user.getFacilityCode() == null || user.getFacilityCode().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User has no facility scope");
+        }
+        return user;
+    }
+
+    private User requireFacilityOperator(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+        if (!Set.of("STAFF", "FMANAGER", "FACILITY_MANAGER").contains(user.getRole())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Facility operator role required");
         }
         if (user.getFacilityCode() == null || user.getFacilityCode().isBlank()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User has no facility scope");

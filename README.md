@@ -44,13 +44,15 @@ Nếu direct host/port `5432` timeout, lấy **Session Pooler** trong Supabase D
 # Cách 1: Đứng tại thư mục gốc chạy:
 npm start
 
-# Hoặc di chuyển vào thư mục frontend:
-cd frontend
+# Frontend server is started from repository root because package.json is at root.
+```
+*Giao diện Web Frontend chạy tại `http://localhost:3000`. Frontend gọi API cùng origin `/api/*`; `frontend/server.js` proxy các request này tới `BACKEND_URL` (mặc định `http://localhost:8080`). Không mở `frontend/index.html` trực tiếp bằng `file://`, vì cách đó bỏ qua proxy và không có kết nối API.*
+
+Có thể đổi backend khi chạy frontend:
+```powershell
+$env:BACKEND_URL="https://api.example.com"
 npm start
 ```
-*Giao diện Web Frontend sẽ chạy tại: `http://localhost:3000` (tự động kết nối tới Spring Boot tại `8080`)*
-
-*(Ngoài ra bạn cũng có thể mở trực tiếp file `frontend/index.html` bằng trình duyệt hoặc qua Live Server của VS Code).*
 
 ## 3. Tài khoản thử nghiệm (5 Actors)
 | Vai trò | Tên đăng nhập | Mật khẩu | Chi nhánh mặc định |

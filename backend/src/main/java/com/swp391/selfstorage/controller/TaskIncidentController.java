@@ -55,7 +55,7 @@ public class TaskIncidentController {
     }
 
     @GetMapping("/tickets")
-    @PreAuthorize("hasAnyRole('STAFF', 'FMANAGER', 'FACILITY_MANAGER')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'FMANAGER', 'FACILITY_MANAGER')")
     public ResponseEntity<ApiResponse<List<SupportTicket>>> getTickets(
             @AuthenticationPrincipal UserDetails principal) {
         List<SupportTicket> list = taskIncidentService.getTickets(principal.getUsername());
@@ -89,5 +89,14 @@ public class TaskIncidentController {
         Map<String, Object> pinData = taskIncidentService.generateEmergencyPin(
                 principal.getUsername(), body.get("unitCode"));
         return ResponseEntity.ok(ApiResponse.ok(pinData));
+    }
+
+    @PostMapping("/incidents")
+    @PreAuthorize("hasAnyRole('STAFF', 'FMANAGER', 'FACILITY_MANAGER')")
+    public ResponseEntity<ApiResponse<DailyTask>> createIncident(
+            @AuthenticationPrincipal UserDetails principal,
+            @RequestBody Map<String, String> body) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.ok(taskIncidentService.createIncident(principal.getUsername(), body)));
     }
 }

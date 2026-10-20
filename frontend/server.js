@@ -4,6 +4,7 @@
  */
 
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
@@ -41,7 +42,8 @@ const server = http.createServer((req, res) => {
       }
     };
 
-    const proxyReq = http.request(options, (proxyRes) => {
+    const transport = backendTarget.protocol === 'https:' ? https : http;
+    const proxyReq = transport.request(options, (proxyRes) => {
       res.writeHead(proxyRes.statusCode, proxyRes.headers);
       proxyRes.pipe(res, { end: true });
     });
@@ -53,6 +55,7 @@ const server = http.createServer((req, res) => {
         message: 'Không thể kết nối tới Backend Spring Boot tại ' + BACKEND_URL + '. Hãy đảm bảo Spring Boot đang chạy!'
       }));
     });
+    proxyReq.setTimeout(15000, () => proxyReq.destroy(new Error('Backend request timed out')));
 
     req.pipe(proxyReq, { end: true });
     return;

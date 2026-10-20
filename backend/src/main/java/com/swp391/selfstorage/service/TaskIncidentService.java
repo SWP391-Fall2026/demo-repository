@@ -147,6 +147,23 @@ public class TaskIncidentService {
     }
 
     @Transactional
+    public DailyTask createIncident(String username, Map<String, String> data) {
+        User actor = requireUser(username);
+        if (!Set.of("STAFF", "FMANAGER", "FACILITY_MANAGER").contains(actor.getRole())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Facility operator role required");
+        }
+        String unitCode = requireText(data.get("unitCode"), "unitCode is required");
+        Unit unit = unitRepository.findById(unitCode)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Unit not found"));
+        if (!Objects.equals(actor.getFacilityCode(), unit.getFacilityCode())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Unit not found in this facility");
+        }
+        String title = requireText(data.get("title"), "title is required");
+        return createSystemTask(actor.getFacilityCode(), title,
+                data.getOrDefault("taskType", "SUPPORT"), unitCode, null, null, parseDate(data.get("date")));
+    }
+
+    @Transactional
     public void completeReferenceTasks(String reservationId, String contractId) {
         List<DailyTask> tasks = new ArrayList<>();
         if (reservationId != null) {

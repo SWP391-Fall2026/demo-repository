@@ -68,7 +68,7 @@ public class FacilityController {
     }
 
     @GetMapping("/units/manage")
-    @PreAuthorize("hasAnyRole('FMANAGER', 'FACILITY_MANAGER')")
+    @PreAuthorize("hasAnyRole('STAFF', 'FMANAGER', 'FACILITY_MANAGER')")
     public ResponseEntity<ApiResponse<List<Unit>>> getManagedUnits(
             @AuthenticationPrincipal UserDetails principal,
             @RequestParam(required = false) String status,
@@ -96,7 +96,7 @@ public class FacilityController {
     }
 
     @PatchMapping("/units/{code}/status")
-    @PreAuthorize("hasAnyRole('FMANAGER', 'FACILITY_MANAGER')")
+    @PreAuthorize("hasAnyRole('STAFF', 'FMANAGER', 'FACILITY_MANAGER')")
     public ResponseEntity<ApiResponse<Unit>> updateUnitStatus(
             @AuthenticationPrincipal UserDetails principal,
             @PathVariable String code,

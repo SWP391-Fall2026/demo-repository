@@ -305,6 +305,29 @@ public class AuthService {
                 .collect(Collectors.toList());
     }
 
+    public UserDto getCurrentUser(String username) {
+        if (username == null || username.isBlank()) {
+            throw new IllegalArgumentException("Phiên đăng nhập không hợp lệ.");
+        }
+        User user = userRepository.findByUsername(username.trim().toLowerCase())
+                .orElseThrow(() -> new IllegalArgumentException("Tài khoản không tồn tại."));
+        if ("LOCKED".equalsIgnoreCase(user.getStatus()) || "DISABLED".equalsIgnoreCase(user.getStatus())) {
+            throw new IllegalArgumentException("Tài khoản đã bị khóa!");
+        }
+        return new UserDto(user);
+    }
+
+    public List<UserDto> getFacilityStaff(String managerUsername) {
+        User manager = userRepository.findByUsername(managerUsername)
+                .orElseThrow(() -> new IllegalArgumentException("Tài khoản không tồn tại."));
+        if (!Set.of("FMANAGER", "FACILITY_MANAGER").contains(manager.getRole())
+                || manager.getFacilityCode() == null || manager.getFacilityCode().isBlank()) {
+            throw new IllegalArgumentException("Không có quyền xem nhân viên chi nhánh.");
+        }
+        return userRepository.findByFacilityCodeAndRoleAndStatus(manager.getFacilityCode(), "STAFF", "ACTIVE")
+                .stream().map(UserDto::new).toList();
+    }
+
     public UserDto toggleLockUser(String id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng"));
