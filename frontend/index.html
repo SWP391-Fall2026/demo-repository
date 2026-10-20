@@ -2716,7 +2716,7 @@
             <p class="page-desc">Phân tích dòng tiền cọc, tăng trưởng doanh thu và hiệu quả khai thác mặt bằng toàn
               quốc.</p>
           </div>
-          <button class="btn btn-primary" onclick="exportFinancialReport()">📥 Kết xuất Excel Tổng hợp</button>
+          <button class="btn btn-primary" onclick="exportFinancialReport()">📥 Kết xuất Excel Tổng hợp</button> <button class="btn btn-outline" onclick="printFinancialReport()">PDF / In</button>
         </div>
 
         <div class="grid-3">
@@ -2745,7 +2745,7 @@
             <h2 class="page-title">Chính Sách Cho Thuê & An Toàn Kho Chung</h2>
             <p class="page-desc">Quy chuẩn dịch vụ, bảo hiểm tài sản lưu trữ và danh mục hàng cấm lưu trữ trong kho.</p>
           </div>
-          <button class="btn btn-outline" onclick="showToast('Đã lưu quy định chính sách!')">Cập nhật nội quy</button>
+          <button class="btn btn-outline" onclick="saveGeneralPolicy()">Cập nhật nội quy</button>
         </div>
 
         <div class="ui-card">
@@ -2832,7 +2832,7 @@
             <p class="page-desc">Danh sách tài khoản, phân gán vai trò Role, gán chi nhánh phụ trách và khóa/mở tài
               khoản.</p>
           </div>
-          <button class="btn btn-primary" onclick="showToast('Mở modal thêm tài khoản nhân sự mới...')">+ Tạo tài khoản
+          <button class="btn btn-primary" onclick="openModal('modalAddUser')">+ Tạo tài khoản
             mới</button>
         </div>
 
@@ -3032,6 +3032,10 @@
               <!-- Rendered by js/app.js -->
             </tbody>
           </table>
+        </div>
+        <div class="ui-card" style="margin-top:20px;">
+          <div class="page-header-row"><h3 style="font-size:16px;">Login history</h3><button class="btn btn-outline btn-sm" onclick="loadLoginHistory()">Reload</button></div>
+          <table class="data-table"><thead><tr><th>Time</th><th>User</th><th>Role</th><th>IP</th><th>Device</th><th>Status</th></tr></thead><tbody id="tblLoginHistoryBody"></tbody></table>
         </div>
       </section>
   </main>

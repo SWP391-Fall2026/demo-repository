@@ -208,6 +208,9 @@ public class ContractService {
         if (!Set.of("ACTIVE", "EXPIRING_SOON").contains(contract.getStatus())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Only active contracts can request checkout");
         }
+        if (requestedDate != null && requestedDate.isBefore(LocalDate.now())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Checkout date cannot be in the past");
+        }
         if (contract.getCheckoutRequestedAt() != null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Checkout has already been requested");
         }

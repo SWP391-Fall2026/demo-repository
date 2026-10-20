@@ -101,6 +101,26 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/users")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SYSTEM_ADMIN')")
+    public ResponseEntity<ApiResponse<UserDto>> createUser(@RequestBody AdminUserRequest request) {
+        try {
+            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(authService.createUserByAdmin(request)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        }
+    }
+
+    @PatchMapping("/users/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SYSTEM_ADMIN')")
+    public ResponseEntity<ApiResponse<UserDto>> updateUser(@PathVariable String id, @RequestBody AdminUserRequest request) {
+        try {
+            return ResponseEntity.ok(ApiResponse.ok(authService.updateUserByAdmin(id, request)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        }
+    }
+
     @GetMapping("/rbac-matrix")
     @PreAuthorize("hasAnyRole('ADMIN', 'SYSTEM_ADMIN')")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getRbacMatrix() {
