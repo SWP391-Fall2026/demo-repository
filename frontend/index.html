@@ -3288,17 +3288,13 @@
           <strong id="txtVerifyEmailTarget" style="color:#1e40af; font-size:14.5px;">user@gmail.com</strong>
         </p>
 
-        <!-- Simulated Mailbox Preview Box (Thuận tiện kiểm tra & chấm demo đồ án) -->
-        <div id="simulatedEmailBox" style="background:#f8fafc; border:1px dashed #cbd5e1; border-radius:8px; padding:12px; margin-bottom:18px; text-align:left; font-size:12.5px; color:#475569;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-            <span style="font-weight:700; color:#0f172a;">📬 Hộp thư mô phỏng (Test/Demo):</span>
-            <span style="font-size:11px; color:#64748b;">Vừa xong</span>
+        <!-- Hướng dẫn nhận mã thật qua Email -->
+        <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:12px; margin-bottom:18px; text-align:left; font-size:13px; color:#166534;">
+          <div style="display:flex; align-items:center; gap:8px; font-weight:700; margin-bottom:4px;">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/></svg>
+            <span>Mã OTP đã được gửi đến email của bạn:</span>
           </div>
-          <div>Người gửi: <em>STORAGE System &lt;no-reply@storage.vn&gt;</em></div>
-          <div style="margin-top:6px; display:flex; align-items:center; justify-content:space-between;">
-            <span>Mã OTP: <strong id="simulatedOtpCode" style="font-size:17px; font-family:'JetBrains Mono', monospace; color:#2563eb; letter-spacing:2px;">849210</strong></span>
-            <button type="button" class="btn btn-outline btn-sm" onclick="autoFillOtp()" style="font-size:11px; padding:3px 8px;">Nhập nhanh</button>
-          </div>
+          <div style="color:#15803d; line-height:1.4;">Vui lòng mở hộp thư Gmail/Email của bạn (kiểm tra cả mục <strong>Hộp thư đến</strong> và <strong>Spam</strong>) và nhập 6 chữ số xác minh vào ô bên dưới.</div>
         </div>
 
         <!-- 6 OTP Inputs -->

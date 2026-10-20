@@ -29,6 +29,7 @@ public class AuthService {
     private final LoginHistoryRepository loginHistoryRepository;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     // Email -> PendingOtpData
     private final Map<String, PendingOtpData> pendingOtps = new ConcurrentHashMap<>();
@@ -42,14 +43,24 @@ public class AuthService {
             "094","095","096"
     );
 
+    @org.springframework.beans.factory.annotation.Autowired
     public AuthService(UserRepository userRepository,
                        LoginHistoryRepository loginHistoryRepository,
                        JwtUtil jwtUtil,
-                       PasswordEncoder passwordEncoder) {
+                       PasswordEncoder passwordEncoder,
+                       EmailService emailService) {
         this.userRepository = userRepository;
         this.loginHistoryRepository = loginHistoryRepository;
         this.jwtUtil = jwtUtil;
         this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
+    }
+
+    public AuthService(UserRepository userRepository,
+                       LoginHistoryRepository loginHistoryRepository,
+                       JwtUtil jwtUtil,
+                       PasswordEncoder passwordEncoder) {
+        this(userRepository, loginHistoryRepository, jwtUtil, passwordEncoder, null);
     }
 
     public ApiResponse<UserDto> login(LoginRequest req, String ip, String device) {
@@ -178,22 +189,25 @@ public class AuthService {
         }
 
         // Tên đăng nhập
-        if (data.getUsername() == null) throw new IllegalArgumentException("Thông tin không hợp lệ!");
+        if (data.getUsername() == null) throw new IllegalArgumentException("Vui lòng nhập tên đăng nhập!");
         String cleanUsername = data.getUsername().trim().toLowerCase();
         if (!cleanUsername.matches("^[a-zA-Z0-9_]{4,20}$") || cleanUsername.matches("^[0-9].*")) {
-            throw new IllegalArgumentException("Thông tin không hợp lệ!");
+            throw new IllegalArgumentException("Tên đăng nhập phải từ 4-20 ký tự và không bắt đầu bằng số!");
         }
 
-        if (userRepository.existsByUsername(cleanUsername) || userRepository.existsByEmail(cleanEmail)) {
-            throw new IllegalArgumentException("Thông tin không hợp lệ!");
+        if (userRepository.existsByUsername(cleanUsername)) {
+            throw new IllegalArgumentException("Tên đăng nhập '" + cleanUsername + "' đã tồn tại! Vui lòng chọn tên khác.");
+        }
+        if (userRepository.existsByEmail(cleanEmail)) {
+            throw new IllegalArgumentException("Email '" + cleanEmail + "' đã được đăng ký! Vui lòng đăng nhập hoặc dùng email khác.");
         }
 
         // Mật khẩu
         if (data.getPassword() == null || data.getPassword().length() < 6) {
-            throw new IllegalArgumentException("Thông tin không hợp lệ!");
+            throw new IllegalArgumentException("Mật khẩu phải từ 6 ký tự trở lên!");
         }
         if (data.getConfirmPassword() == null || !data.getPassword().equals(data.getConfirmPassword())) {
-            throw new IllegalArgumentException("Thông tin không hợp lệ!");
+            throw new IllegalArgumentException("Mật khẩu xác nhận không khớp!");
         }
     }
 
@@ -204,19 +218,20 @@ public class AuthService {
         PendingOtpData pending = createOtp(data);
         pendingOtps.put(cleanEmail, pending);
 
-        System.out.println("[AuthService] 📬 Đã gửi mã xác minh email tới [" + cleanEmail + "]: Mã OTP = " + pending.code);
+        // Gửi email xác thực thật tới địa chỉ email của người dùng
+        if (emailService != null) {
+            emailService.sendOtpEmail(cleanEmail, pending.code);
+        } else {
+            System.out.println("[AuthService] 📬 Mã OTP phát sinh cho [" + cleanEmail + "] là: " + pending.code);
+        }
 
         Map<String, Object> respData = new HashMap<>();
         respData.put("email", cleanEmail);
-        respData.put("code", pending.code);
 
-        ApiResponse<Map<String, Object>> resp = ApiResponse.ok(
-                "Mã xác minh đã được gửi tới email " + cleanEmail + "!",
+        return ApiResponse.ok(
+                "Mã xác thực 6 số đã được gửi tới email " + cleanEmail + "! Vui lòng kiểm tra hộp thư đến (hoặc thư rác) của bạn.",
                 respData
         );
-        resp.setCode(pending.code);
-        resp.setEmail(cleanEmail);
-        return resp;
     }
 
     public ApiResponse<Map<String, Object>> resendOtp(String email) {
@@ -233,14 +248,18 @@ public class AuthService {
         }
         PendingOtpData replacement = createOtp(current.data);
         pendingOtps.put(cleanEmail, replacement);
-        System.out.println("[AuthService] 📬 Đã gửi lại mã xác minh email tới [" + cleanEmail + "]: Mã OTP = " + replacement.code);
+
+        // Gửi lại email thật
+        if (emailService != null) {
+            emailService.sendOtpEmail(cleanEmail, replacement.code);
+        } else {
+            System.out.println("[AuthService] 📬 Mã OTP gửi lại cho [" + cleanEmail + "] là: " + replacement.code);
+        }
+
         Map<String, Object> data = new HashMap<>();
         data.put("email", cleanEmail);
-        data.put("code", replacement.code);
-        ApiResponse<Map<String, Object>> response = ApiResponse.ok("Đã gửi lại mã xác minh mới tới " + cleanEmail + "!", data);
-        response.setCode(replacement.code);
-        response.setEmail(cleanEmail);
-        return response;
+
+        return ApiResponse.ok("Đã gửi lại mã xác minh mới tới hộp thư " + cleanEmail + "!", data);
     }
 
     public ApiResponse<UserDto> verifyOtpAndRegister(String email, String code, String ip) {
