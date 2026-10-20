@@ -27,6 +27,12 @@ Kết quả đúng có `success: true` và danh sách chi nhánh.
 
 Không dùng `http://localhost:3000` khi test trực tiếp backend. Port `3000` chỉ dành cho frontend proxy.
 
+## 1.1. Kết quả kiểm tra backend hiện tại
+
+Backend đã được chạy với Supabase và kiểm tra trực tiếp: `5` facilities, inventory HN-CG trả `20` units, quote reservation trả `success: true`, reservation `RSV-8821` đọc được, customer có `1` contract, manager scope trả `2` units, chain stats trả thành công, bank-info trả thành công, customer gọi Admin API nhận `403`.
+
+Nếu một tài khoản actor trả `Thông tin không hợp lệ!`, đó là credential trong database hiện tại khác seed README. Sửa biến credential trong Postman environment; không coi đó là lỗi API.
+
 ## 2. Token và biến dùng chung
 
 Folder `00 - Authentication` có 5 request login. Mỗi request tự lưu JWT vào biến:
