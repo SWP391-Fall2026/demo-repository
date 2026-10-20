@@ -10,7 +10,6 @@ import com.swp391.selfstorage.modules.billing.repository.PaymentRepository;
 import com.swp391.selfstorage.modules.rental.repository.ContractRepository;
 import com.swp391.selfstorage.modules.reservation.repository.ReservationRepository;
 import com.swp391.selfstorage.modules.reservation.service.ReservationHoldPolicy;
-import com.swp391.selfstorage.modules.workforce.service.TaskService;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -37,7 +36,6 @@ public class VnPayService {
   private final AuditLogService audit;
   private final Clock clock;
   private final ReservationHoldPolicy holdPolicy;
-  private final TaskService tasks;
   private final com.swp391.selfstorage.application.workflow.PaidRentActivationService rentActivation;
   private final String url, tmnCode, hashSecret, returnUrl, frontendUrl;
 
@@ -47,7 +45,7 @@ public class VnPayService {
       @Value("${vnpay.hash-secret:}") String hashSecret,
       @Value("${vnpay.return-url:}") String returnUrl,
       @Value("${app.frontend-url:http://localhost:5173}") String frontendUrl,
-      ReservationHoldPolicy holdPolicy, TaskService tasks,
+      ReservationHoldPolicy holdPolicy,
       com.swp391.selfstorage.application.workflow.PaidRentActivationService rentActivation) {
     this.invoices = invoices; this.payments = payments; this.reservations = reservations;
     this.contracts = contracts;
@@ -55,7 +53,6 @@ public class VnPayService {
     this.tmnCode = tmnCode; this.hashSecret = hashSecret; this.returnUrl = returnUrl;
     this.frontendUrl = frontendUrl;
     this.holdPolicy = holdPolicy;
-    this.tasks = tasks;
     this.rentActivation = rentActivation;
   }
 
@@ -148,7 +145,6 @@ public class VnPayService {
       payment.setStatus("PAID"); invoice.setStatus("PAID");
       if (depositReservation != null) {
         depositReservation.setStatus("RESERVED"); reservations.save(depositReservation);
-        tasks.requestCheckin(depositReservation);
       }
       if (rentReservation != null) rentActivation.activate(invoice, rentReservation);
       audit.recordSystem("PAYMENT_PAID", payment.getId(), "VNPAY " + invoice.getInvoiceType() + " " + invoice.getAmount());

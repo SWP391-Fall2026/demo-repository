@@ -265,6 +265,11 @@
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
   },
   {
+    "method": "post",
+    "path": "/api/reservations/{id}/checkin-request",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
+  },
+  {
     "method": "patch",
     "path": "/api/reservations/{id}/assign-unit",
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
@@ -352,6 +357,11 @@
   {
     "method": "patch",
     "path": "/api/tasks/{id}/status",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/controller/TaskController.java"
+  },
+  {
+    "method": "patch",
+    "path": "/api/tasks/{id}/assign",
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/controller/TaskController.java"
   },
   {

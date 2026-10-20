@@ -1,7 +1,7 @@
 const steps = [
   ["01", "Chọn kho và tạo đơn", "Chọn cơ sở, loại kho, ngày bắt đầu thuê, số tháng và giờ hẹn check-in. Ngày bắt đầu không được trước ngày check-in."],
   ["02", "Thanh toán tiền cọc", "Hệ thống tạo hóa đơn DEPOSIT. Hoàn tất thanh toán VNPay trong 5 phút. Quá hạn, đơn và hóa đơn chờ sẽ tự hủy."],
-  ["03", "Check-in và xác nhận hợp đồng", "Sau khi cọc thành công, khách nhận thẻ hẹn. Manager gán kho và Staff; Staff đối chiếu giấy tờ/mã thẻ rồi xác nhận. Khách được báo để xem hợp đồng, đồng ý điều khoản và thanh toán hóa đơn RENT."],
+  ["03", "Check-in và xác nhận hợp đồng", "Sau khi cọc thành công, khách nhận thẻ hẹn. Khi khách gửi yêu cầu check-in, hệ thống gán kho còn trống đúng cơ sở và loại kho đã yêu cầu; Manager phân công Staff. Staff đối chiếu giấy tờ/mã thẻ rồi xác nhận. Khách xem hợp đồng, đồng ý điều khoản và thanh toán hóa đơn RENT."],
   ["04", "Nhận PIN và bàn giao", "Sau khi hóa đơn RENT đã thanh toán, hệ thống cấp PIN và thẻ Check-in. Đưa mã cơ sở, mã kho và PIN cho Staff; Staff ghi nhận hiện trạng, hoàn tất bàn giao và kích hoạt hợp đồng."],
 ] as const;
 

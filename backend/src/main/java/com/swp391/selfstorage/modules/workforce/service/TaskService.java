@@ -4,6 +4,7 @@ import com.swp391.selfstorage.common.security.ActorContext;
 import com.swp391.selfstorage.common.web.*;
 import com.swp391.selfstorage.modules.audit.service.AuditLogService;
 import com.swp391.selfstorage.modules.identity.repository.UserRepository;
+import com.swp391.selfstorage.modules.identity.entity.User;
 import com.swp391.selfstorage.modules.billing.service.InvoiceService;
 import com.swp391.selfstorage.modules.reservation.entity.Reservation;
 import com.swp391.selfstorage.modules.facility.repository.FacilityRepository;
@@ -14,6 +15,7 @@ import com.swp391.selfstorage.modules.workforce.repository.DailyTaskRepository;
 import java.math.*;
 import java.time.*;
 import java.util.*;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -163,7 +165,11 @@ public class TaskService {
   @Transactional
   public DailyTask requestCheckin(Reservation reservation) {
     var existing = tasks.findByReservationIdAndTaskType(reservation.getId(), "CHECKIN");
-    if (existing.isPresent()) return existing.get();
+    if (existing.isPresent()) {
+      DailyTask task = existing.get();
+      task.setUnitCode(reservation.getUnitCode());
+      return tasks.save(task);
+    }
     DailyTask task = new DailyTask();
     task.setId("TSK-" + UUID.randomUUID());
     task.setFacilityCode(reservation.getFacilityCode());
@@ -184,25 +190,37 @@ public class TaskService {
     var manager = actor.require("FMANAGER");
     DailyTask task = tasks.findById(id).orElseThrow(Inputs::missing);
     actor.facility(manager, task.getFacilityCode());
-    var staff = users.findById(Inputs.text(d, "staffId")).orElseThrow(Inputs::missing);
-    actor.facility(staff, manager.getFacilityCode());
-    if (!"STAFF".equals(actor.role(staff))) throw Inputs.bad("Người nhận phải là Staff");
+    User staff = null;
+    if (d.containsKey("staffId") && !Inputs.optional(d, "staffId").isBlank()) {
+      staff = users.findById(Inputs.text(d, "staffId")).orElseThrow(Inputs::missing);
+      actor.facility(staff, manager.getFacilityCode());
+      if (!"STAFF".equals(actor.role(staff))) throw Inputs.bad("Người nhận phải là Staff");
+    }
+    if (staff == null && !"CHECKIN".equals(task.getTaskType()))
+      throw Inputs.bad("Chọn Staff để giao task");
     if (!Set.of("PENDING", "IN_PROGRESS").contains(task.getStatus())) throw Inputs.conflict("Task không còn chờ xử lý");
     if ("CHECKIN".equals(task.getTaskType()) && task.getReservationId() != null) {
       Reservation reservation = reservations.lockById(task.getReservationId()).orElseThrow(Inputs::missing);
+      actor.facility(manager, reservation.getFacilityCode());
       if (reservation.getIdentityVerifiedAt() != null) throw Inputs.conflict("Không đổi nhân viên sau khi đã xác minh khách");
+      if (!"RESERVED".equals(reservation.getStatus())) throw Inputs.conflict("Thẻ hẹn chưa ở trạng thái sẵn sàng check-in");
       invoices.requirePaid(reservation.getId(), "DEPOSIT");
-      String requestedUnitCode = Inputs.optional(d, "unitCode");
+      if (d.containsKey("unitCode")) throw Inputs.bad("Kho check-in được chọn tự động theo thẻ hẹn");
       if (reservation.getUnitCode() == null) {
-        if (requestedUnitCode.isBlank()) throw Inputs.bad("Chọn kho trống để giao task check-in");
-        var candidate = units.lockByCode(requestedUnitCode).orElseThrow(Inputs::missing);
+        var candidate = units.lockAvailableByFacilityAndType(
+            reservation.getFacilityCode(), reservation.getUnitType(), PageRequest.of(0, 1))
+            .stream().findFirst()
+            .orElseThrow(() -> Inputs.conflict("Không còn Unit trống đúng cơ sở và loại kho trên thẻ hẹn"));
         actor.facility(manager, candidate.getFacilityCode());
-        if (!reservation.getUnitType().equals(candidate.getType()) || !"available".equalsIgnoreCase(candidate.getStatus()))
-          throw Inputs.conflict("Kho đã được giữ hoặc không đúng loại trong thẻ hẹn");
-        candidate.setStatus("reserved"); candidate.setHeldByReservationId(reservation.getId());
-        candidate.setTenantName(reservation.getCustomerName()); units.save(candidate);
-        reservation.setUnitCode(candidate.getCode()); reservations.save(reservation);
-        task.setUnitCode(candidate.getCode()); ensureTemporaryPin(candidate, reservation.getId(), true);
+        candidate.setStatus("reserved");
+        candidate.setHeldByReservationId(reservation.getId());
+        candidate.setTenantName(reservation.getCustomerName());
+        units.save(candidate);
+        reservation.setUnitCode(candidate.getCode());
+        reservations.save(reservation);
+        task.setUnitCode(candidate.getCode());
+      } else if (task.getUnitCode() == null) {
+        task.setUnitCode(reservation.getUnitCode());
       } else if (!reservation.getUnitCode().equals(task.getUnitCode())) {
         throw Inputs.conflict("Kho của task không khớp kho đã gán cho đơn");
       }
@@ -211,9 +229,17 @@ public class TaskService {
     if ("CHECKIN".equals(task.getTaskType()) && task.getUnitCode() != null) {
       var unit = units.lockByCode(task.getUnitCode()).orElseThrow(Inputs::missing);
       actor.facility(manager, unit.getFacilityCode());
+      if (task.getReservationId() != null) {
+        Reservation reservation = reservations.findById(task.getReservationId()).orElseThrow(Inputs::missing);
+        if (!Objects.equals(unit.getFacilityCode(), reservation.getFacilityCode())
+            || !Objects.equals(unit.getType(), reservation.getUnitType())
+            || !Objects.equals(unit.getHeldByReservationId(), reservation.getId())
+            || !"reserved".equalsIgnoreCase(unit.getStatus()))
+          throw Inputs.conflict("Kho không khớp với thẻ hẹn hoặc không còn được giữ");
+      }
       ensureTemporaryPin(unit, task.getReservationId(), true);
     }
-    task.setStaffId(staff.getId()); task.setStaff(staff.getName());
+    if (staff != null) { task.setStaffId(staff.getId()); task.setStaff(staff.getName()); }
     if (d.containsKey("date")) task.setDueDate(LocalDate.parse(Inputs.text(d, "date")));
     return tasks.save(task);
   }
@@ -248,11 +274,33 @@ public class TaskService {
       .toList();
   }
 
+  @Transactional
   public Map<String, Object> managerDashboard() {
     var manager = actor.require("FMANAGER");
     String facilityCode = manager.getFacilityCode();
     var facility = facilities.findById(facilityCode).orElseThrow(Inputs::missing);
     List<DailyTask> facilityTasks = tasks.findByFacilityCode(facilityCode);
+    for (DailyTask task : facilityTasks) {
+      if (!"CHECKIN".equals(task.getTaskType()) || task.getUnitCode() != null || task.getReservationId() == null)
+        continue;
+      reservations.lockById(task.getReservationId())
+          .filter(reservation -> Objects.equals(facilityCode, reservation.getFacilityCode()))
+          .ifPresent(reservation -> {
+            if (!"RESERVED".equals(reservation.getStatus())) return;
+            var candidate = units.lockAvailableByFacilityAndType(
+                reservation.getFacilityCode(), reservation.getUnitType(), PageRequest.of(0, 1))
+                .stream().findFirst().orElse(null);
+            if (candidate == null) return;
+            candidate.setStatus("reserved");
+            candidate.setHeldByReservationId(reservation.getId());
+            candidate.setTenantName(reservation.getCustomerName());
+            units.save(candidate);
+            reservation.setUnitCode(candidate.getCode());
+            reservations.save(reservation);
+            task.setUnitCode(candidate.getCode());
+            tasks.save(task);
+          });
+    }
     Map<String, Long> taskCounts = new HashMap<>();
     for (DailyTask task : facilityTasks) {
       if (task.getStaffId() != null && !"COMPLETED".equals(task.getStatus()))
@@ -281,14 +329,20 @@ public class TaskService {
       row.put("id", task.getId()); row.put("title", task.getTitle()); row.put("taskType", task.getTaskType());
       row.put("status", task.getStatus()); row.put("staffId", task.getStaffId()); row.put("staff", task.getStaff());
       row.put("reservationId", task.getReservationId()); row.put("unitCode", task.getUnitCode());
+      row.put("facilityCode", task.getFacilityCode());
       row.put("dueDate", task.getDueDate()); row.put("deadline", task.getDeadline());
       if (task.getReservationId() != null) reservations.findById(task.getReservationId())
           .filter(reservation -> Objects.equals(facilityCode, reservation.getFacilityCode())).ifPresent(reservation -> {
         row.put("customerName", reservation.getCustomerName()); row.put("customerPhone", reservation.getCustomerPhone());
         row.put("appointmentAt", reservation.getAppointmentAt()); row.put("startDate", reservation.getStartDate());
         row.put("durationMonths", reservation.getDurationMonths()); row.put("reservationStatus", reservation.getStatus());
-        row.put("unitType", reservation.getUnitType());
+        row.put("unitType", reservation.getUnitType()); row.put("facilityCode", reservation.getFacilityCode());
+        if (task.getUnitCode() == null && reservation.getUnitCode() != null)
+          row.put("unitCode", reservation.getUnitCode());
       });
+      if (task.getUnitCode() != null && !row.containsKey("unitType"))
+        units.findById(task.getUnitCode()).filter(unit -> Objects.equals(facilityCode, unit.getFacilityCode()))
+            .ifPresent(unit -> row.put("unitType", unit.getType()));
       return row;
     }).toList();
     return Map.of(

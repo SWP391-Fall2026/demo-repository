@@ -760,7 +760,7 @@
           "billing"
         ],
         "summary": "Refund: decision",
-        "description": "Authorized roles: FMANAGER. Customer ownership and assigned-facility scope are enforced by the service.",
+        "description": "Facility Manager only. Unit is selected by backend from the reservation facility and requested type; the client supplies no unitCode.",
         "security": [
           {
             "bearerAuth": []
@@ -4554,6 +4554,25 @@
         }
       }
     },
+    "/api/reservations/{id}/checkin-request": {
+      "post": {
+        "operationId": "Reservation_requestCheckin_73",
+        "tags": ["reservation"],
+        "summary": "Customer: request check-in and allocate matching Unit",
+        "description": "Customer-owned reservation must be deposit-paid and RESERVED. In one transaction, backend locks and allocates an available Unit matching the requested facility and unit type, then creates or synchronizes the CHECKIN task. Repeated requests reuse the held Unit and task.",
+        "security": [{"bearerAuth": []}],
+        "x-roles": ["CUSTOMER"],
+        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "responses": {
+          "200": {"description": "Check-in request accepted with matching Unit assigned", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}},
+          "400": {"description": "Invalid request", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "401": {"description": "Authentication required", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "403": {"description": "Customer does not own reservation", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "404": {"description": "Reservation not found", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "409": {"description": "Deposit not paid, reservation not eligible, or no matching Unit available", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}
+        }
+      }
+    },
     "/api/reservations/{id}/assign-unit": {
       "patch": {
         "operationId": "Reservation_assign_49",
@@ -4561,7 +4580,7 @@
           "reservation"
         ],
         "summary": "Reservation: assign",
-        "description": "Authorized roles: FMANAGER. Customer ownership and assigned-facility scope are enforced by the service.",
+        "description": "Facility Manager only. Unit is selected by backend from the reservation facility and requested type; the client supplies no unitCode.",
         "security": [
           {
             "bearerAuth": []
@@ -6059,6 +6078,29 @@
         }
       }
     },
+    "/api/tasks/{id}/assign": {
+      "patch": {
+        "operationId": "Task_assignExisting_72",
+        "tags": ["workforce"],
+        "summary": "Manager: assign check-in task",
+        "description": "Facility Manager assigns an eligible Staff member. For CHECKIN tasks, backend assigns the available Unit matching facility and type on the reservation card. Clients must not provide unitCode.",
+        "security": [{"bearerAuth": []}],
+        "x-roles": ["FMANAGER"],
+        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/TaskAssignment"}}}
+        },
+        "responses": {
+          "200": {"description": "Task assigned and matching Unit bound from the reservation requirements", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}},
+          "400": {"description": "Invalid assignment input", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "401": {"description": "Authentication required", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "403": {"description": "Facility Manager or facility scope required", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "404": {"description": "Task, Staff or Unit not found in authorized scope", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "409": {"description": "No matching Unit available or reservation/task state is not eligible", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}
+        }
+      }
+    },
     "/api/tasks/{id}/status": {
       "patch": {
         "operationId": "Task_progress_65",
@@ -6549,14 +6591,9 @@
       },
       "AssignUnit": {
         "type": "object",
-        "properties": {
-          "unitCode": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "unitCode"
-        ]
+        "description": "Unit is selected by backend from the reservation facility and requested type.",
+        "additionalProperties": false,
+        "properties": {}
       },
       "Extension": {
         "type": "object",
@@ -6994,6 +7031,12 @@
           "taskType",
           "date"
         ]
+      },
+      "TaskAssignment": {
+        "type": "object",
+        "properties": {"staffId": {"type": "string"}},
+        "required": ["staffId"],
+        "additionalProperties": false
       },
       "TaskStatus": {
         "type": "object",

@@ -28,6 +28,7 @@ import java.util.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.PageRequest;
 
 @Service
 public class CheckinWorkflow {
@@ -64,11 +65,34 @@ public class CheckinWorkflow {
     var customer = actor.require("CUSTOMER");
     Reservation reservation = reservations.lockById(reservationId).orElseThrow(Inputs::missing);
     if (!actor.visible(customer, reservation.getUserId(), reservation.getFacilityCode())) throw Inputs.missing();
-    if (!"RESERVED".equals(reservation.getStatus()) || reservation.getUnitCode() == null)
-      throw Inputs.conflict("Chỉ tạo yêu cầu sau khi đã đặt cọc và được gán kho");
+    if (!"RESERVED".equals(reservation.getStatus()))
+      throw Inputs.conflict("Chỉ tạo yêu cầu sau khi đã đặt cọc và giữ chỗ");
     invoices.requirePaid(reservationId, "DEPOSIT");
+    assignUnitFromAppointment(reservation);
     return tasks.findByReservationIdAndTaskType(reservationId, "CHECKIN")
       .orElseGet(() -> taskService.requestCheckin(reservation));
+  }
+
+  private void assignUnitFromAppointment(Reservation reservation) {
+    if (reservation.getUnitCode() != null) {
+      Unit assigned = units.lockByCode(reservation.getUnitCode()).orElseThrow(Inputs::missing);
+      if (!Objects.equals(assigned.getFacilityCode(), reservation.getFacilityCode())
+          || !Objects.equals(assigned.getType(), reservation.getUnitType())
+          || !Objects.equals(assigned.getHeldByReservationId(), reservation.getId())
+          || !"reserved".equalsIgnoreCase(assigned.getStatus()))
+        throw Inputs.conflict("Kho hiện tại không khớp yêu cầu trên thẻ hẹn");
+      return;
+    }
+    Unit assigned = units.lockAvailableByFacilityAndType(
+        reservation.getFacilityCode(), reservation.getUnitType(), PageRequest.of(0, 1))
+      .stream().findFirst()
+      .orElseThrow(() -> Inputs.conflict("Không còn kho trống phù hợp với cơ sở và loại kho trong thẻ hẹn"));
+    assigned.setStatus("reserved");
+    assigned.setHeldByReservationId(reservation.getId());
+    assigned.setTenantName(reservation.getCustomerName());
+    units.save(assigned);
+    reservation.setUnitCode(assigned.getCode());
+    reservations.save(reservation);
   }
 
   @Transactional
