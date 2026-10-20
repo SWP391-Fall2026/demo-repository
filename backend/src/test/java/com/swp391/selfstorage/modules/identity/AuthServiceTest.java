@@ -114,7 +114,8 @@ class AuthServiceTest {
     clock.advance(Duration.ofMinutes(5));
     assertThrows(IllegalArgumentException.class,
         () -> auth.verifyOtpAndRegister(challenge.email(), lastOtpCode, "test"));
-    verifyNoInteractions(accounts);
+    verify(accounts).requireActiveFacility("HN-CG");
+    verify(accounts, never()).create(any(User.class));
   }
 
   @Test void resendPreservesCodeAndOriginalExpiryAndEnforcesCooldown() {
@@ -137,7 +138,8 @@ class AuthServiceTest {
     assertEquals(429, assertThrows(ResponseStatusException.class,
         () -> auth.verifyOtpAndRegister(challenge.email(), lastOtpCode, "test"))
         .getStatusCode().value());
-    verifyNoInteractions(accounts);
+    verify(accounts).requireActiveFacility("HN-CG");
+    verify(accounts, never()).create(any(User.class));
   }
 
   @Test void twoVerificationsConsumeSingleChallengeOnlyOnce() throws Exception {

@@ -26,6 +26,7 @@ class PaidRentActivationServiceTest {
     Reservation reservation = new Reservation();
     reservation.setId("RSV-1"); reservation.setUserId("USR-1"); reservation.setUnitCode("HN-CG-001");
     Invoice invoice = new Invoice(); invoice.setInvoiceType("RENT"); invoice.setReservationId("RSV-1");
+    invoice.setStatus("PAID");
     Contract contract = new Contract(); contract.setId("CTR-1"); contract.setReservationId("RSV-1");
     contract.setUserId("USR-1"); contract.setUnitCode("HN-CG-001"); contract.setStatus("PENDING_PAYMENT");
     when(contracts.findByReservationId("RSV-1")).thenReturn(Optional.of(contract));

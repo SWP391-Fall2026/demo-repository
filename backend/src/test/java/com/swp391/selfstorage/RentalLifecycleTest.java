@@ -231,17 +231,15 @@ class RentalLifecycleTest {
     mvc
       .perform(get("/api/reservations/" + rid).with(user("customer2")))
       .andExpect(status().isNotFound());
-    JsonNode deposit = null,
-      rent = null;
+    JsonNode deposit = null;
     for (var i : getAs("customer", "/invoices"))
       if (rid.equals(i.path("reservationId").asText())) {
         if ("DEPOSIT".equals(i.path("invoiceType").asText())) deposit = i;
-        else rent = i;
       }
     assertNotNull(deposit);
-    assertNotNull(rent);
-    String depositId = deposit.path("id").asText(),
-      rentId = rent.path("id").asText();
+    assertTrue(getAs("customer", "/invoices").findValues("invoiceType").stream()
+      .noneMatch(type -> "RENT".equals(type.asText())));
+    String depositId = deposit.path("id").asText();
     postAs(
       "customer",
       "/payments/simulate",
@@ -260,46 +258,53 @@ class RentalLifecycleTest {
       mockCard(depositId),
       409
     );
-    mvc
-      .perform(
-        patch("/api/reservations/" + rid + "/assign-unit")
-          .with(user("manager_q7"))
-          .contentType(MediaType.APPLICATION_JSON)
-          .content("{\"unitCode\":\"HN-CG-001\"}")
-      )
-      .andExpect(status().isForbidden());
-    mvc
-      .perform(
-        patch("/api/reservations/" + rid + "/assign-unit")
-          .with(user("manager"))
-          .contentType(MediaType.APPLICATION_JSON)
-          .content("{\"unitCode\":\"HN-CG-001\"}")
-      )
+    postAs("customer", "/reservations/" + rid + "/checkin-request", Map.of(), 200);
+    var currentReservation = getAs("customer", "/reservations/" + rid);
+    String unitCode = currentReservation.path("unitCode").asText();
+    assertFalse(unitCode.isBlank());
+    var dashboard = getAs("manager", "/tasks/manager-dashboard");
+    String taskId = "";
+    for (var task : dashboard.path("tasks"))
+      if (rid.equals(task.path("reservationId").asText())) taskId = task.path("id").asText();
+    assertFalse(taskId.isBlank());
+    String staffId = getAs("manager", "/tasks/staff-options").get(0).path("id").asText();
+    mvc.perform(patch("/api/tasks/" + taskId + "/assign")
+        .with(user("manager"))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(json.writeValueAsString(Map.of("staffId", staffId))))
       .andExpect(status().isOk());
-    postAs(
-      "customer",
-      "/payments/simulate",
-      mockCard(rentId),
-      200
-    );
-    var contract = postAs(
-      "staff",
-      "/contracts/handover",
-      Map.of(
-        "reservationId",
-        rid,
-        "handoverEligibleConfirmed",
-        true,
-        "unitCode",
-        "HN-CG-001",
-        "unitConditionNotes",
-        "Kho nguyên vẹn"
-      ),
-      200
-    );
-    String cid = contract.path("id").asText(),
-      pin = contract.path("pinCode").asText();
+    getAs("staff", "/tasks/" + taskId + "/checkin/credentials");
+    postAs("staff", "/tasks/" + taskId + "/checkin/verify", Map.of(
+      "appointmentCardCode", rid,
+      "identityDocumentsConfirmed", true,
+      "appointmentCardConfirmed", true), 200);
+    var offer = getAs("customer", "/reservations/" + rid + "/contract-offer");
+    postAs("customer", "/reservations/" + rid + "/contract-terms/accept", Map.of(
+      "accepted", true, "termsVersion", offer.path("termsVersion").asText()), 200);
+    JsonNode rent = null;
+    for (var invoice : getAs("customer", "/invoices"))
+      if (rid.equals(invoice.path("reservationId").asText())
+          && "RENT".equals(invoice.path("invoiceType").asText())) rent = invoice;
+    assertNotNull(rent);
+    var paidRent = postAs("customer", "/payments/simulate", mockCard(rent.path("id").asText()), 200);
+    JsonNode contractRow = null;
+    for (var candidate : getAs("customer", "/contracts"))
+      if (rid.equals(candidate.path("reservationId").asText())) contractRow = candidate;
+    assertNotNull(contractRow);
+    String cid = contractRow.path("id").asText();
+    assertEquals("PAID", paidRent.path("status").asText());
+    assertEquals("PENDING_HANDOVER", contractRow.path("status").asText());
+    String pin = contracts.findById(cid).orElseThrow().getPinCode();
     assertEquals(6, pin.length());
+    postAs("staff", "/contracts/handover", Map.of(
+      "reservationId", rid, "handoverEligibleConfirmed", true,
+      "unitCode", unitCode, "conditionStatus", "CLEAN",
+      "unitConditionNotes", "Kho nguyên vẹn"), 200);
+    postAs("customer", "/contracts/" + cid + "/handover/confirm", Map.of(
+      "customerInspectionConfirmed", true, "handoverRecordConfirmed", true,
+      "receivedUnitConfirmed", true, "confirmationVersion", "HANDOVER-2026-10"), 200);
+    assertEquals("ACTIVE", contracts.findById(cid).orElseThrow().getStatus());
+    assertEquals("occupied", units.findById(unitCode).orElseThrow().getStatus());
     postAs(
       "customer",
       "/contracts/checkout-request",
@@ -312,7 +317,7 @@ class RentalLifecycleTest {
       "/contracts/return-inspection",
       Map.of(
         "unitCode",
-        "HN-CG-001",
+        unitCode,
         "cleanlinessStatus",
         "CLEAN",
         "damageNotes",
@@ -323,23 +328,23 @@ class RentalLifecycleTest {
     assertNull(contracts.findById(cid).orElseThrow().getPinCode());
     assertEquals(
       "cleaning",
-      units.findById("HN-CG-001").orElseThrow().getStatus()
+      units.findById(unitCode).orElseThrow().getStatus()
     );
     postAs(
       "manager",
-      "/facilities/units/HN-CG-001/ready/approve",
+      "/facilities/units/" + unitCode + "/ready/approve",
       Map.of(),
       409
     );
     postAs(
       "staff",
-      "/facilities/units/HN-CG-001/ready",
+      "/facilities/units/" + unitCode + "/ready",
       Map.of("notes", "Đã vệ sinh"),
       200
     );
     postAs(
       "manager",
-      "/facilities/units/HN-CG-001/ready/approve",
+      "/facilities/units/" + unitCode + "/ready/approve",
       Map.of(),
       200
     );
