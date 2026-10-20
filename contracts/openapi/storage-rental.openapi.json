@@ -1524,6 +1524,24 @@
         }
       }
     },
+    "/api/facilities/{code}/checkin-pin": {
+      "put": {
+        "operationId": "Facility_setCheckinPin_80",
+        "tags": ["facility"],
+        "summary": "Manager: rotate facility check-in PIN",
+        "description": "Generates and stores a new check-in PIN for the Manager's facility. Demo-only PIN visibility follows the current facility workflow.",
+        "security": [{"bearerAuth": []}],
+        "x-roles": ["FMANAGER"],
+        "parameters": [{"name": "code", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "responses": {
+          "200": {"description": "PIN rotated", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}},
+          "400": {"description": "Invalid facility code", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "401": {"description": "Authentication required", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "403": {"description": "Facility Manager scope required", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "409": {"description": "Facility cannot rotate PIN", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}
+        }
+      }
+    },
     "/api/facilities/units/manage": {
       "get": {
         "operationId": "Facility_managed_15",
@@ -4554,6 +4572,61 @@
         }
       }
     },
+    "/api/reservations/{id}/checkin-task": {
+      "get": {
+        "operationId": "Reservation_checkinTask_74",
+        "tags": ["reservation"],
+        "summary": "Customer: view check-in task",
+        "description": "Returns the customer-owned CHECKIN task when it exists.",
+        "security": [{"bearerAuth": []}],
+        "x-roles": ["CUSTOMER"],
+        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "responses": {
+          "200": {"description": "Task or empty object", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}},
+          "400": {"description": "Invalid request", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "401": {"description": "Authentication required", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "403": {"description": "Reservation is not owned by customer", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "409": {"description": "Request cannot be read in current state", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}
+        }
+      }
+    },
+    "/api/reservations/{id}/contract-offer": {
+      "get": {
+        "operationId": "Reservation_contractOffer_75",
+        "tags": ["reservation"],
+        "summary": "Customer: view contract offer",
+        "description": "Returns the contract terms and verified customer, facility and Unit details after Staff check-in verification.",
+        "security": [{"bearerAuth": []}],
+        "x-roles": ["CUSTOMER"],
+        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "responses": {
+          "200": {"description": "Contract offer", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}},
+          "400": {"description": "Invalid request", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "401": {"description": "Authentication required", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "403": {"description": "Reservation is not owned by customer", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "409": {"description": "Staff verification or contract state is incomplete", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}
+        }
+      }
+    },
+    "/api/reservations/{id}/contract-terms/accept": {
+      "post": {
+        "operationId": "Reservation_acceptContractTerms_76",
+        "tags": ["reservation"],
+        "summary": "Customer: accept contract terms",
+        "description": "Records customer acceptance and issues or synchronizes the RENT invoice.",
+        "security": [{"bearerAuth": []}],
+        "x-roles": ["CUSTOMER"],
+        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "required": ["accepted", "termsVersion"], "properties": {"accepted": {"type": "boolean"}, "termsVersion": {"type": "string"}}}}}},
+        "responses": {
+          "200": {"description": "Terms accepted", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}},
+          "400": {"description": "Invalid acceptance payload", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "401": {"description": "Authentication required", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "403": {"description": "Reservation is not owned by customer", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "409": {"description": "Contract terms changed or contract is not ready", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}
+        }
+      }
+    },
     "/api/reservations/{id}/checkin-request": {
       "post": {
         "operationId": "Reservation_requestCheckin_73",
@@ -5907,6 +5980,23 @@
         }
       }
     },
+    "/api/tasks/staff-options": {
+      "get": {
+        "operationId": "Task_staffOptions_77",
+        "tags": ["workforce"],
+        "summary": "Manager: list facility staff",
+        "description": "Returns active Staff accounts in the Manager's facility.",
+        "security": [{"bearerAuth": []}],
+        "x-roles": ["FMANAGER"],
+        "responses": {
+          "200": {"description": "Staff options", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}},
+          "400": {"description": "Invalid request", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "401": {"description": "Authentication required", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "403": {"description": "Facility Manager required", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "409": {"description": "State conflict", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}
+        }
+      }
+    },
     "/api/tasks/daily": {
       "get": {
         "operationId": "Task_list_63",
@@ -6199,6 +6289,43 @@
               }
             }
           }
+        }
+      }
+    },
+    "/api/tasks/{id}/checkin/credentials": {
+      "get": {
+        "operationId": "Task_checkinCredentials_78",
+        "tags": ["workforce"],
+        "summary": "Staff: open check-in credentials",
+        "description": "Returns appointment, customer, facility and Unit data for the assigned CHECKIN task and moves it to IN_PROGRESS.",
+        "security": [{"bearerAuth": []}],
+        "x-roles": ["STAFF"],
+        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "responses": {
+          "200": {"description": "Check-in documents", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}},
+          "400": {"description": "Invalid task", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "401": {"description": "Authentication required", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "403": {"description": "Task is not assigned to Staff", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "409": {"description": "Task is not available", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}
+        }
+      }
+    },
+    "/api/tasks/{id}/checkin/verify": {
+      "post": {
+        "operationId": "Task_verifyCheckin_79",
+        "tags": ["workforce"],
+        "summary": "Staff: verify check-in",
+        "description": "Staff verifies appointment card and original identity documents. Backend creates the contract offer after successful verification.",
+        "security": [{"bearerAuth": []}],
+        "x-roles": ["STAFF"],
+        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "required": ["appointmentCardCode", "identityDocumentsConfirmed", "appointmentCardConfirmed"], "properties": {"appointmentCardCode": {"type": "string"}, "identityDocumentsConfirmed": {"type": "boolean"}, "appointmentCardConfirmed": {"type": "boolean"}}}}}},
+        "responses": {
+          "200": {"description": "Check-in verified", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}},
+          "400": {"description": "Verification data is invalid", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "401": {"description": "Authentication required", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "403": {"description": "Task is not assigned to Staff", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "409": {"description": "Check-in preconditions are incomplete", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}
         }
       }
     },
