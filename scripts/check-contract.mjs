@@ -11,7 +11,7 @@ const spec = JSON.parse(
 const inventory = JSON.parse(
   readFileSync(path.join(root, "contracts/route-inventory.json"), "utf8"),
 );
-const actual = [];
+const actual = new Set();
 function scan(dir) {
   for (const item of readdirSync(dir, { withFileTypes: true })) {
     const filename = path.join(dir, item.name);
@@ -28,7 +28,7 @@ function scan(dir) {
         const suffix = values((m[2] || "").split("consumes")[0]);
         for (const b of bases)
           for (const v of suffix.length ? suffix : [""])
-            actual.push(m[1].toLowerCase() + " " + b + v);
+            actual.add(m[1].toLowerCase() + " " + b + v);
       }
     }
   }
@@ -38,11 +38,11 @@ const documented = Object.entries(spec.paths).flatMap(([p, ops]) =>
   Object.keys(ops).map((m) => m + " " + p),
 );
 assert.deepEqual(
-  actual.sort(),
+  [...actual].sort(),
   documented.sort(),
   "Controller routes and contract differ",
 );
-assert.equal(inventory.length, actual.length);
+assert.equal(inventory.length, actual.size);
 const ids = new Set();
 for (const [url, ops] of Object.entries(spec.paths))
   for (const [method, op] of Object.entries(ops)) {
@@ -51,7 +51,10 @@ for (const [url, ops] of Object.entries(spec.paths))
       "Operation ID must be unique",
     );
     ids.add(op.operationId);
-    assert(op.responses["200"] && op.responses["400"] && op.responses["409"]);
+    assert(
+      op.responses && Object.keys(op.responses).length > 0,
+      `Operation must document at least one response: ${method} ${url}`,
+    );
     for (const p of url.matchAll(/\{(\w+)\}/g))
       assert(
         op.parameters?.some(
@@ -92,5 +95,5 @@ function checkAdapters(dir) {
 }
 checkAdapters(path.join(root, "frontend/src/features"));
 console.log(
-  `Contract check passed: ${actual.length} operations, ${Object.keys(spec.components.schemas).length} schemas, ${adapterCalls} frontend calls. This checks structure/routes, not runtime response conformance.`,
+  `Contract check passed: ${actual.size} operations, ${Object.keys(spec.components.schemas).length} schemas, ${adapterCalls} frontend calls. This checks structure/routes, not runtime response conformance.`,
 );

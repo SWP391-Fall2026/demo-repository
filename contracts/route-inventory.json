@@ -15,6 +15,21 @@
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/controller/PaymentController.java"
   },
   {
+    "method": "post",
+    "path": "/api/payments/vnpay/create",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/controller/PaymentController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/payments/vnpay/ipn",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/controller/PaymentController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/payments/vnpay/return",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/controller/PaymentController.java"
+  },
+  {
     "method": "get",
     "path": "/api/payments/bank-info",
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/controller/PaymentController.java"
@@ -87,6 +102,11 @@
   {
     "method": "put",
     "path": "/api/facilities/units/{code}",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java"
+  },
+  {
+    "method": "put",
+    "path": "/api/facilities/{code}/checkin-pin",
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java"
   },
   {
@@ -175,6 +195,11 @@
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
   },
   {
+    "method": "get",
+    "path": "/api/contracts/{id}",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
+  },
+  {
     "method": "post",
     "path": "/api/contracts/handover",
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
@@ -255,6 +280,16 @@
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
   },
   {
+    "method": "get",
+    "path": "/api/reservations/{id}/checkin-task",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/reservations/{id}/contract-offer",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
+  },
+  {
     "method": "post",
     "path": "/api/reservations/calculate",
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
@@ -267,6 +302,11 @@
   {
     "method": "post",
     "path": "/api/reservations/{id}/checkin-request",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/reservations/{id}/contract-terms/accept",
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
   },
   {
@@ -350,6 +390,11 @@
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/controller/TaskController.java"
   },
   {
+    "method": "get",
+    "path": "/api/tasks/staff-options",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/controller/TaskController.java"
+  },
+  {
     "method": "post",
     "path": "/api/tasks/dispatch",
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/controller/TaskController.java"
@@ -362,6 +407,16 @@
   {
     "method": "patch",
     "path": "/api/tasks/{id}/assign",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/controller/TaskController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/tasks/{id}/checkin/credentials",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/controller/TaskController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/tasks/{id}/checkin/verify",
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/controller/TaskController.java"
   },
   {
