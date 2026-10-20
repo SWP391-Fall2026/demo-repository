@@ -1220,6 +1220,7 @@ async function confirmReservation() {
       throw new Error(result.message || 'Không thể tạo reservation.');
     }
     currentReservation = result.data;
+    renderBoardingPass(currentReservation);
     currentBookingContext.depositAmount = Number(currentReservation.depositAmount || 0);
     currentBookingContext.durationMonths = durationMonths;
     closeModal('modalReservation');
@@ -1269,6 +1270,17 @@ function setPaymentType(type) {
     amt.innerText = '200.000 đ';
     qrDesc.innerText = 'PHU PHI UNIT A102';
   }
+}
+
+function renderBoardingPass(reservation) {
+  if (!reservation) return;
+  const set = (id, value) => { const el = document.getElementById(id); if (el) el.innerText = value || '—'; };
+  set('boardingReservationId', reservation.id);
+  set('boardingReservationStatus', `${reservation.status || '—'}${reservation.unitCode ? ' · Unit đã gán' : ''}`);
+  set('boardingUnitCode', reservation.unitCode ? `UNIT ${reservation.unitCode}` : 'Chưa được gán');
+  set('boardingUnitInfo', reservation.unitType ? `Loại kho ${reservation.unitType} · Cơ sở ${reservation.facilityCode || '—'}` : '—');
+  set('boardingAppointment', reservation.appointment || 'Chưa có lịch hẹn');
+  set('boardingStartDate', reservation.startDate || '—');
 }
 
 async function loadPaymentBankInfo() {
@@ -1325,7 +1337,7 @@ async function simulatePaymentSuccess() {
     });
     const result = await response.json();
     if (!response.ok || !result.success) throw new Error(result.message || 'Thanh toán thất bại.');
-    if (isDeposit) currentReservation.status = 'RESERVED';
+    if (isDeposit) { currentReservation.status = 'RESERVED'; renderBoardingPass(currentReservation); }
     showToast(`Thanh toán thành công. Mã giao dịch ${result.data?.transactionCode || result.data?.id || ''}`);
     addAuditLog(currentUser.name, 'CUSTOMER', 'PAYMENT_CONFIRM', `Thanh toán ${currentPaymentType} cho ${currentReservation.id}`);
     if (isDeposit) {
@@ -1678,6 +1690,7 @@ async function lookupReservation() {
       currentReservation = result.data;
     }
     showToast(`Reservation ${currentReservation.id}: ${currentReservation.status}, Unit ${currentReservation.unitCode || 'chưa gán'}.`);
+    renderBoardingPass(currentReservation);
   } catch (error) {
     showToast(error.message || 'Không thể tra cứu reservation.');
   }
