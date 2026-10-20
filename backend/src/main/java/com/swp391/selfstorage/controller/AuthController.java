@@ -41,7 +41,7 @@ public class AuthController {
         try {
             ApiResponse<Map<String, Object>> res = authService.generateAndSendOtp(req);
             return ResponseEntity.ok(res);
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
         }
     }
@@ -53,7 +53,7 @@ public class AuthController {
             if (ip == null) ip = request.getRemoteAddr();
             ApiResponse<UserDto> res = authService.verifyOtpAndRegister(req.getEmail(), req.getCode(), ip);
             return ResponseEntity.status(HttpStatus.CREATED).body(res);
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
         }
     }
@@ -62,7 +62,7 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> resendOtp(@RequestBody Map<String, String> body) {
         try {
             return ResponseEntity.ok(authService.resendOtp(body.get("email")));
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
         }
     }
@@ -71,7 +71,7 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> register(@RequestBody RegisterRequest req) {
         try {
             return ResponseEntity.ok(authService.generateAndSendOtp(req));
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
         }
     }
