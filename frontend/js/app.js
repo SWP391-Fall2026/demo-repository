@@ -486,15 +486,14 @@ async function handleRegisterFormSubmit(e) {
 
   const userData = { name, username, dob, gender, phone, email, cccd, facility, password };
 
-  // Generate 6-digit OTP code
-  const generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
-  currentPendingRegistration = {
-    userData,
-    otpCode: generatedCode,
-    expiresAt: Date.now() + 5 * 60 * 1000
-  };
+  showToast('Đang gửi mã xác thực tới email của bạn...');
+  const btnSubmit = document.querySelector('#modalRegister .btn-primary');
+  if (btnSubmit) {
+    btnSubmit.disabled = true;
+    btnSubmit.innerText = 'Đang xử lý...';
+  }
 
-  // Try sending to backend service
+  // Gửi request tới Backend Spring Boot
   try {
     const res = await fetch(`${API_BASE}/api/auth/send-otp`, {
       method: 'POST',
@@ -502,20 +501,30 @@ async function handleRegisterFormSubmit(e) {
       body: JSON.stringify({ ...userData, confirmPassword: password })
     });
     const resData = await res.json();
-    if (res.ok && resData.code) {
-      currentPendingRegistration.otpCode = resData.code;
+    if (!res.ok || !resData.success) {
+      showAuthAlert(resData.message || 'Lỗi khi gửi mã xác thực. Vui lòng kiểm tra lại thông tin!');
+      return;
     }
-  } catch (err) {
-    console.warn('[Register] Send OTP API offline, using local verification.');
-  }
 
-  // Open OTP Modal
-  openOtpVerificationModal(email, currentPendingRegistration.otpCode);
+    currentPendingRegistration = {
+      userData,
+      expiresAt: Date.now() + 5 * 60 * 1000
+    };
+
+    // Mở modal nhập OTP
+    openOtpVerificationModal(email);
+  } catch (err) {
+    showAuthAlert('Không thể kết nối tới Backend Spring Boot (cổng 8080). Hãy đảm bảo Backend đang chạy!');
+  } finally {
+    if (btnSubmit) {
+      btnSubmit.disabled = false;
+      btnSubmit.innerText = 'Đăng ký tài khoản';
+    }
+  }
 }
 
-function openOtpVerificationModal(email, code) {
+function openOtpVerificationModal(email) {
   document.getElementById('txtVerifyEmailTarget').innerText = email;
-  document.getElementById('simulatedOtpCode').innerText = code;
   const alertBox = document.getElementById('otpErrorAlert');
   if (alertBox) alertBox.style.display = 'none';
 
@@ -528,7 +537,7 @@ function openOtpVerificationModal(email, code) {
   openModal('modalEmailVerify');
   setupOtpDigitInputs();
   startOtpCountdown(60);
-  showToast(`📧 Đã gửi mã xác minh 6 số tới ${email}!`);
+  showToast(`📧 Đã gửi mã xác minh 6 số tới ${email}! Vui lòng kiểm tra hộp thư.`);
 }
 
 function setupOtpDigitInputs() {
@@ -578,14 +587,7 @@ function setupOtpDigitInputs() {
 }
 
 function autoFillOtp() {
-  if (!currentPendingRegistration) return;
-  const code = currentPendingRegistration.otpCode;
-  const inputs = document.querySelectorAll('.otp-digit-input');
-  for (let i = 0; i < inputs.length; i++) {
-    inputs[i].value = code[i] || '';
-    inputs[i].classList.add('filled');
-  }
-  showToast('Đã tự động điền mã xác nhận!');
+  showToast('Vui lòng kiểm tra hộp thư email thực tế của bạn để lấy mã xác thực!');
 }
 
 function checkOtpAutoSubmit() {
@@ -605,7 +607,7 @@ async function submitOtpVerification() {
   const alertBox = document.getElementById('otpErrorAlert');
   if (enteredCode.length !== 6) {
     if (alertBox) {
-      alertBox.innerText = 'Thông tin không hợp lệ!';
+      alertBox.innerText = 'Vui lòng nhập đủ 6 chữ số mã xác minh!';
       alertBox.style.display = 'block';
     }
     return;
@@ -613,7 +615,7 @@ async function submitOtpVerification() {
 
   if (!currentPendingRegistration) {
     if (alertBox) {
-      alertBox.innerText = 'Thông tin không hợp lệ!';
+      alertBox.innerText = 'Phiên đăng ký không tồn tại hoặc đã hết hạn!';
       alertBox.style.display = 'block';
     }
     return;
@@ -621,13 +623,13 @@ async function submitOtpVerification() {
 
   if (Date.now() > currentPendingRegistration.expiresAt) {
     if (alertBox) {
-      alertBox.innerText = 'Mã xác minh đã hết hạn!';
+      alertBox.innerText = 'Mã xác minh đã hết hạn! Vui lòng nhấn gửi lại mã.';
       alertBox.style.display = 'block';
     }
     return;
   }
 
-  // 1. Try server OTP verification
+  // 1. Xác thực OTP thông qua máy chủ Backend Spring Boot và lưu vào Database thật
   try {
     const res = await fetch(`${API_BASE}/api/auth/verify-otp`, {
       method: 'POST',
@@ -643,47 +645,19 @@ async function submitOtpVerification() {
       if (authToken) localStorage.setItem('selfstorage_auth_token', authToken);
       completeRegistrationSuccess(resData.data);
       return;
-    } else if (!res.ok) {
+    } else {
       if (alertBox) {
-        alertBox.innerText = resData.message || 'Thông tin không hợp lệ!';
+        alertBox.innerText = resData.message || 'Mã xác minh không chính xác!';
         alertBox.style.display = 'block';
       }
       return;
     }
   } catch (err) {
-    console.warn('[Register] Verify OTP API offline, using local verification.');
-  }
-
-  // 2. Local verification fallback
-  if (enteredCode !== currentPendingRegistration.otpCode) {
     if (alertBox) {
-      alertBox.innerText = 'Thông tin không hợp lệ!';
+      alertBox.innerText = 'Không thể kết nối tới Backend Spring Boot (cổng 8080). Hãy đảm bảo Backend đang chạy!';
       alertBox.style.display = 'block';
     }
-    return;
   }
-
-  const u = currentPendingRegistration.userData;
-  const newUser = {
-    id: `USR-0${mockUsers.length + 1}`,
-    name: u.name,
-    dob: u.dob,
-    gender: u.gender,
-    username: u.username,
-    password: u.password,
-    email: u.email,
-    phone: u.phone,
-    cccd: u.cccd,
-    role: 'CUSTOMER',
-    roleTitle: 'Khách hàng thuê kho',
-    facility: u.facility,
-    facilityCode: 'HN-CG',
-    status: 'ACTIVE',
-    emailVerified: true
-  };
-
-  mockUsers.push(newUser);
-  completeRegistrationSuccess(newUser);
 }
 
 function completeRegistrationSuccess(user) {
@@ -730,23 +704,23 @@ async function resendOtpCode() {
       body: JSON.stringify({ email: currentPendingRegistration.userData.email })
     });
     const responseData = await response.json();
-    if (!response.ok || !responseData.code) {
+    if (!response.ok || !responseData.success) {
       if (alertBox) {
         alertBox.innerText = responseData.message || 'Không thể gửi lại mã lúc này.';
         alertBox.style.display = 'block';
       }
       return;
     }
-    currentPendingRegistration.otpCode = responseData.code;
+
+    currentPendingRegistration.expiresAt = Date.now() + 5 * 60 * 1000;
+    startOtpCountdown(60);
+    showToast(`📬 ${responseData.message || 'Đã gửi lại mã xác minh mới vào hộp thư email của bạn!'}`);
   } catch (err) {
-    currentPendingRegistration.otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    if (alertBox) {
+      alertBox.innerText = 'Không thể kết nối tới Backend Spring Boot. Vui lòng kiểm tra lại server!';
+      alertBox.style.display = 'block';
+    }
   }
-
-  currentPendingRegistration.expiresAt = Date.now() + 5 * 60 * 1000;
-  document.getElementById('simulatedOtpCode').innerText = currentPendingRegistration.otpCode;
-
-  startOtpCountdown(60);
-  showToast('📬 Đã gửi lại mã xác minh mới vào email của bạn!');
 }
 
 function applyUserSession(user) {
