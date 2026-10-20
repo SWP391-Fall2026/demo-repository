@@ -6,6 +6,10 @@ import com.swp391.selfstorage.service.AuditLogService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
 import java.util.Map;
@@ -21,14 +25,21 @@ public class AuditLogController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'SYSTEM_ADMIN')")
     public ResponseEntity<ApiResponse<List<AuditLog>>> getLogs() {
         List<AuditLog> list = auditLogService.getLogs();
         return ResponseEntity.ok(ApiResponse.list(list.size(), list));
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<AuditLog>> createLog(@RequestBody Map<String, Object> body) {
-        AuditLog log = auditLogService.createLog(body);
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<AuditLog>> createLog(
+            @AuthenticationPrincipal UserDetails principal,
+            @RequestBody Map<String, Object> body,
+            HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isBlank()) ip = request.getRemoteAddr();
+        AuditLog log = auditLogService.createLog(principal.getUsername(), body, ip);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(log));
     }
 }

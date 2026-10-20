@@ -17,8 +17,10 @@ CREATE TABLE IF NOT EXISTS public.users (
   facility TEXT,
   facility_code TEXT,
   status TEXT DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'LOCKED', 'DISABLED')),
+  email_verified BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT TRUE;
 
 -- 2. BẢNG FACILITIES (DANH MỤC CƠ SỞ KHO TOÀN HỆ THỐNG)
 CREATE TABLE IF NOT EXISTS public.facilities (
@@ -223,6 +225,32 @@ CREATE TABLE IF NOT EXISTS public.login_history (
   device TEXT,
   status TEXT DEFAULT 'SUCCESS'
 );
+ALTER TABLE public.login_history ADD COLUMN IF NOT EXISTS time_str TEXT;
+ALTER TABLE public.login_history ADD COLUMN IF NOT EXISTS ip TEXT;
+ALTER TABLE public.login_history ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
+
+-- Compatibility migration for databases created by earlier backend builds.
+ALTER TABLE public.audit_logs ADD COLUMN IF NOT EXISTS time_display TEXT;
+ALTER TABLE public.audit_logs ADD COLUMN IF NOT EXISTS ip_address TEXT;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'audit_logs' AND column_name = 'time_str') THEN
+    EXECUTE 'UPDATE public.audit_logs SET time_display = COALESCE(time_display, time_str) WHERE time_display IS NULL';
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'audit_logs' AND column_name = 'ip') THEN
+    EXECUTE 'UPDATE public.audit_logs SET ip_address = COALESCE(ip_address, ip) WHERE ip_address IS NULL';
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'login_history' AND column_name = 'login_time') THEN
+    EXECUTE 'UPDATE public.login_history SET created_at = COALESCE(created_at, login_time) WHERE created_at IS NULL';
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'login_history' AND column_name = 'ip_address') THEN
+    EXECUTE 'UPDATE public.login_history SET ip = COALESCE(ip, ip_address) WHERE ip IS NULL';
+  END IF;
+END $$;
 
 -- ==============================================================================
 -- SEED DATA: 5 TÀI KHOẢN THEO ĐÚNG YÊU CẦU ĐỀ BÀI (USERNAME & MẬT KHẨU)
@@ -348,4 +376,19 @@ CREATE POLICY "Public access audit_logs" ON public.audit_logs FOR ALL USING (tru
 
 DROP POLICY IF EXISTS "Public access login_history" ON public.login_history;
 CREATE POLICY "Public access login_history" ON public.login_history FOR ALL USING (true) WITH CHECK (true);
+
+CREATE TABLE IF NOT EXISTS public.notifications (
+  id varchar(80) PRIMARY KEY,
+  user_id varchar(50) NOT NULL REFERENCES public.users(id),
+  title varchar(255) NOT NULL,
+  message text NOT NULL,
+  type varchar(50) NOT NULL,
+  reference_id varchar(80),
+  read boolean NOT NULL DEFAULT false,
+  created_at timestamp NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_created ON public.notifications(user_id, created_at DESC);
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public access notifications" ON public.notifications;
+CREATE POLICY "Public access notifications" ON public.notifications FOR ALL USING (true) WITH CHECK (true);
 

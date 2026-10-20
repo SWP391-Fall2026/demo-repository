@@ -207,7 +207,9 @@ public class PaymentService {
     }
 
     private static void assertAmount(Object requested, BigDecimal required) {
-        if (requested == null) return;
+        if (requested == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Payment amount is required");
+        }
         try {
             if (new BigDecimal(requested.toString()).compareTo(required) != 0) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "Payment amount does not match invoice");
