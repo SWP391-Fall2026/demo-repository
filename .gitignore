@@ -15,6 +15,9 @@ target/
 .env.development.local
 .env.test.local
 .env.production.local
+backend/data/
+data/
+*.db
 
 # Logs
 npm-debug.log*
