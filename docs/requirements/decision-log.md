@@ -87,7 +87,7 @@ Nguồn: [SecurityConfig](D:/SWP/.tmp/project-review-20261017/demo-repository-ma
 
 | Mục | Nội dung yêu cầu trong tài liệu |
 | --- | --- |
-| BR-004 | Cọc mặc định một tháng thuê; chưa nộp cọc sau 24 giờ kể từ lúc tạo đơn thì EXPIRED |
+| BR-004 | Cọc mặc định một tháng thuê; chưa nộp cọc sau 5 phút kể từ lúc tạo đơn thì EXPIRED |
 | FR-029 | Khách đặt theo loại kho, Manager gán phòng cụ thể trước check-in |
 | BR-005/FR-015 | Bàn giao phải có đơn hợp lệ, phòng đã gán, đủ tiền thuê kỳ đầu và xác nhận khách |
 | BR-008 | Bàn giao cập nhật Reservation CHECKED_IN, Contract ACTIVE và Unit OCCUPIED đồng bộ |
@@ -110,7 +110,7 @@ Nguồn: [FR](D:/SWP/.tmp/project-review-20261017/demo-repository-main/docs/Self
 | Backend | Java Spring Boot | Người dùng đã chốt |
 | Chuẩn giao diện | Figma ZI2wVoTC5MsWXC07Y7rpsB là chuẩn tối thiểu về màn hình, bố cục, thành phần và tương tác. Bổ sung UI cho các nghiệp vụ đã chốt còn thiếu theo cùng phong cách; không xem prototype HTML cũ là phạm vi UI cuối cùng | Người dùng đã chốt |
 | Cọc | Mặc định một tháng thuê, Ops cấu hình; lưu số tiền đã xác nhận trên đơn | Mặc định rõ trong SRS; còn phải thống nhất cách cấu hình |
-| Giữ chỗ | 24 giờ tính từ lúc tạo, chỉ hết hạn đơn chưa trả cọc; số khả dụng phải trừ các chỗ đang giữ | Theo SRS; chưa triển khai đầy đủ |
+| Giữ chỗ | 5 phút tính từ lúc tạo, chỉ hết hạn đơn chưa trả cọc; hóa đơn pending chuyển CANCELLED và số khả dụng được giải phóng bởi scheduler mỗi 5 giây | Đã triển khai; cấu hình auth-supabase bật scheduler |
 | Daily Tasks | Dùng daily_tasks, liên kết staff_id và facility_code; rà soát staff_tasks trước khi chuyển dữ liệu | Đề xuất theo mapping hiện có |
 | GZ-01 | Xác thực PIN mô phỏng bằng phần mềm; không tích hợp khóa thật; chặn theo vòng đời hợp đồng | Cần xác nhận cách mô phỏng |
 | GZ-02/GZ-06 | Admin tạo nhân sự và gán chi nhánh; Manager chỉ phân công nhân sự đã có | Đề xuất theo ranh giới Actor |
@@ -119,7 +119,7 @@ Nguồn: [FR](D:/SWP/.tmp/project-review-20261017/demo-repository-main/docs/Self
 | GZ-07 thời gian | Tính theo thời điểm bắt đầu thuê, kể cả khi khác lịch hẹn check-in. Hủy từ đủ 24 giờ trở lên hoàn 100%; dưới 24 giờ không hoàn cọc | Người dùng đã xác nhận quy tắc biên và mốc tính; tỷ lệ dưới ngưỡng theo bảng người dùng cung cấp |
 | Hủy thủ công | Staff thực hiện theo chính sách; Manager duyệt ngoại lệ và hoàn cọc | Người dùng đã xác nhận |
 | GZ-03 phí trả trễ | Không có grace period. Phí theo ngày; mỗi 24 giờ bắt đầu tính một ngày, làm tròn lên. Facility Manager cấu hình tỷ lệ trần; mức đã chọn là 50% giá thuê tháng hiện hành tại thời điểm tính phí | Người dùng đã xác nhận rõ cơ sở tính chính thức |
-| Giá tại Reservation | Lưu bản chụp giá khi tạo Reservation và bảo lưu suốt 24 giờ chờ cọc; thanh toán xác nhận mức giá đã giữ. Đơn hết hạn phải đặt lại theo giá mới | Người dùng đã xác nhận |
+| Giá tại Reservation | Lưu bản chụp giá khi tạo Reservation và bảo lưu suốt 5 phút chờ cọc; thanh toán xác nhận mức giá đã giữ. Đơn hết hạn phải đặt lại theo giá mới | Theo yêu cầu nghiệp vụ khách hàng |
 | Quyền chỉnh giá | Facility Manager cấu hình Unit và giá tại chi nhánh trong giới hạn giá/chính sách do Ops quản lý | Người dùng đã nêu rõ |
 | Thời điểm kết thúc thuê | Khách gửi yêu cầu trả kho chưa làm ngừng tính tiền hoặc khóa PIN. Cả hai chỉ diễn ra khi Staff hoàn tất nghiệm thu và xác nhận khách đã trả thực tế; việc gửi yêu cầu không tự thay đổi quy tắc quá hạn đang áp dụng | Người dùng đã xác nhận |
 | Kho sẵn sàng | Staff xác nhận vệ sinh hoàn tất và gửi yêu cầu; Facility Manager xác nhận chuyển Unit sang AVAILABLE. Kho còn cần kiểm tra/vệ sinh chưa được cho thuê lại | Người dùng đã xác nhận |

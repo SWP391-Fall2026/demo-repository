@@ -39,4 +39,13 @@ public class AuditLogService {
     log.setFacilityCode(u.getFacilityCode());
     logs.save(log);
   }
+
+  public void recordSystem(String action, String entity, String detail) {
+    AuditLog log = new AuditLog(
+      LocalDateTime.now().toString(), "VNPay", "PAYMENT_GATEWAY", action,
+      detail, "GATEWAY", "SUCCESS"
+    );
+    log.setEntityId(entity);
+    logs.save(log);
+  }
 }

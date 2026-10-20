@@ -52,6 +52,27 @@ public class AttachmentStorage {
     }
   }
 
+  public String saveImage(MultipartFile file) {
+    if (file == null || file.isEmpty() || file.getSize() > 10 * 1024 * 1024)
+      throw Inputs.bad("Ảnh minh chứng tối đa 10 MB");
+    try {
+      byte[] bytes = file.getBytes();
+      boolean png = bytes.length >= 8 && (bytes[0] & 255) == 137 && bytes[1] == 80
+          && bytes[2] == 78 && bytes[3] == 71 && bytes[4] == 13 && bytes[5] == 10
+          && bytes[6] == 26 && bytes[7] == 10;
+      boolean jpg = bytes.length >= 3 && (bytes[0] & 255) == 255
+          && (bytes[1] & 255) == 216 && (bytes[2] & 255) == 255;
+      if (!png && !jpg) throw Inputs.bad("Ảnh minh chứng phải là PNG hoặc JPEG hợp lệ");
+      Files.createDirectories(root);
+      String name = UUID.randomUUID() + (png ? ".png" : ".jpg");
+      Files.write(resolve(name), bytes, StandardOpenOption.CREATE_NEW);
+      return name;
+    } catch (IOException e) {
+      throw new IllegalStateException("Không lưu được ảnh hiện trạng", e);
+    }
+  }
+
+
   public Path resolve(String key) {
     Path p = root.resolve(key).normalize();
     if (

@@ -18,6 +18,10 @@ public interface ContractRepository extends JpaRepository<Contract, String> {
   Optional<Contract> findByReservationId(String id);
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("select c from Contract c where c.reservationId=:reservationId")
+  Optional<Contract> lockByReservationId(@Param("reservationId") String reservationId);
+
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query("select c from Contract c where c.id=:id")
   Optional<Contract> lockById(@Param("id") String id);
 }

@@ -1,0 +1,19 @@
+$kind: http-request
+name: 10-profile-anonymous
+method: GET
+url: '{{base_url}}/auth/me'
+order: 10000
+auth:
+  type: noauth
+scripts:
+  - type: beforeRequest
+    language: text/javascript
+    code: |-
+      // No request body.
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Profile requires authentication", () => {
+       pm.response.to.have.status(401);
+       pm.expect(pm.response.json().success).to.eql(false);
+      });

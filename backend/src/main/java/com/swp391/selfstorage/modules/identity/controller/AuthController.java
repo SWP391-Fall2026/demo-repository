@@ -12,9 +12,11 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
   private final AuthService auth;
+  private final com.swp391.selfstorage.common.security.ActorContext actor;
 
-  public AuthController(AuthService a) {
+  public AuthController(AuthService a, com.swp391.selfstorage.common.security.ActorContext actor) {
     auth = a;
+    this.actor = actor;
   }
 
   @PostMapping("/login")
@@ -48,10 +50,10 @@ public class AuthController {
 
   @PostMapping("/resend-otp")
   public ApiResponse<?> resend(@RequestBody Map<String, String> d) {
-    var pending = auth.getPendingOtp(d.get("email"));
-    if (pending == null) throw new IllegalArgumentException(
-      "Phiên xác minh đã hết hạn"
-    );
-    return ApiResponse.ok(pending);
+    return auth.resendOtp(d.get("email"));
+  }
+  @GetMapping("/me")
+  public ApiResponse<UserDto> me() {
+    return ApiResponse.ok(new UserDto(actor.current()));
   }
 }

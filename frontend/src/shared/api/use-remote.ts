@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-export function useRemote<T>(load: () => Promise<T>) {
+export function useRemote<T>(load: () => Promise<T>, dependencies: unknown[] = []) {
   const fn = useRef(load);
   fn.current = load;
   const [data, setData] = useState<T>();
@@ -24,6 +24,6 @@ export function useRemote<T>(load: () => Promise<T>) {
     return () => {
       active = false;
     };
-  }, [version]);
+  }, [version, ...dependencies]);
   return { data, error, busy, reload };
 }

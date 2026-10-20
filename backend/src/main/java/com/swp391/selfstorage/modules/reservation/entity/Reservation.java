@@ -287,6 +287,42 @@ public class Reservation {
     rentalStartAt = v;
   }
 
+  @Column(name = "contract_terms_accepted_at")
+  private java.time.LocalDateTime contractTermsAcceptedAt;
+
+  public java.time.LocalDateTime getContractTermsAcceptedAt() { return contractTermsAcceptedAt; }
+
+  public void setContractTermsAcceptedAt(java.time.LocalDateTime value) { contractTermsAcceptedAt = value; }
+
+  @Column(name = "contract_terms_version")
+  private String contractTermsVersion;
+
+  public String getContractTermsVersion() { return contractTermsVersion; }
+
+  public void setContractTermsVersion(String value) { contractTermsVersion = value; }
+
+  @Column(name = "identity_verified_at")
+  private java.time.LocalDateTime identityVerifiedAt;
+
+  public java.time.LocalDateTime getIdentityVerifiedAt() { return identityVerifiedAt; }
+
+  public void setIdentityVerifiedAt(java.time.LocalDateTime value) { identityVerifiedAt = value; }
+
+  @Column(name = "identity_verified_by")
+  private String identityVerifiedBy;
+
+  @com.fasterxml.jackson.annotation.JsonIgnore
+  public String getIdentityVerifiedBy() { return identityVerifiedBy; }
+
+  public void setIdentityVerifiedBy(String value) { identityVerifiedBy = value; }
+
+  @Column(name = "contract_terms_snapshot", columnDefinition = "text")
+  private String contractTermsSnapshot;
+
+  public String getContractTermsSnapshot() { return contractTermsSnapshot; }
+
+  public void setContractTermsSnapshot(String value) { contractTermsSnapshot = value; }
+
   @Column(name = "cancelled_at")
   private java.time.LocalDateTime cancelledAt;
 

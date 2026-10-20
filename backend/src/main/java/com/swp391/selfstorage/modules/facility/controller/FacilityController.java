@@ -2,7 +2,9 @@ package com.swp391.selfstorage.modules.facility.controller;
 
 import com.swp391.selfstorage.common.web.ApiResponse;
 import com.swp391.selfstorage.modules.facility.service.FacilityService;
+import com.swp391.selfstorage.modules.workforce.service.TaskService;
 import java.util.*;
+import java.math.BigDecimal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -10,9 +12,11 @@ import org.springframework.web.bind.annotation.*;
 public class FacilityController {
 
   private final FacilityService s;
+  private final TaskService tasks;
 
-  public FacilityController(FacilityService s) {
+  public FacilityController(FacilityService s, TaskService tasks) {
     this.s = s;
+    this.tasks = tasks;
   }
 
   @GetMapping
@@ -25,9 +29,19 @@ public class FacilityController {
     return ApiResponse.ok(s.create(d));
   }
 
+  @PutMapping("/{code}/checkin-pin")
+  public ApiResponse<?> setCheckinPin(@PathVariable String code) {
+    return ApiResponse.ok(tasks.setFacilityCheckinPin(code));
+  }
+
   @GetMapping("/units")
-  public ApiResponse<?> units() {
-    return ApiResponse.ok(s.catalog());
+  public ApiResponse<?> units(
+      @RequestParam(required = false) String facilityCode,
+      @RequestParam(required = false) BigDecimal minSize,
+      @RequestParam(required = false) BigDecimal maxSize,
+      @RequestParam(required = false) BigDecimal minPrice,
+      @RequestParam(required = false) BigDecimal maxPrice) {
+    return ApiResponse.ok(s.catalog(facilityCode, minSize, maxSize, minPrice, maxPrice));
   }
 
   @GetMapping("/units/manage")
@@ -39,6 +53,7 @@ public class FacilityController {
   public ApiResponse<?> createUnit(@RequestBody Map<String, Object> d) {
     return ApiResponse.ok(s.createUnit(d));
   }
+
 
   @PutMapping("/units/{code}")
   public ApiResponse<?> updateUnit(

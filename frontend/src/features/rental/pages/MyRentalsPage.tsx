@@ -5,14 +5,15 @@ import { useRemote } from "../../../shared/api/use-remote";
 import { display, money } from "../../../shared/lib/format";
 import { rentalApi } from "../api/rental.api";
 export default function MyRentalsPage() {
-  const { data, reload } = useRemote(rentalApi.list);
+  const loadRentals = () => rentalApi.list().then((rows) => rows.filter((row) => !["PENDING_PAYMENT", "PENDING_HANDOVER"].includes(String(row.status))));
+  const { data, reload } = useRemote(loadRentals);
   const [visible, setVisible] = useState<string | null>(null);
   return (
     <>
       <ResourcePage
         title="Kho đang thuê và hợp đồng"
         description="Yêu cầu trả kho giữ nguyên hiệu lực hợp đồng và PIN cho đến khi Staff hoàn tất nghiệm thu."
-        load={rentalApi.list}
+        load={loadRentals}
       >
         <Form
           fields={[
@@ -43,6 +44,7 @@ export default function MyRentalsPage() {
               {display(c.status)} · {money(c.monthlyFee)}/tháng
             </p>
             <p>Hết hạn: {display(c.endAt)}</p>
+            <Link className="button" to={`/rentals/${encodeURIComponent(String(c.id))}`}>Xem chi tiết hợp đồng</Link>
             {Boolean(c.pinCode) && (
               <>
                 <button

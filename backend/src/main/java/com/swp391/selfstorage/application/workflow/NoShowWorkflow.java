@@ -133,6 +133,8 @@ public class NoShowWorkflow {
         u.setStatus("available");
         u.setHeldByReservationId(null);
         u.setTenantName(null);
+        u.setTemporaryPin(null);
+        u.setTemporaryPinExpiresAt(null);
         units.save(u);
       }
     }

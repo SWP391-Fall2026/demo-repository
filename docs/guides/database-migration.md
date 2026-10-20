@@ -1,5 +1,7 @@
 # Chuyển database đang sử dụng
 
+> Cập nhật19/10: schema tham chiếu chỉ là REF, không là chuẩn live. Đã xác minh PostgreSQL17.11 và áp dụng nhóm002/003/004 theo [hướng dẫn mới](D:/SWP/storage-rental/docs/guides/schema-alignment-20261019.md); [bằng chứng thực thi](D:/SWP/storage-rental/docs/testing/schema-migration-execution-20261019.md). Phần bên dưới là kế hoạch lịch sử trước xác minh; tuyệt đối không chạy001_scope_extensions.sql hoặc tự backfill theo suy đoán.
+
 Schema chuẩn là `database/reference/current-schema-as-is.sql` người dùng cung cấp, gồm 15 bảng. File này chỉ để đối chiếu. Không chạy lại như script khởi tạo.
 
 `database/migrations/001_scope_extensions.sql` là đề xuất bổ sung cột và hai bảng invoices/refund_transactions. Không có Flyway hoặc script tự chạy khi bật ứng dụng. Backend mặc định `ddl-auto=validate`; profile local/test mới dùng H2 create-drop riêng.

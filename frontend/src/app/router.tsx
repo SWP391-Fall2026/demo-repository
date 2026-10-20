@@ -3,9 +3,14 @@ import LandingPage from "../features/facility/pages/LandingPage";
 import CatalogPage from "../features/facility/pages/CatalogPage";
 import CreateReservationPage from "../features/reservation/pages/CreateReservationPage";
 import InvoicePaymentPage from "../features/billing/pages/InvoicePaymentPage";
+import FacilityInvoiceStatusPage from "../features/billing/pages/FacilityInvoiceStatusPage";
+import PaymentResultPage from "../features/billing/pages/PaymentResultPage";
 import PaymentHistoryPage from "../features/billing/pages/PaymentHistoryPage";
 import CheckinPassPage from "../features/reservation/pages/CheckinPassPage";
+import ReservationAppointmentPage from "../features/reservation/pages/ReservationAppointmentPage";
+import ContractOfferPage from "../features/reservation/pages/ContractOfferPage";
 import MyRentalsPage from "../features/rental/pages/MyRentalsPage";
+import RentalContractDetailPage from "../features/rental/pages/RentalContractDetailPage";
 import CustomerSupportPage from "../features/support/pages/CustomerSupportPage";
 import StaffTaskBoardPage from "../features/workforce/pages/StaffTaskBoardPage";
 import ReservationLookupPage from "../features/reservation/pages/ReservationLookupPage";
@@ -79,9 +84,30 @@ export const routes = [
   {
     path: "/invoices/:invoiceId/pay",
     title: "Thanh toán",
-    roles: ["CUSTOMER", "STAFF"] as Role[],
+    roles: ["CUSTOMER"] as Role[],
     element: <InvoicePaymentPage />,
     legacy: "SCR-C03",
+  },
+  {
+    path: "/payment/result",
+    title: "Kết quả thanh toán",
+    roles: ["CUSTOMER"] as Role[],
+    element: <PaymentResultPage />,
+    legacy: "CONFIRMED",
+  },
+  {
+    path: "/reservations/:reservationId/contract-offer",
+    title: "Xác nhận hợp đồng",
+    roles: ["CUSTOMER"] as Role[],
+    element: <ContractOfferPage />,
+    legacy: "CONFIRMED",
+  },
+  {
+    path: "/reservations/:reservationId/appointment",
+    title: "Thẻ hẹn",
+    roles: ["CUSTOMER"] as Role[],
+    element: <ReservationAppointmentPage />,
+    legacy: "CONFIRMED",
   },
   {
     path: "/reservations/:reservationId/pass",
@@ -96,6 +122,13 @@ export const routes = [
     roles: ["CUSTOMER"] as Role[],
     element: <MyRentalsPage />,
     legacy: "SCR-C05",
+  },
+  {
+    path: "/rentals/:contractId",
+    title: "Chi tiết hợp đồng",
+    roles: ["CUSTOMER"] as Role[],
+    element: <RentalContractDetailPage />,
+    legacy: "CONFIRMED",
   },
   {
     path: "/support",
@@ -159,6 +192,13 @@ export const routes = [
     roles: ["FMANAGER"] as Role[],
     element: <FacilityDashboardPage />,
     legacy: "SCR-M01",
+  },
+  {
+    path: "/facility/invoices",
+    title: "Trạng thái hóa đơn",
+    roles: ["FMANAGER"] as Role[],
+    element: <FacilityInvoiceStatusPage />,
+    legacy: "SCR-M06",
   },
   {
     path: "/facility/units",

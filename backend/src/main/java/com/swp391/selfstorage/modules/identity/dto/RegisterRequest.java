@@ -9,7 +9,9 @@ public class RegisterRequest {
   private String email;
   private String cccd;
   private String username;
+  @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
   private String password;
+  @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
   private String confirmPassword;
   private String facility;
   private String facilityCode;

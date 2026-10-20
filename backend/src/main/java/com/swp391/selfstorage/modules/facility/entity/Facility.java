@@ -35,6 +35,12 @@ public class Facility {
   @Column(name = "status")
   private String status = "ACTIVE";
 
+  @Column(name = "checkin_pin_hash")
+  private String checkinPinHash;
+
+  @Column(name = "checkin_pin", length = 6)
+  private String checkinPin;
+
   public Facility() {}
 
   public Facility(
@@ -130,4 +136,14 @@ public class Facility {
   public void setStatus(String status) {
     this.status = status;
   }
+
+  @com.fasterxml.jackson.annotation.JsonIgnore
+  public String getCheckinPinHash() { return checkinPinHash; }
+
+  public void setCheckinPinHash(String checkinPinHash) { this.checkinPinHash = checkinPinHash; }
+
+  @com.fasterxml.jackson.annotation.JsonIgnore
+  public String getCheckinPin() { return checkinPin; }
+
+  public void setCheckinPin(String checkinPin) { this.checkinPin = checkinPin; }
 }

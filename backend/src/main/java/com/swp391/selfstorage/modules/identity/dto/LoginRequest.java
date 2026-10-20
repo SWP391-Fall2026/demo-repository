@@ -3,6 +3,7 @@ package com.swp391.selfstorage.modules.identity.dto;
 public class LoginRequest {
 
   private String username;
+  @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
   private String password;
 
   public LoginRequest() {}

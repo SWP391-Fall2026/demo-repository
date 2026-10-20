@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
 public interface HandoverRecordRepository
-  extends JpaRepository<HandoverRecord, String> {}
+  extends JpaRepository<HandoverRecord, String> {
+  Optional<HandoverRecord> findFirstByContractIdOrderByHandoverDateDesc(String contractId);
+}

@@ -66,7 +66,7 @@ class RentalLifecycleTest {
     var payment = postAs(
       "customer",
       "/payments/simulate",
-      Map.of("invoiceId", invoiceId, "paymentMethod", "MOCK_CARD"),
+      mockCard(invoiceId),
       200
     );
     postAs(
@@ -139,6 +139,24 @@ class RentalLifecycleTest {
   @BeforeEach
   void seed() {
     new LocalDataInitializer(facilities, units, users, passwords).run();
+  }
+
+  static Map<String, Object> mockCard(String invoiceId) {
+    return mockCard(invoiceId, false);
+  }
+
+  static Map<String, Object> mockCard(String invoiceId, boolean simulateFailure) {
+    var body = new LinkedHashMap<String, Object>();
+    body.put("invoiceId", invoiceId);
+    body.put("paymentMethod", "MOCK_CARD");
+    body.put("bankCode", "NCB");
+    body.put("cardNumber", "9704198526191432198");
+    body.put("cardHolder", "NGUYEN VAN A");
+    body.put("issueDate", "07/15");
+    body.put("otp", "123456");
+    body.put("confirmedAmount", true);
+    if (simulateFailure) body.put("simulateFailure", true);
+    return body;
   }
 
   JsonNode postAs(String who, String path, Object body, int expected)
@@ -227,26 +245,19 @@ class RentalLifecycleTest {
     postAs(
       "customer",
       "/payments/simulate",
-      Map.of(
-        "invoiceId",
-        depositId,
-        "paymentMethod",
-        "MOCK_CARD",
-        "simulateFailure",
-        true
-      ),
+      mockCard(depositId, true),
       200
     );
     var paid = postAs(
       "customer",
       "/payments/simulate",
-      Map.of("invoiceId", depositId, "paymentMethod", "MOCK_CARD"),
+      mockCard(depositId),
       200
     );
     postAs(
       "customer",
       "/payments/simulate",
-      Map.of("invoiceId", depositId, "paymentMethod", "MOCK_CARD"),
+      mockCard(depositId),
       409
     );
     mvc
@@ -268,7 +279,7 @@ class RentalLifecycleTest {
     postAs(
       "customer",
       "/payments/simulate",
-      Map.of("invoiceId", rentId, "paymentMethod", "MOCK_CARD"),
+      mockCard(rentId),
       200
     );
     var contract = postAs(
@@ -277,8 +288,10 @@ class RentalLifecycleTest {
       Map.of(
         "reservationId",
         rid,
-        "customerSignatureConfirmed",
+        "handoverEligibleConfirmed",
         true,
+        "unitCode",
+        "HN-CG-001",
         "unitConditionNotes",
         "Kho nguyên vẹn"
       ),

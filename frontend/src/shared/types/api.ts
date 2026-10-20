@@ -5,8 +5,8 @@ export interface User {
   username: string;
   email: string;
   role: Role;
-  facilityCode?: string;
-  facility?: string;
+  facilityCode?: string | null;
+  facility?: string | null;
 }
 export interface Envelope<T> {
   success: boolean;

@@ -17,6 +17,8 @@ target/
 .env.*
 !.env.example
 !**/.env.example
+*.private.properties
+/storage-rental-secrets/
 
 # Logs
 npm-debug.log*

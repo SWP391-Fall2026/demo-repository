@@ -5,6 +5,7 @@ export const billingApi = {
   invoices: () => request<Row[]>("/invoices"),
   payments: () => request<Row[]>("/payments/transactions"),
   pay: (d: Row) => idempotentRequest("/payments/simulate", d),
+  createVnPay: (invoiceId: string) => request<{ paymentUrl: string }>("/payments/vnpay/create", json("POST", { invoiceId })),
   refunds: () => request<Row[]>("/refunds"),
   requestRefund: (d: Row) => idempotentRequest("/refunds", d),
   cancelRefund: (d: Row) => request(`/refunds/${d.id}/cancel`, json("POST", d)),

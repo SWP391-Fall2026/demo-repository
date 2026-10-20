@@ -61,6 +61,19 @@ public class Contract {
   @Column(name = "created_at")
   private LocalDateTime createdAt = LocalDateTime.now();
 
+  @Transient
+  private String handoverStatus;
+
+  @Transient
+  private String facilityPin;
+
+  @Transient private String handoverConditionStatus;
+  @Transient private String handoverConditionNotes;
+  @Transient private String handoverStaffNotes;
+  @Transient private String handoverDate;
+  @Transient private boolean handoverEvidenceAvailable;
+  @Transient private String handoverStaffId;
+
   public Contract() {}
 
   public String getId() {
@@ -198,6 +211,27 @@ public class Contract {
   public void setCreatedAt(LocalDateTime createdAt) {
     this.createdAt = createdAt;
   }
+
+  public String getHandoverStatus() { return handoverStatus; }
+
+  public void setHandoverStatus(String value) { handoverStatus = value; }
+
+  public String getFacilityPin() { return facilityPin; }
+
+  public void setFacilityPin(String value) { facilityPin = value; }
+
+  public String getHandoverConditionNotes() { return handoverConditionNotes; }
+  public void setHandoverConditionNotes(String value) { handoverConditionNotes = value; }
+  public String getHandoverStaffNotes() { return handoverStaffNotes; }
+  public void setHandoverStaffNotes(String value) { handoverStaffNotes = value; }
+  public String getHandoverConditionStatus() { return handoverConditionStatus; }
+  public void setHandoverConditionStatus(String value) { handoverConditionStatus = value; }
+  public String getHandoverDate() { return handoverDate; }
+  public void setHandoverDate(String value) { handoverDate = value; }
+  public boolean isHandoverEvidenceAvailable() { return handoverEvidenceAvailable; }
+  public void setHandoverEvidenceAvailable(boolean value) { handoverEvidenceAvailable = value; }
+  public String getHandoverStaffId() { return handoverStaffId; }
+  public void setHandoverStaffId(String value) { handoverStaffId = value; }
 
   @Column(name = "checkout_requested_at")
   private java.time.LocalDateTime checkoutRequestedAt;

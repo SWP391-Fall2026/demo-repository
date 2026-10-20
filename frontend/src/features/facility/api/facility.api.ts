@@ -4,7 +4,14 @@ export const facilityApi = {
   updateUnit: (d: Row) =>
     request(`/facilities/units/${d.code}`, json("PUT", d)),
   facilities: () => request<Row[]>("/facilities"),
-  units: () => request<Row[]>("/facilities/units"),
+  setCheckinPin: (code: string) => request(`/facilities/${encodeURIComponent(code)}/checkin-pin`, { method: "PUT" }),
+  units: (filters?: { facilityCode?: string; minSize?: string; maxSize?: string; minPrice?: string; maxPrice?: string }) => {
+    const params = new URLSearchParams();
+    Object.entries(filters ?? {}).forEach(([key, value]) => {
+      if (value) params.set(key, value);
+    });
+    return request<Row[]>(`/facilities/units?${params.toString()}`);
+  },
   managedUnits: () => request<Row[]>("/facilities/units/manage"),
   createFacility: (d: Row) => request("/facilities", json("POST", d)),
   createUnit: (d: Row) => request("/facilities/units", json("POST", d)),
