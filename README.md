@@ -76,5 +76,10 @@ npm start
 - `frontend/`: Toàn bộ giao diện **Web SPA (HTML5, CSS3, Vanilla JS)** và máy chủ Web phát triển (`server.js`).
 - `design/`: Tài liệu thiết kế Figma và bộ ảnh chụp màn hình báo cáo.
 - `docs/`: Tài liệu đặc tả yêu cầu (SRS v2.0, Scope Statement, SQL Schema DDL & Seed).
+- `postman/`: Postman collection và environment để kiểm thử API thật.
+
+## 5. Kiểm thử API bằng Postman
+
+Import `postman/SelfStorage-Real-API.postman_collection.json` và `postman/SelfStorage-Local.postman_environment.json`, chọn environment rồi chạy theo thứ tự folder `00` đến `07`. Hướng dẫn chi tiết từng flow nằm tại [`docs/POSTMAN_TEST_GUIDE.md`](docs/POSTMAN_TEST_GUIDE.md).
 
 
