@@ -9,7 +9,6 @@ import com.swp391.selfstorage.modules.facility.repository.UnitRepository;
 import com.swp391.selfstorage.modules.rental.repository.ContractRepository;
 import com.swp391.selfstorage.modules.reservation.repository.ReservationRepository;
 import com.swp391.selfstorage.modules.reservation.service.ReservationHoldPolicy;
-import com.swp391.selfstorage.modules.workforce.service.TaskService;
 import java.math.*;
 import java.time.*;
 import java.util.*;
@@ -28,7 +27,6 @@ public class PayInvoiceWorkflow {
   private final AuditLogService audit;
   private final Clock clock;
   private final ReservationHoldPolicy holdPolicy;
-  private final TaskService tasks;
   private final PaidRentActivationService rentActivation;
 
   public PayInvoiceWorkflow(
@@ -41,7 +39,6 @@ public class PayInvoiceWorkflow {
     AuditLogService au,
     Clock cl,
     ReservationHoldPolicy holdPolicy,
-    TaskService tasks,
     PaidRentActivationService rentActivation
   ) {
     invoices = i;
@@ -53,7 +50,6 @@ public class PayInvoiceWorkflow {
     audit = au;
     clock = cl;
     this.holdPolicy = holdPolicy;
-    this.tasks = tasks;
     this.rentActivation = rentActivation;
   }
 
@@ -142,7 +138,6 @@ public class PayInvoiceWorkflow {
         var r = reservations.lockById(i.getReservationId()).orElseThrow();
         r.setStatus("RESERVED");
         reservations.save(r);
-        tasks.requestCheckin(r);
       }
       if ("RENT".equals(i.getInvoiceType())) {
         var r = reservations.lockById(i.getReservationId()).orElseThrow(Inputs::missing);

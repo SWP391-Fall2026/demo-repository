@@ -28,7 +28,7 @@ export function AppShell() {
   const roleMenu: Record<string, [string, string][]> = {
     CUSTOMER: [["/storage", "Tìm kho & bảng giá"], ["/reservations/new", "Đặt giữ chỗ"], ["/invoices/all/pay", "Thanh toán cọc/phí"], ["/reservations/all/appointment", "Thẻ hẹn"], ["/reservations/all/pass", "Thẻ Check-in & bàn giao"], ["/rentals", "Kho đang thuê"], ["/support", "Hỗ trợ"]],
     STAFF: [["/facility/tasks/my", "Công việc"], ["/facility/reservations/lookup", "Tra cứu đơn"], ["/facility/handovers/all", "Bàn giao"], ["/facility/units/status", "Trạng thái kho"], ["/facility/incidents", "Sự cố"], ["/payments", "Lịch sử thanh toán"]],
-    FMANAGER: [["/facility/overview", "Tổng quan cơ sở"], ["/facility/reservations/assign", "Gán kho"], ["/facility/tasks/assign", "Phân công task"], ["/facility/units", "Quản lý kho"], ["/facility/invoices", "Hóa đơn"], ["/facility/contracts", "Hợp đồng"], ["/facility/reports", "Báo cáo"]],
+    FMANAGER: [["/facility/overview", "Tổng quan cơ sở"], ["/facility/tasks/assign", "Phân công task"], ["/facility/units", "Quản lý kho"], ["/facility/invoices", "Hóa đơn"], ["/facility/contracts", "Hợp đồng"], ["/facility/reports", "Báo cáo"]],
     OPS_MGR: [["/operations/overview", "Tổng quan chuỗi"], ["/operations/facilities", "Cơ sở"], ["/operations/pricing", "Giá & phí"], ["/operations/policies", "Chính sách"], ["/operations/reports", "Báo cáo"]],
     ADMIN: [["/admin/overview", "Tổng quan"], ["/admin/users", "Người dùng"], ["/admin/roles", "Vai trò"], ["/admin/staff-assignments", "Gán cơ sở"], ["/admin/activity", "Audit & login"]],
   };

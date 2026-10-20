@@ -6,6 +6,7 @@ import java.time.*;
 import java.util.*;
 import java.math.BigDecimal;
 import org.springframework.data.jpa.repository.*;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 
 public interface UnitRepository extends JpaRepository<Unit, String> {
@@ -34,4 +35,17 @@ public interface UnitRepository extends JpaRepository<Unit, String> {
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query("select u from Unit u where u.code=:code")
   Optional<Unit> lockByCode(@Param("code") String code);
+
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("""
+      select u from Unit u
+      where u.facilityCode = :facilityCode
+        and lower(u.type) = lower(:unitType)
+        and lower(u.status) = 'available'
+      order by u.code
+      """)
+  List<Unit> lockAvailableByFacilityAndType(
+      @Param("facilityCode") String facilityCode,
+      @Param("unitType") String unitType,
+      Pageable pageable);
 }
