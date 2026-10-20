@@ -33,40 +33,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     FilterChain filterChain
   ) throws ServletException, IOException {
     final String authHeader = request.getHeader("Authorization");
-    String username = null;
-    String jwt = null;
-
-    if (authHeader != null && authHeader.startsWith("Bearer ")) {
-      jwt = authHeader.substring(7);
+    if (authHeader != null && authHeader.startsWith("Bearer ")
+        && SecurityContextHolder.getContext().getAuthentication() == null) {
       try {
-        username = jwtUtil.extractUsername(jwt);
-      } catch (Exception e) {
-        logger.warn("JWT extraction failed: " + e.getMessage());
-      }
-    }
-
-    if (
-      username != null &&
-      SecurityContextHolder.getContext().getAuthentication() == null
-    ) {
-      UserDetails userDetails = this.userDetailsService.loadUserByUsername(
-        username
-      );
-
-      if (
-        userDetails.isEnabled() &&
-        jwtUtil.validateToken(jwt, userDetails.getUsername())
-      ) {
-        UsernamePasswordAuthenticationToken authToken =
-          new UsernamePasswordAuthenticationToken(
-            userDetails,
-            null,
-            userDetails.getAuthorities()
-          );
-        authToken.setDetails(
-          new WebAuthenticationDetailsSource().buildDetails(request)
-        );
-        SecurityContextHolder.getContext().setAuthentication(authToken);
+        String jwt = authHeader.substring(7);
+        String username = jwtUtil.extractUsername(jwt);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        if (userDetails.isEnabled() && jwtUtil.validateToken(jwt, userDetails.getUsername())) {
+          UsernamePasswordAuthenticationToken authToken =
+              new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+          authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+          SecurityContextHolder.getContext().setAuthentication(authToken);
+        }
+      } catch (io.jsonwebtoken.JwtException | IllegalArgumentException
+          | org.springframework.security.core.userdetails.UsernameNotFoundException ex) {
+        // Expected invalid/expired/deleted-user path; never log the bearer token.
+        SecurityContextHolder.clearContext();
       }
     }
 

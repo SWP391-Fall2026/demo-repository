@@ -1,6 +1,6 @@
 # Hợp đồng API
 
-`openapi/storage-rental.openapi.json` mô tả API hiện tại; `route-inventory.json` liệt kê 66 mapping controller (gồm alias).
+`openapi/storage-rental.openapi.json` mô tả contract implementation; `route-inventory.json` liệt kê 67 mapping controller (gồm alias). Đăng ký/đăng nhập có schema response riêng và GET /api/auth/me. Contract không phải bằng chứng đã chạy API.
 
 Chạy `npm run check:contract` để kiểm tra route, tham chiếu schema, path parameters và lời gọi frontend. Đây là kiểm tra tĩnh, không phải kiểm chứng runtime response theo OpenAPI. Nhiều response.data còn là Envelope chung; không tự suy ra kiểu dữ liệu từ nó.
 

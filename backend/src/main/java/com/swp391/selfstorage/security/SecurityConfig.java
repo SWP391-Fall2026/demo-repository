@@ -25,9 +25,16 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
   private final JwtAuthenticationFilter jwtAuthFilter;
+  private final List<String> allowedOrigins;
 
-  public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter) {
+  public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter,
+      @org.springframework.beans.factory.annotation.Value("${app.cors.allowed-origins:http://localhost:5173,http://127.0.0.1:5173}") String origins) {
     this.jwtAuthFilter = jwtAuthFilter;
+    this.allowedOrigins = Arrays.stream(origins.split(",")).map(String::trim)
+        .filter(s -> !s.isEmpty()).toList();
+    if (allowedOrigins.isEmpty() || allowedOrigins.contains("*")) {
+      throw new IllegalArgumentException("Configure explicit frontend origins");
+    }
   }
 
   @Bean
@@ -55,7 +62,9 @@ public class SecurityConfig {
             "/api/auth/register",
             "/api/auth/send-otp",
             "/api/auth/verify-otp",
-            "/api/auth/resend-otp"
+            "/api/auth/resend-otp",
+            "/api/payments/vnpay/ipn",
+            "/api/payments/vnpay/return"
           )
           .permitAll()
           .requestMatchers("/api/services")
@@ -85,7 +94,7 @@ public class SecurityConfig {
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOriginPatterns(List.of("*"));
+    configuration.setAllowedOrigins(allowedOrigins);
     configuration.setAllowedMethods(
       Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
     );
@@ -100,7 +109,7 @@ public class SecurityConfig {
       )
     );
     configuration.setExposedHeaders(List.of("Authorization"));
-    configuration.setAllowCredentials(true);
+    configuration.setAllowCredentials(false);
 
     UrlBasedCorsConfigurationSource source =
       new UrlBasedCorsConfigurationSource();

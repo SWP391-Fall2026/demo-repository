@@ -1,0 +1,26 @@
+$kind: collection
+name: Storage Rental Auth - NOT RUN
+description: Requires approved localhost backend, Supabase G0 and write/email scope. Contains account-creating requests.
+variables:
+  - key: base_url
+    value: 'http://localhost:8080/api'
+  - key: auth_run_approved
+    value: 'no'
+  - key: auth_db_scope_approved
+    value: 'no'
+  - key: expected_role
+    value: 'CUSTOMER'
+auth:
+  type: noauth
+scripts:
+  - type: http:beforeRequest
+    language: text/javascript
+    code: |-
+      if (pm.variables.get("auth_run_approved") !== "yes" || pm.variables.get("auth_db_scope_approved") !== "yes") {
+       throw new Error("STOP: operator must confirm target, G0 and auth/DB-write/SMTP scope before this collection runs.");
+      }
+      const base = String(pm.variables.get("base_url") || "").replace(/\/$/, "");
+      if (!/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?\/api$/.test(base)) {
+       throw new Error("This prepared collection only targets an explicitly approved localhost backend.");
+      }
+      pm.variables.set("base_url", base);

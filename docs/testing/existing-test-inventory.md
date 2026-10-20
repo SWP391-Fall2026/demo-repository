@@ -1,5 +1,7 @@
 # Kiểm kê test hiện có — chỉ đọc, NOT-TESTED
 
+> **Checkpoint implementation 2026-10-19:** phần FACT-SOURCE của Phase A/B dưới đây ghi snapshot trước đợt sửa auth, không là bằng chứng source/runtime hiện tại. Xem [delta implementation](D:/SWP/storage-rental/docs/testing/auth-implementation-status.md) và contract mới. Người dùng đã chốt tối đa72 byte UTF-8, giữ nguyên whitespace. Checkpoint mới:23unit backend +7unit frontend và TypeScript check đã đạt LOCAL; chưa chạy ứng dụng/API/Supabase, G0–G4 chưa đạt. Xem auth-local-verification.md.
+
 [NOT-TESTED] Không chạy mvn test, Vitest, build, startup Spring Boot, script kiểm tra có side effect hoặc database. Assertion dưới đây là code của test, không phải kết quả PASS/FAIL. Không dùng kết quả H2 hoặc báo cáo lịch sử để chứng minh PostgreSQL/Supabase.
 
 ## 1. Phạm vi kiểm kê
@@ -15,7 +17,7 @@
 | Pure business unit | BusinessRulesTest.java:77 — pendingQuotaAndCompletedRefundsCannotExceedOriginalPayment | [FACT-SOURCE] available amount và reject vượt/0 | Pure RefundLimitCalculator | Coverage ngoài Flow 1/2; chỉ ghi inventory, không tự tạo task refund mới |
 | H2 MockMvc integration/concurrency | backend/src/test/java/com/swp391/selfstorage/RentalLifecycleTest.java:37 — concurrentRefundRequestsReserveOriginalPaymentQuota | [FACT-SOURCE] Tạo reservation/cọc/hủy; 2 requests đồng thời; sorted statuses mong đợi 200 và 400 | @SpringBootTest + @AutoConfigureMockMvc + @ActiveProfiles(test), H2; seed và DB writes; NOT-TESTED | Không chứng minh PostgreSQL locks; refund ngoài scope mới chỉ là coverage sẵn có |
 | H2 API/auth test | RentalLifecycleTest.java:174 — rejectsAnonymousInvalidInputAndWrongRole | [FACT-SOURCE] GET contracts anonymous 401; create reservation thiếu fields 400; Staff create facility 403; login hợp lệ 200 và $.token không rỗng | Context H2; login ghi history; các request business dùng with(user(...)) | Không test registration/OTP/logout; không gửi bearer token trả về vào protected API; không kiểm expiry/signature/revocation |
-| H2 lifecycle integration | RentalLifecycleTest.java:189 — fullRentalAndManualRefundEnforceBranchQuotaAndSeparation | [FACT-SOURCE] Create Reservation; Customer khác GET 404; deposit attempt FAILED rồi PAID; lần trả tiếp 409; Manager khác cơ sở assign 403, đúng 200; RENT 200; handover 200; PIN length 6; return request giữ PIN, inspection xóa PIN, Unit cleaning; readiness và manual refund quyền/quota/proof | H2 writes nhiều module, file evidence qua MockMultipartFile; class không có @Transactional test rollback hay @AfterEach cleanup | Không chứng minh Java/PG constraint/transaction thực, JWT chain, register/login/logout UI, audit metadata chi tiết, HandOverRecord cardinality hoặc race handover/assignment |
+| H2 lifecycle integration | RentalLifecycleTest.java:189 — fullRentalAndManualRefundEnforceBranchQuotaAndSeparation | [FACT-SOURCE] Create Reservation; Customer khác GET 404; gửi attempt simulateFailure=true rồi attempt thường, cả hai assert HTTP 200; không assert Payment.status/Invoice.status/Reservation.status; lần trả tiếp assert 409; Manager khác cơ sở assign 403, đúng 200; RENT 200; handover 200; PIN length 6; return request giữ PIN, inspection xóa PIN, Unit cleaning; readiness và manual refund quyền/quota/proof | H2 writes nhiều module, file evidence qua MockMultipartFile; class không có @Transactional test rollback hay @AfterEach cleanup | Không chứng minh Java/PG constraint/transaction thực, JWT chain, register/login/logout UI, audit metadata chi tiết, HandOverRecord cardinality hoặc race handover/assignment |
 
 [FACT-SOURCE] Các helper postAs/getAs dùng MockMvc user postprocessor. Role của business actor được đọc lại từ User seed, nhưng JWT extraction/signature validation không được kiểm qua các call đó. Không gọi endpoint qua mạng; đây không phải browser-to-PG test.
 
@@ -52,7 +54,7 @@
 | Đăng ký | Không thấy test registration/OTP flow riêng | Validation matrix, send/verify/resend/expiry/replay/race uniqueness, atomicity User/history, restart volatile state, UI navigation |
 | Đăng nhập | Một happy login API assertion token nonempty; protected anonymous 401 riêng | Wrong login, LOCKED/DISABLED, email/case, alias, real JWT bearer, expired/disabled/deleted principal, history error behavior |
 | Đăng xuất | Không có test logout được tìm thấy | Client storage/guard và server revoke. User giữ SRS; server gap không được hạ thành pass client-only |
-| Flow 1 | H2 lifecycle có create, owner 404, FAILED/PAID deposit, paid duplicate 409; pure cancellation rule | Quote/catalog/filter, 24h exact boundary, price snapshot, overbooking/race/transaction rollback, schema/type/constraints PG, browser JWT |
+| Flow 1 | H2 lifecycle gọi create, owner GET 404, hai deposit requests HTTP 200 và lần trả tiếp 409; chưa assert FAILED/PAID hay trạng thái Invoice/Reservation; pure cancellation rule | Quote/catalog/filter, 24h exact boundary, price snapshot, overbooking/race/transaction rollback, schema/type/constraints PG, browser JWT |
 | Flow 2 | H2 lifecycle có wrong branch assign, assign/rent/handover happy, PIN length | Arrival endpoint, unpaid/wrong hold/type/signature/notes negatives, duplicate/racing handover, all persisted records/audit, daily date/task completion, real customer consent semantics |
 
 ## 5. Chính sách kết quả và bước tiếp theo
@@ -63,3 +65,39 @@
 
 [UNKNOWN] G0 metadata, dữ liệu thực, trigger/RLS/privilege, PostgreSQL behavior và artifact rollback vẫn chưa có bằng chứng chấp nhận.
 
+
+## 6. Phân biệt kiểm thử đang tồn tại và case mới đề xuất — cập nhật 2026-10-19
+
+[FACT-SOURCE] Inventory source vẫn chỉ8 backend @Test và3 frontend it; không thêm test code. [FACT-DOC] Integrated plan có114 case tài liệu (63 baseline +51 bổ sung), KHÔNG phải114 test đã được triển khai hoặc thực thi.
+
+| Nhóm case trong kế hoạch | Source test hiện có thực sự assert gì | Thiếu / trạng thái của đề xuất |
+|---|---|---|
+| AUTH-PWD-01…10 | Happy login hiện có chỉ HTTP200/token nonempty; không signup/OTP/raw-whitespace encode/login E2E | Tất cả NOT-TESTED;07 đã có policy72byte được chốt, execution vẫn NOT-TESTED. Không nói đã có E2E |
+| SRS-REG-PHONE/NAV, LOGIN-NAV/ACTIVE, JWT-24H | Không test phone uniqueness/navigation/all roles/status ngoài ACTIVE/24h TTL; existing correct login không chứng minh chúng | Proposed acceptance theo FR-001/002/BR-001/AC-01; runtime/config/role landing cần harness |
+| G4-AUTH-RACE + OTP-RACE-01 | Không có race tạo tài khoản/verify OTP test trong source | Account race dùng hai email/cùng username; OTP race dùng một pending; loser không mặc định409; NOT-TESTED/BLOCKED |
+| BILL-TYPE-01/STATUS-01 | Chưa test semantic mapping SRS/source | BLOCKED mapping đề xuất; không đổi tên state hay dùng cùng oracle cho Invoice/Payment |
+| BILL-ATTEMPT-01 | Existing lifecycle assert HTTP200 cho failed flag và attempt thường,409 lần tiếp; không trực tiếp assert Payment.status/Invoice.status/Reservation.status | Bổ sung count/link/amount/status riêng từng attempt và Invoice; NOT-TESTED; không nâng request coverage thành DB-state coverage |
+| SRS-RES-OPS/ADMIN/ISOLATION | Owner GET khác trả404 và assign khác branch403 trong existing test; JWT chain chưa kiểm | Ops/Admin permission contract và branch isolation rộng hơn chưa có; Admin raw/aggregate BLOCKED |
+| SRS-TASK-TODAY/ASSIGNEE | Không assertion today-only hoặc Manager chọn Staff/task linkage | Yêu cầu FR-013/AC-05 đã rõ; scheduler/timezone/reschedule/linkage chưa được chứng minh; NOT-TESTED |
+| SRS-LOOKUP-ID/CCCD/PHONE; SRS-CATALOG-FILTERS | Không browser lookup ba khóa hoặc structured range/facility filtering | Proposed SRS acceptance; không coi generic substring search là coverage đầy đủ |
+| PIN-OPEN-01…08; PIN-CHANGE-01…09; PIN-ATOMIC-01 | Existing lifecycle chỉ kiểm PIN6ký tự từ response, giữ/xóa PIN ở return; không mở/đổi theo status/endAt/biên/equality | NOT-TESTED; source update thiếu endAt guard; stale ACTIVE change còn TBD. EXPIRING_SOON policy đã chốt |
+| SIG-01…04 | Handover gọi bằng Staff flagtrue và assert HTTP200/PINlength; không chứng minh evidence khách xác nhận | NOT-TESTED/BLOCKED thiết kế evidence, không đòi endpoint Customer riêng |
+| SRS-LOGOUT-TARGET | Không logout/revocation test hiện có | NOT-TESTED/BLOCKED; FR-003 server revoke và redirect giữ nguyên |
+
+[FACT-SOURCE] Không có kiểm thử chuyên biệt cho whitespace-only, confirm raw mismatch, API JSON raw fidelity, UTF-8 byte cap, đổi PIN quá endAt hoặc rollback Contract/Unit PIN được tìm thấy trong inventory. Assertions được đề xuất không phải “observed behavior”.
+
+[FACT-DOC] P-PWD-20261018 đã chốt giữ raw password/confirm và không log credential; P-PIN-20261018 đã chốt EXPIRING_SOON còn hạn được mở/đổi và quá hạn bị từ chối. Các chính sách này không chứng minh source đã tuân thủ. Plain DTO/setter/transport đã kiểm tĩnh; runtime interceptors và effective BCrypt version/behavior vẫn UNKNOWN.
+
+[NOT-TESTED] Chỉ sửa bốn tài liệu testing; không build/test/start app/API/SQL/DB, không chạy seed/dependency resolution. Không commit/push; không sửa SRS/source/config/schema.
+
+[FACT-DOC] Bổ sung2026-10-19 không tạo test implementation mới. Minh họa whitespace dùng P0/Pedge thay dòng literal mơ hồ; optional UX/legacy fallback/72byte proposal không được ghi là coverage đã tồn tại hoặc PASS. Inventory source vẫn8 backend +3 frontend.
+
+## 7. Inventory sau implementation auth — chỉ đếm source
+
+[FACT-SOURCE] Hiện có 31 backend @Test trong 8 class source, 10 frontend it() trong 4 file. Đây là số khai báo source, không phải PASS. Mục1–6 mô tả snapshot trước auth change. Các test mới chỉ dùng fixture/mocks/crypto hoặc helper trong source; chưa thực thi, chưa có PostgreSQL integration test mới.
+
+Auth: PasswordPolicyTest, AuthServiceTest, JwtLifetimeTest, RegistrationAccountServiceTest, OtpDeliveryServiceTest, RegistrationValidatorTest; frontend auth-validation.test.ts và session.test.ts. Kiểm raw/confirmation/72byte, state ACTIVE, OTP TTL/resend/atomic consume, DTO không serialize password, JWT24h, schema guard, mock delivery restriction, role landing/minimal session. Không suy từ các case này rằng uniqueness/transaction/RLS/SMTP/browser đã được xác minh.
+
+## 8. Kết quả local đã thực thi sau khi nhận staging target
+
+[LOCAL-UNIT] Đúng6class auth backend23test đã chạy:0failure/0error/0skip. Hai file auth frontend7test đạt; TypeScript noEmit check exit0. Backend compile toàn110main +8test source đã thành công; không khởi tạo Spring context hoặc truy cập database/SMTP. Các test source còn lại không được chạy trong lượt này. Chi tiết [auth-local-verification.md](D:/SWP/storage-rental/docs/testing/auth-local-verification.md). Không chuyển các ca114 G0–G4 thành PASS từ unit evidence.

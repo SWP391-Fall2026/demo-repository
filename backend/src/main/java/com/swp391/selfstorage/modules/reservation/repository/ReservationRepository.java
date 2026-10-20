@@ -12,6 +12,7 @@ public interface ReservationRepository
 {
   List<Reservation> findByUserId(String id);
   List<Reservation> findByFacilityCode(String code);
+  List<Reservation> findByStatus(String status);
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query("select r from Reservation r where r.id=:id")

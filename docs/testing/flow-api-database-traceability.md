@@ -1,13 +1,15 @@
 # Truy vết API → backend → database — Phase A/B
 
+> **Checkpoint implementation 2026-10-19:** phần FACT-SOURCE của Phase A/B dưới đây ghi snapshot trước đợt sửa auth, không là bằng chứng source/runtime hiện tại. Xem [delta implementation](D:/SWP/storage-rental/docs/testing/auth-implementation-status.md) và contract mới. Người dùng đã chốt tối đa72 byte UTF-8, giữ nguyên whitespace. Checkpoint mới:23unit backend +7unit frontend và TypeScript check đã đạt LOCAL; chưa chạy ứng dụng/API/Supabase, G0–G4 chưa đạt. Xem auth-local-verification.md.
+
 [NOT-TESTED] Chỉ đọc source/tài liệu; không gọi API, chạy test, startup, SQL hoặc database. HTTP/response/state dưới đây là nhánh dự kiến từ code, không phải kết quả thực thi. Mọi bảng/cột live trong G0 hiện UNVERIFIED; không coi schema REF là live.
 
 ## 1. Định nghĩa flow và ranh giới
 
 | Luồng | Nguồn và actor | Bắt đầu → kết thúc |
 |---|---|---|
-| Đăng ký | [FACT-SOURCE] [AUTH-CTRL](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/AuthController.java:12), [AUTH-OTP](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java:322), [AUTH-VERIFY](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java:353) | Guest gửi dữ liệu hợp lệ → pending OTP trong memory → verify → User CUSTOMER + cố gắng ghi LoginHistory + JWT |
-| Đăng nhập | [FACT-SOURCE] [AUTH-LOGIN](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java:113) | Guest username/email + credential đầu vào → User lookup + BCrypt matches + status → history + JWT/UserDto; lỗi trả theo handler |
+| Đăng ký | [FACT-SOURCE] [AUTH-CTRL](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/AuthController.java:12), AUTH-OTP (snapshot AuthService.java:322; xem delta implementation), AUTH-VERIFY (snapshot AuthService.java:353; xem delta implementation) | Guest gửi dữ liệu hợp lệ → pending OTP trong memory → verify → User CUSTOMER + cố gắng ghi LoginHistory + JWT |
+| Đăng nhập | [FACT-SOURCE] AUTH-LOGIN (snapshot AuthService.java:113; xem delta implementation) | Guest username/email + credential đầu vào → User lookup + BCrypt matches + status → history + JWT/UserDto; lỗi trả theo handler |
 | Đăng xuất | [FACT-DOC] [SRS-LOGOUT](D:/SWP/storage-rental/docs/requirements/srs.md:143); [FACT-SOURCE] [UI-LOGOUT](D:/SWP/storage-rental/frontend/src/app/layouts/AppShell.tsx:51) | Click xóa session client; yêu cầu SRS thu hồi token ở server chưa có implementation được tìm thấy |
 | Flow 1 — Storage Unit Reservation Flow (Quy trình Đặt giữ chỗ kho) | [FACT-DOC] [SRS-F1](D:/SWP/storage-rental/docs/requirements/srs.md:228); FR-007–FR-012; Scope module 2 | Customer/Guest xem catalog → Customer tạo Reservation PENDING_PAYMENT + Invoice → nộp cọc thành công → RESERVED/lịch hẹn. Hủy/hết hạn là nhánh thay thế |
 | Flow 2 — Storage Check-in and Handover Flow (Quy trình Tiếp đón, Check-in & Bàn giao) | [FACT-DOC] [SRS-F2](D:/SWP/storage-rental/docs/requirements/srs.md:255); FR-013–FR-017; Scope module 3 | Manager gán Unit trước giờ hẹn → Staff tiếp nhận/tra cứu → tiền thuê kỳ đầu PAID → biên bản → Contract ACTIVE, Unit occupied, Reservation CHECKED_IN và PIN mô phỏng |
@@ -29,7 +31,7 @@
 ## 3. Đăng ký
 
 ### REG-01 — yêu cầu OTP
-[FACT-SOURCE] Step → POST /api/auth/register **hoặc** /api/auth/send-otp → AuthController.register(RegisterRequest) → AuthService.generateAndSendOtp → validateRegistrationData → UserRepository.existsByUsername/existsByEmail → users. Nguồn [AUTH-CTRL](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/AuthController.java:12), [AUTH-VALIDATE](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java:198), [AUTH-OTP](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java:322), [USER-REPO](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/repository/UserRepository.java:9).
+[FACT-SOURCE] Step → POST /api/auth/register **hoặc** /api/auth/send-otp → AuthController.register(RegisterRequest) → AuthService.generateAndSendOtp → validateRegistrationData → UserRepository.existsByUsername/existsByEmail → users. Nguồn [AUTH-CTRL](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/AuthController.java:12), AUTH-VALIDATE (snapshot AuthService.java:198; xem delta implementation), AUTH-OTP (snapshot AuthService.java:322; xem delta implementation), [USER-REPO](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/repository/UserRepository.java:9).
 
 - Request DTO: name, dob, gender, phone, email, cccd, username, password, confirmPassword, facility, facilityCode. Không khai báo role trong DTO.
 - Validation: name 2–50 và regex chữ; dob LocalDate, tuổi 18–100, không tương lai; gender Nam/Nữ/Khác; phone bỏ khoảng trắng/dấu chấm/gạch ngang để kiểm prefix/độ dài; email lowercase/format/denylist domain; CCCD 12 số + province code; username lowercase 4–20, không bắt đầu số; kiểm username/email tồn tại; credential input tối thiểu 6 ký tự; confirmPassword chỉ so nếu khác null. Không sao chép credential hoặc CCCD literal vào fixture/tài liệu.
@@ -41,11 +43,11 @@
 - Frontend: AuthPage trên /register gọi sendOtp, giữ pending trong component state, hiện OTP mô phỏng. [UI-AUTH](D:/SWP/storage-rental/frontend/src/features/identity/pages/AuthPage.tsx:14).
 
 ### REG-02 — verify và tạo tài khoản
-[FACT-SOURCE] POST /api/auth/verify-otp → AuthController.verify(VerifyOtpRequest) → verifyOtpAndRegister(email,code,remoteAddr) → registerUser → UserRepository.save(User) → recordLogin → LoginHistoryRepository.save(LoginHistory) → JwtUtil.generateToken. [AUTH-VERIFY](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java:353), [AUTH-SAVE](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java:392), [AUTH-HISTORY](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java:442).
+[FACT-SOURCE] POST /api/auth/verify-otp → AuthController.verify(VerifyOtpRequest) → verifyOtpAndRegister(email,code,remoteAddr) → registerUser → UserRepository.save(User) → recordLogin → LoginHistoryRepository.save(LoginHistory) → JwtUtil.generateToken. AUTH-VERIFY (snapshot AuthService.java:353; xem delta implementation), AUTH-SAVE (snapshot AuthService.java:392; xem delta implementation), AUTH-HISTORY (snapshot AuthService.java:442; xem delta implementation).
 
 - Fields email/code; thiếu hoặc không có pending → 400; expired khi now > expiresAt → xóa pending memory + 400; sai mã → 400, chưa thấy bộ đếm lockout. Không có Bean Validation DTO riêng.
-- R: pending map, users.count và dữ liệu cần save; W users: id chuỗi có prefix + UUID, name/username/email đã trim/lowercase, encoded credential, phone/cccd, role CUSTOMER, role_title, facility/facility_code (từ DTO hoặc default trong source), status ACTIVE, created_at.
-- [FACT-SOURCE] Credential được validate/so confirm trước khi trim, nhưng registerUser encode giá trị đã trim; login matches input nguyên gốc. Normalization phone/CCCD để validate cũng không đồng nghĩa persistence đã loại mọi khoảng trắng bên trong. Đây là gap cần case dữ liệu synthetic và owner xác nhận, không dùng credential/CCCD literal.
+- R: pending map, users.count và dữ liệu cần save; W users: id chuỗi có prefix + UUID, name chỉ trim; username/email trim + lowercase, encoded credential, phone/cccd, role CUSTOMER, role_title, facility/facility_code (từ DTO hoặc default trong source), status ACTIVE, created_at.
+- [FACT-SOURCE] Credential được validate/so confirm trước khi trim, nhưng registerUser encode giá trị đã trim; login matches input nguyên gốc. Normalization phone/CCCD để validate cũng không đồng nghĩa persistence đã loại mọi khoảng trắng bên trong. [FACT-DOC] P-PWD-20261018 đã chốt giữ nguyên password/confirmPassword, so sánh chuỗi gốc, từ chối whitespace-only; đây là GAP source ở bước encode, không còn là câu hỏi có được trim password hay không. Normalization phone/CCCD có quy tắc riêng; không dùng credential/CCCD thật.
 - dob/gender được validate nhưng User entity không có mapping persist hai field đó. facility/facilityCode trong DTO chưa được kiểm bằng FacilityRepository trong path đăng ký; không tự coi là branch được tin cậy.
 - W login_history: id chuỗi do constructor cấp, username/name/role/time_str/ip/device/status/created_at. Không có audit_logs.record trong path auth này.
 - Không có outer @Transactional giữa save User và LoginHistory; recordLogin bắt Exception rồi chỉ log lỗi. [INFERENCE] User có thể commit trong khi history không ghi được. Không hứa rollback User nếu history lỗi.
@@ -54,7 +56,7 @@
 - Retry sau pending đã xóa → 400; hai verify đồng thời cần test trên DB cô lập. Không có Idempotency-Key cho signup/verify.
 
 ### REG-03 — resend
-[FACT-SOURCE] POST /api/auth/resend-otp body Map email → AuthController.resend → AuthService.getPendingOtp → memory only. [AUTH-RESEND](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java:432).
+[FACT-SOURCE] POST /api/auth/resend-otp body Map email → AuthController.resend → AuthService.getPendingOtp → memory only. AUTH-RESEND (snapshot AuthService.java:432; xem delta implementation).
 
 - Pending không có → 400; có → 200 ApiResponse data.email/code.
 - Source trả mã pending hiện có; không tạo mã mới, không kéo dài TTL, getPendingOtp không kiểm expiresAt. Verify vẫn kiểm expiry. Không gọi email service hay DB trong method này.
@@ -63,13 +65,13 @@
 ## 4. Đăng nhập và đăng xuất
 
 ### LOGIN-01 — login
-[FACT-SOURCE] POST /api/auth/login → AuthController.login(LoginRequest, HttpServletRequest) → AuthService.login → UserRepository.findByUsernameOrEmail → User → users → BCrypt.matches → recordLogin → login_history → generateToken → UserDto. [AUTH-LOGIN](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java:113), [USER-REPO](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/repository/UserRepository.java:9), [AUTH-HISTORY](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java:442).
+[FACT-SOURCE] POST /api/auth/login → AuthController.login(LoginRequest, HttpServletRequest) → AuthService.login → UserRepository.findByUsernameOrEmail → User → users → BCrypt.matches → recordLogin → login_history → generateToken → UserDto. AUTH-LOGIN (snapshot AuthService.java:113; xem delta implementation), [USER-REPO](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/repository/UserRepository.java:9), AUTH-HISTORY (snapshot AuthService.java:442; xem delta implementation).
 
 - username có thể là email, trim/lowercase; credential không được log/ghi vào tài liệu. Thiếu/blank → 400; không có user/sai credential → history FAILED rồi 400; LOCKED/DISABLED → history BLOCKED rồi 400; nhánh thành công → history SUCCESS, 200 + root token.
 - users được ORM đọc gồm mapping identity, credential hash, role/facility/status; không có ghi User trong path login. History là write riêng, lỗi bị bắt; không có transaction toàn login.
 - JwtUtil được gọi với username, role, facilityCode; code public methods xây iat/exp từ thời gian và expiration được inject. Signing material không đọc/xuất trong điều tra. Không tự khẳng định TTL/algorithm runtime vì config override chưa xác minh.
 - UserDto chuẩn hóa role alias. Không nên assert token claim role và DTO role luôn cùng chuỗi khi alias được lưu.
-- Source login chỉ loại LOCKED/DISABLED, trong khi CustomUserDetailsService cho enabled khi ACTIVE. Trường hợp status khác/NULL cần data quality và expected business riêng, không tự gán ACTIVE.
+- Source login chỉ loại LOCKED/DISABLED, trong khi CustomUserDetailsService cho enabled khi ACTIVE. [FACT-DOC] BR-001 đã yêu cầu chỉ ACTIVE được đăng nhập; status khác/NULL phải bị từ chối theo acceptance. Chỉ khả năng dữ liệu này tồn tại và response runtime còn UNKNOWN; không tự gán ACTIVE.
 - UI sau login/verify lưu session và navigate về /, không phải một dashboard role-specific cố định như mô tả SRS. [UI-AUTH](D:/SWP/storage-rental/frontend/src/features/identity/pages/AuthPage.tsx:14).
 
 ### AUTH-REQUEST — bảo vệ các request
@@ -92,7 +94,7 @@
 | ID / Step | HTTP → Controller → DTO → Validation → Service → Repository → Entity / DB | Auth / response / transaction / side effect |
 |---|---|---|
 | F1-01 Xem cơ sở | GET /api/facilities → FacilityController.list → không request DTO → FacilityService.facilities → FacilityRepository.findAll → Facility/facilities | [FACT-SOURCE] Public; 200 ApiResponse<List<Facility>>; R facilities mapping; không W/audit; [FACILITY-CTRL](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java:10), [FACILITY](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/facility/service/FacilityService.java:37) |
-| F1-02 Xem kho | GET /api/facilities/units → units → catalog → UnitRepository.findByStatus("available") → Unit/units → map công khai | [FACT-SOURCE] Public; 200 list code/facility/type/size/price/status, không PIN; không W; [CATALOG](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/facility/service/FacilityService.java:41) |
+| F1-02 Xem/lọc kho | GET /api/facilities/units with optional facilityCode/minSize/maxSize/minPrice/maxPrice → FacilityController.units → FacilityService.catalog → UnitRepository.findAvailableForCatalog → Unit/units → map công khai | [FACT-SOURCE] Public; chỉ `available`; range inclusive; 400 nếu range âm hoặc min>max; 200 list code/facility/type/size/price/status, không PIN; không W; [CATALOG](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/facility/service/FacilityService.java:41) |
 | F1-03 Báo giá | POST /api/reservations/calculate → quote(Map) → Inputs.text + parseInt months + bounds 1–36/type → ReservationService.quote → UnitRepository.findByFacilityCode, PolicyService/BusinessPolicyRepository → units/business_policies | [FACT-SOURCE] Security yêu cầu authenticated, method quote không require role riêng; 200 monthlyRate/durationMonths/depositAmount/payNowAmount/totalRent/discountRate; 400 invalid, 409 hết loại kho; không W; [QUOTE](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/reservation/service/ReservationService.java:52), [POLICY](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/policy/service/PolicyService.java:57) |
 | F1-04 Tạo đơn | POST /api/reservations → create(@Valid CreateReservationRequest) → CreateReservationWorkflow → ActorContext/UserRepository; FacilityRepository.lockByCode; UnitRepository; ReservationRepository; quote/policy; InvoiceService/InvoiceRepository; AuditLogService/AuditLogRepository | [FACT-SOURCE] CUSTOMER; 200 Reservation; thiếu/sai input 400, không có facility 404, hết sức chứa 409, sai role 403. @Transactional toàn workflow; R users/facilities/units/reservations/policies, W Reservation + 2 Invoice + Audit; [RESERVATION-CTRL](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java:13) |
 | F1-05 Hóa đơn | GET /api/invoices → InvoiceController.list → InvoiceService.list → findAll + actor.visible → Invoice/invoices | [FACT-SOURCE] CUSTOMER/STAFF/FMANAGER, owner/branch scope; 200 list; R users/invoices, không W; [INVOICE-READ](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/billing/service/InvoiceService.java:32) |
@@ -131,7 +133,7 @@
 
 [FACT-DOC] User đã chốt giữ giá 24h chờ cọc, hủy đủ 24h trước rental start được hoàn theo policy. Scope cũ nói giữ phòng 24h sau cọc và SRS sơ đồ dùng POST /api/payments/deposit, GET /unit-types; các route/diễn đạt này không khớp source hiện tại. Quyết định mới hơn ưu tiên nhưng tài liệu cần cập nhật có phê duyệt.
 
-[UNKNOWN] Chính sách hủy sau giờ hẹn nhưng chưa check-in (code chỉ gate status); cách liệt kê khả dụng khi còn holds chưa gán Unit; interval availability và độ đầy đủ UI filters cần owner xác nhận. Không tự tạo target rule cho các tình huống này.
+[UNKNOWN] Chính sách hủy sau giờ hẹn nhưng chưa check-in (code chỉ gate status); cách liệt kê khả dụng khi còn holds chưa gán Unit và interval availability cần owner xác nhận. [FACT-DOC] FR-008 structured filters đã được triển khai và kiểm tra ở catalog; calendar availability/holds theo kỳ vẫn chưa được triển khai. Không tự tạo target rule cho các tình huống này.
 
 ## 6. Flow 2 — API trace
 
@@ -149,7 +151,7 @@
 ### F2-01 — bảng và side effect
 [FACT-SOURCE] Khóa facility của Manager trước Reservation/Unit. Reservation phải RESERVED và chưa unit_code, DEPOSIT invoice PAID; Unit cùng branch/type và available. W units.status=reserved/held_by_reservation_id/tenant_name; reservations.unit_code; daily_tasks CHECKIN với reservation/unit/facility, staff_id được tìm từ Staff active của cơ sở hoặc NULL/chưa phân công; audit ASSIGN_UNIT.
 
-[FACT-SOURCE] [TASKS-SYSTEM](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/workforce/service/TaskService.java:85) tạo due_date bằng LocalDate.now(), deadline cố định trong source; TaskService.list không lọc ngày. [UNKNOWN] Chưa chốt cách đồng bộ due_date với lịch hẹn và thời điểm nào task hoàn thành. Handover không cập nhật DailyTask trong path hiện tại. Không tự suy ra auto-complete.
+[FACT-SOURCE] [TASKS-SYSTEM](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/workforce/service/TaskService.java:85) tạo due_date bằng LocalDate.now(), deadline cố định trong source; TaskService.list không lọc ngày. [FACT-DOC] FR-013 yêu cầu công việc trong ngày, AC-05 yêu cầu task xuất hiện cho đúng người được Manager phân công; today-only không còn TBD. [UNKNOWN] Cách đồng bộ lịch/task khi đổi hẹn, timezone của ngày nghiệp vụ và thời điểm task hoàn thành còn cần thiết kế. Handover không cập nhật DailyTask trong path hiện tại. Không tự suy ra auto-complete.
 
 ### F2-06 — bàn giao nguyên tử theo ý định code
 [FACT-SOURCE] Fields: reservationId, customerSignatureConfirmed phải Boolean true, unitConditionNotes không blank. Reservation phải RESERVED, có unit_code; invoice DEPOSIT/RENT PAID; chưa có Contract; Unit phải reserved và held_by_reservation_id khớp.
@@ -158,7 +160,7 @@ W contracts: id/reservation/user/facility/unit/customer/duration/monthly_fee t�
 W handover_records: id/contract_id/reservation_id/staff_id/handover_date/customer_signature_confirmed/unit_condition_notes.
 W units: occupied và PIN mới; W reservations: CHECKED_IN + arrived_at; W audit_logs: COMPLETE_HANDOVER. Không gửi email/IoT thật, không tạo Payment trong handover.
 
-[FACT-SOURCE] Flag signature được Staff gửi; chưa thấy customer-authenticated signature endpoint riêng. [UNKNOWN] Liệu Staff ghi nhận consent là đủ hay cần xác nhận độc lập của Customer; không tự coi checkbox là chữ ký điện tử đã chứng minh.
+[FACT-SOURCE] Flag signature được Staff gửi; chưa thấy customer-authenticated signature endpoint riêng. [FACT-DOC] FR-016/BR-005 bắt buộc có bằng chứng khách xác nhận hợp lệ, không bắt buộc endpoint Customer riêng. B-SIGNATURE BLOCKED: chưa phê duyệt cơ chế/bản ghi chứng minh người xác nhận, thời điểm và liên kết đúng khách/handover/contract; Staff flag đơn lẻ chưa đủ nếu không có thiết kế chứng minh được phê duyệt.
 
 [FACT-SOURCE] Không thấy gate bắt buộc arrived_at, current time >= lịch hẹn hoặc current time >= rental_start_at trong handover; các rule đó nếu cần phải được owner chốt. Start/end contract theo thực tế bàn giao như source, không lấy rentalStartAt của reservation trong method này.
 
@@ -197,13 +199,13 @@ W units: occupied và PIN mới; W reservations: CHECKED_IN + arrived_at; W audi
 | ID | File / dòng | Nhãn |
 |---|---|---|
 | AUTH-CTRL | [backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/AuthController.java: 12](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/AuthController.java:12) | FACT-SOURCE |
-| AUTH-LOGIN | [backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java: 113](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java:113) | FACT-SOURCE |
-| AUTH-VALIDATE | [backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java: 198](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java:198) | FACT-SOURCE |
-| AUTH-OTP | [backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java: 322](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java:322) | FACT-SOURCE |
-| AUTH-VERIFY | [backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java: 353](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java:353) | FACT-SOURCE |
-| AUTH-SAVE | [backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java: 392](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java:392) | FACT-SOURCE |
-| AUTH-RESEND | [backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java: 432](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java:432) | FACT-SOURCE |
-| AUTH-HISTORY | [backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java: 442](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java:442) | FACT-SOURCE |
+| AUTH-LOGIN | backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java: 113 (snapshot AuthService.java:113; xem delta implementation) | FACT-SOURCE |
+| AUTH-VALIDATE | backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java: 198 (snapshot AuthService.java:198; xem delta implementation) | FACT-SOURCE |
+| AUTH-OTP | backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java: 322 (snapshot AuthService.java:322; xem delta implementation) | FACT-SOURCE |
+| AUTH-VERIFY | backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java: 353 (snapshot AuthService.java:353; xem delta implementation) | FACT-SOURCE |
+| AUTH-SAVE | backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java: 392 (snapshot AuthService.java:392; xem delta implementation) | FACT-SOURCE |
+| AUTH-RESEND | backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java: 432 (snapshot AuthService.java:432; xem delta implementation) | FACT-SOURCE |
+| AUTH-HISTORY | backend/src/main/java/com/swp391/selfstorage/modules/identity/service/AuthService.java: 442 (snapshot AuthService.java:442; xem delta implementation) | FACT-SOURCE |
 | AUTH-DTO | [backend/src/main/java/com/swp391/selfstorage/modules/identity/dto/RegisterRequest.java: 3](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/dto/RegisterRequest.java:3) | FACT-SOURCE |
 | USER-DTO | [backend/src/main/java/com/swp391/selfstorage/modules/identity/dto/UserDto.java: 21](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/dto/UserDto.java:21) | FACT-SOURCE |
 | USER-REPO | [backend/src/main/java/com/swp391/selfstorage/modules/identity/repository/UserRepository.java: 9](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/repository/UserRepository.java:9) | FACT-SOURCE |
@@ -256,3 +258,100 @@ W units: occupied và PIN mới; W reservations: CHECKED_IN + arrived_at; W audi
 | SRS-AUTH | [docs/requirements/srs.md: 141](D:/SWP/storage-rental/docs/requirements/srs.md:141) | FACT-SOURCE / FACT-DOC |
 | DECISIONS | [docs/requirements/decision-log.md: 129](D:/SWP/storage-rental/docs/requirements/decision-log.md:129) | FACT-SOURCE / FACT-DOC |
 
+
+## 10. Billing — Ánh xạ đề xuất, tách hai vòng đời
+
+[FACT-DOC] SRS §7 L400–401, FR-010/FR-015 và BR-010 là yêu cầu tài liệu, không là metadata live. [FACT-SOURCE] InvoiceService.issue và PayInvoiceWorkflow là baseline source. [NOT-TESTED] Không có giao dịch/row/runtime nào được quan sát. B-BILLING-MAP giữ BLOCKED cho ngữ nghĩa chưa duyệt.
+
+| Entity / khía cạnh | SRS v2.0 | Source đã đọc | Phân loại / ý nghĩa cần xác minh | Ca kế hoạch |
+|---|---|---|---|---|
+| Invoice.invoice_type | FIRST_MONTH_RENT | RENT tạo từ monthlyPriceSnapshot; handover requirePaid(RENT) | INFERENCE: đề xuất ánh xạ phí kỳ đầu; cần xác minh kỳ tính, amount, trường hợp3tháng và invoice cardinality. Chưa tuyên bố tương đương | BILL-TYPE-01 |
+| Invoice.status trước thu | UNPAID | PENDING lúc issue | Đề xuất UNPAID↔PENDING; xác minh due/expire/cancel/partial/retry lifecycle trước duyệt | BILL-STATUS-01 |
+| Invoice.status sau thu / hủy | PAID / CANCELLED | PAID sau attempt thành công; CANCELLED qua expiry job với invoice PENDING | Cùng tên chưa đủ chứng minh tất cả transition/default live tương đương | BILL-STATUS-01; BILL-ATTEMPT-01 |
+| Payment.status mỗi lần trả | SUCCESS / FAILED (§7); BR-010 lại viết Payment PAID | PAID / FAILED | Đề xuất SUCCESS↔PAID cần xác minh; đây còn là bất nhất nội bộ SRS. Không sửa dữ liệu hay tự chọn SRS vocabulary | BILL-STATUS-01 |
+| Quan hệ nghĩa vụ / giao dịch | Invoice→nhiều Payment | Mỗi attempt lưu Payment, idempotent replay trả bản cũ; Invoice chỉ chuyển PAID nếu attempt không failed | Đối chiếu độc lập; không coi Invoice.PAID và Payment.PAID cùng vòng đời; failed Payment không biến Invoice thành FAILED | BILL-ATTEMPT-01 |
+
+[FACT-SOURCE] [InvoiceService.java:41](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/billing/service/InvoiceService.java:41): issue PENDING, amount/dueAt/snapshot; [CreateReservationWorkflow.java:123](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/application/workflow/CreateReservationWorkflow.java:123): RENT một monthly snapshot; [PayInvoiceWorkflow.java:119](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/application/workflow/PayInvoiceWorkflow.java:119): FAILED/PAID attempt, Invoice.PAID khi success. Hai Invoice khởi tạo trước Contract có contract_id NULL; không tự yêu cầu backfill lịch sử hoặc FK/unique chỉ từ quan hệ SRS. Refund retries/partial/refund-ledger và key scope vẫn cần quyết định riêng.
+
+[FACT-SOURCE] Existing RentalLifecycleTest gửi failed/success attempts và assert HTTP200; chưa assert trực tiếp các Payment.status/Invoice.status/Reservation.status. BILL-ATTEMPT-01 là đề xuất test mới, không coverage đã có và không kết quả thực thi.
+
+## 11. AUTH-PWD — Chuỗi credential xuyên frontend → OTP → encode → login
+
+[FACT-DOC] P-PWD-20261018: người dùng đã chốt password/confirmPassword giữ đúng raw input, không trim/strip/normalize; so sánh raw; từ chối whitespace-only; minimum length trên raw string; không log credential. Đây là quyết định bổ sung, SRS FR-001/FR-002/NFR-004/NFR-006 không tự mô tả toàn bộ policy này. 72 byte UTF-8 đã được người dùng chốt ngày2026-10-19; encoder/runtime còn NOT-TESTED.
+
+| Điểm | Bằng chứng source tĩnh | SOURCE FACT / GAP / giới hạn | Test ID đề xuất |
+|---|---|---|---|
+| Frontend nhận input | [AuthPage.tsx:14](D:/SWP/storage-rental/frontend/src/features/identity/pages/AuthPage.tsx:14) FormData→Object.fromEntries, password/confirm input L115/L126 | FACT-SOURCE: không transform password trong submit đã đọc; trình duyệt thực tế NOT-TESTED | AUTH-PWD-01/02/05/08/10 |
+| Frontend gửi JSON | [identity.api.ts:4](D:/SWP/storage-rental/frontend/src/features/identity/api/identity.api.ts:4) sendOtp/login; [http-client.ts:59](D:/SWP/storage-rental/frontend/src/shared/api/http-client.ts:59) json dùng JSON.stringify | FACT-SOURCE: adapter không trim; gửi raw giá trị từ object. Network runtime NOT-TESTED | AUTH-PWD-09/10 |
+| Request DTO / setters | [RegisterRequest.java:79](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/dto/RegisterRequest.java:79) và L87; [LoginRequest.java:27](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/dto/LoginRequest.java:27) | FACT-SOURCE: gán raw password/confirm, không annotation deserializer riêng tại field; không có validation annotation ở DTO | AUTH-PWD-02/05/09 |
+| Jackson, filter, binder | Tìm StringTrimmerEditor, @InitBinder, JsonDeserialize/JsonDeserializer, Jackson2ObjectMapperBuilderCustomizer, RequestBodyAdvice/ObjectMapper trong backend/src/main/java; đọc JwtAuthenticationFilter | FACT-SOURCE: không tìm thấy custom trimmer/deserializer trong phạm vi này; JWT filter không đọc/normalize credential body. UNKNOWN: effective runtime/library/global config ngoài phạm vi tìm, không khẳng định toàn bộ stack đã được đo | AUTH-PWD-09 |
+| Validate / confirm | AuthService.java:311 (snapshot AuthService.java:311; xem delta implementation) | FACT-SOURCE: String.length>=6 trước trim; confirm raw equals khi nonnull; chưa có whitespace-only/UTF-8 byte bound riêng. Confirm missing hiện được bỏ qua; policy bắt buộc confirm server còn UNKNOWN | AUTH-PWD-01/02/05/06/07 |
+| Pending OTP / verify | AuthService.java:331 (snapshot AuthService.java:331; xem delta implementation) và L353 | FACT-SOURCE: map theo cleanEmail giữ RegisterRequest, verify gọi registerUser rồi remove pending; không normalize password tại verify | AUTH-PWD-01/02/09/10; OTP-RACE-01 |
+| BCrypt encode / entity | AuthService.java:403 (snapshot AuthService.java:403; xem delta implementation); [User.java:111](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/identity/entity/User.java:111) | GAP-SOURCE: encode(password.trim()) thay đổi chuỗi; User.setPassword gán hash nhận được. Không log/hash plaintext trong tài liệu | AUTH-PWD-02/03/04/06/09/10 |
+| Login | AuthService.java:118 (snapshot AuthService.java:118; xem delta implementation) và L143 | FACT-SOURCE: blank guard dùng trim().isEmpty() nhưng matches dùng credential nguyên gốc. INFERENCE: account đăng ký Pedge có thể nhận bản trim và từ chối original, ngược expected; chưa thực thi | AUTH-PWD-03/04/08/10 |
+| Encoder/version | [SecurityConfig.java:112](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/security/SecurityConfig.java:112) new BCryptPasswordEncoder(); pom dùng dependency management Spring Boot | FACT-SOURCE: không explicit byte-bound trong path; UNKNOWN effective resolved version/behavior >72byte. Không chạy dependency resolution/build/test để xác minh | AUTH-PWD-07 NOT-TESTED |
+| Seed | LocalDataInitializer.java:87 gọi encoder trực tiếp với literal fixture, không trim; chỉ kiểm đặc tính whitespace đầu/cuối tĩnh, không xuất literal | FACT-SOURCE: literal source đã kiểm không có whitespace ở hai đầu; UNKNOWN dữ liệu seed/runtime/legacy thực tế, không gọi initializer và không đọc DB | Fixture tiền kiểm AUTH-PWD, không proof runtime |
+
+[FACT-DOC] Nhóm đầy đủ AUTH-PWD-01…10 nằm ở integrated plan mục10; tất cả NOT-TESTED, riêng07 thêm BLOCKED. P0/Pedge/Pinner/Pblank là ký hiệu synthetic RAM, không literal credential thật. Không dùng token cấp sau verify để chứng minh explicit login đã thành công.
+
+[FACT-SOURCE] name chỉ trim; username/email trim+lowercase theo code hiện tại. [FACT-DOC] Chính sách cho non-password cần phân biệt từng trường và duyệt theo định danh sản phẩm; không dùng normalize chung cho password. Phone/CCCD validation normalization không tự chứng minh persistence đã normalize.
+
+## 12. PIN — verify và update theo quyết định đã chốt
+
+[FACT-DOC] P-PIN-20261018 là quyết định người dùng trong yêu cầu ngày 2026-10-18, bổ sung BR-006 đang chỉ ghi ACTIVE. Không sửa SRS và không coi quyết định này là source đã triển khai.
+
+| Contract status | Điều kiện thời gian | Expected mở PIN | Expected đổi PIN | Source hiện tại |
+|---|---|---|---|---|
+| ACTIVE | Theo điều kiện nghiệp vụ hiện hành; fixture còn hạn hoặc đúng endAt | Cho phép khi các guard khác hợp lệ | Cho phép khi các guard khác hợp lệ | verify kiểm endAt; update không kiểm endAt |
+| ACTIVE | now > endAt, status chưa đồng bộ | Từ chối theo endAt guard / yêu cầu kiểm hợp đồng hết hạn | TBD nhánh stale ACTIVE; không suy từ EXPIRING_SOON | verify=false; update vẫn có thể ghi |
+| EXPIRING_SOON | now <= endAt | Cho phép | Cho phép | verify inclusive; update không time gate |
+| EXPIRING_SOON | now > endAt, chưa OVERDUE | Từ chối | Từ chối | GAP-SOURCE: update có thể ghi |
+| OVERDUE | Bất kỳ | Từ chối | Từ chối | Query chỉ ACTIVE/EXPIRING_SOON |
+| TERMINATED | Bất kỳ | Từ chối | Từ chối | Query chỉ ACTIVE/EXPIRING_SOON |
+
+[UNKNOWN] Chỉ đổi PIN của stale ACTIVE quá endAt, endAt NULL/độ chính xác/timezone và harness còn cần làm rõ. Không còn câu hỏi “EXPIRING_SOON có được dùng/đổi PIN không”. Bằng chứng handover vẫn theo B-SIGNATURE; sinh PIN không chứng minh khách đã xác nhận.
+
+| Operation | Trace source | Authentication / expected side effect |
+|---|---|---|
+| Mở PIN | POST /api/contracts/verify-pin → ContractController.verify(Map unitCode,pin) → AccessCodeService.verify → ContractRepository.findFirstByUnitCodeAndStatusInOrderByCreatedAtDesc → contracts | CUSTOMER owner hoặc STAFF/FMANAGER branch; query ACTIVE/EXPIRING_SOON, endAt nonnull, now<=endAt, PIN đúng; HTTP200 authorized bool; không ghi/audit |
+| Đổi PIN | PATCH /api/contracts/{unitCode}/pin → ContractController.pin(Map newPin) → AccessCodeService.update → ContractRepository + UnitRepository.lockByCode + AuditLogRepository | CUSTOMER owner; 6digits; source query ACTIVE/EXPIRING_SOON, không endAt guard; happy200 message/map. @Transactional ghi contracts.pin_code + units.pin_code + UPDATE_PIN audit; wrong owner/missing404, wrong role403, bad PIN400 |
+
+[FACT-SOURCE] [ContractController.java:61](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java:61) và [AccessCodeService.java:57](D:/SWP/storage-rental/backend/src/main/java/com/swp391/selfstorage/modules/rental/service/AccessCodeService.java:57). B-PIN-STATUS không còn là câu hỏi quyền EXPIRING_SOON; được thay bằng B-PIN-ENDAT (gap implementation) và câu hỏi hẹp B-PIN-ACTIVE-EXPIRED. Source update có thể ghi khi EXPIRING_SOON đã quá endAt nếu guard khác hợp lệ; đây là INFERENCE về HTTP runtime từ source thiếu guard, chưa phải FAIL đã đo.
+
+[FACT-DOC] PIN-OPEN-01…08 và PIN-CHANGE-01…09 kiểm độc lập trạng thái, before/equal/after endAt, actor; PIN-ATOMIC-01 kiểm Contract/Unit nhất quán/rollback. Mọi case NOT-TESTED; chỉ thiết kế/harness hoặc stale ACTIVE còn BLOCKED. Không có câu hỏi mở lại EXPIRING_SOON còn hạn. Contract.endAt NULL và dữ liệu có nhiều active contract cho cùng Unit cần G0/G2, không tạo giả lịch sử.
+
+[FACT-DOC] Handover sinh Contract ACTIVE/PIN không phải bằng chứng consent; SIG-01…04 kiểm yêu cầu FR-016/BR-005 theo B-SIGNATURE. Không bắt buộc một endpoint Customer riêng. Chưa phê duyệt evidence thì acceptance consent BLOCKED, còn baseline Boolean guard hiện tại giữ riêng.
+
+## 13. Truy vết các gap SRS đã biết sang acceptance mới
+
+| Yêu cầu | Source behavior / gap | Oracle và case; execution |
+|---|---|---|
+| FR-001 trùng SĐT | Precheck chỉ username/email; phone constraint live UNKNOWN | SRS-REG-PHONE: từ chối tạo user trùng phone; status contract TBD, NOT-TESTED |
+| FR-001/FR-002/AC-01 | verify auto-session và login đều navigate / | SRS-REG-NAV/SRS-LOGIN-NAV: về login sau register, landing đúng role sau login; route/auto-session detail TBD |
+| BR-001 ACTIVE /24h | login loại LOCKED/DISABLED; JwtUtil default86400000ms, runtime UNKNOWN | SRS-LOGIN-ACTIVE/SRS-JWT-24H; chỉ ACTIVE; assert24h với harness/tolerance đã duyệt |
+| BR-002/NFR-005/RBAC | Ops list403, get global; Admin RBAC raw— nhưng BR nói aggregate | SRS-RES-OPS/ADMIN/ISOLATION; Ops gap rõ, Admin raw-vs-aggregate BLOCKED |
+| FR-013/FR-030/AC-05 | list không lọc ngày; system due now; dispatch chọn Staff, chưa nhận reservationId | SRS-TASK-TODAY/ASSIGNEE; today/đúng người đã rõ, reschedule/timezone/linkage/completion TBD |
+| FR-014 | UI local search trên list; có id/phone, không CCCD; chưa lookup validity chuyên biệt | SRS-LOOKUP-ID/CCCD/PHONE: đúng đơn hợp lệ, Unit/branch; không tự tạo endpoint |
+| FR-008/AC-02 | substring search không range/facet UI | SRS-CATALOG-FILTERS; không còn hỏi cần filter hay không; inclusive bounds/calendar TBD |
+| FR-003 | client clear session; public không redirect; server revoke chưa có | SRS-LOGOUT-TARGET và G1/G4-LOGOUT giữ BLOCKED; không client-only PASS |
+| FR-001 / race | map một pending/email; account save và OTP consume không atomic | G4-AUTH-RACE dùng different emails/same username; OTP-RACE-01 dùng một pending/hai verify; loser400/409/khác theo nhánh, không all409 |
+
+[NOT-TESTED] 2026-10-19: chỉ cập nhật tài liệu, không gọi API/DB/SQL/test/build/startup hoặc kiểm mật khẩu thật. Gate G0–G4 không được thông qua từ static review.
+
+## 14. Phần bổ sung 2026-10-19 — không biến minh họa thành kết quả
+
+[FACT-DOC] Attachment bổ sung nhấn mạnh không normalize credential và không dùng normalize chung cho mọi field; AUTH-PWD-01…10 đã truy vết toàn chuỗi. Tài liệu bổ sung nêu max72byte/khuyến nghị NIST như lý do đề xuất, nhưng chưa có xác minh standard/encoder runtime trong scope static-only; không sao chép thành FACT-SOURCE hoặc chính sách72byte đã duyệt.
+
+[UNKNOWN] B-INPUT-EXAMPLE: các dòng bảng minh họa bị mất dấu phân biệt raw/trim và hiển thị cùng chuỗi với outcome khác nhau. Dùng định nghĩa P0/Pedge/Pinner/Pblank không mơ hồ; không xuất credential literal. UX warning chỉ tùy chọn; fallback raw+trim/rehash legacy chỉ phương án tương lai chưa duyệt, không áp dụng vào expected hiện tại. Mã409 ví dụ trùng username không ghi đè source precheck400; race unique DB có thể409 theo nhánh.
+
+## 15. Trace hiện tại sau auth change — nguồn mới, NOT-TESTED
+
+| Bước | Source hiện tại | DB/response |
+|---|---|---|
+| Send OTP | RegistrationValidator.validateRegistrationData → PasswordPolicy(raw/confirm/72byte) → schema-reviewed/availability → AuthService.generateAndSendOtp | Read users chỉ sau schema guard; hash raw trước staging, không insert User; delivery response code chỉ test mock |
+| Verify | AuthService.verifyOtpAndRegister → RegistrationAccountService.create @Transactional/saveAndFlush → consume challenge | users CUSTOMER/ACTIVE, phone/identity canonical, không trust facility từ client; RegistrationResult, không JWT/login history |
+| Login | AuthService.login → ignore-case identity → BCrypt.matches(raw,stored) → ACTIVE/known role → history best-effort → JwtUtil | users read; login_history write; JWT24h + UserDto |
+| Profile | GET /api/auth/me → JWT filter → ActorContext.current → UserDto | Authenticated ACTIVE profile; không write |
+| Frontend | typed identity.api → đăng ký/OTP → /login; login → auth-navigation role page; minimal session/expiry | Không truy cập Supabase trực tiếp, không có DB/JWT/SMTP secret trong Vite |
+
+[FACT-DOC] Contract mới có response riêng; schema Supabase chưa xác minh. Dùng [checkpoint](D:/SWP/storage-rental/docs/testing/auth-implementation-status.md) để phân biệt source mới với trace snapshot ở phần trên.

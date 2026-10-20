@@ -4,6 +4,8 @@ import com.swp391.selfstorage.application.workflow.*;
 import com.swp391.selfstorage.common.web.ApiResponse;
 import com.swp391.selfstorage.modules.reservation.dto.CreateReservationRequest;
 import com.swp391.selfstorage.modules.reservation.service.ReservationService;
+import com.swp391.selfstorage.application.workflow.CheckinWorkflow;
+import com.swp391.selfstorage.modules.workforce.service.TaskService;
 import jakarta.validation.Valid;
 import java.util.*;
 import org.springframework.web.bind.annotation.*;
@@ -17,19 +19,25 @@ public class ReservationController {
   private final AssignUnitWorkflow assign;
   private final CancelReservationWorkflow cancel;
   private final NoShowWorkflow noShow;
+  private final CheckinWorkflow checkin;
+  private final TaskService tasks;
 
   public ReservationController(
     ReservationService s,
     CreateReservationWorkflow c,
     AssignUnitWorkflow a,
     CancelReservationWorkflow ca,
-    NoShowWorkflow n
+    NoShowWorkflow n,
+    CheckinWorkflow checkin,
+    TaskService tasks
   ) {
     service = s;
     create = c;
     assign = a;
     cancel = ca;
     noShow = n;
+    this.checkin = checkin;
+    this.tasks = tasks;
   }
 
   @GetMapping
@@ -103,5 +111,26 @@ public class ReservationController {
     @RequestBody Map<String, Object> d
   ) {
     return ApiResponse.ok(noShow.confirm(id, d));
+  }
+
+  @PostMapping("/{id}/checkin-request")
+  public ApiResponse<?> checkinRequest(@PathVariable String id) {
+    return ApiResponse.ok(checkin.request(id));
+  }
+
+  @GetMapping("/{id}/contract-offer")
+  public ApiResponse<?> contractOffer(@PathVariable String id) {
+    return ApiResponse.ok(checkin.offer(id));
+  }
+
+  @PostMapping("/{id}/contract-terms/accept")
+  public ApiResponse<?> acceptContractTerms(@PathVariable String id, @RequestBody Map<String, Object> d) {
+    return ApiResponse.ok(checkin.acceptTerms(id, d));
+  }
+
+  @GetMapping("/{id}/checkin-task")
+  public ApiResponse<?> checkinTask(@PathVariable String id) {
+    var task = tasks.findForCustomer(id);
+    return ApiResponse.ok(task == null ? Map.of() : task);
   }
 }

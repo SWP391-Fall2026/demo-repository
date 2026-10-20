@@ -2,6 +2,11 @@ import { request, json } from "../../../shared/api/http-client";
 import type { Row } from "../../../shared/types/api";
 export const reservationApi = {
   list: () => request<Row[]>("/reservations"),
+  get: (id: string) => request<Row>(`/reservations/${encodeURIComponent(id)}`),
+  requestCheckin: (id: string) => request<Row>(`/reservations/${encodeURIComponent(id)}/checkin-request`, json("POST", {})),
+  checkinTask: (id: string) => request<Row>(`/reservations/${encodeURIComponent(id)}/checkin-task`),
+  contractOffer: (id: string) => request<Row>(`/reservations/${encodeURIComponent(id)}/contract-offer`),
+  acceptTerms: (id: string, termsVersion: string) => request<Row>(`/reservations/${encodeURIComponent(id)}/contract-terms/accept`, json("POST", { accepted: true, termsVersion })),
   create: (d: Row) => request<Row>("/reservations", json("POST", d)),
   quote: (d: Row) => request<Row>("/reservations/calculate", json("POST", d)),
   assign: (d: Row) =>

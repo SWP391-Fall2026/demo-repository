@@ -180,6 +180,26 @@
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
   },
   {
+    "method": "get",
+    "path": "/api/contracts/handover/eligible",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/contracts/{id}/handover/confirm",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/contracts/{id}/handover/issue",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/contracts/{id}/handover/evidence",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
+  },
+  {
     "method": "post",
     "path": "/api/contracts/checkout-request",
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
@@ -320,6 +340,11 @@
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/controller/TaskController.java"
   },
   {
+    "method": "get",
+    "path": "/api/tasks/manager-dashboard",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/controller/TaskController.java"
+  },
+  {
     "method": "post",
     "path": "/api/tasks/dispatch",
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/controller/TaskController.java"
@@ -328,5 +353,10 @@
     "method": "patch",
     "path": "/api/tasks/{id}/status",
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/controller/TaskController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/auth/me",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/AuthController.java"
   }
 ]

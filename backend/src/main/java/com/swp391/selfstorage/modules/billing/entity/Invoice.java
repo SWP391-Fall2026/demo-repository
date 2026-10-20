@@ -42,7 +42,7 @@ public class Invoice {
   @Column(name = "description")
   private String description;
 
-  @Column(name = "price_snapshot")
+  @Column(name = "price_snapshot", columnDefinition = "text")
   private String priceSnapshot;
 
   public String getId() {

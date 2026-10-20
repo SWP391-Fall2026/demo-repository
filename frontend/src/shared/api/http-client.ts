@@ -30,10 +30,20 @@ export async function envelope<T>(
     throw new ApiError("Không kết nối được máy chủ. Vui lòng thử lại.", 0);
   }
   let result: Envelope<T>;
+  let responseText = "";
   try {
-    result = await response.json();
+    responseText = await response.text();
+    result = JSON.parse(responseText) as Envelope<T>;
   } catch {
-    throw new ApiError("Máy chủ trả dữ liệu không hợp lệ.", response.status);
+    const contentType = response.headers.get("content-type") ?? "";
+    const isHtml = contentType.toLowerCase().includes("text/html")
+      || /^\s*<!doctype\s+html|^\s*<html[\s>]/i.test(responseText);
+    throw new ApiError(
+      response.status >= 500 || isHtml
+        ? "Backend chưa sẵn sàng hoặc proxy gặp lỗi. Kiểm tra backend tại http://127.0.0.1:8080."
+        : "Máy chủ trả JSON không hợp lệ.",
+      response.status,
+    );
   }
   if (!response.ok || !result.success) {
     if (response.status === 401) sessionStore.set(null);

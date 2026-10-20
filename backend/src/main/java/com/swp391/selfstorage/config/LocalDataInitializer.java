@@ -42,6 +42,11 @@ public class LocalDataInitializer implements CommandLineRunner {
       f.setAddress(i == 0 ? "Duy Tân, Cầu Giấy" : "Khu lưu trữ " + names[i]);
       f.setCity(i == 0 ? "Hà Nội" : "TP. Hồ Chí Minh");
       f.setStatus("ACTIVE");
+      f.setCheckinPinHash(passwords.encode(switch (codes[i]) {
+        case "HN-CG" -> "246810";
+        case "HCM-Q7" -> "357924";
+        default -> "468135";
+      }));
       facilities.save(f);
       for (int n = 1; n <= 8; n++) {
         Unit u = new Unit();

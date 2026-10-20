@@ -68,14 +68,7 @@ public class AssignUnitWorkflow {
     units.save(unit);
     r.setUnitCode(unit.getCode());
     reservations.save(r);
-    tasks.system(
-      r.getFacilityCode(),
-      "Nhận kho: " + id,
-      "CHECKIN",
-      unit.getCode(),
-      id,
-      null
-    );
+    tasks.bindCheckinUnit(id, unit.getCode());
     audit.record("ASSIGN_UNIT", id, "Gán kho " + unit.getCode());
     return r;
   }

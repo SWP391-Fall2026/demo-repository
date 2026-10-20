@@ -65,5 +65,7 @@ mvn -f backend/pom.xml test
 
 Môi trường thực dùng DB_URL, DB_USERNAME, DB_PASSWORD, JWT_SECRET và APP_UPLOAD_DIR. Spring Boot không tự đọc file .env; phải export biến hoặc cấu hình trên môi trường chạy. Không bật profile local với database thật. Seed prototype cũ được lưu ngoài runtime trong docs/archive. Xem hướng dẫn migration trước khi dùng schema hiện tại.
 
+Khi chạy backend từ thư mục `backend`, Spring Boot tự nạp file cấu hình riêng nếu tồn tại tại `../storage-rental-secrets/backend.properties`. File này bị Git ignore. Nếu file không tồn tại, cấu hình môi trường phải cấp datasource và `JWT_SECRET`; mặc định datasource trỏ localhost.
+
 Nguồn tái cấu trúc: ZIP đã xác nhận (baseline commit 21cbce8), schema 15 bảng cung cấp riêng và quyết định nghiệp vụ đã chốt. Checkout cũ D:/SWP/demo-repository được giữ nguyên; mã mới ở D:/SWP/storage-rental, branch codex/restructure-storage-rental.
 

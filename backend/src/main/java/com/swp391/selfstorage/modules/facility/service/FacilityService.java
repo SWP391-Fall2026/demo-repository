@@ -38,9 +38,13 @@ public class FacilityService {
     return facilities.findAll();
   }
 
-  public List<Map<String, Object>> catalog() {
+  public List<Map<String, Object>> catalog(String facilityCode, BigDecimal minSize,
+      BigDecimal maxSize, BigDecimal minPrice, BigDecimal maxPrice) {
+    validateRange("kích thước", minSize, maxSize);
+    validateRange("giá", minPrice, maxPrice);
+    if (facilityCode != null && facilityCode.isBlank()) facilityCode = null;
     return units
-      .findByStatus("available")
+      .findAvailableForCatalog(facilityCode, minSize, maxSize, minPrice, maxPrice)
       .stream()
       .map(u -> {
         Map<String, Object> m = new LinkedHashMap<>();
@@ -51,9 +55,20 @@ public class FacilityService {
         m.put("sizeSqm", u.getSizeSqm());
         m.put("pricePerMonth", u.getPricePerMonth());
         m.put("status", u.getStatus());
+        m.put("imageUrl", u.getImageUrl());
+        m.put("imageAltText", u.getImageAltText());
         return m;
       })
       .toList();
+  }
+
+  private void validateRange(String label, BigDecimal minimum, BigDecimal maximum) {
+    if (minimum != null && minimum.signum() < 0 || maximum != null && maximum.signum() < 0) {
+      throw Inputs.bad("Khoảng " + label + " không được âm");
+    }
+    if (minimum != null && maximum != null && minimum.compareTo(maximum) > 0) {
+      throw Inputs.bad("Giá trị tối thiểu của " + label + " không được lớn hơn tối đa");
+    }
   }
 
   public List<Unit> managed() {
@@ -97,6 +112,7 @@ public class FacilityService {
     u.setPricePerMonth(Inputs.money(d.get("pricePerMonth")));
     policy.validatePrice(u.getType(), u.getPricePerMonth());
     u.setFloor(Integer.valueOf(Objects.toString(d.getOrDefault("floor", 0))));
+    setImageLink(u, d);
     u.setStatus("available");
     u.setPinCode(null);
     units.save(u);
@@ -109,18 +125,43 @@ public class FacilityService {
     var a = actor.require("FMANAGER");
     var u = units.lockByCode(code).orElseThrow(Inputs::missing);
     actor.facility(a, u.getFacilityCode());
-    var price = Inputs.money(d.get("pricePerMonth"));
-    policy.validatePrice(u.getType(), price);
-    u.setPricePerMonth(price);
+    if (d.containsKey("pricePerMonth")) {
+      var price = Inputs.money(d.get("pricePerMonth"));
+      policy.validatePrice(u.getType(), price);
+      u.setPricePerMonth(price);
+    }
     if (d.containsKey("floor")) u.setFloor(
       Integer.valueOf(Inputs.text(d, "floor"))
     );
+    if (d.containsKey("imageUrl") || d.containsKey("imageAltText")) setImageLink(u, d);
     audit.record(
       "UPDATE_UNIT",
       code,
-      "Cập nhật giá niêm yết trong giới hạn Ops"
+      "Cập nhật thông tin kho và ảnh"
     );
     return units.save(u);
+  }
+
+  private void setImageLink(Unit unit, Map<String, Object> data) {
+    if (data.containsKey("imageUrl")) {
+      String url = Inputs.optional(data, "imageUrl");
+      if (!url.isBlank()) {
+        try {
+          java.net.URI parsed = java.net.URI.create(url);
+          if (!"https".equalsIgnoreCase(parsed.getScheme()) || parsed.getHost() == null || parsed.getUserInfo() != null)
+            throw Inputs.bad("Link ảnh phải là URL HTTPS hợp lệ");
+        } catch (IllegalArgumentException e) {
+          throw Inputs.bad("Link ảnh phải là URL HTTPS hợp lệ");
+        }
+      }
+      if (url.length() > 2048) throw Inputs.bad("Link ảnh tối đa 2048 ký tự");
+      unit.setImageUrl(url.isBlank() ? null : url);
+    }
+    if (data.containsKey("imageAltText")) {
+      String alt = Inputs.optional(data, "imageAltText");
+      if (alt.length() > 255) throw Inputs.bad("Mô tả ảnh tối đa 255 ký tự");
+      unit.setImageAltText(alt.isBlank() ? null : alt);
+    }
   }
 
   @Transactional

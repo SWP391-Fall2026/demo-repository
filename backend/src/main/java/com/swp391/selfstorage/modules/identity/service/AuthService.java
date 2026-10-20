@@ -1,481 +1,216 @@
 package com.swp391.selfstorage.modules.identity.service;
 
 import com.swp391.selfstorage.common.web.ApiResponse;
-import com.swp391.selfstorage.modules.identity.dto.LoginRequest;
-import com.swp391.selfstorage.modules.identity.dto.RegisterRequest;
-import com.swp391.selfstorage.modules.identity.dto.UserDto;
+import com.swp391.selfstorage.modules.identity.dto.*;
 import com.swp391.selfstorage.modules.identity.entity.LoginHistory;
 import com.swp391.selfstorage.modules.identity.entity.User;
 import com.swp391.selfstorage.modules.identity.repository.LoginHistoryRepository;
 import com.swp391.selfstorage.modules.identity.repository.UserRepository;
 import com.swp391.selfstorage.security.JwtUtil;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.Period;
-import java.time.format.DateTimeFormatter;
+import java.security.MessageDigest;
+import java.nio.charset.StandardCharsets;
+import java.time.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class AuthService {
+  private static final Logger log = LoggerFactory.getLogger(AuthService.class);
+  private static final Duration OTP_LIFETIME = Duration.ofMinutes(5);
+  private static final Duration RESEND_DELAY = Duration.ofSeconds(30);
+  private static final int MAX_ATTEMPTS = 5;
+  private final UserRepository users;
+  private final LoginHistoryRepository history;
+  private final JwtUtil jwt;
+  private final PasswordEncoder encoder;
+  private final PasswordPolicy passwords;
+  private final RegistrationValidator validator;
+  private final RegistrationAccountService accounts;
+  private final OtpDeliveryService delivery;
+  private final Clock clock;
+  private final OtpGenerator otpGenerator;
+  // One challenge per email, single-process storage. Persisted User holds only BCrypt.
+  private final Map<String, PendingOtpData> pending = new ConcurrentHashMap<>();
 
-  private final UserRepository userRepository;
-  private final LoginHistoryRepository loginHistoryRepository;
-  private final JwtUtil jwtUtil;
-  private final PasswordEncoder passwordEncoder;
-
-  // Email -> PendingOtpData
-  private final Map<String, PendingOtpData> pendingOtps =
-    new ConcurrentHashMap<>();
-
-  private static final List<String> VALID_PROVINCES = Arrays.asList(
-    "001",
-    "002",
-    "004",
-    "006",
-    "008",
-    "010",
-    "011",
-    "012",
-    "014",
-    "015",
-    "017",
-    "019",
-    "020",
-    "022",
-    "024",
-    "025",
-    "026",
-    "027",
-    "030",
-    "031",
-    "033",
-    "034",
-    "035",
-    "036",
-    "037",
-    "038",
-    "040",
-    "042",
-    "044",
-    "045",
-    "046",
-    "048",
-    "049",
-    "051",
-    "052",
-    "054",
-    "056",
-    "058",
-    "060",
-    "062",
-    "064",
-    "066",
-    "067",
-    "068",
-    "070",
-    "072",
-    "074",
-    "075",
-    "077",
-    "079",
-    "080",
-    "082",
-    "083",
-    "084",
-    "086",
-    "087",
-    "089",
-    "091",
-    "092",
-    "093",
-    "094",
-    "095",
-    "096"
-  );
-
-  public AuthService(
-    UserRepository userRepository,
-    LoginHistoryRepository loginHistoryRepository,
-    JwtUtil jwtUtil,
-    PasswordEncoder passwordEncoder
-  ) {
-    this.userRepository = userRepository;
-    this.loginHistoryRepository = loginHistoryRepository;
-    this.jwtUtil = jwtUtil;
-    this.passwordEncoder = passwordEncoder;
+  public AuthService(UserRepository users, LoginHistoryRepository history, JwtUtil jwt,
+      PasswordEncoder encoder, PasswordPolicy passwords, RegistrationValidator validator,
+      RegistrationAccountService accounts, OtpDeliveryService delivery, OtpGenerator otpGenerator,
+      Clock clock) {
+    this.users = users;
+    this.history = history;
+    this.jwt = jwt;
+    this.encoder = encoder;
+    this.passwords = passwords;
+    this.validator = validator;
+    this.accounts = accounts;
+    this.delivery = delivery;
+    this.otpGenerator = otpGenerator;
+    this.clock = clock;
   }
 
-  public ApiResponse<UserDto> login(
-    LoginRequest req,
-    String ip,
-    String device
-  ) {
-    if (
-      req.getUsername() == null ||
-      req.getPassword() == null ||
-      req.getUsername().trim().isEmpty() ||
-      req.getPassword().trim().isEmpty()
-    ) {
-      throw new IllegalArgumentException("Thông tin không hợp lệ!");
+  public ApiResponse<UserDto> login(LoginRequest request, String ip, String device) {
+    if (request == null || request.getUsername() == null || request.getUsername().isBlank()
+        || !passwords.canAuthenticate(request.getPassword())) {
+      throw invalidLogin();
     }
-
-    String clean = req.getUsername().trim().toLowerCase();
-    User user = userRepository.findByUsernameOrEmail(clean, clean).orElse(null);
-
-    if (user == null) {
-      recordLogin(
-        req.getUsername(),
-        "Khách vãng lai",
-        "UNKNOWN",
-        ip,
-        device,
-        "FAILED"
-      );
-      throw new IllegalArgumentException("Thông tin không hợp lệ!");
+    String identity = cleanIdentity(request.getUsername());
+    User user = users.findByUsernameIgnoreCaseOrEmailIgnoreCase(identity, identity).orElse(null);
+    if (user == null || !encoder.matches(request.getPassword(), user.getPassword())) {
+      recordLogin(user == null ? identity : user.getUsername(),
+          user == null ? "Khách vãng lai" : user.getName(),
+          user == null ? "UNKNOWN" : user.getRole(), ip, device, "FAILED");
+      throw invalidLogin();
     }
-
-    // Kiểm tra mật khẩu (hỗ trợ cả tài khoản mẫu ban đầu '1','2','3','4','5' và mật khẩu đã mã hóa BCrypt)
-    boolean passwordMatches = passwordEncoder.matches(
-      req.getPassword(),
-      user.getPassword()
-    );
-
-    if (!passwordMatches) {
-      recordLogin(
-        user.getUsername(),
-        user.getName(),
-        user.getRole(),
-        ip,
-        device,
-        "FAILED"
-      );
-      throw new IllegalArgumentException("Thông tin không hợp lệ!");
+    if (!"ACTIVE".equalsIgnoreCase(user.getStatus())
+        || user.getRole() == null
+        || !Set.of("CUSTOMER", "STAFF", "FMANAGER", "FACILITY_MANAGER",
+            "OPS_MGR", "OPS_MANAGER", "ADMIN", "SYSTEM_ADMIN").contains(user.getRole())
+        || (Set.of("STAFF", "FMANAGER", "FACILITY_MANAGER").contains(user.getRole())
+            && (user.getFacilityCode() == null || user.getFacilityCode().isBlank()))) {
+      recordLogin(user.getUsername(), user.getName(), user.getRole(), ip, device, "BLOCKED");
+      throw invalidLogin();
     }
-
-    if (
-      "LOCKED".equalsIgnoreCase(user.getStatus()) ||
-      "DISABLED".equalsIgnoreCase(user.getStatus())
-    ) {
-      recordLogin(
-        user.getUsername(),
-        user.getName(),
-        user.getRole(),
-        ip,
-        device,
-        "BLOCKED"
-      );
-      throw new IllegalArgumentException("Tài khoản đã bị khóa!");
-    }
-
-    recordLogin(
-      user.getUsername(),
-      user.getName(),
-      user.getRole(),
-      ip,
-      device,
-      "SUCCESS"
-    );
-
-    String token = jwtUtil.generateToken(
-      user.getUsername(),
-      user.getRole(),
-      user.getFacilityCode()
-    );
-    UserDto dto = new UserDto(user);
-
-    return ApiResponse.ok(
-      "Đăng nhập thành công! Chào mừng " + user.getName(),
-      dto,
-      token
-    );
+    recordLogin(user.getUsername(), user.getName(), user.getRole(), ip, device, "SUCCESS");
+    return ApiResponse.ok("Đăng nhập thành công", new UserDto(user),
+        jwt.generateToken(user.getUsername(), user.getRole(), user.getFacilityCode()));
   }
 
-  public void validateRegistrationData(RegisterRequest data) {
-    if (
-      data.getName() == null ||
-      data.getName().trim().length() < 2 ||
-      data.getName().trim().length() > 50
-    ) {
-      throw new IllegalArgumentException("Thông tin không hợp lệ!");
+  public ApiResponse<OtpChallengeResponse> generateAndSendOtp(RegisterRequest request) {
+    validator.validateRegistrationData(request);
+    var facility = accounts.requireActiveFacility(request.getFacilityCode());
+    purgeExpired();
+    if (pending.size() >= 1000) {
+      throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Hệ thống xác minh đang bận");
     }
+    String email = cleanIdentity(request.getEmail());
+    // Encode the exact validated input. Raw passwords never enter the pending map.
+    User candidate = new User();
+    candidate.setId("USR-" + UUID.randomUUID());
+    candidate.setName(request.getName().trim());
+    candidate.setUsername(cleanIdentity(request.getUsername()));
+    candidate.setEmail(email);
+    candidate.setPhone(request.getPhone().replaceAll("[\\s.-]", ""));
+    candidate.setCccd(request.getCccd().replaceAll("\\s", ""));
+    candidate.setPassword(encoder.encode(request.getPassword()));
+    candidate.setRole("CUSTOMER");
+    candidate.setRoleTitle("Khách hàng thuê kho");
+    candidate.setStatus("ACTIVE");
+    candidate.setFacility(facility == null ? null : facility.getName());
+    candidate.setFacilityCode(facility == null ? null : facility.getCode());
+    PendingOtpData challenge = pending.compute(email, (key, previous) -> {
+      Instant now = clock.instant();
+      if (previous != null && now.isBefore(previous.resendAt)) throw cooldown();
+      String code = otpGenerator.generate();
+      delivery.send(email, code);
+      return new PendingOtpData(candidate, code, now.plus(OTP_LIFETIME),
+          now.plus(RESEND_DELAY));
+    });
+    return ApiResponse.ok("Vui lòng xác minh mã để hoàn tất đăng ký", response(challenge));
+  }
 
-    // Tên tiếng Việt hợp lệ
-    String nameRegex =
-      "^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\\s]+$";
-    if (!Pattern.matches(nameRegex, data.getName().trim())) {
-      throw new IllegalArgumentException("Thông tin không hợp lệ!");
+  public ApiResponse<RegistrationResult> verifyOtpAndRegister(String email, String code, String ip) {
+    if (email == null || code == null || !code.matches("[0-9]{6}")) {
+      throw new IllegalArgumentException("Email hoặc mã xác minh không hợp lệ");
     }
+    purgeExpired();
+    AtomicReference<User> created = new AtomicReference<>();
+    String identity = cleanIdentity(email);
+    pending.compute(identity, (key, challenge) -> {
+      requireChallenge(challenge);
+      if (challenge.failures >= MAX_ATTEMPTS) throw cooldown();
+      if (!MessageDigest.isEqual(challenge.code.getBytes(StandardCharsets.UTF_8),
+          code.getBytes(StandardCharsets.UTF_8))) {
+        challenge.failures++;
+        throw new IllegalArgumentException("Mã xác minh không đúng");
+      }
+      challenge.candidate.setCreatedAt(LocalDateTime.ofInstant(clock.instant(), ZoneOffset.UTC));
+      // The separate service returns only after the registration transaction commits.
+      created.set(accounts.create(challenge.candidate));
+      return null;
+    });
+    return ApiResponse.ok("Đăng ký thành công. Vui lòng đăng nhập.",
+        new RegistrationResult(true, created.get().getEmail()));
+  }
 
-    // Ngày sinh & tuổi 18 - 100
-    if (data.getDob() == null || data.getDob().trim().isEmpty()) {
-      throw new IllegalArgumentException("Thông tin không hợp lệ!");
+  public ApiResponse<OtpChallengeResponse> resendOtp(String email) {
+    if (email == null || email.isBlank()) throw new IllegalArgumentException("Thiếu email");
+    purgeExpired();
+    PendingOtpData challenge = pending.compute(cleanIdentity(email), (key, current) -> {
+      requireChallenge(current);
+      if (current.failures >= MAX_ATTEMPTS) throw cooldown();
+      Instant now = clock.instant();
+      if (now.isBefore(current.resendAt)) throw cooldown();
+      // Preserve the existing code and original absolute expiry; no silent TTL extension.
+      delivery.send(current.candidate.getEmail(), current.code);
+      current.resendAt = now.plus(RESEND_DELAY);
+      return current;
+    });
+    return ApiResponse.ok("Đã gửi lại mã xác minh", response(challenge));
+  }
+
+  private OtpChallengeResponse response(PendingOtpData challenge) {
+    return new OtpChallengeResponse(challenge.candidate.getEmail(), challenge.expiresAt,
+        challenge.resendAt, "email");
+  }
+
+  private void requireChallenge(PendingOtpData challenge) {
+    if (challenge == null || !clock.instant().isBefore(challenge.expiresAt)) {
+      throw new IllegalArgumentException("Phiên xác minh đã hết hạn. Vui lòng đăng ký lại.");
     }
-    LocalDate dob;
+  }
+
+  private void purgeExpired() {
+    Instant now = clock.instant();
+    pending.entrySet().removeIf(e -> !now.isBefore(e.getValue().expiresAt));
+  }
+
+  private static String cleanIdentity(String value) {
+    return value.trim().toLowerCase(Locale.ROOT);
+  }
+
+  private static ResponseStatusException invalidLogin() {
+    return new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+        "Thông tin đăng nhập không hợp lệ");
+  }
+
+  private static ResponseStatusException cooldown() {
+    return new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+        "Vui lòng đợi trước khi thử lại hoặc yêu cầu mã xác minh mới");
+  }
+
+  private void recordLogin(String username, String name, String role,
+      String ip, String device, String status) {
     try {
-      dob = LocalDate.parse(data.getDob().trim());
-    } catch (Exception e) {
-      throw new IllegalArgumentException("Thông tin không hợp lệ!");
-    }
-    LocalDate today = LocalDate.now();
-    if (dob.isAfter(today)) {
-      throw new IllegalArgumentException("Thông tin không hợp lệ!");
-    }
-    int age = Period.between(dob, today).getYears();
-    if (age < 18 || age > 100) {
-      throw new IllegalArgumentException("Thông tin không hợp lệ!");
-    }
-
-    // Giới tính
-    if (
-      data.getGender() == null ||
-      (!data.getGender().equals("Nam") &&
-        !data.getGender().equals("Nữ") &&
-        !data.getGender().equals("Khác"))
-    ) {
-      throw new IllegalArgumentException("Thông tin không hợp lệ!");
-    }
-
-    // Số điện thoại
-    if (data.getPhone() == null) throw new IllegalArgumentException(
-      "Thông tin không hợp lệ!"
-    );
-    String cleanPhone = data.getPhone().replaceAll("[\\s.-]", "");
-    if (!cleanPhone.matches("^(03|05|07|08|09)[0-9]{8}$")) {
-      throw new IllegalArgumentException("Thông tin không hợp lệ!");
-    }
-
-    // Email
-    if (data.getEmail() == null) throw new IllegalArgumentException(
-      "Thông tin không hợp lệ!"
-    );
-    String cleanEmail = data.getEmail().trim().toLowerCase();
-    if (
-      !cleanEmail.matches(
-        "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
-      ) ||
-      cleanEmail.contains("..")
-    ) {
-      throw new IllegalArgumentException("Thông tin không hợp lệ!");
-    }
-    String domain = cleanEmail.substring(cleanEmail.indexOf("@") + 1);
-    List<String> fakeDomains = Arrays.asList(
-      "test.com",
-      "example.com",
-      "fake.com",
-      "mailinator.com",
-      "tempmail.com",
-      "abc.xyz"
-    );
-    if (fakeDomains.contains(domain)) {
-      throw new IllegalArgumentException("Thông tin không hợp lệ!");
-    }
-
-    // CCCD
-    if (data.getCccd() == null) throw new IllegalArgumentException(
-      "Thông tin không hợp lệ!"
-    );
-    String cleanCccd = data.getCccd().replaceAll("\\s", "");
-    if (!cleanCccd.matches("^[0-9]{12}$")) {
-      throw new IllegalArgumentException("Thông tin không hợp lệ!");
-    }
-    String provinceCode = cleanCccd.substring(0, 3);
-    if (!VALID_PROVINCES.contains(provinceCode)) {
-      throw new IllegalArgumentException("Thông tin không hợp lệ!");
-    }
-
-    // Tên đăng nhập
-    if (data.getUsername() == null) throw new IllegalArgumentException(
-      "Thông tin không hợp lệ!"
-    );
-    String cleanUsername = data.getUsername().trim().toLowerCase();
-    if (
-      !cleanUsername.matches("^[a-zA-Z0-9_]{4,20}$") ||
-      cleanUsername.matches("^[0-9].*")
-    ) {
-      throw new IllegalArgumentException("Thông tin không hợp lệ!");
-    }
-
-    if (
-      userRepository.existsByUsername(cleanUsername) ||
-      userRepository.existsByEmail(cleanEmail)
-    ) {
-      throw new IllegalArgumentException("Thông tin không hợp lệ!");
-    }
-
-    // Mật khẩu
-    if (data.getPassword() == null || data.getPassword().length() < 6) {
-      throw new IllegalArgumentException("Thông tin không hợp lệ!");
-    }
-    if (
-      data.getConfirmPassword() != null &&
-      !data.getPassword().equals(data.getConfirmPassword())
-    ) {
-      throw new IllegalArgumentException("Thông tin không hợp lệ!");
+      Instant eventTime = clock.instant();
+      LocalDateTime now = LocalDateTime.ofInstant(eventTime, ZoneOffset.UTC);
+      LoginHistory entry = new LoginHistory(username, name, role, eventTime.toString(),
+          ip, device == null ? "Web" : device.substring(0, Math.min(device.length(), 255)), status);
+      entry.setCreatedAt(now);
+      history.save(entry);
+    } catch (Exception ex) {
+      // No exception/provider text, credentials or identifying request fields in logs.
+      log.warn("Login history could not be persisted");
     }
   }
 
-  public ApiResponse<Map<String, Object>> generateAndSendOtp(
-    RegisterRequest data
-  ) {
-    validateRegistrationData(data);
-
-    String code = String.valueOf((int) (100000 + Math.random() * 900000));
-    long expiresAt = System.currentTimeMillis() + 5 * 60 * 1000; // 5 phút
-
-    String cleanEmail = data.getEmail().trim().toLowerCase();
-    pendingOtps.put(cleanEmail, new PendingOtpData(code, data, expiresAt));
-
-    System.out.println(
-      "[AuthService] 📬 Đã gửi mã xác minh email tới [" +
-        cleanEmail +
-        "]: Mã OTP = " +
-        code
-    );
-
-    Map<String, Object> respData = new HashMap<>();
-    respData.put("email", cleanEmail);
-    respData.put("code", code);
-
-    ApiResponse<Map<String, Object>> resp = ApiResponse.ok(
-      "Mã xác minh đã được gửi tới email " + cleanEmail + "!",
-      respData
-    );
-    resp.setCode(code);
-    resp.setEmail(cleanEmail);
-    return resp;
-  }
-
-  public ApiResponse<UserDto> verifyOtpAndRegister(
-    String email,
-    String code,
-    String ip
-  ) {
-    if (email == null || code == null) {
-      throw new IllegalArgumentException("Thông tin không hợp lệ!");
-    }
-    String cleanEmail = email.trim().toLowerCase();
-    PendingOtpData pending = pendingOtps.get(cleanEmail);
-
-    if (pending == null) {
-      throw new IllegalArgumentException("Thông tin không hợp lệ!");
-    }
-    if (System.currentTimeMillis() > pending.expiresAt) {
-      pendingOtps.remove(cleanEmail);
-      throw new IllegalArgumentException("Mã xác minh đã hết hạn!");
-    }
-    if (!pending.code.equals(code.trim())) {
-      throw new IllegalArgumentException("Thông tin không hợp lệ!");
-    }
-
-    User newUser = registerUser(pending.data, ip);
-    pendingOtps.remove(cleanEmail);
-
-    String token = jwtUtil.generateToken(
-      newUser.getUsername(),
-      newUser.getRole(),
-      newUser.getFacilityCode()
-    );
-    return ApiResponse.ok(
-      "Xác minh email thành công! Chào mừng " +
-        newUser.getName() +
-        " đến với hệ thống STORAGE.",
-      new UserDto(newUser),
-      token
-    );
-  }
-
-  public User registerUser(RegisterRequest data, String ip) {
-    String cleanUsername = data.getUsername().trim().toLowerCase();
-    String cleanEmail = data.getEmail().trim().toLowerCase();
-
-    long count = userRepository.count();
-    String userId = "USR-" + UUID.randomUUID();
-
-    User user = new User();
-    user.setId(userId);
-    user.setName(data.getName().trim());
-    user.setUsername(cleanUsername);
-    user.setPassword(passwordEncoder.encode(data.getPassword().trim()));
-    user.setEmail(cleanEmail);
-    user.setPhone(data.getPhone() != null ? data.getPhone().trim() : "");
-    user.setCccd(
-      data.getCccd() != null ? data.getCccd().trim() : "001202099999"
-    );
-    user.setRole("CUSTOMER");
-    user.setRoleTitle("Khách hàng thuê kho");
-    user.setFacility(
-      data.getFacility() != null ? data.getFacility() : "Hà Nội - Cầu Giấy"
-    );
-    user.setFacilityCode(
-      data.getFacilityCode() != null ? data.getFacilityCode() : "HN-CG"
-    );
-    user.setStatus("ACTIVE");
-    user.setCreatedAt(LocalDateTime.now());
-
-    User saved = userRepository.save(user);
-    recordLogin(
-      saved.getUsername(),
-      saved.getName(),
-      saved.getRole(),
-      ip,
-      "Web Register",
-      "SUCCESS"
-    );
-    return saved;
-  }
-
-  public Map<String, Object> getPendingOtp(String email) {
-    String clean = email != null ? email.trim().toLowerCase() : "";
-    PendingOtpData pending = pendingOtps.get(clean);
-    if (pending == null) return null;
-    Map<String, Object> m = new HashMap<>();
-    m.put("email", clean);
-    m.put("code", pending.code);
-    return m;
-  }
-
-  private void recordLogin(
-    String username,
-    String name,
-    String role,
-    String ip,
-    String device,
-    String status
-  ) {
-    try {
-      String timeStr = LocalDateTime.now().format(
-        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-      );
-      LoginHistory log = new LoginHistory(
-        username,
-        name,
-        role,
-        timeStr,
-        ip,
-        device,
-        status
-      );
-      loginHistoryRepository.save(log);
-    } catch (Exception e) {
-      System.err.println("Failed to record login history: " + e.getMessage());
-    }
-  }
-
-  private static class PendingOtpData {
-
+  private static final class PendingOtpData {
+    final User candidate;
     final String code;
-    final RegisterRequest data;
-    final long expiresAt;
-
-    PendingOtpData(String code, RegisterRequest data, long expiresAt) {
+    final Instant expiresAt;
+    Instant resendAt;
+    int failures;
+    PendingOtpData(User candidate, String code, Instant expiresAt, Instant resendAt) {
+      this.candidate = candidate;
       this.code = code;
-      this.data = data;
       this.expiresAt = expiresAt;
+      this.resendAt = resendAt;
     }
   }
 }

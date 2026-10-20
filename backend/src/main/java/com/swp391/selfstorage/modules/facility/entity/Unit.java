@@ -35,6 +35,12 @@ public class Unit {
   @Column(name = "pin_code")
   private String pinCode;
 
+  @Column(name = "image_url")
+  private String imageUrl;
+
+  @Column(name = "image_alt_text", length = 255)
+  private String imageAltText;
+
   public Unit() {}
 
   public Unit(
@@ -132,6 +138,14 @@ public class Unit {
     this.pinCode = pinCode;
   }
 
+  public String getImageUrl() { return imageUrl; }
+
+  public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+  public String getImageAltText() { return imageAltText; }
+
+  public void setImageAltText(String imageAltText) { this.imageAltText = imageAltText; }
+
   @Column(name = "floor")
   private Integer floor;
 
@@ -146,6 +160,7 @@ public class Unit {
   @Column(name = "temporary_pin")
   private String temporaryPin;
 
+  @com.fasterxml.jackson.annotation.JsonIgnore
   public String getTemporaryPin() {
     return temporaryPin;
   }
@@ -157,6 +172,7 @@ public class Unit {
   @Column(name = "temporary_pin_expires_at")
   private java.time.LocalDateTime temporaryPinExpiresAt;
 
+  @com.fasterxml.jackson.annotation.JsonIgnore
   public java.time.LocalDateTime getTemporaryPinExpiresAt() {
     return temporaryPinExpiresAt;
   }

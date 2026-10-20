@@ -72,4 +72,12 @@ public class InvoiceService {
       "Chưa thanh toán đủ " + type
     );
   }
+
+  @Transactional
+  public void linkRentInvoiceToContract(String reservation, String contract) {
+    repo.findByReservationIdAndInvoiceType(reservation, "RENT").ifPresent(invoice -> {
+      invoice.setContractId(contract);
+      repo.save(invoice);
+    });
+  }
 }

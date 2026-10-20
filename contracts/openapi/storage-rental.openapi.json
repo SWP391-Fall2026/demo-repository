@@ -27,7 +27,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -107,7 +107,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -189,7 +189,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -272,7 +272,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -339,6 +339,46 @@
         ]
       }
     },
+    "/api/payments/vnpay/create": {
+      "post": {
+        "operationId": "Payment_createVnPay",
+        "tags": ["billing"],
+        "summary": "Create signed VNPay sandbox checkout URL",
+        "description": "Customer-owned pending DEPOSIT invoice, or RENT invoice after unit assignment. Payment is not marked paid by this request.",
+        "security": [{"bearerAuth": []}],
+        "x-roles": ["CUSTOMER"],
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"type": "object", "required": ["invoiceId"], "properties": {"invoiceId": {"type": "string"}}}}}
+        },
+        "responses": {
+          "200": {"description": "Signed gateway URL", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}},
+          "401": {"description": "Authentication required"},
+          "404": {"description": "Invoice not found in customer scope"},
+          "409": {"description": "Invoice state, eligibility or gateway configuration conflict"}
+        }
+      }
+    },
+    "/api/payments/vnpay/ipn": {
+      "get": {
+        "operationId": "Payment_vnPayIpn",
+        "tags": ["billing"],
+        "summary": "Verify VNPay IPN and settle payment",
+        "description": "Public gateway callback. Verifies HMAC, terminal code, transaction reference and amount; idempotently updates payment/invoice and confirms reservation deposit.",
+        "security": [],
+        "responses": {"200": {"description": "VNPay protocol RspCode and Message JSON"}}
+      }
+    },
+    "/api/payments/vnpay/return": {
+      "get": {
+        "operationId": "Payment_vnPayReturn",
+        "tags": ["billing"],
+        "summary": "Redirect browser to frontend payment result",
+        "description": "Verifies signature, terminal, reference, and amount using the same idempotent settlement as IPN before redirecting. Never trusts unsigned browser parameters.",
+        "security": [],
+        "responses": {"302": {"description": "Redirect to frontend payment result"}}
+      }
+    },
     "/api/payments/simulate": {
       "post": {
         "operationId": "Payment_pay_4",
@@ -354,7 +394,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -456,7 +496,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -536,7 +576,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -638,7 +678,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -728,7 +768,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -828,7 +868,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1045,7 +1085,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1141,7 +1181,7 @@
         "security": [],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1216,7 +1256,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1298,11 +1338,43 @@
           "facility"
         ],
         "summary": "Facility: units",
-        "description": "Public endpoint.",
+        "description": "Public catalog of available storage units. Optional filters: facilityCode, size range in square meters, and monthly price range.",
         "security": [],
+        "parameters": [
+          {
+            "name": "facilityCode",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "minSize",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "minimum": 0 }
+          },
+          {
+            "name": "maxSize",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "minimum": 0 }
+          },
+          {
+            "name": "minPrice",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "minimum": 0 }
+          },
+          {
+            "name": "maxPrice",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "minimum": 0 }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1377,7 +1449,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1467,7 +1539,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1548,7 +1620,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1648,7 +1720,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1748,7 +1820,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1834,7 +1906,7 @@
         "security": [],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1925,27 +1997,15 @@
           "identity"
         ],
         "summary": "Auth: login",
-        "description": "Public endpoint.",
+        "description": "Username/email lookup, exact raw password, ACTIVE only, then24h JWT. Login history is best-effort; client lands on role-specific page. Runtime/PostgreSQL verification pending; SQL reference is not live evidence.",
         "security": [],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Implementation contract; no runtime execution evidence in this change.",
             "content": {
               "application/json": {
                 "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/Envelope"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "token": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  ]
+                  "$ref": "#/components/schemas/LoginEnvelope"
                 }
               }
             }
@@ -2020,15 +2080,15 @@
           "identity"
         ],
         "summary": "Auth: register",
-        "description": "Public endpoint.",
+        "description": "Validate registration, check normalized username/email/phone availability and optionally validate facilityCode when provided. Generate OTP in Java and send it by email; the OTP is never returned by API. A selected facility name/code is resolved from the database and stored after OTP verification; without a selection both remain null. TTL5min; cooldown30s. No User insert yet.",
         "security": [],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Implementation contract; no runtime execution evidence in this change.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Envelope"
+                  "$ref": "#/components/schemas/OtpEnvelope"
                 }
               }
             }
@@ -2075,6 +2135,26 @@
           },
           "409": {
             "description": "State conflict, expired hold, duplicate processing or insufficient eligibility",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "OTP cooldown, attempt limit or temporary challenge capacity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Schema review, OTP provider or SMTP configuration not ready",
             "content": {
               "application/json": {
                 "schema": {
@@ -2103,15 +2183,15 @@
           "identity"
         ],
         "summary": "Auth: register",
-        "description": "Public endpoint.",
+        "description": "Public alias of send-otp. facilityCode is optional; when provided it must identify an active facility. Generates OTP in Java and emails it; response never includes OTP. No User insert/JWT yet; raw credential hashed before temporary challenge staging.",
         "security": [],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Implementation contract; no runtime execution evidence in this change.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Envelope"
+                  "$ref": "#/components/schemas/OtpEnvelope"
                 }
               }
             }
@@ -2158,6 +2238,26 @@
           },
           "409": {
             "description": "State conflict, expired hold, duplicate processing or insufficient eligibility",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "OTP cooldown, attempt limit or temporary challenge capacity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Schema review, OTP provider or SMTP configuration not ready",
             "content": {
               "application/json": {
                 "schema": {
@@ -2186,27 +2286,15 @@
           "identity"
         ],
         "summary": "Auth: verify",
-        "description": "Public endpoint.",
+        "description": "Consume valid OTP after a separately proxied account-create transaction commits. Creates CUSTOMER/ACTIVE, no trusted facility from request, no login JWT. Client returns to login. Runtime/PostgreSQL verification pending; SQL reference is not live evidence.",
         "security": [],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Implementation contract; no runtime execution evidence in this change.",
             "content": {
               "application/json": {
                 "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/Envelope"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "token": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  ]
+                  "$ref": "#/components/schemas/RegistrationEnvelope"
                 }
               }
             }
@@ -2253,6 +2341,26 @@
           },
           "409": {
             "description": "State conflict, expired hold, duplicate processing or insufficient eligibility",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "OTP cooldown, attempt limit or temporary challenge capacity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Schema review, OTP provider or SMTP configuration not ready",
             "content": {
               "application/json": {
                 "schema": {
@@ -2281,15 +2389,15 @@
           "identity"
         ],
         "summary": "Auth: resend",
-        "description": "Public endpoint.",
+        "description": "Resend same code by email without extending original expiry; OTP is never returned by API. Reject expired/exhausted challenge and enforce30s cooldown.",
         "security": [],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Implementation contract; no runtime execution evidence in this change.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Envelope"
+                  "$ref": "#/components/schemas/OtpEnvelope"
                 }
               }
             }
@@ -2336,6 +2444,26 @@
           },
           "409": {
             "description": "State conflict, expired hold, duplicate processing or insufficient eligibility",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "OTP cooldown, attempt limit or temporary challenge capacity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Schema review, OTP provider or SMTP configuration not ready",
             "content": {
               "application/json": {
                 "schema": {
@@ -2372,7 +2500,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2442,7 +2570,7 @@
           "identity"
         ],
         "summary": "UserAdmin: create",
-        "description": "Authorized roles: ADMIN. Customer ownership and assigned-facility scope are enforced by the service.",
+        "description": "ADMIN only. Creates a staff, facility manager, business operations manager or admin account. Facility is required for STAFF/FMANGER and omitted for OPS_MGR/ADMIN. Temporary password is stored as BCrypt hash and must be shared through a separate secure channel.",
         "security": [
           {
             "bearerAuth": []
@@ -2450,7 +2578,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2540,7 +2668,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2640,7 +2768,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2720,7 +2848,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2796,7 +2924,7 @@
         "security": [],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2871,7 +2999,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2961,7 +3089,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3051,7 +3179,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3118,6 +3246,32 @@
         ]
       }
     },
+    "/api/contracts/{id}": {
+      "get": {
+        "operationId": "Contract_detail_35",
+        "tags": ["rental"],
+        "summary": "Customer contract detail",
+        "description": "Returns owner-scoped contract, facility/unit details, handover record, related invoices, access PIN and effective business policies.",
+        "security": [{"bearerAuth": []}],
+        "x-roles": ["CUSTOMER"],
+        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "responses": {
+          "200": {"description": "Contract detail envelope", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}},
+          "401": {"description": "Authentication required"},
+          "404": {"description": "Contract not found in customer scope"}
+        }
+      }
+    },
+    "/api/contracts/handover/eligible": {
+      "get": {
+        "operationId": "Contract_eligibleHandovers",
+        "tags": ["rental"],
+        "summary": "Staff: list assigned contracts awaiting handover",
+        "security": [{"bearerAuth": []}],
+        "x-roles": ["STAFF"],
+        "responses": {"200": {"description": "Assigned, paid contracts eligible for a handover record", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}}, "401": {"description": "Authentication required"}, "403": {"description": "Role or facility not permitted"}}
+      }
+    },
     "/api/contracts/handover": {
       "post": {
         "operationId": "Contract_handover_35",
@@ -3125,7 +3279,7 @@
           "rental"
         ],
         "summary": "Contract: handover",
-        "description": "Authorized roles: STAFF. Customer ownership and assigned-facility scope are enforced by the service.",
+        "description": "Staff creates a PENDING_CUSTOMER_CONFIRMATION handover record. Verified customer/reservation/contract/unit context is read-only. Optional evidence accepts PNG/JPEG up to 10 MB.",
         "security": [
           {
             "bearerAuth": []
@@ -3133,7 +3287,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3198,14 +3352,39 @@
         ],
         "requestBody": {
           "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Handover"
-              }
-            }
-          }
+            "content": {"multipart/form-data": {"schema": {"$ref": "#/components/schemas/Handover"}}, "application/json": {"schema": {"$ref": "#/components/schemas/Handover"}}}
         }
+      }
+    },
+    "/api/contracts/{id}/handover/confirm": {
+      "post": {
+        "operationId": "Contract_confirmHandover",
+        "tags": ["rental"],
+        "summary": "Customer: confirm receipt of assigned unit",
+        "description": "Customer-owned handover confirmation. In one transaction, records authenticated customer/time/version and activates Contract, Reservation, Unit, and Check-in task.",
+        "security": [{"bearerAuth": []}], "x-roles": ["CUSTOMER"],
+        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "required": ["customerInspectionConfirmed", "handoverRecordConfirmed", "receivedUnitConfirmed", "confirmationVersion"], "properties": {"customerInspectionConfirmed": {"type": "boolean", "const": true}, "handoverRecordConfirmed": {"type": "boolean", "const": true}, "receivedUnitConfirmed": {"type": "boolean", "const": true}, "confirmationVersion": {"type": "string", "const": "HANDOVER-2026-10"}}}}}},
+        "responses": {"200": {"description": "Handover completed", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}}, "404": {"description": "Contract not found in customer scope"}, "409": {"description": "Handover is not ready or customer reported an issue"}}
+      }
+    },
+    "/api/contracts/{id}/handover/issue": {
+      "post": {
+        "operationId": "Contract_reportHandoverIssue",
+        "tags": ["rental"], "summary": "Customer: report a handover issue",
+        "security": [{"bearerAuth": []}], "x-roles": ["CUSTOMER"],
+        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"reported": {"type": "boolean", "const": true}}}}}},
+        "responses": {"200": {"description": "Issue recorded; contract remains pending handover", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}}, "404": {"description": "Contract not found in customer scope"}, "409": {"description": "Handover record is not awaiting confirmation"}}
+      }
+    },
+    "/api/contracts/{id}/handover/evidence": {
+      "get": {
+        "operationId": "Contract_handoverEvidence",
+        "tags": ["rental"], "summary": "Read authorized handover evidence image",
+        "security": [{"bearerAuth": []}],
+        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "responses": {"200": {"description": "PNG or JPEG evidence"}, "404": {"description": "No evidence in caller scope"}}
       }
     },
     "/api/contracts/checkout-request": {
@@ -3223,7 +3402,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3313,7 +3492,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3403,7 +3582,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3495,7 +3674,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3595,7 +3774,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3696,7 +3875,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3796,7 +3975,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3876,7 +4055,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3956,7 +4135,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4036,7 +4215,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4116,7 +4295,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4206,7 +4385,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4298,7 +4477,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4390,7 +4569,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4490,7 +4669,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4592,7 +4771,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4682,7 +4861,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4782,7 +4961,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4882,7 +5061,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4984,7 +5163,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -5084,7 +5263,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -5164,7 +5343,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -5254,7 +5433,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -5334,7 +5513,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -5424,7 +5603,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -5526,7 +5705,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -5628,7 +5807,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -5694,6 +5873,21 @@
         ]
       }
     },
+    "/api/tasks/manager-dashboard": {
+      "get": {
+        "operationId": "Task_managerDashboard",
+        "tags": ["workforce"],
+        "summary": "Manager: facility dashboard",
+        "description": "Facility Manager only. Returns own facility profile and current facility PIN, staff status/open-task counts, unexpired unit check-in PINs and check-in requests for reservations in the assigned facility. PIN values are exposed for the requested demo workflow.",
+        "security": [{"bearerAuth": []}],
+        "x-roles": ["FMANAGER"],
+        "responses": {
+          "200": {"description": "Facility-scoped dashboard", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}},
+          "401": {"description": "Authentication required"},
+          "403": {"description": "Facility Manager role required"}
+        }
+      }
+    },
     "/api/tasks/daily": {
       "get": {
         "operationId": "Task_list_63",
@@ -5709,7 +5903,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -5790,7 +5984,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -5880,7 +6074,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response. Monetary payment/PIN/OTP operations are simulated in this project.",
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
             "content": {
               "application/json": {
                 "schema": {
@@ -5965,6 +6159,63 @@
           }
         }
       }
+    },
+    "/api/auth/me": {
+      "get": {
+        "operationId": "Auth_currentSession",
+        "tags": [
+          "identity"
+        ],
+        "summary": "Current authenticated profile",
+        "description": "Resolve an ACTIVE User from the authenticated server principal; no session/DB writes.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current user's profile, without password/hash.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, expired JWT, deleted or inactive account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Database integrity conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -6017,7 +6268,10 @@
           },
           "password": {
             "type": "string",
-            "format": "password"
+            "format": "password",
+            "writeOnly": true,
+            "description": "Exact raw credential; no trim/normalization, maximum72 UTF-8 bytes.",
+            "x-maxUtf8Bytes": 72
           }
         },
         "required": [
@@ -6043,14 +6297,41 @@
           "cccd": {
             "type": "string"
           },
+          "facilityCode": {
+            "type": "string",
+            "description": "Optional active facility code. Backend resolves and stores its name when provided; otherwise facility and facilityCode remain null."
+          },
           "dob": {
-            "type": "string"
+            "type": "string",
+            "format": "date",
+            "deprecated": true,
+            "description": "Optional legacy validation only; not persisted by current User mapping."
           },
           "password": {
-            "type": "string"
+            "type": "string",
+            "format": "password",
+            "writeOnly": true,
+            "description": "Keep the exact raw string, including leading/trailing whitespace. Maximum 72 UTF-8 bytes. Minimum 6 UTF-16 code units for registration; never trim or truncate. Malformed Unicode that cannot be encoded without substitution is rejected.",
+            "x-maxUtf8Bytes": 72,
+            "x-minUtf16Length": 6
           },
           "confirmPassword": {
-            "type": "string"
+            "type": "string",
+            "format": "password",
+            "writeOnly": true,
+            "description": "Keep the exact raw string, including leading/trailing whitespace. Maximum 72 UTF-8 bytes. Minimum 6 UTF-16 code units for registration; never trim or truncate. Malformed Unicode that cannot be encoded without substitution is rejected.",
+            "x-maxUtf8Bytes": 72,
+            "x-minUtf16Length": 6
+          },
+          "gender": {
+            "type": "string",
+            "enum": [
+              "Nam",
+              "Nữ",
+              "Khác"
+            ],
+            "deprecated": true,
+            "description": "Optional legacy validation only; not persisted by current User mapping."
           }
         },
         "required": [
@@ -6059,8 +6340,8 @@
           "email",
           "phone",
           "cccd",
-          "dob",
-          "password"
+          "password",
+          "confirmPassword"
         ]
       },
       "VerifyOtpRequest": {
@@ -6112,12 +6393,12 @@
           "rentalStartAt": {
             "type": "string",
             "format": "date-time",
-            "description": "Local business time in Asia/Ho_Chi_Minh, without offset (yyyy-MM-ddTHH:mm:ss)."
+            "description": "Local business time in Asia/Ho_Chi_Minh, without offset (yyyy-MM-ddTHH:mm:ss). Must be equal to or later than appointmentAt."
           },
           "appointmentAt": {
             "type": "string",
             "format": "date-time",
-            "description": "Local business time in Asia/Ho_Chi_Minh, without offset (yyyy-MM-ddTHH:mm:ss)."
+            "description": "Check-in appointment in local business time Asia/Ho_Chi_Minh, without offset (yyyy-MM-ddTHH:mm:ss). Rental cannot start before check-in."
           },
           "durationMonths": {
             "type": "integer",
@@ -6166,6 +6447,35 @@
               "BANK_TRANSFER_QR",
               "CASH_AT_COUNTER"
             ]
+          },
+          "bankCode": {
+            "type": "string",
+            "enum": ["NCB"],
+            "description": "Mock-card sandbox only; no bank connection."
+          },
+          "cardNumber": {
+            "type": "string",
+            "writeOnly": true,
+            "description": "Mock-card test fixture only; never stored or returned."
+          },
+          "cardHolder": {
+            "type": "string",
+            "writeOnly": true
+          },
+          "issueDate": {
+            "type": "string",
+            "pattern": "^[0-9]{2}/[0-9]{2}$",
+            "writeOnly": true
+          },
+          "otp": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "writeOnly": true,
+            "description": "Sandbox OTP fixture; never stored or returned."
+          },
+          "confirmedAmount": {
+            "type": "boolean",
+            "description": "Must be true for MOCK_CARD payment."
           },
           "simulateFailure": {
             "type": "boolean"
@@ -6292,16 +6602,32 @@
           "reservationId": {
             "type": "string"
           },
-          "customerSignatureConfirmed": {
+          "unitCode": {
+            "type": "string"
+          },
+          "handoverEligibleConfirmed": {
             "type": "boolean"
+          },
+          "conditionStatus": {
+            "type": "string",
+            "enum": ["CLEAN", "ISSUE"]
           },
           "unitConditionNotes": {
             "type": "string"
+          },
+          "staffNotes": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "string",
+            "format": "binary"
           }
         },
         "required": [
           "reservationId",
-          "customerSignatureConfirmed",
+          "unitCode",
+          "handoverEligibleConfirmed",
+          "conditionStatus",
           "unitConditionNotes"
         ]
       },
@@ -6447,6 +6773,15 @@
           },
           "floor": {
             "type": "integer"
+          },
+          "imageUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "Externally hosted HTTPS image URL; backend does not download the image."
+          },
+          "imageAltText": {
+            "type": "string",
+            "maxLength": 255
           }
         },
         "required": [
@@ -6465,11 +6800,18 @@
           },
           "floor": {
             "type": "integer"
+          },
+          "imageUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "Externally hosted HTTPS image URL; empty string clears image."
+          },
+          "imageAltText": {
+            "type": "string",
+            "maxLength": 255
           }
         },
-        "required": [
-          "pricePerMonth"
-        ]
+        "required": []
       },
       "Readiness": {
         "type": "object",
@@ -6531,16 +6873,27 @@
             "type": "string"
           },
           "phone": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^(03|05|07|08|09)[0-9]{8}$"
+          },
+          "cccd": {
+            "type": "string",
+            "pattern": "^[0-9]{12}$"
           },
           "password": {
-            "type": "string"
+            "type": "string",
+            "format": "password",
+            "minLength": 8,
+            "maxLength": 72,
+            "writeOnly": true
           },
           "role": {
             "type": "string"
+            ,"enum": ["STAFF", "FMANAGER", "OPS_MGR", "ADMIN"]
           },
           "facilityCode": {
-            "type": "string"
+            "type": "string",
+            "description": "Required for STAFF and FMANAGER; omitted for OPS_MGR and ADMIN."
           },
           "status": {
             "type": "string"
@@ -6551,7 +6904,9 @@
           "name",
           "email",
           "password",
-          "role"
+          "role",
+          "phone",
+          "cccd"
         ]
       },
       "UserUpdate": {
@@ -6654,6 +7009,217 @@
         "required": [
           "status"
         ]
+      },
+      "UserProfile": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "nullable": false
+          },
+          "name": {
+            "type": "string",
+            "nullable": false
+          },
+          "username": {
+            "type": "string",
+            "nullable": false
+          },
+          "email": {
+            "type": "string",
+            "nullable": false
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "cccd": {
+            "type": "string",
+            "nullable": true
+          },
+          "role": {
+            "type": "string",
+            "nullable": false,
+            "enum": [
+              "CUSTOMER",
+              "STAFF",
+              "FMANAGER",
+              "OPS_MGR",
+              "ADMIN"
+            ]
+          },
+          "roleTitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "facility": {
+            "type": "string",
+            "nullable": true
+          },
+          "facilityCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "nullable": false
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "username",
+          "email",
+          "role",
+          "phone",
+          "cccd",
+          "status"
+        ],
+        "additionalProperties": false
+      },
+      "OtpChallenge": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "resendAvailableAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "delivery": {
+            "type": "string",
+            "enum": [
+              "email"
+            ],
+            "description": "OTP generated in Java and sent to the user's email."
+          }
+        },
+        "required": [
+          "email",
+          "expiresAt",
+          "resendAvailableAt",
+          "delivery"
+        ],
+        "additionalProperties": false
+      },
+      "RegistrationResult": {
+        "type": "object",
+        "properties": {
+          "registered": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          }
+        },
+        "required": [
+          "registered",
+          "email"
+        ],
+        "additionalProperties": false
+      },
+      "OtpEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/OtpChallenge"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "RegistrationEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/RegistrationResult"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "LoginEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/UserProfile"
+          },
+          "token": {
+            "type": "string",
+            "description": "Bearer JWT, valid24h; handle as secret and do not log."
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "token"
+        ],
+        "additionalProperties": false
+      },
+      "ProfileEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/UserProfile"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "additionalProperties": false
       }
     }
   }

@@ -1,0 +1,26 @@
+$kind: http-request
+name: 02-invalid-otp-format
+method: POST
+url: '{{base_url}}/auth/verify-otp'
+order: 2000
+auth:
+  type: noauth
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: '{{auth_request_body}}'
+scripts:
+  - type: beforeRequest
+    language: text/javascript
+    code: |-
+      pm.variables.set("auth_request_body", JSON.stringify({email: pm.variables.get("test_email"), code: "invalid"}));
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Malformed OTP rejected without registration", () => {
+       pm.response.to.have.status(400);
+       pm.expect(pm.response.json().success).to.eql(false);
+       pm.expect(pm.response.json()).not.to.have.property("token");
+      });

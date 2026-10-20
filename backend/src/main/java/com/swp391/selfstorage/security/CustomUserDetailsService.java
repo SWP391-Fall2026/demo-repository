@@ -3,6 +3,7 @@ package com.swp391.selfstorage.security;
 import com.swp391.selfstorage.modules.identity.entity.User;
 import com.swp391.selfstorage.modules.identity.repository.UserRepository;
 import java.util.Collections;
+import java.util.Locale;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -21,9 +22,9 @@ public class CustomUserDetailsService implements UserDetailsService {
   @Override
   public UserDetails loadUserByUsername(String usernameOrEmail)
     throws UsernameNotFoundException {
-    String clean = usernameOrEmail.trim().toLowerCase();
+    String clean = usernameOrEmail.trim().toLowerCase(Locale.ROOT);
     User user = userRepository
-      .findByUsernameOrEmail(clean, clean)
+      .findByUsernameIgnoreCaseOrEmailIgnoreCase(clean, clean)
       .orElseThrow(() ->
         new UsernameNotFoundException(
           "Không tìm thấy người dùng: " + usernameOrEmail

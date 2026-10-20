@@ -29,6 +29,8 @@ export default function ManageUnitsPage() {
             required: true,
           },
           { name: "floor", label: "Tầng", type: "number" },
+          { name: "imageUrl", label: "Link ảnh kho (URL https://...)", type: "url" },
+          { name: "imageAltText", label: "Mô tả ảnh", type: "text" },
         ]}
         submit={facilityApi.createUnit}
       />
@@ -42,6 +44,8 @@ export default function ManageUnitsPage() {
             type: "number",
             required: true,
           },
+          { name: "imageUrl", label: "Link ảnh kho (URL https://...)", type: "url" },
+          { name: "imageAltText", label: "Mô tả ảnh", type: "text" },
         ]}
         submit={facilityApi.updateUnit}
       />

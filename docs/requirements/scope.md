@@ -107,7 +107,7 @@ Nhằm đảm bảo **tính khả thi cao nhất cho nhóm sinh viên trung bìn
 - **FR-006 (Xem danh mục cơ sở & Loại kho):** Khách xem danh sách chi nhánh (địa chỉ, hình ảnh, tiện ích, giờ mở cửa) và các loại kho (Kho nhỏ 1-3m², Kho vừa 4-8m², Kho lớn >9m², Kho mát).
 - **FR-007 (Bộ lọc thông minh):** Lọc kho theo Chi nhánh, Kích cỡ, Khoảng giá và trạng thái khả dụng (`AVAILABLE`).
 - **FR-008 (Tạo đơn Reservation):** Khách chọn Chi nhánh, Loại kho, Ngày bắt đầu thuê, Thời hạn thuê (tháng) và Giờ hẹn đến nhận kho. Hệ thống tự tính tiền cọc (mặc định 01 tháng tiền thuê). Đơn lưu ở trạng thái `PENDING_PAYMENT`.
-- **FR-009 (Nộp tiền cọc Mock/QR):** Khách xác nhận thanh toán tiền cọc qua giao diện Mock Payment hoặc quét mã QR chuyển khoản mô phỏng. Sau khi xác nhận, đơn chuyển sang `RESERVED` (Giữ chỗ thành công) và giữ phòng trong 24 giờ.
+- **FR-009 (Thanh toán cọc/thuê qua VNPay Sandbox):** Hóa đơn `DEPOSIT` dành cho đặt kho mới; hóa đơn `RENT` chỉ thanh toán sau khi kho đã được gán. Backend tạo giao dịch VNPay có chữ ký, tiếp nhận IPN và chỉ cập nhật hóa đơn/thanh toán khi chữ ký, mã giao dịch và số tiền hợp lệ. Thanh toán cọc thành công chuyển đơn sang `RESERVED`; trình duyệt quay về không tự xác nhận thanh toán.
 - **FR-010 (Quản lý đơn đặt cá nhân):** Khách tra cứu danh sách đơn đã đặt, xem lịch hẹn và trạng thái đơn.
 - **FR-011 (Hủy đặt giữ chỗ):** Khách được hủy trước giờ hẹn; hệ thống đối chiếu chính sách hủy để hoàn tiền cọc hoặc giải phóng trạng thái giữ chỗ.
 
@@ -136,7 +136,7 @@ Nhằm đảm bảo **tính khả thi cao nhất cho nhóm sinh viên trung bìn
 - **FR-020 (Quản lý chuỗi chi nhánh):** Ops Manager thêm mới, chỉnh sửa thông tin chi nhánh: Tên, địa chỉ, hotline, diện tích, sức chứa kho, hình ảnh đại diện.
 - **FR-021 (Ban hành chính sách cho thuê chung):** Ops Manager cấu hình:
   - Tỉ lệ cọc tối thiểu (% hoặc số tháng tiền thuê).
-  - Thời gian giữ chỗ đơn reservation (VD: 24 giờ).
+  - Thời gian giữ chỗ reservation: 5 phút chờ tiền cọc; hết hạn thì tự hủy đơn và invoice pending.
   - Quy định hủy đơn và hoàn cọc.
   - Số ngày ân hạn nợ cước (Grace Period, VD: 3 ngày).
 - **FR-022 (Quản lý khung giá & Phụ phí):** Ops Manager cấu hình đơn giá chuẩn theo từng loại kho (S/M/L/Kho mát) cho từng chi nhánh; thiết lập biểu phí phụ (phí vệ sinh, phí sửa khóa, phí phạt trễ hạn theo ngày).

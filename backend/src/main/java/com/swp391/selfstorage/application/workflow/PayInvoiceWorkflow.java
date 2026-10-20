@@ -8,6 +8,8 @@ import com.swp391.selfstorage.modules.billing.repository.*;
 import com.swp391.selfstorage.modules.facility.repository.UnitRepository;
 import com.swp391.selfstorage.modules.rental.repository.ContractRepository;
 import com.swp391.selfstorage.modules.reservation.repository.ReservationRepository;
+import com.swp391.selfstorage.modules.reservation.service.ReservationHoldPolicy;
+import com.swp391.selfstorage.modules.workforce.service.TaskService;
 import java.math.*;
 import java.time.*;
 import java.util.*;
@@ -25,6 +27,9 @@ public class PayInvoiceWorkflow {
   private final ActorContext actor;
   private final AuditLogService audit;
   private final Clock clock;
+  private final ReservationHoldPolicy holdPolicy;
+  private final TaskService tasks;
+  private final PaidRentActivationService rentActivation;
 
   public PayInvoiceWorkflow(
     InvoiceRepository i,
@@ -34,7 +39,10 @@ public class PayInvoiceWorkflow {
     UnitRepository u,
     ActorContext a,
     AuditLogService au,
-    Clock cl
+    Clock cl,
+    ReservationHoldPolicy holdPolicy,
+    TaskService tasks,
+    PaidRentActivationService rentActivation
   ) {
     invoices = i;
     payments = p;
@@ -44,6 +52,9 @@ public class PayInvoiceWorkflow {
     actor = a;
     audit = au;
     clock = cl;
+    this.holdPolicy = holdPolicy;
+    this.tasks = tasks;
+    this.rentActivation = rentActivation;
   }
 
   @Transactional
@@ -73,7 +84,7 @@ public class PayInvoiceWorkflow {
         .orElseThrow(Inputs::missing);
       if (
         !"PENDING_PAYMENT".equals(r.getStatus()) ||
-        !r.getCreatedAt().plusHours(24).isAfter(now)
+        !r.getCreatedAt().plus(holdPolicy.pendingPaymentHold()).isAfter(now)
       ) throw Inputs.conflict("Đơn đã hết hạn đóng cọc");
     }
     if ("RENT".equals(i.getInvoiceType())) {
@@ -83,6 +94,10 @@ public class PayInvoiceWorkflow {
       if (
         !"RESERVED".equals(r.getStatus()) || r.getUnitCode() == null
       ) throw Inputs.conflict("Chờ Manager gán phòng trước khi thu kỳ đầu");
+      if (r.getIdentityVerifiedAt() == null || r.getContractTermsAcceptedAt() == null)
+        throw Inputs.conflict("Khách cần được Staff xác minh tại quầy và xác nhận hợp đồng trước khi thanh toán thuê");
+      if (contracts.findByReservationId(r.getId()).filter(c -> "PENDING_PAYMENT".equals(c.getStatus()) && c.getPinCode() == null).isEmpty())
+        throw Inputs.conflict("Chưa có hợp đồng chờ thanh toán hoặc hợp đồng không còn hợp lệ");
     }
     if ("RENEW".equals(i.getInvoiceType())) {
       var c = contracts
@@ -98,6 +113,7 @@ public class PayInvoiceWorkflow {
         method
       )
     ) throw Inputs.bad("Phương thức thanh toán không hợp lệ");
+    if ("MOCK_CARD".equals(method)) validateMockCard(d);
     if (
       "STAFF".equals(actor.role(a)) && !"CASH_AT_COUNTER".equals(method)
     ) throw Inputs.bad("Staff chỉ ghi nhận thu tại quầy");
@@ -126,6 +142,11 @@ public class PayInvoiceWorkflow {
         var r = reservations.lockById(i.getReservationId()).orElseThrow();
         r.setStatus("RESERVED");
         reservations.save(r);
+        tasks.requestCheckin(r);
+      }
+      if ("RENT".equals(i.getInvoiceType())) {
+        var r = reservations.lockById(i.getReservationId()).orElseThrow(Inputs::missing);
+        rentActivation.activate(i, r);
       }
       if ("RENEW".equals(i.getInvoiceType())) {
         var c = contracts
@@ -160,5 +181,26 @@ public class PayInvoiceWorkflow {
       i.getInvoiceType() + " " + i.getAmount()
     );
     return p;
+  }
+
+  private void validateMockCard(Map<String, Object> request) {
+    if (!Boolean.TRUE.equals(request.get("confirmedAmount"))) {
+      throw Inputs.bad("Cần xác nhận số tiền thanh toán");
+    }
+    if (!"NCB".equals(Inputs.text(request, "bankCode"))) {
+      throw Inputs.bad("Ngân hàng mock card không hợp lệ");
+    }
+    if (!"9704198526191432198".equals(Inputs.text(request, "cardNumber"))) {
+      throw Inputs.bad("Số thẻ mock không hợp lệ");
+    }
+    if (!"NGUYEN VAN A".equalsIgnoreCase(Inputs.text(request, "cardHolder"))) {
+      throw Inputs.bad("Tên chủ thẻ mock không hợp lệ");
+    }
+    if (!"07/15".equals(Inputs.text(request, "issueDate"))) {
+      throw Inputs.bad("Ngày phát hành mock không hợp lệ");
+    }
+    if (!"123456".equals(Inputs.text(request, "otp"))) {
+      throw Inputs.bad("OTP mock không hợp lệ");
+    }
   }
 }

@@ -1,0 +1,25 @@
+$kind: http-request
+name: 05-current-profile
+method: GET
+url: '{{base_url}}/auth/me'
+order: 5000
+auth:
+  type: noauth
+headers:
+  - key: Authorization
+    value: 'Bearer {{auth_access_token}}'
+scripts:
+  - type: beforeRequest
+    language: text/javascript
+    code: |-
+      if (!pm.variables.get("auth_access_token")) throw new Error("Run login and profile in the same collection run.");
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Actual bearer token resolves current user", () => {
+       pm.response.to.have.status(200);
+       const result = pm.response.json();
+       pm.expect(result.data.id).to.eql(pm.variables.get("auth_user_id"));
+       pm.expect(result.data.username).to.eql(pm.variables.get("test_username").trim().toLowerCase());
+       pm.expect(result.data).not.to.have.property("password");
+      });

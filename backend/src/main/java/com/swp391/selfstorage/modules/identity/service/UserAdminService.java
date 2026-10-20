@@ -53,23 +53,36 @@ public class UserAdminService {
   @Transactional
   public UserDto create(Map<String, Object> d) {
     actor.require("ADMIN");
-    String username = Inputs.text(d, "username").toLowerCase(),
-      email = Inputs.text(d, "email").toLowerCase();
+    String username = Inputs.text(d, "username").trim().toLowerCase(Locale.ROOT),
+      email = Inputs.text(d, "email").trim().toLowerCase(Locale.ROOT);
+    if (!username.matches("^[a-z_][a-z0-9_]{3,19}$")) throw Inputs.bad("Tên đăng nhập gồm 4–20 chữ, số hoặc dấu gạch dưới");
     if (
-      users.existsByUsername(username) || users.existsByEmail(email)
+      users.existsByUsernameIgnoreCase(username) || users.existsByEmailIgnoreCase(email)
     ) throw Inputs.conflict("Tên đăng nhập hoặc email đã tồn tại");
     String password = Inputs.text(d, "password");
-    if (password.length() < 8) throw Inputs.bad("Mật khẩu tối thiểu 8 ký tự");
+    if (password.length() < 8 || password.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72)
+      throw Inputs.bad("Mật khẩu tạm thời phải có 8–72 byte UTF-8");
+    String phone = Inputs.text(d, "phone").replaceAll("[\\s.-]", "");
+    if (!phone.matches("^(03|05|07|08|09)[0-9]{8}$")) throw Inputs.bad("Số điện thoại Việt Nam không hợp lệ");
+    if (users.existsByNormalizedPhone(phone)) throw Inputs.conflict("Số điện thoại đã được sử dụng");
+    String cccd = Inputs.text(d, "cccd").replaceAll("\\s", "");
+    if (!cccd.matches("^[0-9]{12}$")) throw Inputs.bad("CCCD phải có 12 chữ số");
+    if (users.existsByCccd(cccd)) throw Inputs.conflict("CCCD đã được sử dụng");
+    String name = Inputs.text(d, "name");
+    if (name.length() < 2 || name.length() > 50) throw Inputs.bad("Họ tên phải có 2–50 ký tự");
+    if (!email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) throw Inputs.bad("Email không hợp lệ");
     User u = new User();
     u.setId("USR-" + UUID.randomUUID());
-    u.setName(Inputs.text(d, "name"));
+    u.setName(name);
     u.setUsername(username);
     u.setEmail(email);
+    u.setPhone(phone);
+    u.setCccd(cccd);
     u.setPassword(encoder.encode(password));
     u.setCreatedAt(LocalDateTime.now());
     u.setStatus("ACTIVE");
     configure(u, d);
-    users.save(u);
+    users.saveAndFlush(u);
     audit.record("CREATE_USER", u.getId(), "Tạo tài khoản nhân sự");
     return new UserDto(u);
   }
@@ -101,7 +114,17 @@ public class UserAdminService {
       )
     ) throw Inputs.bad("Vai trò không hợp lệ");
     u.setRole(role);
-    u.setRoleTitle(role);
+    u.setRoleTitle(switch (role) {
+      case "FMANAGER" -> "Facility Manager";
+      case "STAFF" -> "Facility Staff";
+      case "OPS_MGR" -> "Business Operation Manager";
+      case "ADMIN" -> "Admin";
+      default -> role;
+    });
+    if ("ADMIN".equals(role) && users.existsOtherUserWithRole(Set.of("ADMIN", "SYSTEM_ADMIN"), u.getId()))
+      throw Inputs.conflict("Hệ thống chỉ được có một Admin");
+    if ("OPS_MGR".equals(role) && users.existsOtherUserWithRole(Set.of("OPS_MGR", "OPS_MANAGER"), u.getId()))
+      throw Inputs.conflict("Hệ thống chỉ được có một Business Operation Manager");
     if (Set.of("STAFF", "FMANAGER").contains(role)) {
       String code = d.containsKey("facilityCode")
         ? Inputs.text(d, "facilityCode")
@@ -109,8 +132,11 @@ public class UserAdminService {
       if (code == null || code.isBlank()) throw Inputs.bad(
         "Cần chỉ định cơ sở"
       );
-      var f = facilities.findById(code).orElseThrow(Inputs::missing);
-      u.setFacilityCode(code);
+      var f = facilities.findById(code.trim()).orElseThrow(Inputs::missing);
+      if (!"ACTIVE".equalsIgnoreCase(f.getStatus())) throw Inputs.bad("Cơ sở phụ trách không hoạt động");
+      if ("FMANAGER".equals(role) && users.existsOtherFacilityManager(f.getCode(), u.getId()))
+        throw Inputs.conflict("Cơ sở này đã có Facility Manager; mỗi cơ sở chỉ có một người quản lý");
+      u.setFacilityCode(f.getCode());
       u.setFacility(f.getName());
     } else {
       u.setFacilityCode(null);

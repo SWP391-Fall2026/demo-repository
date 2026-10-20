@@ -4,6 +4,10 @@ import com.swp391.selfstorage.application.workflow.*;
 import com.swp391.selfstorage.common.web.ApiResponse;
 import com.swp391.selfstorage.modules.rental.service.*;
 import java.util.*;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -38,9 +42,41 @@ public class ContractController {
     return ApiResponse.ok(contracts.list());
   }
 
-  @PostMapping("/handover")
-  public ApiResponse<?> handover(@RequestBody Map<String, Object> d) {
-    return ApiResponse.ok(handover.execute(d));
+  @GetMapping("/{id}")
+  public ApiResponse<?> detail(@PathVariable String id) {
+    return ApiResponse.ok(contracts.detail(id));
+  }
+
+  @GetMapping("/handover/eligible")
+  public ApiResponse<?> eligibleHandovers() { return ApiResponse.ok(handover.eligibleForStaff()); }
+
+  @PostMapping(value = "/handover", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  public ApiResponse<?> handover(@RequestParam Map<String, String> fields,
+      @RequestParam(value = "evidence", required = false) MultipartFile evidence) {
+    return ApiResponse.ok(handover.execute(new HashMap<>(fields), evidence));
+  }
+
+  @PostMapping(value = "/handover", consumes = MediaType.APPLICATION_JSON_VALUE)
+  public ApiResponse<?> handoverJson(@RequestBody Map<String, Object> fields) {
+    return ApiResponse.ok(handover.execute(fields));
+  }
+
+  @PostMapping("/{id}/handover/confirm")
+  public ApiResponse<?> confirmHandover(@PathVariable String id, @RequestBody Map<String, Object> d) {
+    return ApiResponse.ok(handover.confirmByCustomer(id, d));
+  }
+
+  @PostMapping("/{id}/handover/issue")
+  public ApiResponse<?> reportHandoverIssue(@PathVariable String id, @RequestBody Map<String, Object> d) {
+    return ApiResponse.ok(handover.reportIssue(id, d));
+  }
+
+  @GetMapping("/{id}/handover/evidence")
+  public ResponseEntity<?> handoverEvidence(@PathVariable String id) throws java.io.IOException {
+    var file = handover.evidence(id);
+    String contentType = java.nio.file.Files.probeContentType(file);
+    return ResponseEntity.ok().contentType(MediaType.parseMediaType(contentType == null ? MediaType.APPLICATION_OCTET_STREAM_VALUE : contentType))
+        .body(new FileSystemResource(file));
   }
 
   @PostMapping("/checkout-request")

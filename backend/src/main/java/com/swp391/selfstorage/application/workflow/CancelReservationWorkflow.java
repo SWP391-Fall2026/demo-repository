@@ -3,6 +3,7 @@ package com.swp391.selfstorage.application.workflow;
 import com.swp391.selfstorage.common.security.ActorContext;
 import com.swp391.selfstorage.common.web.*;
 import com.swp391.selfstorage.modules.audit.service.AuditLogService;
+import com.swp391.selfstorage.modules.billing.repository.InvoiceRepository;
 import com.swp391.selfstorage.modules.facility.repository.UnitRepository;
 import com.swp391.selfstorage.modules.identity.entity.User;
 import com.swp391.selfstorage.modules.reservation.entity.Reservation;
@@ -21,19 +22,22 @@ public class CancelReservationWorkflow {
   private final ActorContext actor;
   private final AuditLogService audit;
   private final Clock clock;
+  private final InvoiceRepository invoices;
 
   public CancelReservationWorkflow(
     ReservationRepository r,
     UnitRepository u,
     ActorContext a,
     AuditLogService au,
-    Clock clock
+    Clock clock,
+    InvoiceRepository invoices
   ) {
     reservations = r;
     units = u;
     actor = a;
     audit = au;
     this.clock = clock;
+    this.invoices = invoices;
   }
 
   @Transactional
@@ -58,10 +62,18 @@ public class CancelReservationWorkflow {
         unit.setStatus("available");
         unit.setTenantName(null);
         unit.setHeldByReservationId(null);
+        unit.setTemporaryPin(null);
+        unit.setTemporaryPinExpiresAt(null);
         units.save(unit);
       }
     }
     reservations.save(r);
+    invoices.findByReservationId(id).forEach(invoice -> {
+      if ("PENDING".equals(invoice.getStatus())) {
+        invoice.setStatus("CANCELLED");
+        invoices.save(invoice);
+      }
+    });
     audit.record(
       "CANCEL_RESERVATION",
       id,
