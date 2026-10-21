@@ -79,7 +79,7 @@ function checkAdapters(dir) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const filename = path.join(dir, entry.name);
     if (entry.isDirectory()) checkAdapters(filename);
-    else if (entry.name.endsWith(".api.ts")) {
+    else if (entry.name.endsWith(".api.js")) {
       const source = readFileSync(filename, "utf8");
       for (const call of source.matchAll(
         /(?:request|envelope|idempotentRequest)(?:<[^>]+>)?\(\s*([`"])(.*?)\1/gs,
