@@ -1,0 +1,38 @@
+$kind: http-request
+name: 04-login-original
+method: POST
+url: '{{base_url}}/auth/login'
+order: 4000
+auth:
+  type: noauth
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: '{{auth_request_body}}'
+scripts:
+  - type: beforeRequest
+    language: text/javascript
+    code: |-
+      const password = pm.variables.get("test_password") || await pm.vault.get("storage-rental-auth-test-password");
+      if (!password) throw new Error("Missing private test password.");
+      pm.variables.set("auth_request_body", JSON.stringify({username: pm.variables.get("test_username"), password}));
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Original raw password logs in", () => pm.response.to.have.status(200));
+      const result = pm.response.json();
+      pm.test("ACTIVE account and 24-hour JWT", () => {
+       pm.expect(result.success).to.eql(true);
+       pm.expect(result.data.status).to.eql("ACTIVE");
+       pm.expect(result.data.role).to.eql(pm.variables.get("expected_role") || "CUSTOMER");
+       pm.expect(result.data).not.to.have.property("password");
+       const part = result.token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+       const claims = JSON.parse(atob(part.padEnd(Math.ceil(part.length/4)*4,"=")));
+       pm.expect(claims.exp - claims.iat).to.eql(86400);
+      });
+      if (result.success && result.token) {
+       pm.variables.set("auth_access_token", result.token);
+       pm.variables.set("auth_user_id", result.data.id);
+      }

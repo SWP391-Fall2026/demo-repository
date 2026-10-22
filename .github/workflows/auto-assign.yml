@@ -16,4 +16,4 @@ jobs:
       with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           assignees: diepdangkhoa1104
-
+          numOfAssignee: 1

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cấu hình Supabase staging — Storage Rental</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./form.mjs"></script>
+</head>
+<body>
+<main>
+  <header><span class="eyebrow">STORAGE RENTAL · CẤU HÌNH LOCAL</span>
+    <h1>Kết nối Supabase staging</h1>
+    <p>Điền trên máy của bạn, tải file cấu hình riêng, rồi gửi <strong>chỉ đường dẫn file</strong> trong chat.</p>
+  </header>
+  <aside class="notice">Form không gửi giá trị nhập lên server/API và không dùng localStorage.
+    File tải xuống chứa secret dạng văn bản: cất ngoài Git, không tải lên chat.
+    Form không khởi chạy backend hoặc kiểm tra kết nối.</aside>
+  <form id="setup" method="post" autocomplete="off">
+    <fieldset>
+      <legend>1. Database đã xác nhận</legend>
+      <div class="grid">
+        <label>Môi trường<input value="staging" readonly></label>
+        <label>Project reference<input value="xnerbsgbwdpemvnatvuy" readonly></label>
+        <label class="wide">DB host<input id="host" value="db.xnerbsgbwdpemvnatvuy.supabase.co" required spellcheck="false"></label>
+        <label>Port<input id="port" type="number" min="1" max="65535" value="5432" required></label>
+        <label>Database<input id="database" value="postgres" required spellcheck="false"></label>
+        <label>Schema<input value="public" readonly></label>
+        <label>DB user<input id="user" value="postgres" required spellcheck="false"></label>
+        <label>SSL<select id="ssl"><option value="require">require — đã chọn</option><option value="verify-full">verify-full</option></select></label>
+        <label>CA certificate nếu verify-full<input id="ca" placeholder="C:/.../supabase-ca.crt" spellcheck="false"></label>
+        <label class="wide">DB password hiện có trong Supabase<input id="db-password" class="secret" type="password" required autocomplete="off" spellcheck="false"></label>
+      </div>
+      <p class="hint">Kết nối direct theo thông tin bạn đã cung cấp. Không nhập API key/service_role key hoặc URL có mật khẩu vào ô host.</p>
+    </fieldset>
+    <fieldset>
+      <legend>2. Backend và frontend</legend>
+      <div class="grid">
+        <label class="wide">JWT signing key<input id="jwt" class="secret" type="password" required autocomplete="new-password" spellcheck="false"></label>
+        <button id="generate-key" class="secondary" type="button">Tạo khóa ngẫu nhiên 64 byte</button>
+        <label class="wide">Frontend origin<input id="origin" type="url" value="http://localhost:5173" required spellcheck="false"></label>
+        <label class="wide">OTP<select id="otp">
+          <option value="disabled">Chưa chọn — giữ OTP chưa bật</option>
+          <option value="mock">OTP mô phỏng — chỉ cho staging/test</option>
+          <option value="email">OTP email thật — cần SMTP bên dưới</option>
+        </select></label>
+      </div>
+      <p class="hint">Kiến trúc hiện tại: Spring Boot JWT + public.users; React chỉ gọi backend. Password đăng ký giữ nguyên, tối đa 72 byte UTF-8.</p>
+    </fieldset>
+    <fieldset id="mail-settings" disabled>
+      <legend>3. SMTP nếu dùng email thật</legend>
+      <div class="grid">
+        <label>SMTP host<input id="smtp-host" required spellcheck="false"></label>
+        <label>SMTP port<input id="smtp-port" type="number" min="1" max="65535" value="587" required></label>
+        <label>SMTP username<input id="smtp-user" required autocomplete="off" spellcheck="false"></label>
+        <label>SMTP password<input id="smtp-password" class="secret" type="password" required autocomplete="off" spellcheck="false"></label>
+        <label class="wide">Địa chỉ gửi<input id="mail-from" type="email" required autocomplete="off"></label>
+      </div>
+      <p class="hint">Cấu hình email dùng STARTTLS bắt buộc. Nếu nhà cung cấp cần cách kết nối khác, báo lại trước khi chạy.</p>
+    </fieldset>
+    <aside class="notice">File luôn giữ <code>ddl-auto=validate</code>, scheduler tắt và <code>AUTH_SCHEMA_REVIEWED=false</code>.
+      Chỉ sau khi xác minh metadata mới bật đăng ký. Form không thay schema, RLS, privilege hay dữ liệu.</aside>
+    <button class="primary" type="submit">Tải file cấu hình riêng</button>
+    <p id="status" role="status" aria-live="polite"></p>
+  </form>
+</main>
+</body>
+</html>

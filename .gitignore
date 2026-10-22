@@ -1,3 +1,4 @@
+
 # Dependencies
 node_modules/
 /.pnp
@@ -8,16 +9,16 @@ target/
 *.class
 *.jar
 *.war
+/frontend/dist/
+/backend/target/
 
 # Environment and Local Config
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-backend/data/
-data/
-*.db
+.env.*
+!.env.example
+!**/.env.example
+*.private.properties
+/storage-rental-secrets/
 
 # Logs
 npm-debug.log*
@@ -35,3 +36,15 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# TypeScript build cache
+*.tsbuildinfo
+
+# Local-only Spring configuration
+/backend/src/main/resources/application-local.properties
+
+# Local artifacts
+artifacts/*
+!artifacts/README.md
+var/*
+!var/README.md

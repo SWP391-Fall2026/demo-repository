@@ -1,18 +1,25 @@
 {
-  "name": "self-storage-frontend",
-  "version": "1.0.0",
-  "description": "Frontend Web Application for Self-Storage Facility Rental & Management System",
-  "main": "server.js",
+  "name": "@storage-rental/frontend",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "vitest run"
   },
-  "keywords": [
-    "self-storage",
-    "frontend",
-    "spa",
-    "swp391"
-  ],
-  "author": "SWP391 Team",
-  "license": "MIT"
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-router-dom": "^7.9.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "^5.9.0",
+    "vite": "^7.1.0",
+    "vitest": "^3.2.0"
+  }
 }

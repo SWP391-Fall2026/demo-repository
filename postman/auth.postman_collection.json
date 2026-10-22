@@ -1,0 +1,600 @@
+{
+  "info": {
+    "name": "Storage Rental Auth - NOT RUN",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Generated GUI compatibility snapshot of postman/collections/auth. Do not edit independently. No live run performed."
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080/api"
+    },
+    {
+      "key": "auth_run_approved",
+      "value": "no"
+    },
+    {
+      "key": "auth_db_scope_approved",
+      "value": "no"
+    },
+    {
+      "key": "expected_role",
+      "value": "CUSTOMER"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (pm.variables.get(\"auth_run_approved\") !== \"yes\" || pm.variables.get(\"auth_db_scope_approved\") !== \"yes\") {",
+          " throw new Error(\"STOP: operator must confirm target, G0 and auth/DB-write/SMTP scope before this collection runs.\");",
+          "}",
+          "const base = String(pm.variables.get(\"base_url\") || \"\").replace(/\\/$/, \"\");",
+          "if (!/^http:\\/\\/(localhost|127\\.0\\.0\\.1)(:\\d+)?\\/api$/.test(base)) {",
+          " throw new Error(\"This prepared collection only targets an explicitly approved localhost backend.\");",
+          "}",
+          "pm.variables.set(\"base_url\", base);"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "01-send-otp",
+      "request": {
+        "method": "POST",
+        "auth": {
+          "type": "noauth"
+        },
+        "url": "{{base_url}}/auth/send-otp",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{{auth_request_body}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const password = pm.variables.get(\"test_password\") || await pm.vault.get(\"storage-rental-auth-test-password\");",
+              "if (!password) throw new Error(\"Set the test password in Vault or a private environment; do not export it.\");",
+              "const input = {",
+              " name: pm.variables.get(\"test_name\"),",
+              " username: pm.variables.get(\"test_username\"),",
+              " email: pm.variables.get(\"test_email\"),",
+              " phone: pm.variables.get(\"test_phone\"),",
+              " cccd: pm.variables.get(\"test_cccd\"),",
+              " facilityCode: pm.variables.get(\"test_facility_code\"),",
+              " password, confirmPassword: password",
+              "};",
+              "for (const field of [\"name\",\"username\",\"email\",\"phone\",\"cccd\"]) {",
+              " if (!input[field]) throw new Error(\"Missing synthetic fixture field: \" + field);",
+              "}",
+              "",
+              "pm.variables.set(\"auth_request_body\", JSON.stringify(input));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"OTP request accepted\", () => pm.response.to.have.status(200));",
+              "const result = pm.response.json();",
+              "pm.test(\"OTP challenge has expiry and no session\", () => {",
+              " pm.expect(result.success).to.eql(true);",
+              " pm.expect(result).not.to.have.property(\"token\");",
+              " pm.expect(result.data.email).to.eql(pm.variables.get(\"test_email\").trim().toLowerCase());",
+              " pm.expect(Date.parse(result.data.expiresAt)).to.be.above(Date.now());",
+              "});",
+              "pm.test(\"OTP sent by email and never returned\", () => {",
+              " pm.expect(result.data.delivery).to.eql(\"email\");",
+              " pm.expect(result.data).not.to.have.property(\"code\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02-invalid-otp-format",
+      "request": {
+        "method": "POST",
+        "auth": {
+          "type": "noauth"
+        },
+        "url": "{{base_url}}/auth/verify-otp",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{{auth_request_body}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"auth_request_body\", JSON.stringify({email: pm.variables.get(\"test_email\"), code: \"invalid\"}));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Malformed OTP rejected without registration\", () => {",
+              " pm.response.to.have.status(400);",
+              " pm.expect(pm.response.json().success).to.eql(false);",
+              " pm.expect(pm.response.json()).not.to.have.property(\"token\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03-verify-otp",
+      "request": {
+        "method": "POST",
+        "auth": {
+          "type": "noauth"
+        },
+        "url": "{{base_url}}/auth/verify-otp",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{{auth_request_body}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const code = await pm.vault.get(\"storage-rental-auth-otp\");",
+              "if (!code) throw new Error(\"Enter the OTP received by email in Vault; do not restart send-otp.\");",
+              "pm.variables.set(\"auth_request_body\", JSON.stringify({email: pm.variables.get(\"test_email\"), code}));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Registration completed without automatic login\", () => {",
+              " pm.response.to.have.status(200);",
+              " const result = pm.response.json();",
+              " pm.expect(result.success).to.eql(true);",
+              " pm.expect(result.data.registered).to.eql(true);",
+              " pm.expect(result).not.to.have.property(\"token\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04-login-original",
+      "request": {
+        "method": "POST",
+        "auth": {
+          "type": "noauth"
+        },
+        "url": "{{base_url}}/auth/login",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{{auth_request_body}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const password = pm.variables.get(\"test_password\") || await pm.vault.get(\"storage-rental-auth-test-password\");",
+              "if (!password) throw new Error(\"Missing private test password.\");",
+              "pm.variables.set(\"auth_request_body\", JSON.stringify({username: pm.variables.get(\"test_username\"), password}));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Original raw password logs in\", () => pm.response.to.have.status(200));",
+              "const result = pm.response.json();",
+              "pm.test(\"ACTIVE account and 24-hour JWT\", () => {",
+              " pm.expect(result.success).to.eql(true);",
+              " pm.expect(result.data.status).to.eql(\"ACTIVE\");",
+              " pm.expect(result.data.role).to.eql(pm.variables.get(\"expected_role\") || \"CUSTOMER\");",
+              " pm.expect(result.data).not.to.have.property(\"password\");",
+              " const part = result.token.split(\".\")[1].replace(/-/g, \"+\").replace(/_/g, \"/\");",
+              " const claims = JSON.parse(atob(part.padEnd(Math.ceil(part.length/4)*4,\"=\")));",
+              " pm.expect(claims.exp - claims.iat).to.eql(86400);",
+              "});",
+              "if (result.success && result.token) {",
+              " pm.variables.set(\"auth_access_token\", result.token);",
+              " pm.variables.set(\"auth_user_id\", result.data.id);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05-current-profile",
+      "request": {
+        "method": "GET",
+        "auth": {
+          "type": "noauth"
+        },
+        "url": "{{base_url}}/auth/me",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_access_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!pm.variables.get(\"auth_access_token\")) throw new Error(\"Run login and profile in the same collection run.\");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Actual bearer token resolves current user\", () => {",
+              " pm.response.to.have.status(200);",
+              " const result = pm.response.json();",
+              " pm.expect(result.data.id).to.eql(pm.variables.get(\"auth_user_id\"));",
+              " pm.expect(result.data.username).to.eql(pm.variables.get(\"test_username\").trim().toLowerCase());",
+              " pm.expect(result.data).not.to.have.property(\"password\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06-login-trimmed-denied",
+      "request": {
+        "method": "POST",
+        "auth": {
+          "type": "noauth"
+        },
+        "url": "{{base_url}}/auth/login",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{{auth_request_body}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const raw = pm.variables.get(\"test_password\") || await pm.vault.get(\"storage-rental-auth-test-password\");",
+              "if (!raw || raw === raw.trim()) throw new Error(\"AUTH-PWD-04 requires a fixture with edge spaces.\");",
+              "pm.variables.set(\"auth_request_body\", JSON.stringify({username: pm.variables.get(\"test_username\"), password: raw.trim()}));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Trimmed variant is a different credential\", () => {",
+              " pm.response.to.have.status(401);",
+              " pm.expect(pm.response.json().success).to.eql(false);",
+              " pm.expect(pm.response.json()).not.to.have.property(\"token\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07-confirm-mismatch",
+      "request": {
+        "method": "POST",
+        "auth": {
+          "type": "noauth"
+        },
+        "url": "{{base_url}}/auth/send-otp",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{{auth_request_body}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const password = pm.variables.get(\"test_password\") || await pm.vault.get(\"storage-rental-auth-test-password\");",
+              "if (!password) throw new Error(\"Set the test password in Vault or a private environment; do not export it.\");",
+              "const input = {",
+              " name: pm.variables.get(\"test_name\"),",
+              " username: pm.variables.get(\"test_username\"),",
+              " email: pm.variables.get(\"test_email\"),",
+              " phone: pm.variables.get(\"test_phone\"),",
+              " cccd: pm.variables.get(\"test_cccd\"),",
+              " password, confirmPassword: password",
+              "};",
+              "for (const field of [\"name\",\"username\",\"email\",\"phone\",\"cccd\"]) {",
+              " if (!input[field]) throw new Error(\"Missing synthetic fixture field: \" + field);",
+              "}",
+              "input.password = password + \" \";",
+              "input.confirmPassword = password;",
+              "pm.variables.set(\"auth_request_body\", JSON.stringify(input));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Raw confirmation mismatch rejected\", () => {",
+              " pm.response.to.have.status(400);",
+              " pm.expect(pm.response.json().success).to.eql(false);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08-password-blank",
+      "request": {
+        "method": "POST",
+        "auth": {
+          "type": "noauth"
+        },
+        "url": "{{base_url}}/auth/send-otp",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{{auth_request_body}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const password = pm.variables.get(\"test_password\") || await pm.vault.get(\"storage-rental-auth-test-password\");",
+              "if (!password) throw new Error(\"Set the test password in Vault or a private environment; do not export it.\");",
+              "const input = {",
+              " name: pm.variables.get(\"test_name\"),",
+              " username: pm.variables.get(\"test_username\"),",
+              " email: pm.variables.get(\"test_email\"),",
+              " phone: pm.variables.get(\"test_phone\"),",
+              " cccd: pm.variables.get(\"test_cccd\"),",
+              " password, confirmPassword: password",
+              "};",
+              "for (const field of [\"name\",\"username\",\"email\",\"phone\",\"cccd\"]) {",
+              " if (!input[field]) throw new Error(\"Missing synthetic fixture field: \" + field);",
+              "}",
+              "input.password = \" \".repeat(6);",
+              "input.confirmPassword = input.password;",
+              "pm.variables.set(\"auth_request_body\", JSON.stringify(input));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Whitespace-only registration rejected\", () => {",
+              " pm.response.to.have.status(400);",
+              " pm.expect(pm.response.json().success).to.eql(false);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09-password-utf8-overflow",
+      "request": {
+        "method": "POST",
+        "auth": {
+          "type": "noauth"
+        },
+        "url": "{{base_url}}/auth/send-otp",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{{auth_request_body}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const password = pm.variables.get(\"test_password\") || await pm.vault.get(\"storage-rental-auth-test-password\");",
+              "if (!password) throw new Error(\"Set the test password in Vault or a private environment; do not export it.\");",
+              "const input = {",
+              " name: pm.variables.get(\"test_name\"),",
+              " username: pm.variables.get(\"test_username\"),",
+              " email: pm.variables.get(\"test_email\"),",
+              " phone: pm.variables.get(\"test_phone\"),",
+              " cccd: pm.variables.get(\"test_cccd\"),",
+              " password, confirmPassword: password",
+              "};",
+              "for (const field of [\"name\",\"username\",\"email\",\"phone\",\"cccd\"]) {",
+              " if (!input[field]) throw new Error(\"Missing synthetic fixture field: \" + field);",
+              "}",
+              "input.password = \"đ\".repeat(37);",
+              "input.confirmPassword = input.password;",
+              "pm.variables.set(\"auth_request_body\", JSON.stringify(input));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"74-byte password rejected explicitly\", () => {",
+              " pm.response.to.have.status(400);",
+              " const result = pm.response.json();",
+              " pm.expect(result.success).to.eql(false);",
+              " pm.expect(result.message).to.include(\"72\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10-profile-anonymous",
+      "request": {
+        "method": "GET",
+        "auth": {
+          "type": "noauth"
+        },
+        "url": "{{base_url}}/auth/me",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              ""
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Profile requires authentication\", () => {",
+              " pm.response.to.have.status(401);",
+              " pm.expect(pm.response.json().success).to.eql(false);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
