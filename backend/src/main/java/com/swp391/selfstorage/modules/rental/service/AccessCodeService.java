@@ -1,0 +1,75 @@
+package com.swp391.selfstorage.modules.rental.service;
+
+import com.swp391.selfstorage.common.security.ActorContext;
+import com.swp391.selfstorage.common.web.*;
+import com.swp391.selfstorage.modules.audit.service.AuditLogService;
+import com.swp391.selfstorage.modules.facility.repository.UnitRepository;
+import com.swp391.selfstorage.modules.rental.repository.ContractRepository;
+import java.math.*;
+import java.time.*;
+import java.util.*;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class AccessCodeService {
+
+  private final ContractRepository contracts;
+  private final UnitRepository units;
+  private final ActorContext actor;
+  private final AuditLogService audit;
+  private final Clock clock;
+
+  public AccessCodeService(
+    ContractRepository c,
+    UnitRepository u,
+    ActorContext a,
+    AuditLogService au,
+    Clock cl
+  ) {
+    contracts = c;
+    units = u;
+    actor = a;
+    audit = au;
+    clock = cl;
+  }
+
+  public Map<String, Object> verify(Map<String, Object> d) {
+    var a = actor.require("CUSTOMER", "STAFF", "FMANAGER");
+    String code = Inputs.text(d, "unitCode"),
+      pin = Inputs.text(d, "pin");
+    var c = contracts
+      .findFirstByUnitCodeAndStatusInOrderByCreatedAtDesc(
+        code,
+        List.of("ACTIVE", "EXPIRING_SOON")
+      )
+      .orElse(null);
+    boolean allowed =
+      c != null &&
+      c.getEndAt() != null &&
+      !LocalDateTime.now(clock).isAfter(c.getEndAt()) &&
+      actor.visible(a, c.getUserId(), c.getFacilityCode()) &&
+      Objects.equals(pin, c.getPinCode());
+    return Map.of("authorized", allowed, "mode", "SOFTWARE_SIMULATION");
+  }
+
+  @Transactional
+  public void update(String code, Map<String, Object> d) {
+    var a = actor.require("CUSTOMER");
+    var c = contracts
+      .findFirstByUnitCodeAndStatusInOrderByCreatedAtDesc(
+        code,
+        List.of("ACTIVE", "EXPIRING_SOON")
+      )
+      .filter(v -> a.getId().equals(v.getUserId()))
+      .orElseThrow(Inputs::missing);
+    String pin = Inputs.text(d, "newPin");
+    if (!pin.matches("[0-9]{6}")) throw Inputs.bad("PIN phải có 6 chữ số");
+    c.setPinCode(pin);
+    contracts.save(c);
+    var u = units.lockByCode(code).orElseThrow(Inputs::missing);
+    u.setPinCode(pin);
+    units.save(u);
+    audit.record("UPDATE_PIN", code, "Đổi PIN mô phỏng");
+  }
+}

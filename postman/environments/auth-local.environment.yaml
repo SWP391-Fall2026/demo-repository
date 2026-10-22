@@ -1,0 +1,32 @@
+name: Auth local - not approved
+values:
+  - key: base_url
+    value: 'http://localhost:8080/api'
+    enabled: true
+  - key: auth_run_approved
+    value: 'no'
+    enabled: true
+  - key: auth_db_scope_approved
+    value: 'no'
+    enabled: true
+  - key: test_name
+    value: ''
+    enabled: true
+  - key: test_username
+    value: ''
+    enabled: true
+  - key: test_email
+    value: ''
+    enabled: true
+  - key: test_phone
+    value: ''
+    enabled: true
+  - key: test_cccd
+    value: ''
+    enabled: true
+  - key: test_facility_code
+    value: ''
+    enabled: true
+  - key: expected_role
+    value: 'CUSTOMER'
+    enabled: true

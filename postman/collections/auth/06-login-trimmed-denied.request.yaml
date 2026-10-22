@@ -1,0 +1,28 @@
+$kind: http-request
+name: 06-login-trimmed-denied
+method: POST
+url: '{{base_url}}/auth/login'
+order: 6000
+auth:
+  type: noauth
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: '{{auth_request_body}}'
+scripts:
+  - type: beforeRequest
+    language: text/javascript
+    code: |-
+      const raw = pm.variables.get("test_password") || await pm.vault.get("storage-rental-auth-test-password");
+      if (!raw || raw === raw.trim()) throw new Error("AUTH-PWD-04 requires a fixture with edge spaces.");
+      pm.variables.set("auth_request_body", JSON.stringify({username: pm.variables.get("test_username"), password: raw.trim()}));
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Trimmed variant is a different credential", () => {
+       pm.response.to.have.status(401);
+       pm.expect(pm.response.json().success).to.eql(false);
+       pm.expect(pm.response.json()).not.to.have.property("token");
+      });

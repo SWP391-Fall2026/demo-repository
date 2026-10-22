@@ -1,0 +1,30 @@
+$kind: http-request
+name: 03-verify-otp
+method: POST
+url: '{{base_url}}/auth/verify-otp'
+order: 3000
+auth:
+  type: noauth
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: '{{auth_request_body}}'
+scripts:
+  - type: beforeRequest
+    language: text/javascript
+    code: |-
+      const code = await pm.vault.get("storage-rental-auth-otp");
+      if (!code) throw new Error("Enter the OTP received by email in Vault; do not restart send-otp.");
+      pm.variables.set("auth_request_body", JSON.stringify({email: pm.variables.get("test_email"), code}));
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Registration completed without automatic login", () => {
+       pm.response.to.have.status(200);
+       const result = pm.response.json();
+       pm.expect(result.success).to.eql(true);
+       pm.expect(result.data.registered).to.eql(true);
+       pm.expect(result).not.to.have.property("token");
+      });
