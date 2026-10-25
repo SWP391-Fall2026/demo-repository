@@ -85,14 +85,75 @@ public class FacilityService {
     );
     Facility f = new Facility();
     f.setCode(code);
-    f.setName(Inputs.text(d, "name"));
-    f.setAddress(Inputs.text(d, "address"));
-    f.setCity(Inputs.text(d, "city"));
-    f.setHotline(Inputs.optional(d, "hotline"));
+    setFacilityProfile(f, d, true);
     f.setStatus("ACTIVE");
     facilities.save(f);
     audit.record("CREATE_FACILITY", code, "Tạo chi nhánh");
     return f;
+  }
+
+  @Transactional
+  public Facility update(String code, Map<String, Object> d) {
+    actor.require("OPS_MGR");
+    var f = facilities.lockByCode(code).orElseThrow(Inputs::missing);
+    setFacilityProfile(f, d, false);
+    String status = Inputs.optional(d, "status");
+    if (!status.isBlank()) {
+      String normalized = status.trim().toUpperCase();
+      if (!Set.of("ACTIVE", "INACTIVE", "MAINTENANCE").contains(normalized)) throw Inputs.bad(
+        "Trạng thái cơ sở không hợp lệ"
+      );
+      f.setStatus(normalized);
+    }
+    facilities.save(f);
+    audit.record("UPDATE_FACILITY", code, "Cập nhật chi nhánh");
+    return f;
+  }
+
+  private void setFacilityProfile(Facility f, Map<String, Object> d, boolean required) {
+    String name = required ? Inputs.text(d, "name") : Inputs.optional(d, "name");
+    if (!name.isBlank()) {
+      String trimmed = name.trim();
+      if (trimmed.length() > 255) throw Inputs.bad("Tên cơ sở tối đa 255 ký tự");
+      boolean duplicate = facilities.findAll().stream().anyMatch(existing ->
+        existing.getName() != null &&
+        trimmed.equalsIgnoreCase(existing.getName().trim()) && !existing.getCode().equals(f.getCode()));
+      if (duplicate) throw Inputs.conflict("Trùng tên cơ sở");
+      f.setName(trimmed);
+    } else if (required) throw Inputs.bad("name is required");
+    String address = required ? Inputs.text(d, "address") : Inputs.optional(d, "address");
+    if (!address.isBlank()) f.setAddress(address);
+    else if (required) throw Inputs.bad("address is required");
+    String city = required ? Inputs.text(d, "city") : Inputs.optional(d, "city");
+    if (!city.isBlank()) f.setCity(city);
+    else if (required) throw Inputs.bad("city is required");
+    String hotline = Inputs.optional(d, "hotline");
+    if (!hotline.isBlank()) {
+      if (!hotline.matches("[0-9+\\s.()-]{8,20}")) throw Inputs.bad("Hotline không hợp lệ");
+      f.setHotline(hotline);
+    } else if (d.containsKey("hotline")) f.setHotline(null);
+    String openingHours = Inputs.optional(d, "openingHours");
+    if (!openingHours.isBlank()) {
+      if (openingHours.length() > 255) throw Inputs.bad("Giờ mở cửa tối đa 255 ký tự");
+      f.setOpeningHours(openingHours);
+    } else if (d.containsKey("openingHours")) f.setOpeningHours(null);
+    if (d.containsKey("imageUrl")) setFacilityImage(f, Inputs.optional(d, "imageUrl"));
+  }
+
+  private void setFacilityImage(Facility f, String url) {
+    if (url == null || url.isBlank()) {
+      f.setImageUrl(null);
+      return;
+    }
+    try {
+      var parsed = java.net.URI.create(url);
+      if (!"https".equalsIgnoreCase(parsed.getScheme()) || parsed.getHost() == null || parsed.getUserInfo() != null)
+        throw Inputs.bad("Ảnh đại diện phải là URL HTTPS hợp lệ");
+    } catch (IllegalArgumentException e) {
+      throw Inputs.bad("Ảnh đại diện phải là URL HTTPS hợp lệ");
+    }
+    if (url.length() > 2048) throw Inputs.bad("Link ảnh tối đa 2048 ký tự");
+    f.setImageUrl(url);
   }
 
   @Transactional

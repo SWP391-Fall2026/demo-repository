@@ -1,5 +1,4 @@
-import { ReportPage } from "../../../shared/ui/ReportPage";
-import { reportingApi } from "../api/reporting.api";
+import { RevenueReport } from "./RevenueReport";
 export default function FacilityReportPage() {
-    return <ReportPage title="Báo cáo cơ sở" load={reportingApi.facility}/>;
+    return <RevenueReport title="Báo cáo cơ sở" />;
 }

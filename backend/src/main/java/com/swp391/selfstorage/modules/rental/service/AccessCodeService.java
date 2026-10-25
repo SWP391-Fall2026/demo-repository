@@ -41,16 +41,26 @@ public class AccessCodeService {
     var c = contracts
       .findFirstByUnitCodeAndStatusInOrderByCreatedAtDesc(
         code,
-        List.of("ACTIVE", "EXPIRING_SOON")
+        List.of("ACTIVE", "EXPIRING_SOON", "CHECKOUT_REQUESTED")
       )
+      .orElse(null);
+    var overdue = contracts
+      .findFirstByUnitCodeAndStatusInOrderByCreatedAtDesc(code, List.of("OVERDUE"))
+      .filter(v -> actor.visible(a, v.getUserId(), v.getFacilityCode()))
       .orElse(null);
     boolean allowed =
       c != null &&
+      overdue == null &&
       c.getEndAt() != null &&
       !LocalDateTime.now(clock).isAfter(c.getEndAt()) &&
       actor.visible(a, c.getUserId(), c.getFacilityCode()) &&
       Objects.equals(pin, c.getPinCode());
-    return Map.of("authorized", allowed, "mode", "SOFTWARE_SIMULATION");
+    String reason = c == null && overdue != null ? "OVERDUE_LOCKED"
+      : c == null ? "NO_ACTIVE_CONTRACT"
+      : c.getEndAt() == null || LocalDateTime.now(clock).isAfter(c.getEndAt()) ? "CONTRACT_EXPIRED"
+      : !actor.visible(a, c.getUserId(), c.getFacilityCode()) ? "OUT_OF_SCOPE"
+      : !Objects.equals(pin, c.getPinCode()) ? "WRONG_PIN" : "OK";
+    return Map.of("authorized", allowed, "mode", "SOFTWARE_SIMULATION", "reason", reason);
   }
 
   @Transactional

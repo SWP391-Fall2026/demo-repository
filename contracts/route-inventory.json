@@ -6,8 +6,188 @@
   },
   {
     "method": "get",
+    "path": "/api/auth/login-history",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/UserAdminController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/auth/login",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/AuthController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/auth/me",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/AuthController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/auth/rbac-matrix",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/UserAdminController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/auth/register",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/AuthController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/auth/resend-otp",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/AuthController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/auth/send-otp",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/AuthController.java"
+  },
+  {
+    "method": "patch",
+    "path": "/api/auth/users/{id}",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/UserAdminController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/auth/users",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/UserAdminController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/auth/users",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/UserAdminController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/auth/verify-otp",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/AuthController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/contracts/{id}/handover/confirm",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/contracts/{id}/handover/evidence",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/contracts/{id}/handover/issue",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/contracts/{id}/renewal-invoice",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/contracts/{id}/renewal-quote",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/contracts/{id}",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
+  },
+  {
+    "method": "patch",
+    "path": "/api/contracts/{unitCode}/pin",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/contracts/checkout-request",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/contracts/handover/eligible",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/contracts/handover",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/contracts/return-inspection",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/contracts/verify-pin",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/contracts",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
+  },
+  {
+    "method": "put",
+    "path": "/api/facilities/{code}/checkin-pin",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java"
+  },
+  {
+    "method": "put",
+    "path": "/api/facilities/{code}",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/facilities/units/{code}/ready/approve",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/facilities/units/{code}/ready",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java"
+  },
+  {
+    "method": "put",
+    "path": "/api/facilities/units/{code}",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/facilities/units/manage",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/facilities/units",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/facilities/units",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/facilities",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/facilities",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java"
+  },
+  {
+    "method": "get",
     "path": "/api/invoices",
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/controller/InvoiceController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/payments/bank-info",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/controller/PaymentController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/payments/simulate",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/controller/PaymentController.java"
   },
   {
     "method": "get",
@@ -30,229 +210,9 @@
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/controller/PaymentController.java"
   },
   {
-    "method": "get",
-    "path": "/api/payments/bank-info",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/controller/PaymentController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/payments/simulate",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/controller/PaymentController.java"
-  },
-  {
-    "method": "get",
-    "path": "/api/refunds",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/controller/RefundController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/refunds",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/controller/RefundController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/refunds/{id}/cancel",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/controller/RefundController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/refunds/{id}/decision",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/controller/RefundController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/refunds/{id}/evidence",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/controller/RefundController.java"
-  },
-  {
-    "method": "get",
-    "path": "/api/refunds/{id}/evidence",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/controller/RefundController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/refunds/{id}/confirm",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/controller/RefundController.java"
-  },
-  {
-    "method": "get",
-    "path": "/api/facilities",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/facilities",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java"
-  },
-  {
-    "method": "get",
-    "path": "/api/facilities/units",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java"
-  },
-  {
-    "method": "get",
-    "path": "/api/facilities/units/manage",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/facilities/units",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java"
-  },
-  {
-    "method": "put",
-    "path": "/api/facilities/units/{code}",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java"
-  },
-  {
-    "method": "put",
-    "path": "/api/facilities/{code}/checkin-pin",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/facilities/units/{code}/ready",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/facilities/units/{code}/ready/approve",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java"
-  },
-  {
-    "method": "get",
-    "path": "/api/services",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/ServiceController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/auth/login",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/AuthController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/auth/send-otp",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/AuthController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/auth/register",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/AuthController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/auth/verify-otp",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/AuthController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/auth/resend-otp",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/AuthController.java"
-  },
-  {
-    "method": "get",
-    "path": "/api/auth/users",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/UserAdminController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/auth/users",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/UserAdminController.java"
-  },
-  {
-    "method": "patch",
-    "path": "/api/auth/users/{id}",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/UserAdminController.java"
-  },
-  {
-    "method": "get",
-    "path": "/api/auth/login-history",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/UserAdminController.java"
-  },
-  {
-    "method": "get",
-    "path": "/api/auth/rbac-matrix",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/UserAdminController.java"
-  },
-  {
-    "method": "get",
-    "path": "/api/policies",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/policy/controller/PolicyController.java"
-  },
-  {
-    "method": "patch",
-    "path": "/api/policies",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/policy/controller/PolicyController.java"
-  },
-  {
     "method": "patch",
     "path": "/api/policies/facility-cap",
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/policy/controller/PolicyController.java"
-  },
-  {
-    "method": "get",
-    "path": "/api/contracts",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
-  },
-  {
-    "method": "get",
-    "path": "/api/contracts/{id}",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/contracts/handover",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
-  },
-  {
-    "method": "get",
-    "path": "/api/contracts/handover/eligible",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/contracts/{id}/handover/confirm",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/contracts/{id}/handover/issue",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
-  },
-  {
-    "method": "get",
-    "path": "/api/contracts/{id}/handover/evidence",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/contracts/checkout-request",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/contracts/return-inspection",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/contracts/verify-pin",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
-  },
-  {
-    "method": "patch",
-    "path": "/api/contracts/{unitCode}/pin",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
-  },
-  {
-    "method": "get",
-    "path": "/api/contracts/{id}/renewal-quote",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/contracts/{id}/renewal-invoice",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
   },
   {
     "method": "get",
@@ -261,7 +221,62 @@
   },
   {
     "method": "get",
+    "path": "/api/policies",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/policy/controller/PolicyController.java"
+  },
+  {
+    "method": "patch",
+    "path": "/api/policies",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/policy/controller/PolicyController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/refunds/{id}/cancel",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/controller/RefundController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/refunds/{id}/confirm",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/controller/RefundController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/refunds/{id}/decision",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/controller/RefundController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/refunds/{id}/evidence",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/controller/RefundController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/refunds/{id}/evidence",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/controller/RefundController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/refunds",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/controller/RefundController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/refunds",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/controller/RefundController.java"
+  },
+  {
+    "method": "get",
     "path": "/api/reports/facility",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/reporting/controller/ReportController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/reports/occupancy",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/reporting/controller/ReportController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/reports/revenue",
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/reporting/controller/ReportController.java"
   },
   {
@@ -270,43 +285,8 @@
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/reporting/controller/ReportController.java"
   },
   {
-    "method": "get",
-    "path": "/api/reservations",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
-  },
-  {
-    "method": "get",
-    "path": "/api/reservations/{id}",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
-  },
-  {
-    "method": "get",
-    "path": "/api/reservations/{id}/checkin-task",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
-  },
-  {
-    "method": "get",
-    "path": "/api/reservations/{id}/contract-offer",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
-  },
-  {
     "method": "post",
-    "path": "/api/reservations/calculate",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/reservations",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/reservations/{id}/checkin-request",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/reservations/{id}/contract-terms/accept",
+    "path": "/api/reservations/{id}/arrived",
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
   },
   {
@@ -321,17 +301,27 @@
   },
   {
     "method": "post",
-    "path": "/api/reservations/{id}/arrived",
+    "path": "/api/reservations/{id}/checkin-request",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/reservations/{id}/checkin-task",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/reservations/{id}/contract-offer",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/reservations/{id}/contract-terms/accept",
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
   },
   {
     "method": "post",
     "path": "/api/reservations/{id}/extension",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/reservations/{id}/schedule",
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
   },
   {
@@ -345,64 +335,34 @@
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
   },
   {
-    "method": "get",
-    "path": "/api/tickets",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/support/controller/SupportTicketController.java"
+    "method": "post",
+    "path": "/api/reservations/{id}/schedule",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
   },
   {
     "method": "get",
-    "path": "/api/tasks/tickets",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/support/controller/SupportTicketController.java"
+    "path": "/api/reservations/{id}",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
   },
   {
     "method": "post",
-    "path": "/api/tickets",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/support/controller/SupportTicketController.java"
+    "path": "/api/reservations/calculate",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/reservations",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
   },
   {
     "method": "post",
-    "path": "/api/tasks/tickets",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/support/controller/SupportTicketController.java"
-  },
-  {
-    "method": "patch",
-    "path": "/api/tickets/{id}",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/support/controller/SupportTicketController.java"
-  },
-  {
-    "method": "patch",
-    "path": "/api/tasks/tickets/{id}",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/support/controller/SupportTicketController.java"
+    "path": "/api/reservations",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/reservation/controller/ReservationController.java"
   },
   {
     "method": "get",
-    "path": "/api/tasks",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/controller/TaskController.java"
-  },
-  {
-    "method": "get",
-    "path": "/api/tasks/daily",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/controller/TaskController.java"
-  },
-  {
-    "method": "get",
-    "path": "/api/tasks/manager-dashboard",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/controller/TaskController.java"
-  },
-  {
-    "method": "get",
-    "path": "/api/tasks/staff-options",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/controller/TaskController.java"
-  },
-  {
-    "method": "post",
-    "path": "/api/tasks/dispatch",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/controller/TaskController.java"
-  },
-  {
-    "method": "patch",
-    "path": "/api/tasks/{id}/status",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/controller/TaskController.java"
+    "path": "/api/services",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/ServiceController.java"
   },
   {
     "method": "patch",
@@ -420,8 +380,63 @@
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/controller/TaskController.java"
   },
   {
+    "method": "patch",
+    "path": "/api/tasks/{id}/status",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/controller/TaskController.java"
+  },
+  {
     "method": "get",
-    "path": "/api/auth/me",
-    "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/AuthController.java"
+    "path": "/api/tasks/daily",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/controller/TaskController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/tasks/dispatch",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/controller/TaskController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/tasks/manager-dashboard",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/controller/TaskController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/tasks/staff-options",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/controller/TaskController.java"
+  },
+  {
+    "method": "patch",
+    "path": "/api/tasks/tickets/{id}",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/support/controller/SupportTicketController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/tasks/tickets",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/support/controller/SupportTicketController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/tasks/tickets",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/support/controller/SupportTicketController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/tasks",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/workforce/controller/TaskController.java"
+  },
+  {
+    "method": "patch",
+    "path": "/api/tickets/{id}",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/support/controller/SupportTicketController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/tickets",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/support/controller/SupportTicketController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/tickets",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/support/controller/SupportTicketController.java"
   }
 ]

@@ -342,41 +342,90 @@
     "/api/payments/vnpay/create": {
       "post": {
         "operationId": "Payment_createVnPay",
-        "tags": ["billing"],
+        "tags": [
+          "billing"
+        ],
         "summary": "Create signed VNPay sandbox checkout URL",
         "description": "Customer-owned pending DEPOSIT invoice, or RENT invoice after unit assignment. Payment is not marked paid by this request.",
-        "security": [{"bearerAuth": []}],
-        "x-roles": ["CUSTOMER"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "CUSTOMER"
+        ],
         "requestBody": {
           "required": true,
-          "content": {"application/json": {"schema": {"type": "object", "required": ["invoiceId"], "properties": {"invoiceId": {"type": "string"}}}}}
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "invoiceId"
+                ],
+                "properties": {
+                  "invoiceId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
         },
         "responses": {
-          "200": {"description": "Signed gateway URL", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}},
-          "401": {"description": "Authentication required"},
-          "404": {"description": "Invoice not found in customer scope"},
-          "409": {"description": "Invoice state, eligibility or gateway configuration conflict"}
+          "200": {
+            "description": "Signed gateway URL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "404": {
+            "description": "Invoice not found in customer scope"
+          },
+          "409": {
+            "description": "Invoice state, eligibility or gateway configuration conflict"
+          }
         }
       }
     },
     "/api/payments/vnpay/ipn": {
       "get": {
         "operationId": "Payment_vnPayIpn",
-        "tags": ["billing"],
+        "tags": [
+          "billing"
+        ],
         "summary": "Verify VNPay IPN and settle payment",
         "description": "Public gateway callback. Verifies HMAC, terminal code, transaction reference and amount; idempotently updates payment/invoice and confirms reservation deposit.",
         "security": [],
-        "responses": {"200": {"description": "VNPay protocol RspCode and Message JSON"}}
+        "responses": {
+          "200": {
+            "description": "VNPay protocol RspCode and Message JSON"
+          }
+        }
       }
     },
     "/api/payments/vnpay/return": {
       "get": {
         "operationId": "Payment_vnPayReturn",
-        "tags": ["billing"],
+        "tags": [
+          "billing"
+        ],
         "summary": "Redirect browser to frontend payment result",
         "description": "Verifies signature, terminal, reference, and amount using the same idempotent settlement as IPN before redirecting. Never trusts unsigned browser parameters.",
         "security": [],
-        "responses": {"302": {"description": "Redirect to frontend payment result"}}
+        "responses": {
+          "302": {
+            "description": "Redirect to frontend payment result"
+          }
+        }
       }
     },
     "/api/payments/simulate": {
@@ -1345,31 +1394,45 @@
             "name": "facilityCode",
             "in": "query",
             "required": false,
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "minSize",
             "in": "query",
             "required": false,
-            "schema": { "type": "number", "minimum": 0 }
+            "schema": {
+              "type": "number",
+              "minimum": 0
+            }
           },
           {
             "name": "maxSize",
             "in": "query",
             "required": false,
-            "schema": { "type": "number", "minimum": 0 }
+            "schema": {
+              "type": "number",
+              "minimum": 0
+            }
           },
           {
             "name": "minPrice",
             "in": "query",
             "required": false,
-            "schema": { "type": "number", "minimum": 0 }
+            "schema": {
+              "type": "number",
+              "minimum": 0
+            }
           },
           {
             "name": "maxPrice",
             "in": "query",
             "required": false,
-            "schema": { "type": "number", "minimum": 0 }
+            "schema": {
+              "type": "number",
+              "minimum": 0
+            }
           }
         ],
         "responses": {
@@ -1527,18 +1590,80 @@
     "/api/facilities/{code}/checkin-pin": {
       "put": {
         "operationId": "Facility_setCheckinPin_80",
-        "tags": ["facility"],
+        "tags": [
+          "facility"
+        ],
         "summary": "Manager: rotate facility check-in PIN",
         "description": "Generates and stores a new check-in PIN for the Manager's facility. Demo-only PIN visibility follows the current facility workflow.",
-        "security": [{"bearerAuth": []}],
-        "x-roles": ["FMANAGER"],
-        "parameters": [{"name": "code", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "FMANAGER"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
-          "200": {"description": "PIN rotated", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}},
-          "400": {"description": "Invalid facility code", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "401": {"description": "Authentication required", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "403": {"description": "Facility Manager scope required", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "409": {"description": "Facility cannot rotate PIN", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}
+          "200": {
+            "description": "PIN rotated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid facility code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Facility Manager scope required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Facility cannot rotate PIN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -3267,27 +3392,82 @@
     "/api/contracts/{id}": {
       "get": {
         "operationId": "Contract_detail_35",
-        "tags": ["rental"],
+        "tags": [
+          "rental"
+        ],
         "summary": "Customer contract detail",
         "description": "Returns owner-scoped contract, facility/unit details, handover record, related invoices, access PIN and effective business policies.",
-        "security": [{"bearerAuth": []}],
-        "x-roles": ["CUSTOMER"],
-        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "CUSTOMER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
-          "200": {"description": "Contract detail envelope", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}},
-          "401": {"description": "Authentication required"},
-          "404": {"description": "Contract not found in customer scope"}
+          "200": {
+            "description": "Contract detail envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "404": {
+            "description": "Contract not found in customer scope"
+          }
         }
       }
     },
     "/api/contracts/handover/eligible": {
       "get": {
         "operationId": "Contract_eligibleHandovers",
-        "tags": ["rental"],
+        "tags": [
+          "rental"
+        ],
         "summary": "Staff: list assigned contracts awaiting handover",
-        "security": [{"bearerAuth": []}],
-        "x-roles": ["STAFF"],
-        "responses": {"200": {"description": "Assigned, paid contracts eligible for a handover record", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}}, "401": {"description": "Authentication required"}, "403": {"description": "Role or facility not permitted"}}
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "STAFF"
+        ],
+        "responses": {
+          "200": {
+            "description": "Assigned, paid contracts eligible for a handover record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or facility not permitted"
+          }
+        }
       }
     },
     "/api/contracts/handover": {
@@ -3370,39 +3550,192 @@
         ],
         "requestBody": {
           "required": true,
-            "content": {"multipart/form-data": {"schema": {"$ref": "#/components/schemas/Handover"}}, "application/json": {"schema": {"$ref": "#/components/schemas/Handover"}}}
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Handover"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Handover"
+              }
+            }
+          }
         }
       }
     },
     "/api/contracts/{id}/handover/confirm": {
       "post": {
         "operationId": "Contract_confirmHandover",
-        "tags": ["rental"],
+        "tags": [
+          "rental"
+        ],
         "summary": "Customer: confirm receipt of assigned unit",
         "description": "Customer-owned handover confirmation. In one transaction, records authenticated customer/time/version and activates Contract, Reservation, Unit, and Check-in task.",
-        "security": [{"bearerAuth": []}], "x-roles": ["CUSTOMER"],
-        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
-        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "required": ["customerInspectionConfirmed", "handoverRecordConfirmed", "receivedUnitConfirmed", "confirmationVersion"], "properties": {"customerInspectionConfirmed": {"type": "boolean", "const": true}, "handoverRecordConfirmed": {"type": "boolean", "const": true}, "receivedUnitConfirmed": {"type": "boolean", "const": true}, "confirmationVersion": {"type": "string", "const": "HANDOVER-2026-10"}}}}}},
-        "responses": {"200": {"description": "Handover completed", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}}, "404": {"description": "Contract not found in customer scope"}, "409": {"description": "Handover is not ready or customer reported an issue"}}
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "CUSTOMER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "customerInspectionConfirmed",
+                  "handoverRecordConfirmed",
+                  "receivedUnitConfirmed",
+                  "confirmationVersion"
+                ],
+                "properties": {
+                  "customerInspectionConfirmed": {
+                    "type": "boolean",
+                    "const": true
+                  },
+                  "handoverRecordConfirmed": {
+                    "type": "boolean",
+                    "const": true
+                  },
+                  "receivedUnitConfirmed": {
+                    "type": "boolean",
+                    "const": true
+                  },
+                  "confirmationVersion": {
+                    "type": "string",
+                    "const": "HANDOVER-2026-10"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Handover completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contract not found in customer scope"
+          },
+          "409": {
+            "description": "Handover is not ready or customer reported an issue"
+          }
+        }
       }
     },
     "/api/contracts/{id}/handover/issue": {
       "post": {
         "operationId": "Contract_reportHandoverIssue",
-        "tags": ["rental"], "summary": "Customer: report a handover issue",
-        "security": [{"bearerAuth": []}], "x-roles": ["CUSTOMER"],
-        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
-        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"reported": {"type": "boolean", "const": true}}}}}},
-        "responses": {"200": {"description": "Issue recorded; contract remains pending handover", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}}, "404": {"description": "Contract not found in customer scope"}, "409": {"description": "Handover record is not awaiting confirmation"}}
+        "tags": [
+          "rental"
+        ],
+        "summary": "Customer: report a handover issue",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "CUSTOMER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reported": {
+                    "type": "boolean",
+                    "const": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Issue recorded; contract remains pending handover",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contract not found in customer scope"
+          },
+          "409": {
+            "description": "Handover record is not awaiting confirmation"
+          }
+        }
       }
     },
     "/api/contracts/{id}/handover/evidence": {
       "get": {
         "operationId": "Contract_handoverEvidence",
-        "tags": ["rental"], "summary": "Read authorized handover evidence image",
-        "security": [{"bearerAuth": []}],
-        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
-        "responses": {"200": {"description": "PNG or JPEG evidence"}, "404": {"description": "No evidence in caller scope"}}
+        "tags": [
+          "rental"
+        ],
+        "summary": "Read authorized handover evidence image",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PNG or JPEG evidence"
+          },
+          "404": {
+            "description": "No evidence in caller scope"
+          }
+        }
       }
     },
     "/api/contracts/checkout-request": {
@@ -4575,74 +4908,352 @@
     "/api/reservations/{id}/checkin-task": {
       "get": {
         "operationId": "Reservation_checkinTask_74",
-        "tags": ["reservation"],
+        "tags": [
+          "reservation"
+        ],
         "summary": "Customer: view check-in task",
         "description": "Returns the customer-owned CHECKIN task when it exists.",
-        "security": [{"bearerAuth": []}],
-        "x-roles": ["CUSTOMER"],
-        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "CUSTOMER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
-          "200": {"description": "Task or empty object", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}},
-          "400": {"description": "Invalid request", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "401": {"description": "Authentication required", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "403": {"description": "Reservation is not owned by customer", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "409": {"description": "Request cannot be read in current state", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}
+          "200": {
+            "description": "Task or empty object",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Reservation is not owned by customer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request cannot be read in current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
         }
       }
     },
     "/api/reservations/{id}/contract-offer": {
       "get": {
         "operationId": "Reservation_contractOffer_75",
-        "tags": ["reservation"],
+        "tags": [
+          "reservation"
+        ],
         "summary": "Customer: view contract offer",
         "description": "Returns the contract terms and verified customer, facility and Unit details after Staff check-in verification.",
-        "security": [{"bearerAuth": []}],
-        "x-roles": ["CUSTOMER"],
-        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "CUSTOMER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
-          "200": {"description": "Contract offer", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}},
-          "400": {"description": "Invalid request", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "401": {"description": "Authentication required", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "403": {"description": "Reservation is not owned by customer", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "409": {"description": "Staff verification or contract state is incomplete", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}
+          "200": {
+            "description": "Contract offer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Reservation is not owned by customer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Staff verification or contract state is incomplete",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
         }
       }
     },
     "/api/reservations/{id}/contract-terms/accept": {
       "post": {
         "operationId": "Reservation_acceptContractTerms_76",
-        "tags": ["reservation"],
+        "tags": [
+          "reservation"
+        ],
         "summary": "Customer: accept contract terms",
         "description": "Records customer acceptance and issues or synchronizes the RENT invoice.",
-        "security": [{"bearerAuth": []}],
-        "x-roles": ["CUSTOMER"],
-        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
-        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "required": ["accepted", "termsVersion"], "properties": {"accepted": {"type": "boolean"}, "termsVersion": {"type": "string"}}}}}},
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "CUSTOMER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "accepted",
+                  "termsVersion"
+                ],
+                "properties": {
+                  "accepted": {
+                    "type": "boolean"
+                  },
+                  "termsVersion": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
-          "200": {"description": "Terms accepted", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}},
-          "400": {"description": "Invalid acceptance payload", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "401": {"description": "Authentication required", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "403": {"description": "Reservation is not owned by customer", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "409": {"description": "Contract terms changed or contract is not ready", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}
+          "200": {
+            "description": "Terms accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid acceptance payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Reservation is not owned by customer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Contract terms changed or contract is not ready",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
         }
       }
     },
     "/api/reservations/{id}/checkin-request": {
       "post": {
         "operationId": "Reservation_requestCheckin_73",
-        "tags": ["reservation"],
+        "tags": [
+          "reservation"
+        ],
         "summary": "Customer: request check-in and allocate matching Unit",
         "description": "Customer-owned reservation must be deposit-paid and RESERVED. In one transaction, backend locks and allocates an available Unit matching the requested facility and unit type, then creates or synchronizes the CHECKIN task. Repeated requests reuse the held Unit and task.",
-        "security": [{"bearerAuth": []}],
-        "x-roles": ["CUSTOMER"],
-        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "CUSTOMER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
-          "200": {"description": "Check-in request accepted with matching Unit assigned", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}},
-          "400": {"description": "Invalid request", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "401": {"description": "Authentication required", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "403": {"description": "Customer does not own reservation", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "404": {"description": "Reservation not found", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "409": {"description": "Deposit not paid, reservation not eligible, or no matching Unit available", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}
+          "200": {
+            "description": "Check-in request accepted with matching Unit assigned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Customer does not own reservation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Reservation not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Deposit not paid, reservation not eligible, or no matching Unit available",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -5968,32 +6579,106 @@
     "/api/tasks/manager-dashboard": {
       "get": {
         "operationId": "Task_managerDashboard",
-        "tags": ["workforce"],
+        "tags": [
+          "workforce"
+        ],
         "summary": "Manager: facility dashboard",
         "description": "Facility Manager only. Returns own facility profile and current facility PIN, staff status/open-task counts, unexpired unit check-in PINs and check-in requests for reservations in the assigned facility. PIN values are exposed for the requested demo workflow.",
-        "security": [{"bearerAuth": []}],
-        "x-roles": ["FMANAGER"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "FMANAGER"
+        ],
         "responses": {
-          "200": {"description": "Facility-scoped dashboard", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}},
-          "401": {"description": "Authentication required"},
-          "403": {"description": "Facility Manager role required"}
+          "200": {
+            "description": "Facility-scoped dashboard",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Facility Manager role required"
+          }
         }
       }
     },
     "/api/tasks/staff-options": {
       "get": {
         "operationId": "Task_staffOptions_77",
-        "tags": ["workforce"],
+        "tags": [
+          "workforce"
+        ],
         "summary": "Manager: list facility staff",
         "description": "Returns active Staff accounts in the Manager's facility.",
-        "security": [{"bearerAuth": []}],
-        "x-roles": ["FMANAGER"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "FMANAGER"
+        ],
         "responses": {
-          "200": {"description": "Staff options", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}},
-          "400": {"description": "Invalid request", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "401": {"description": "Authentication required", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "403": {"description": "Facility Manager required", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "409": {"description": "State conflict", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}
+          "200": {
+            "description": "Staff options",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Facility Manager required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -6171,23 +6856,100 @@
     "/api/tasks/{id}/assign": {
       "patch": {
         "operationId": "Task_assignExisting_72",
-        "tags": ["workforce"],
+        "tags": [
+          "workforce"
+        ],
         "summary": "Manager: assign check-in task",
         "description": "Facility Manager assigns an eligible Staff member. For CHECKIN tasks, backend assigns the available Unit matching facility and type on the reservation card. Clients must not provide unitCode.",
-        "security": [{"bearerAuth": []}],
-        "x-roles": ["FMANAGER"],
-        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "FMANAGER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
-          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/TaskAssignment"}}}
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskAssignment"
+              }
+            }
+          }
         },
         "responses": {
-          "200": {"description": "Task assigned and matching Unit bound from the reservation requirements", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}},
-          "400": {"description": "Invalid assignment input", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "401": {"description": "Authentication required", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "403": {"description": "Facility Manager or facility scope required", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "404": {"description": "Task, Staff or Unit not found in authorized scope", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "409": {"description": "No matching Unit available or reservation/task state is not eligible", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}
+          "200": {
+            "description": "Task assigned and matching Unit bound from the reservation requirements",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid assignment input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Facility Manager or facility scope required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task, Staff or Unit not found in authorized scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "No matching Unit available or reservation/task state is not eligible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -6295,37 +7057,186 @@
     "/api/tasks/{id}/checkin/credentials": {
       "get": {
         "operationId": "Task_checkinCredentials_78",
-        "tags": ["workforce"],
+        "tags": [
+          "workforce"
+        ],
         "summary": "Staff: open check-in credentials",
         "description": "Returns appointment, customer, facility and Unit data for the assigned CHECKIN task and moves it to IN_PROGRESS.",
-        "security": [{"bearerAuth": []}],
-        "x-roles": ["STAFF"],
-        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "STAFF"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
-          "200": {"description": "Check-in documents", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}},
-          "400": {"description": "Invalid task", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "401": {"description": "Authentication required", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "403": {"description": "Task is not assigned to Staff", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "409": {"description": "Task is not available", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}
+          "200": {
+            "description": "Check-in documents",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid task",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Task is not assigned to Staff",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Task is not available",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
         }
       }
     },
     "/api/tasks/{id}/checkin/verify": {
       "post": {
         "operationId": "Task_verifyCheckin_79",
-        "tags": ["workforce"],
+        "tags": [
+          "workforce"
+        ],
         "summary": "Staff: verify check-in",
         "description": "Staff verifies appointment card and original identity documents. Backend creates the contract offer after successful verification.",
-        "security": [{"bearerAuth": []}],
-        "x-roles": ["STAFF"],
-        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
-        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "required": ["appointmentCardCode", "identityDocumentsConfirmed", "appointmentCardConfirmed"], "properties": {"appointmentCardCode": {"type": "string"}, "identityDocumentsConfirmed": {"type": "boolean"}, "appointmentCardConfirmed": {"type": "boolean"}}}}}},
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "STAFF"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "appointmentCardCode",
+                  "identityDocumentsConfirmed",
+                  "appointmentCardConfirmed"
+                ],
+                "properties": {
+                  "appointmentCardCode": {
+                    "type": "string"
+                  },
+                  "identityDocumentsConfirmed": {
+                    "type": "boolean"
+                  },
+                  "appointmentCardConfirmed": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
-          "200": {"description": "Check-in verified", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}},
-          "400": {"description": "Verification data is invalid", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "401": {"description": "Authentication required", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "403": {"description": "Task is not assigned to Staff", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
-          "409": {"description": "Check-in preconditions are incomplete", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}
+          "200": {
+            "description": "Check-in verified",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Verification data is invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Task is not assigned to Staff",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Check-in preconditions are incomplete",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -6375,6 +7286,299 @@
           },
           "409": {
             "description": "Database integrity conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/facilities/{code}": {
+      "put": {
+        "operationId": "Facility_update_81",
+        "tags": [
+          "facility"
+        ],
+        "summary": "Ops: update facility profile",
+        "description": "Authorized roles: OPS_MGR. Updates branch name, address, city, hotline, opening hours, image and status.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "OPS_MGR"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or missing input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role or facility not permitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found in authorized scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reports/revenue": {
+      "get": {
+        "operationId": "Report_revenue_45",
+        "tags": [
+          "reporting"
+        ],
+        "summary": "Report: revenue by branch and source",
+        "description": "Authorized roles: OPS_MGR, FMANAGER, ADMIN. Query params: facilityCode, from, to (yyyy-MM-dd), granularity (day, month, quarter). FMANAGER is scoped to assigned facility.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "OPS_MGR",
+          "FMANAGER",
+          "ADMIN"
+        ],
+        "parameters": [
+          {
+            "name": "facilityCode",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "granularity",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or missing input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role or facility not permitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found in authorized scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reports/occupancy": {
+      "get": {
+        "operationId": "Report_occupancy_46",
+        "tags": [
+          "reporting"
+        ],
+        "summary": "Report: occupancy by branch",
+        "description": "Authorized roles: OPS_MGR, FMANAGER, ADMIN. Optional facilityCode filter. FMANAGER is scoped to assigned facility.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "OPS_MGR",
+          "FMANAGER",
+          "ADMIN"
+        ],
+        "parameters": [
+          {
+            "name": "facilityCode",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or missing input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role or facility not permitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found in authorized scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State conflict",
             "content": {
               "application/json": {
                 "schema": {
@@ -6619,7 +7823,9 @@
           },
           "bankCode": {
             "type": "string",
-            "enum": ["NCB"],
+            "enum": [
+              "NCB"
+            ],
             "description": "Mock-card sandbox only; no bank connection."
           },
           "cardNumber": {
@@ -6774,7 +7980,10 @@
           },
           "conditionStatus": {
             "type": "string",
-            "enum": ["CLEAN", "ISSUE"]
+            "enum": [
+              "CLEAN",
+              "ISSUE"
+            ]
           },
           "unitConditionNotes": {
             "type": "string"
@@ -6903,6 +8112,21 @@
           },
           "hotline": {
             "type": "string"
+          },
+          "openingHours": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE",
+              "MAINTENANCE"
+            ]
           }
         },
         "required": [
@@ -7052,8 +8276,13 @@
             "writeOnly": true
           },
           "role": {
-            "type": "string"
-            ,"enum": ["STAFF", "FMANAGER", "OPS_MGR", "ADMIN"]
+            "type": "string",
+            "enum": [
+              "STAFF",
+              "FMANAGER",
+              "OPS_MGR",
+              "ADMIN"
+            ]
           },
           "facilityCode": {
             "type": "string",
@@ -7161,8 +8390,14 @@
       },
       "TaskAssignment": {
         "type": "object",
-        "properties": {"staffId": {"type": "string"}},
-        "required": ["staffId"],
+        "properties": {
+          "staffId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "staffId"
+        ],
         "additionalProperties": false
       },
       "TaskStatus": {

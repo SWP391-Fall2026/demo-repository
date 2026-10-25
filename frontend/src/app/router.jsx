@@ -10,6 +10,7 @@ import CheckinPassPage from "../features/reservation/pages/CheckinPassPage";
 import ReservationAppointmentPage from "../features/reservation/pages/ReservationAppointmentPage";
 import ContractOfferPage from "../features/reservation/pages/ContractOfferPage";
 import MyRentalsPage from "../features/rental/pages/MyRentalsPage";
+import AccessCodePage from "../features/rental/pages/AccessCodePage";
 import RentalContractDetailPage from "../features/rental/pages/RentalContractDetailPage";
 import CustomerSupportPage from "../features/support/pages/CustomerSupportPage";
 import StaffTaskBoardPage from "../features/workforce/pages/StaffTaskBoardPage";
@@ -123,6 +124,13 @@ export const routes = [
         legacy: "SCR-C05",
     },
     {
+        path: "/rentals/access-code",
+        title: "Mã truy cập",
+        roles: ["CUSTOMER"],
+        element: <AccessCodePage />,
+        legacy: "CONFIRMED",
+    },
+    {
         path: "/rentals/:contractId",
         title: "Chi tiết hợp đồng",
         roles: ["CUSTOMER"],
@@ -167,7 +175,7 @@ export const routes = [
     {
         path: "/facility/inspections/:contractId",
         title: "Nghiệm thu",
-        roles: ["STAFF"],
+        roles: ["STAFF", "FMANAGER"],
         element: <ReturnInspectionPage />,
         legacy: "SCR-S05",
     },

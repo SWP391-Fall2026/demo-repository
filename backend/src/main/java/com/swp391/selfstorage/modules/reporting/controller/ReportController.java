@@ -23,6 +23,20 @@ public class ReportController {
     return ApiResponse.ok(s.facility());
   }
 
+  @GetMapping("/api/reports/revenue")
+  public ApiResponse<?> revenue(
+    @RequestParam(required = false) String facilityCode,
+    @RequestParam(required = false) String from,
+    @RequestParam(required = false) String to,
+    @RequestParam(required = false) String granularity
+  ) {
+    return ApiResponse.ok(s.revenue(facilityCode, from, to, granularity));
+  }
+
+  @GetMapping("/api/reports/occupancy")
+  public ApiResponse<?> occupancy(@RequestParam(required = false) String facilityCode) {
+    return ApiResponse.ok(s.occupancy(facilityCode));
+  }
   @GetMapping("/api/reports/system")
   public ApiResponse<?> system() {
     return ApiResponse.ok(s.system());

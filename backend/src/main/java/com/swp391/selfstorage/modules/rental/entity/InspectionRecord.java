@@ -27,6 +27,12 @@ public class InspectionRecord {
   @Column(name = "damage_notes")
   private String damageNotes;
 
+  @Column(name = "goods_cleared")
+  private Boolean goodsCleared;
+
+  @Column(name = "repair_fee")
+  private BigDecimal repairFee;
+
   @Column(name = "penalty_fee")
   private BigDecimal penaltyFee;
 
@@ -82,6 +88,22 @@ public class InspectionRecord {
 
   public void setDamageNotes(String value) {
     this.damageNotes = value;
+  }
+
+  public Boolean getGoodsCleared() {
+    return goodsCleared;
+  }
+
+  public void setGoodsCleared(Boolean value) {
+    this.goodsCleared = value;
+  }
+
+  public BigDecimal getRepairFee() {
+    return repairFee;
+  }
+
+  public void setRepairFee(BigDecimal value) {
+    this.repairFee = value;
   }
 
   public BigDecimal getPenaltyFee() {

@@ -48,12 +48,12 @@ public class CompleteReturnWorkflow {
 
   @Transactional
   public Map<String, Object> execute(Map<String, Object> d) {
-    var staff = actor.require("STAFF");
+    var staff = actor.require("STAFF", "FMANAGER");
     String unitCode = Inputs.text(d, "unitCode");
     var found = contracts
       .findFirstByUnitCodeAndStatusInOrderByCreatedAtDesc(
         unitCode,
-        List.of("ACTIVE", "EXPIRING_SOON", "OVERDUE")
+        List.of("ACTIVE", "EXPIRING_SOON", "OVERDUE", "CHECKOUT_REQUESTED")
       )
       .orElseThrow(Inputs::missing);
     var c = contracts.lockById(found.getId()).orElseThrow(Inputs::missing);
@@ -61,6 +61,9 @@ public class CompleteReturnWorkflow {
     if (
       "TERMINATED".equals(c.getStatus()) || c.getCheckoutRequestedAt() == null
     ) throw Inputs.conflict("Chưa có yêu cầu trả hợp lệ");
+    Boolean goodsCleared = (Boolean) d.get("goodsCleared");
+    if (goodsCleared == null) goodsCleared = "CLEAN".equals(Inputs.optional(d, "cleanlinessStatus")) && !Boolean.TRUE.equals(d.get("lockDamaged"));
+    if (!goodsCleared) throw Inputs.conflict("Đồ đạc chưa dọn hết, chưa thể nghiệm thu");
     var unit = units.lockByCode(unitCode).orElseThrow(Inputs::missing);
     var now = LocalDateTime.now(clock);
     String cleanliness = Inputs.text(d, "cleanlinessStatus");
@@ -77,6 +80,12 @@ public class CompleteReturnWorkflow {
     if (Boolean.TRUE.equals(d.get("lockDamaged"))) deductions = deductions.add(
       policy.fee("newLockFee")
     );
+    BigDecimal repairFee = BigDecimal.ZERO;
+    Object repairRaw = d.get("repairFee");
+    if (repairRaw != null && !repairRaw.toString().isBlank()) {
+      repairFee = Inputs.money(repairRaw);
+      deductions = deductions.add(repairFee);
+    }
     InspectionRecord i = new InspectionRecord();
     i.setId("INS-" + UUID.randomUUID());
     i.setContractId(c.getId());
@@ -84,6 +93,8 @@ public class CompleteReturnWorkflow {
     i.setInspectionDate(now);
     i.setCleanlinessStatus(cleanliness);
     i.setDamageNotes(Inputs.text(d, "damageNotes"));
+    i.setGoodsCleared(true);
+    i.setRepairFee(repairFee);
     i.setPenaltyFee(deductions);
     i.setDepositRefundAmount(
       c.getDepositFee().subtract(deductions).max(BigDecimal.ZERO)

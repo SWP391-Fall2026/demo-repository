@@ -62,7 +62,7 @@ public class ContractService {
           c.setHandoverEvidenceAvailable(h.getEvidencePath() != null && !h.getEvidencePath().isBlank());
         });
         if ("CUSTOMER".equals(actor.role(u))) {
-          if (!Set.of("ACTIVE", "EXPIRING_SOON", "OVERDUE").contains(c.getStatus())) {
+          if (!Set.of("ACTIVE", "EXPIRING_SOON", "OVERDUE", "CHECKOUT_REQUESTED").contains(c.getStatus())) {
             c.setPinCode(null);
           } else {
             facilities.findById(c.getFacilityCode()).ifPresent(f -> c.setFacilityPin(f.getCheckinPin()));
@@ -76,7 +76,7 @@ public class ContractService {
     var customer = actor.require("CUSTOMER");
     Contract contract = contracts.findById(id).orElseThrow(Inputs::missing);
     if (!actor.visible(customer, contract.getUserId(), contract.getFacilityCode())) throw Inputs.missing();
-    boolean accessGranted = Set.of("ACTIVE", "EXPIRING_SOON", "OVERDUE").contains(contract.getStatus());
+    boolean accessGranted = Set.of("ACTIVE", "EXPIRING_SOON", "OVERDUE", "CHECKOUT_REQUESTED").contains(contract.getStatus());
     if (!accessGranted) contract.setPinCode(null);
     var facility = facilities.findById(contract.getFacilityCode()).orElse(null);
     var unit = units.findById(contract.getUnitCode()).orElse(null);

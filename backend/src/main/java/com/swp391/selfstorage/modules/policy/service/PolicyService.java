@@ -26,6 +26,10 @@ public class PolicyService {
     Map.entry("price.L", "2800000"),
     Map.entry("price.CLIMATE", "2200000"),
     Map.entry("depositMonths", "1"),
+    Map.entry("reservationHoldDays", "3"),
+    Map.entry("refundCancelHours", "24"),
+    Map.entry("renewalMaxMonths", "36"),
+    Map.entry("gracePeriodDays", "0"),
     Map.entry("cleaningFee", "200000"),
     Map.entry("overdueDailyFee", "50000"),
     Map.entry("newLockFee", "150000")
@@ -91,6 +95,25 @@ public class PolicyService {
       !key.matches("price\\.(min|max)\\.(S|M|L|CLIMATE)")
     ) throw Inputs.bad("Khóa chính sách không hợp lệ");
     BigDecimal number = Inputs.money(value);
+    if ("depositMonths".equals(key) && number.compareTo(BigDecimal.ZERO) <= 0) throw Inputs.bad(
+      "Tiền cọc phải lớn hơn 0"
+    );
+    if (
+      "reservationHoldDays".equals(key) || "refundCancelHours".equals(key) ||
+        "renewalMaxMonths".equals(key) || "gracePeriodDays".equals(key)
+    ) {
+      if (number.signum() < 0) throw Inputs.bad("Thông số chính sách không được âm");
+      try {
+        number = new BigDecimal(number.toBigIntegerExact().toString());
+      } catch (ArithmeticException e) {
+        throw Inputs.bad("Thông số chính sách phải là số nguyên");
+      }
+      value = number.toPlainString();
+    }
+    if (
+      ("cleaningFee".equals(key) || "overdueDailyFee".equals(key) || "newLockFee".equals(key) ||
+        key.startsWith("price.")) && number.compareTo(BigDecimal.ZERO) < 0
+    ) throw Inputs.bad("Khung giá không hợp lệ");
     if (
       key.startsWith("discount.") && number.compareTo(BigDecimal.ONE) >= 0
     ) throw Inputs.bad("Tỷ lệ giảm giá phải nhỏ hơn 1");

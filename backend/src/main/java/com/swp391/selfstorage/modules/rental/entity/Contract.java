@@ -255,6 +255,17 @@ public class Contract {
     this.checkoutRequestedDate = value;
   }
 
+  @Column(name = "checkout_reason")
+  private String checkoutReason;
+
+  public String getCheckoutReason() {
+    return checkoutReason;
+  }
+
+  public void setCheckoutReason(String value) {
+    this.checkoutReason = value;
+  }
+
   @Column(name = "last_renewal_at")
   private java.time.LocalDateTime lastRenewalAt;
 

@@ -33,6 +33,8 @@ export default function RentalContractDetailPage() {
     const { contractId = "" } = useParams();
     const { data, error, busy } = useRemote(() => rentalApi.detail(contractId), [contractId]);
     const [pinVisible, setPinVisible] = useState(false);
+    const locked = String(contract.status) === "OVERDUE";
+    const checkoutRequested = String(contract.status) === "CHECKOUT_REQUESTED" || Boolean(contract.checkoutRequestedDate);
     if (busy)
         return <main className="page-content"><p>Đang tải chi tiết hợp đồng…</p></main>;
     if (error || !data)
@@ -103,7 +105,7 @@ export default function RentalContractDetailPage() {
       </div>
 
       <aside className="contract-security-column">
-        <section className="pin-panel"><header><span className="pin-shield">PIN</span><div><h2>Tra cứu mã PIN</h2><small>BẢO MẬT</small></div></header><p>Mã PIN này dùng để xác thực quyền truy cập kho {display(contract.unitCode)}.</p><div className="pin-code-box"><small>MÃ PIN CỦA KHO</small><strong>{pinVisible ? display(contract.pinCode) : "••••••"}</strong><span>{contract.pinCode ? "ĐÃ XÁC THỰC" : "CHƯA CẤP PIN"}</span></div><button type="button" className="pin-toggle" onClick={() => setPinVisible((visible) => !visible)} disabled={!contract.pinCode}>{pinVisible ? "Ẩn mã PIN" : "Hiện mã PIN"}</button><p className="pin-security-note">Không chia sẻ PIN. Hệ thống lưu lại các lượt xác thực ra/vào.</p></section>
+        <section className="pin-panel"><header><span className="pin-shield">PIN</span><div><h2>Tra cứu mã PIN</h2><small>BẢO MẬT</small></div></header><p>Mã PIN 6 số này dùng để mở khóa kho/cửa ra vào cơ sở {display(contract.unitCode)}.</p>{locked ? <p role="alert">Kho đang trong trạng thái tạm khóa nợ cước: PIN bị hạn chế cho đến khi thanh toán.</p> : null}<div className="pin-code-box"><small>MÃ PIN CỦA KHO</small><strong>{pinVisible ? display(contract.pinCode) : "••••••"}</strong><span>{contract.pinCode ? "ĐÃ XÁC THỰC" : "CHƯA CẤP PIN"}</span></div><button type="button" className="pin-toggle" onClick={() => setPinVisible((visible) => !visible)} disabled={!contract.pinCode || locked}>{pinVisible ? "Ẩn mã PIN" : "Hiện mã PIN"}</button><p className="pin-security-note">Hướng dẫn an ninh: không chia sẻ PIN; dùng nút đổi PIN cá nhân tại trang Kho đang thuê khi nghi lộ.</p>{checkoutRequested ? <p>Đã có yêu cầu trả kho ngày {formattedDate(contract.checkoutRequestedDate)}.</p> : null}</section>
         <section className="policy-panel"><h2>Quy định &amp; chính sách</h2><p>Áp dụng theo chính sách có hiệu lực của cơ sở và hợp đồng.</p><dl>{Object.entries(policies).filter(([key]) => policyNames[key]).map(([key, value]) => <div key={key}><dt>{policyNames[key]}</dt><dd>{policyValue(key, value)}</dd></div>)}</dl><p className="policy-warning">Phí quá hạn hoặc phí phát sinh được tính theo quy định hợp đồng và hiển thị thành hóa đơn riêng.</p></section>
         <Link className="button secondary contract-back-link" to="/rentals">← Quay lại kho đang thuê</Link>
       </aside>

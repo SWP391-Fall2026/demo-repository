@@ -23,6 +23,12 @@ public class Facility {
   @Column(name = "hotline")
   private String hotline;
 
+  @Column(name = "opening_hours")
+  private String openingHours;
+
+  @Column(name = "image_url", length = 2048)
+  private String imageUrl;
+
   @Column(name = "total_units")
   private Integer totalUnits = 0;
 
@@ -103,6 +109,22 @@ public class Facility {
 
   public void setHotline(String hotline) {
     this.hotline = hotline;
+  }
+
+  public String getOpeningHours() {
+    return openingHours;
+  }
+
+  public void setOpeningHours(String openingHours) {
+    this.openingHours = openingHours;
+  }
+
+  public String getImageUrl() {
+    return imageUrl;
+  }
+
+  public void setImageUrl(String imageUrl) {
+    this.imageUrl = imageUrl;
   }
 
   public Integer getTotalUnits() {
