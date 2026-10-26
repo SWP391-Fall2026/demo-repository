@@ -41,6 +41,14 @@ Actual connection evidence, blockers and next review gates are recorded in
 `docs/testing/auth-staging-verification.md`. Neither these helpers nor the
 existing guarded SQL drafts authorize schema changes.
 
+Migration 015 has a separate opt-in Maven test harness, `HandoverMigration015Test`.
+It pins the approved project and exact SQL SHA, captures metadata/data hashes,
+validates all entities with a borrowed transaction, rehearses with rollback,
+and requires matching rehearsal evidence before apply. Do not reuse the old
+002/003/004 runner. See `docs/testing/handover-migration-015-execution.md` for the
+actual authorization, execution results and limits; never run an apply mode
+as part of routine tests or application startup.
+
 `SchemaAlignmentRunner.java` is a separate, explicit manual writer added after
 the user approved additive migration while keeping the backend mappings. It only
 runs the pinned 002/003/004 group. Rehearsal rolls back; apply requires a successful

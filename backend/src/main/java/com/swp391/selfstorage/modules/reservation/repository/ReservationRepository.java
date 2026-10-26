@@ -14,6 +14,25 @@ public interface ReservationRepository
   List<Reservation> findByFacilityCode(String code);
   List<Reservation> findByStatus(String status);
 
+  interface HoldCount {
+    String getFacilityCode();
+    String getUnitType();
+    long getQuantity();
+  }
+
+  @Query("""
+      select r.facilityCode as facilityCode, r.unitType as unitType, count(r) as quantity
+      from Reservation r
+      where (:facilityCode is null or r.facilityCode = :facilityCode)
+        and r.unitCode is null
+        and (r.status = 'RESERVED'
+          or (r.status = 'PENDING_PAYMENT' and r.createdAt > :pendingCreatedAfter))
+      group by r.facilityCode, r.unitType
+      """)
+  List<HoldCount> countUnassignedHolds(
+      @Param("facilityCode") String facilityCode,
+      @Param("pendingCreatedAfter") LocalDateTime pendingCreatedAfter);
+
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query("select r from Reservation r where r.id=:id")
   Optional<Reservation> lockById(@Param("id") String id);

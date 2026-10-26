@@ -22,16 +22,19 @@ export default function CheckinPassPage() {
         const timer = window.setInterval(contracts.reload, 10000);
         return () => window.clearInterval(timer);
     }, [contracts.reload]);
-    if (contracts.busy)
+    if (contracts.busy && contracts.data === undefined)
         return <main className="page-content"><p>Đang tải thẻ Check-in…</p></main>;
-    if (contracts.error)
+    if (contracts.error && contracts.data === undefined)
         return <main className="page-content"><section className="card error" role="alert">{contracts.error}</section></main>;
-    const rows = (Array.isArray(contracts.data) ? contracts.data : []).filter((contract) => (!reservationId || reservationId === "all" || contract.reservationId === reservationId) &&
+    const matching = (Array.isArray(contracts.data) ? contracts.data : []).filter(contract => !reservationId || reservationId === "all" || contract.reservationId === reservationId);
+    const cancelled = matching.filter(contract => contract.status === "TERMINATED" && contract.handoverStatus === "CANCELLED");
+    const rows = matching.filter((contract) =>
         ["PENDING_HANDOVER", "ACTIVE", "EXPIRING_SOON", "OVERDUE", "CHECKOUT_REQUESTED"].includes(String(contract.status)));
     return <main className="page-content">
     <header className="page-heading"><div><span className="eyebrow">HỢP ĐỒNG VÀO KHO</span><h1>Thẻ Check-in &amp; hợp đồng</h1><p>Staff lập biên bản; Customer kiểm tra và xác nhận riêng trước khi hoàn tất bàn giao.</p></div></header>
+    {contracts.error && <section className="card error" role="alert">Không cập nhật được trạng thái mới: {contracts.error} Thông tin đang xem và nội dung bạn nhập vẫn được giữ. <button className="secondary" onClick={contracts.reload}>Thử lại</button></section>}
     <CustomerRentalGuide active={4}/>
-    {!rows.length ? <section className="card empty"><h2>Chưa có thẻ Check-in</h2><p>Khách cần thanh toán `RENT` trước khi nhận biên bản bàn giao.</p><Link to="/invoices/all/pay">Xem hóa đơn thuê</Link></section> : <div className="checkin-card-list">{rows.map((contract) => {
+    {!rows.length ? cancelled.length ? <section className="card empty"><h2>Đã hủy trước khi nhận kho</h2><p>Facility Manager đã phê duyệt hủy. Xem điều kiện hoàn tiền và liên hệ Staff cơ sở để được hỗ trợ.</p><Link className="button" to="/handover-reviews">Theo dõi hồ sơ và hoàn tiền</Link></section> : <section className="card empty"><h2>Chưa có thẻ Check-in</h2><p>Khách cần thanh toán `RENT` trước khi nhận biên bản bàn giao.</p><Link to="/invoices/all/pay">Xem hóa đơn thuê</Link></section> : <div className="checkin-card-list">{rows.map((contract) => {
                 const facility = (Array.isArray(branches.data) ? branches.data : []).find((item) => item.code === contract.facilityCode);
                 const handedOver = ["ACTIVE", "EXPIRING_SOON", "OVERDUE", "CHECKOUT_REQUESTED"].includes(String(contract.status));
                 return <article className="checkin-card" key={String(contract.id)}>
