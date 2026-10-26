@@ -3377,23 +3377,167 @@
     "/api/contracts/{id}/handover/confirm": {
       "post": {
         "operationId": "Contract_confirmHandover",
-        "tags": ["rental"],
+        "tags": [
+          "rental"
+        ],
         "summary": "Customer: confirm receipt of assigned unit",
-        "description": "Customer-owned handover confirmation. In one transaction, records authenticated customer/time/version and activates Contract, Reservation, Unit, and Check-in task.",
-        "security": [{"bearerAuth": []}], "x-roles": ["CUSTOMER"],
-        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
-        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "required": ["customerInspectionConfirmed", "handoverRecordConfirmed", "receivedUnitConfirmed", "confirmationVersion"], "properties": {"customerInspectionConfirmed": {"type": "boolean", "const": true}, "handoverRecordConfirmed": {"type": "boolean", "const": true}, "receivedUnitConfirmed": {"type": "boolean", "const": true}, "confirmationVersion": {"type": "string", "const": "HANDOVER-2026-10"}}}}}},
-        "responses": {"200": {"description": "Handover completed", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}}, "404": {"description": "Contract not found in customer scope"}, "409": {"description": "Handover is not ready or customer reported an issue"}}
+        "description": "Customer-owned handover confirmation. In one transaction, records authenticated customer/time/version and activates Contract, Reservation, Unit, and Check-in task. Requires a non-expired 24-hour confirmation deadline and no pending cancellation review. Legacy records without a deadline must be resent by Staff. Confirmation is rejected at the exact deadline.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "CUSTOMER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "customerInspectionConfirmed",
+                  "handoverRecordConfirmed",
+                  "receivedUnitConfirmed",
+                  "confirmationVersion"
+                ],
+                "properties": {
+                  "customerInspectionConfirmed": {
+                    "type": "boolean",
+                    "const": true
+                  },
+                  "handoverRecordConfirmed": {
+                    "type": "boolean",
+                    "const": true
+                  },
+                  "receivedUnitConfirmed": {
+                    "type": "boolean",
+                    "const": true
+                  },
+                  "confirmationVersion": {
+                    "type": "string",
+                    "const": "HANDOVER-2026-10"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Handover completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contract not found in customer scope"
+          },
+          "409": {
+            "description": "Handover is not ready or customer reported an issue"
+          }
+        }
       }
     },
     "/api/contracts/{id}/handover/issue": {
       "post": {
         "operationId": "Contract_reportHandoverIssue",
-        "tags": ["rental"], "summary": "Customer: report a handover issue",
-        "security": [{"bearerAuth": []}], "x-roles": ["CUSTOMER"],
-        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
-        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"reported": {"type": "boolean", "const": true}}}}}},
-        "responses": {"200": {"description": "Issue recorded; contract remains pending handover", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Envelope"}}}}, "404": {"description": "Contract not found in customer scope"}, "409": {"description": "Handover record is not awaiting confirmation"}}
+        "tags": [
+          "rental"
+        ],
+        "summary": "Customer: report a handover issue",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "CUSTOMER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "reason"
+                ],
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "PDF, PNG or JPEG, maximum 10 MB."
+                  }
+                }
+              }
+            },
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "reason"
+                ],
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Issue recorded; contract remains pending handover",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contract not found in customer scope"
+          },
+          "409": {
+            "description": "Handover record is not awaiting confirmation"
+          }
+        },
+        "description": "undefined Requires a specific reason and stores immutable evidence history. Customer contacts Staff for a formal cancellation request."
       }
     },
     "/api/contracts/{id}/handover/evidence": {
@@ -4753,7 +4897,7 @@
           "reservation"
         ],
         "summary": "Reservation: cancel",
-        "description": "Authorized roles: CUSTOMER, STAFF, FMANAGER. Customer ownership and assigned-facility scope are enforced by the service.",
+        "description": "Authorized roles: CUSTOMER, STAFF, FMANAGER. Customer ownership and assigned-facility scope are enforced by the service. Direct cancellation is blocked for paid contracts pending handover; Staff must submit a review for Facility Manager decision.",
         "security": [
           {
             "bearerAuth": []
@@ -6385,6 +6529,562 @@
           }
         }
       }
+    },
+    "/api/handover-reviews": {
+      "get": {
+        "operationId": "HandoverReview_list",
+        "tags": [
+          "rental"
+        ],
+        "summary": "list",
+        "description": "Authorized roles: CUSTOMER, STAFF, FMANAGER. Enforces customer ownership and assigned facility. Only pending handover contracts are eligible. Cancellation approval refunds 50% of actual paid RENT rounded to whole VND per original payment, retains the entire deposit, and creates manual refund work without transferring money.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "CUSTOMER",
+          "STAFF",
+          "FMANAGER"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Handover completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/HandoverReview"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or missing input"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or facility not authorized"
+          },
+          "404": {
+            "description": "Resource not visible to this user"
+          },
+          "409": {
+            "description": "State, deadline, original payment or policy conflict"
+          }
+        }
+      },
+      "post": {
+        "operationId": "HandoverReview_create",
+        "tags": [
+          "rental"
+        ],
+        "summary": "create",
+        "description": "Authorized roles: STAFF. Enforces customer ownership and assigned facility. Only pending handover contracts are eligible. Cancellation approval refunds 50% of actual paid RENT rounded to whole VND per original payment, retains the entire deposit, and creates manual refund work without transferring money.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "STAFF"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "contractId",
+                  "reason",
+                  "onBehalfBasis"
+                ],
+                "properties": {
+                  "contractId": {
+                    "type": "string"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  "onBehalfBasis": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "PDF, PNG or JPEG, maximum 10 MB."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Handover completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/HandoverReview"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or missing input"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or facility not authorized"
+          },
+          "404": {
+            "description": "Resource not visible to this user"
+          },
+          "409": {
+            "description": "State, deadline, original payment or policy conflict"
+          }
+        }
+      }
+    },
+    "/api/handover-reviews/{id}": {
+      "get": {
+        "operationId": "HandoverReview_detail",
+        "tags": [
+          "rental"
+        ],
+        "summary": "detail",
+        "description": "Authorized roles: CUSTOMER, STAFF, FMANAGER. Enforces customer ownership and assigned facility. Only pending handover contracts are eligible. Cancellation approval refunds 50% of actual paid RENT rounded to whole VND per original payment, retains the entire deposit, and creates manual refund work without transferring money.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "CUSTOMER",
+          "STAFF",
+          "FMANAGER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Handover completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "review": {
+                              "$ref": "#/components/schemas/HandoverReview"
+                            },
+                            "evidence": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/HandoverReviewEvidence"
+                              }
+                            },
+                            "refunds": {
+                              "type": "array",
+                              "items": {
+                                "type": "object", "properties": {"id": {"type": "string"}, "handoverReviewId": {"type": "string"}, "paymentId": {"type": "string"}, "refundType": {"type": "string"}, "approvedAmount": {"type": "number"}, "status": {"type": "string", "enum": ["APPROVED", "EVIDENCE_SUBMITTED", "COMPLETED"]}}
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or missing input"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or facility not authorized"
+          },
+          "404": {
+            "description": "Resource not visible to this user"
+          },
+          "409": {
+            "description": "State, deadline, original payment or policy conflict"
+          }
+        }
+      }
+    },
+    "/api/handover-reviews/{id}/decision": {
+      "post": {
+        "operationId": "HandoverReview_decide",
+        "tags": [
+          "rental"
+        ],
+        "summary": "decide",
+        "description": "Authorized roles: FMANAGER. Enforces customer ownership and assigned facility. Only pending handover contracts are eligible. Cancellation approval refunds 50% of actual paid RENT rounded to whole VND per original payment, retains the entire deposit, and creates manual refund work without transferring money. REJECT requires reason, conditions and next steps; preserves the reservation/unit and grants a new 24-hour confirmation deadline. The customer sees the in-app decision and can respond. No email is sent. Repeating an identical decision returns the stored result; a conflicting decision returns 409.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "FMANAGER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HandoverReviewDecision"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Handover completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/HandoverReview"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or missing input"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or facility not authorized"
+          },
+          "404": {
+            "description": "Resource not visible to this user"
+          },
+          "409": {
+            "description": "State, deadline, original payment or policy conflict"
+          }
+        }
+      }
+    },
+    "/api/handover-reviews/{id}/response": {
+      "post": {
+        "operationId": "HandoverReview_respond",
+        "tags": [
+          "rental"
+        ],
+        "summary": "respond",
+        "description": "Authorized roles: CUSTOMER. Enforces customer ownership and assigned facility. Only pending handover contracts are eligible. Cancellation approval refunds 50% of actual paid RENT rounded to whole VND per original payment, retains the entire deposit, and creates manual refund work without transferring money.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "CUSTOMER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HandoverReviewResponse"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Handover completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/HandoverReview"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or missing input"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or facility not authorized"
+          },
+          "404": {
+            "description": "Resource not visible to this user"
+          },
+          "409": {
+            "description": "State, deadline, original payment or policy conflict"
+          }
+        }
+      }
+    },
+    "/api/handover-reviews/{id}/evidence": {
+      "post": {
+        "operationId": "HandoverReview_addEvidence",
+        "tags": [
+          "rental"
+        ],
+        "summary": "addEvidence",
+        "description": "Authorized roles: STAFF. Enforces customer ownership and assigned facility. Only pending handover contracts are eligible. Cancellation approval refunds 50% of actual paid RENT rounded to whole VND per original payment, retains the entire deposit, and creates manual refund work without transferring money.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "STAFF"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "note"
+                ],
+                "properties": {
+                  "note": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "PDF, PNG or JPEG, maximum 10 MB."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Handover completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/HandoverReview"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or missing input"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or facility not authorized"
+          },
+          "404": {
+            "description": "Resource not visible to this user"
+          },
+          "409": {
+            "description": "State, deadline, original payment or policy conflict"
+          }
+        }
+      }
+    },
+    "/api/handover-reviews/evidence/{id}": {
+      "get": {
+        "operationId": "HandoverReview_downloadEvidence",
+        "tags": [
+          "rental"
+        ],
+        "summary": "downloadEvidence",
+        "description": "Authorized roles: CUSTOMER, STAFF, FMANAGER. Enforces customer ownership and assigned facility. Only pending handover contracts are eligible. Cancellation approval refunds 50% of actual paid RENT rounded to whole VND per original payment, retains the entire deposit, and creates manual refund work without transferring money.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "CUSTOMER",
+          "STAFF",
+          "FMANAGER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized immutable evidence download; storage paths are never returned.",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/jpeg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or missing input"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or facility not authorized"
+          },
+          "404": {
+            "description": "Resource not visible to this user"
+          },
+          "409": {
+            "description": "State, deadline, original payment or policy conflict"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -7390,6 +8090,224 @@
           "data"
         ],
         "additionalProperties": false
+      },
+      "HandoverReviewDecision": {
+        "type": "object",
+        "required": [
+          "decision",
+          "reason",
+          "conditions",
+          "nextSteps"
+        ],
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "APPROVE",
+              "REJECT"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "conditions": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "nextSteps": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "policyConfirmed": {
+            "type": "boolean",
+            "description": "Must be true for APPROVE: confirms 50% RENT refund and no deposit refund."
+          }
+        }
+      },
+      "HandoverReviewResponse": {
+        "type": "object",
+        "required": [
+          "response"
+        ],
+        "properties": {
+          "response": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          }
+        }
+      },
+      "HandoverReview": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "handoverId": {
+            "type": "string"
+          },
+          "contractId": {
+            "type": "string"
+          },
+          "reservationId": {
+            "type": "string"
+          },
+          "facilityCode": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "ISSUE",
+              "CANCELLATION",
+              "TIMEOUT"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "RECORDED",
+              "PENDING",
+              "APPROVED",
+              "REJECTED"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "requestedBy": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "handoverSnapshot": {
+            "type": "string"
+          },
+          "decidedBy": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "decisionReason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "conditions": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "nextSteps": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "customerResponse": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "policyVersion": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "confirmationDeadline": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "decidedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "newConfirmationDeadline": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "customerRespondedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "paidRentAmount": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "refundAmount": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        }
+      },
+      "HandoverReviewEvidence": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "reviewId": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "fileAvailable": {
+            "type": "boolean"
+          },
+          "contentType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "uploadedBy": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
       }
     }
   }

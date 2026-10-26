@@ -28,6 +28,7 @@ public class RefundRequestService {
   private final NoShowRules noShow;
   private final Clock clock;
   private final com.swp391.selfstorage.modules.reservation.service.CancellationPolicy cancellation;
+  private final com.swp391.selfstorage.modules.rental.repository.HandoverReviewRepository handoverReviews;
 
   public RefundRequestService(
     RefundRequestRepository r,
@@ -40,7 +41,8 @@ public class RefundRequestService {
     RefundLimitCalculator l,
     NoShowRules n,
     Clock cl,
-    com.swp391.selfstorage.modules.reservation.service.CancellationPolicy cancellation
+    com.swp391.selfstorage.modules.reservation.service.CancellationPolicy cancellation,
+    com.swp391.selfstorage.modules.rental.repository.HandoverReviewRepository handoverReviews
   ) {
     refunds = r;
     payments = p;
@@ -53,6 +55,7 @@ public class RefundRequestService {
     noShow = n;
     clock = cl;
     this.cancellation = cancellation;
+    this.handoverReviews = handoverReviews;
   }
 
   public List<RefundRequest> list() {
@@ -73,6 +76,8 @@ public class RefundRequestService {
     if (
       !actor.visible(u, p.getUserId(), p.getFacilityCode())
     ) throw Inputs.missing();
+    if (p.getReservationId() != null && handoverReviews.existsByReservationIdAndStatus(p.getReservationId(), "APPROVED"))
+      throw Inputs.conflict("Hủy trước bàn giao đã tạo hoàn 50% RENT; tiền cọc không hoàn và không tạo thêm yêu cầu");
     if (!"PAID".equals(p.getStatus())) throw Inputs.conflict(
       "Giao dịch gốc chưa thanh toán thành công"
     );
@@ -209,6 +214,9 @@ public class RefundRequestService {
     String decision = Inputs.text(d, "decision"),
       reason = Inputs.text(d, "reason");
     if ("APPROVE".equals(decision)) {
+      if (r.getHandoverReviewId() == null && r.getReservationId() != null
+          && handoverReviews.existsByReservationIdAndStatus(r.getReservationId(), "APPROVED"))
+        throw Inputs.conflict("Hủy bàn giao chỉ hoàn theo hồ sơ 50% RENT đã duyệt; không duyệt khoản hoàn bổ sung");
       var amount = Inputs.money(d.get("approvedAmount"));
       limits.require(amount, r.getRequestedAmount());
       r.setApprovedAmount(amount);

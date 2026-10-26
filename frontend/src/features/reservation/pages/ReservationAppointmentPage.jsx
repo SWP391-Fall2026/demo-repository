@@ -39,11 +39,13 @@ export default function ReservationAppointmentPage() {
     const bills = Array.isArray(invoices.data) ? invoices.data : [];
     const branches = Array.isArray(facilities.data) ? facilities.data : [];
     const checkinTasks = new Map(Array.isArray(tasks.data) ? tasks.data : []);
-    const cards = rows.filter((reservation) => bills.some((invoice) => invoice.reservationId === reservation.id && invoice.invoiceType === "DEPOSIT" && invoice.status === "PAID"));
+    const cancelled = rows.some(reservation => reservation.status === "CANCELLED");
+    const cards = rows.filter((reservation) => reservation.status !== "CANCELLED" && bills.some((invoice) => invoice.reservationId === reservation.id && invoice.invoiceType === "DEPOSIT" && invoice.status === "PAID"));
     return <main className="page-content">
     <header className="page-heading"><div><span className="eyebrow">ĐẶT CỌC ĐÃ XÁC NHẬN</span><h1>Thẻ hẹn nhận kho</h1><p>Thẻ này xác nhận lịch hẹn sau khi đặt cọc. Chưa phải hợp đồng thuê và chưa cấp quyền truy cập kho.</p></div></header>
     <CustomerRentalGuide active={3}/>
-    {!cards.length ? <section className="card empty"><h2>Chưa có thẻ hẹn</h2><p>Thẻ hẹn xuất hiện sau khi tiền cọc được xác nhận và đơn chuyển sang trạng thái đã giữ chỗ.</p><Link to="/invoices/all/pay">Xem hóa đơn</Link></section> : <div className="appointment-card-list">
+    {cancelled && <p className="notice">Có đơn đặt chỗ đã hủy và không còn giữ kho. Nếu hủy trước bàn giao do Facility Manager duyệt, xem quyết định và tình trạng hoàn tiền tại <Link to="/handover-reviews">Yêu cầu bàn giao</Link>.</p>}
+    {!cards.length ? <section className="card empty"><h2>{cancelled ? "Không còn thẻ hẹn đang giữ chỗ" : "Chưa có thẻ hẹn"}</h2>{!cancelled && <><p>Thẻ hẹn xuất hiện sau khi tiền cọc được xác nhận và đơn chuyển sang trạng thái đã giữ chỗ.</p><Link to="/invoices/all/pay">Xem hóa đơn</Link></>}</section> : <div className="appointment-card-list">
       {cards.map((reservation) => {
                 const facility = branches.find((item) => item.code === reservation.facilityCode);
                 const deposit = bills.find((item) => item.reservationId === reservation.id && item.invoiceType === "DEPOSIT");

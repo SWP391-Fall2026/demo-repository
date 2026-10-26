@@ -8,6 +8,12 @@ import java.time.*;
 @Table(name = "refund_requests")
 public class RefundRequest {
 
+  @Column(name = "handover_review_id")
+  private String handoverReviewId;
+
+  public String getHandoverReviewId() { return handoverReviewId; }
+  public void setHandoverReviewId(String value) { handoverReviewId = value; }
+
   @Id
   @Column(name = "id")
   private String id;

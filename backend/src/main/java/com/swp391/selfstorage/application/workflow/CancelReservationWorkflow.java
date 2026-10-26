@@ -23,6 +23,7 @@ public class CancelReservationWorkflow {
   private final AuditLogService audit;
   private final Clock clock;
   private final InvoiceRepository invoices;
+  private final com.swp391.selfstorage.modules.rental.repository.ContractRepository contracts;
 
   public CancelReservationWorkflow(
     ReservationRepository r,
@@ -30,7 +31,8 @@ public class CancelReservationWorkflow {
     ActorContext a,
     AuditLogService au,
     Clock clock,
-    InvoiceRepository invoices
+    InvoiceRepository invoices,
+    com.swp391.selfstorage.modules.rental.repository.ContractRepository contracts
   ) {
     reservations = r;
     units = u;
@@ -38,6 +40,7 @@ public class CancelReservationWorkflow {
     audit = au;
     this.clock = clock;
     this.invoices = invoices;
+    this.contracts = contracts;
   }
 
   @Transactional
@@ -47,6 +50,8 @@ public class CancelReservationWorkflow {
     if (
       !actor.visible(a, r.getUserId(), r.getFacilityCode())
     ) throw Inputs.missing();
+    if (contracts.findByReservationId(id).filter(c -> "PENDING_HANDOVER".equals(c.getStatus())).isPresent())
+      throw Inputs.conflict("Hợp đồng đã thanh toán đang chờ bàn giao; liên hệ Staff lập yêu cầu để Facility Manager duyệt hủy");
     if (
       !Set.of("PENDING_PAYMENT", "RESERVED").contains(r.getStatus())
     ) throw Inputs.conflict("Không thể hủy đơn ở trạng thái này");

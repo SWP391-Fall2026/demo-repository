@@ -15,6 +15,7 @@ import CustomerSupportPage from "../features/support/pages/CustomerSupportPage";
 import StaffTaskBoardPage from "../features/workforce/pages/StaffTaskBoardPage";
 import ReservationLookupPage from "../features/reservation/pages/ReservationLookupPage";
 import HandoverPage from "../features/rental/pages/HandoverPage";
+import HandoverReviewPage from "../features/rental/pages/HandoverReviewPage";
 import UnitStatusPage from "../features/facility/pages/UnitStatusPage";
 import ReturnInspectionPage from "../features/rental/pages/ReturnInspectionPage";
 import IncidentDeskPage from "../features/support/pages/IncidentDeskPage";
@@ -45,6 +46,12 @@ import UnitReadinessApprovalPage from "../features/facility/pages/UnitReadinessA
 import NoShowReviewPage from "../features/reservation/pages/NoShowReviewPage";
 import FacilityOverdueCapPage from "../features/policy/pages/FacilityOverdueCapPage";
 export const routes = [
+    {
+        path: "/handover-reviews",
+        title: "Yêu cầu bàn giao",
+        roles: ["CUSTOMER", "STAFF", "FMANAGER"],
+        element: <HandoverReviewPage />,
+    },
     {
         path: "/payments",
         title: "Lịch sử thanh toán",
