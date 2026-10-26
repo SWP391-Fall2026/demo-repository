@@ -32,6 +32,7 @@ Thanh toán, OTP và PIN là mô phỏng phần mềm. Giao dịch hoàn thủ c
 ## Cấu trúc
 
 ```text
+api-gateway/          Spring Cloud Gateway (Service 0: Reverse Proxy, Routing, Rate Limit, SSL)
 frontend/src/
   app/                  Router, layout và quyền truy cập
   features/             identity, facility, reservation, rental, billing,

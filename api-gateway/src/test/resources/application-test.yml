@@ -1,0 +1,9 @@
+server:
+  port: 0
+
+spring:
+  application:
+    name: selfstorage-api-gateway-test
+  cloud:
+    gateway:
+      routes: []
