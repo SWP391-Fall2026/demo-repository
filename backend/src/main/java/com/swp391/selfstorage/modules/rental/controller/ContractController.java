@@ -66,9 +66,15 @@ public class ContractController {
     return ApiResponse.ok(handover.confirmByCustomer(id, d));
   }
 
-  @PostMapping("/{id}/handover/issue")
+  @PostMapping(value = "/{id}/handover/issue", consumes = MediaType.APPLICATION_JSON_VALUE)
   public ApiResponse<?> reportHandoverIssue(@PathVariable String id, @RequestBody Map<String, Object> d) {
     return ApiResponse.ok(handover.reportIssue(id, d));
+  }
+
+  @PostMapping(value = "/{id}/handover/issue", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  public ApiResponse<?> reportHandoverIssueFile(@PathVariable String id, @RequestParam Map<String, String> fields,
+      @RequestParam(value = "file", required = false) MultipartFile file) {
+    return ApiResponse.ok(handover.reportIssue(id, new HashMap<>(fields), file));
   }
 
   @GetMapping("/{id}/handover/evidence")

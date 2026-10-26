@@ -1,14 +1,5 @@
-import { ResourcePage, Form } from "../../../shared/ui/ResourcePage";
+import { ResourcePage } from "../../../shared/ui/ResourcePage";
 import { reservationApi } from "../api/reservation.api";
 export default function ReservationLookupPage() {
-    return (<ResourcePage title="Tra cứu và tiếp nhận khách" description="Ghi nhận khách đã đến quầy để tránh NO_SHOW nhầm khi đang làm thủ tục." load={reservationApi.list}>
-      <Form fields={[
-            {
-                name: "reservationId",
-                label: "Mã đặt chỗ",
-                type: "text",
-                required: true,
-            },
-        ]} submit={reservationApi.arrived}/>
-    </ResourcePage>);
+    return (<ResourcePage title="Tra cứu đơn đặt chỗ" description="Tìm kiếm và xem thông tin đơn đặt chỗ tại cơ sở. Để xác nhận khách đến, mở task được giao trong Công việc và chọn Xác nhận check-in." load={reservationApi.list}/>);
 }

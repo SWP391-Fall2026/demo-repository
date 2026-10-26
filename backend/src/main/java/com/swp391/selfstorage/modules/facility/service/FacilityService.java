@@ -5,6 +5,8 @@ import com.swp391.selfstorage.common.web.*;
 import com.swp391.selfstorage.modules.audit.service.AuditLogService;
 import com.swp391.selfstorage.modules.facility.entity.*;
 import com.swp391.selfstorage.modules.facility.repository.*;
+import com.swp391.selfstorage.modules.reservation.repository.ReservationRepository;
+import com.swp391.selfstorage.modules.reservation.service.ReservationHoldPolicy;
 import java.math.*;
 import java.time.*;
 import java.util.*;
@@ -19,33 +21,66 @@ public class FacilityService {
   private final ActorContext actor;
   private final AuditLogService audit;
   private final com.swp391.selfstorage.modules.policy.service.PolicyService policy;
+  private final ReservationRepository reservations;
+  private final ReservationHoldPolicy holdPolicy;
+  private final Clock clock;
 
   public FacilityService(
     FacilityRepository f,
     UnitRepository u,
     ActorContext a,
     AuditLogService l,
-    com.swp391.selfstorage.modules.policy.service.PolicyService policy
+    com.swp391.selfstorage.modules.policy.service.PolicyService policy,
+    ReservationRepository reservations,
+    ReservationHoldPolicy holdPolicy,
+    Clock clock
   ) {
     facilities = f;
     units = u;
     actor = a;
     audit = l;
     this.policy = policy;
+    this.reservations = reservations;
+    this.holdPolicy = holdPolicy;
+    this.clock = clock;
   }
 
   public List<Facility> facilities() {
     return facilities.findAll();
   }
 
+  @Transactional(readOnly = true)
   public List<Map<String, Object>> catalog(String facilityCode, BigDecimal minSize,
       BigDecimal maxSize, BigDecimal minPrice, BigDecimal maxPrice) {
     validateRange("kích thước", minSize, maxSize);
     validateRange("giá", minPrice, maxPrice);
     if (facilityCode != null && facilityCode.isBlank()) facilityCode = null;
-    return units
-      .findAvailableForCatalog(facilityCode, minSize, maxSize, minPrice, maxPrice)
+    var candidates = units.findAvailableForCatalog(facilityCode, minSize, maxSize, minPrice, maxPrice);
+    if (candidates.isEmpty()) return List.of();
+
+    // Holds reserve capacity by facility/type, not a particular unit or a filtered subset.
+    Map<String, Map<String, Long>> remaining = new HashMap<>();
+    for (var count : units.countAvailableByType(facilityCode)) {
+      remaining.computeIfAbsent(count.getFacilityCode(), key -> new HashMap<>())
+          .put(count.getUnitType(), count.getQuantity());
+    }
+    var pendingCreatedAfter = LocalDateTime.now(clock).minus(holdPolicy.pendingPaymentHold());
+    for (var hold : reservations.countUnassignedHolds(facilityCode, pendingCreatedAfter)) {
+      var byType = remaining.get(hold.getFacilityCode());
+      if (byType != null) {
+        byType.computeIfPresent(hold.getUnitType(),
+            (type, available) -> Math.max(0L, available - hold.getQuantity()));
+      }
+    }
+    return candidates
       .stream()
+      .filter(u -> {
+        var byType = remaining.get(u.getFacilityCode());
+        long available = byType == null ? 0 : byType.getOrDefault(u.getType(), 0L);
+        if (available == 0) return false;
+        byType.put(u.getType(), available - 1);
+        return true;
+      })
       .map(u -> {
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("code", u.getCode());

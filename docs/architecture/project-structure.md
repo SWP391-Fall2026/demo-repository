@@ -66,7 +66,7 @@ Maven vẫn dùng backend/pom.xml và dependency riêng. Không đưa thư việ
 | reporting | Báo cáo | DTO/read model, không nhân bản entity | Tổng hợp thu/hoàn/cọc/lấp đầy theo quyền và chi nhánh; không giữ số thống kê cố định làm nguồn nghiệp vụ. |
 | audit | Nhật ký nghiệp vụ | AuditLog | Ghi tác nhân từ principal, trạng thái, đối tượng, lý do và dấu thời gian; Admin tra cứu. |
 
-LoginHistory thuộc identity vì được tạo khi xác thực; audit chỉ sử dụng API/query được cấp quyền để hiển thị lịch sử đăng nhập. Không ánh xạ cùng bảng ở hai module. staff_tasks chỉ được giữ như dữ liệu legacy để rà soát; daily_tasks là mapping Java hiện có. Không xóa bảng đang dùng chỉ vì đổi cấu trúc.
+LoginHistory thuộc identity vì được tạo khi xác thực; audit chỉ sử dụng API/query được cấp quyền để hiển thị lịch sử đăng nhập. Không ánh xạ cùng bảng ở hai module. daily_tasks là mapping Java hiện có. Bảng legacy staff_tasks không có mapping backend và đã được người dùng cho phép xóa trên staging ngày 26/10/2026 sau kiểm tra phụ thuộc, backup và rehearsal phục hồi; xem docs/testing/staff-tasks-retirement-20261026.md.
 
 ## 5. Backend theo feature và workflow
 
