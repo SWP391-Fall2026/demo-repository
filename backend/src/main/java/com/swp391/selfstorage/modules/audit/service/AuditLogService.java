@@ -48,4 +48,10 @@ public class AuditLogService {
     log.setEntityId(entity);
     logs.save(log);
   }
+
+  public void recordBackground(String action, String entity, String facility, String detail) {
+    AuditLog log = new AuditLog(LocalDateTime.now().toString(), "Hệ thống", "SYSTEM", action,
+        detail, "SCHEDULER", "SUCCESS");
+    log.setEntityId(entity); log.setFacilityCode(facility); logs.save(log);
+  }
 }

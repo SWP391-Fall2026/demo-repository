@@ -40,6 +40,9 @@ public class HandoverWorkflow {
   private final AttachmentStorage storage;
   private final FacilityRepository facilities;
   private final UserRepository users;
+  private final HandoverReviewWorkflow reviewWorkflow;
+  private final HandoverReviewRepository reviews;
+  private final com.swp391.selfstorage.modules.rental.service.HandoverConfirmationPolicy confirmationPolicy;
 
   public HandoverWorkflow(
     ReservationRepository r,
@@ -55,7 +58,10 @@ public class HandoverWorkflow {
     TaskService tasks,
     AttachmentStorage storage,
     FacilityRepository facilities,
-    UserRepository users
+    UserRepository users,
+    HandoverReviewWorkflow reviewWorkflow,
+    HandoverReviewRepository reviews,
+    com.swp391.selfstorage.modules.rental.service.HandoverConfirmationPolicy confirmationPolicy
   ) {
     reservations = r;
     units = u;
@@ -71,6 +77,9 @@ public class HandoverWorkflow {
     this.storage = storage;
     this.facilities = facilities;
     this.users = users;
+    this.reviewWorkflow = reviewWorkflow;
+    this.reviews = reviews;
+    this.confirmationPolicy = confirmationPolicy;
   }
 
   @Transactional
@@ -86,6 +95,8 @@ public class HandoverWorkflow {
     actor.facility(staff, r.getFacilityCode());
     validateReadyForHandover(r, id, staff.getId());
     Contract c = contracts.lockByReservationId(id).orElseThrow(Inputs::missing);
+    if (reviews.existsByContractIdAndStatus(c.getId(), "PENDING"))
+      throw Inputs.conflict("Yêu cầu hủy đang chờ Manager quyết định");
     requirePaymentEvidence(r, "DEPOSIT", null);
     requirePaymentEvidence(r, "RENT", c.getId());
     var unit = units.lockByCode(r.getUnitCode()).orElseThrow(Inputs::missing);
@@ -113,21 +124,21 @@ public class HandoverWorkflow {
       return created;
     });
     boolean repairable = "ISSUE_REPORTED".equals(h.getStatus()) || "ISSUE".equals(h.getConditionStatus());
-    if (h.getHandoverDate() != null && !repairable)
+    if (h.getHandoverDate() != null && h.getConfirmationDeadlineAt() != null && !repairable)
       throw Inputs.conflict("Biên bản đã lập; không thể tạo bàn giao lần hai");
     h.setStaffId(staff.getId()); h.setHandoverDate(now);
+    h.setConfirmationDeadlineAt(confirmationPolicy.deadline(now));
     h.setCustomerSignatureConfirmed(false); h.setStatus("PENDING_CUSTOMER_CONFIRMATION");
     h.setCustomerConfirmedAt(null); h.setCustomerConfirmedBy(null); h.setConfirmationVersion(null);
     h.setCustomerIssueNotes(null); h.setUnitConditionNotes(notes);
+    h.setCustomerIssueReportedAt(null); h.setCustomerIssueReportedBy(null);
     h.setConditionStatus(conditionStatus); h.setStaffNotes(staffNotes);
     if (evidence != null && !evidence.isEmpty()) {
-      String oldEvidence = h.getEvidencePath();
       String evidencePath = storage.saveImage(evidence);
       h.setEvidencePath(evidencePath);
       TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
         @Override public void afterCompletion(int status) {
           if (status != STATUS_COMMITTED) storage.remove(evidencePath);
-          else if (oldEvidence != null && !oldEvidence.equals(evidencePath)) storage.remove(oldEvidence);
         }
       });
     }
@@ -148,7 +159,8 @@ public class HandoverWorkflow {
             .filter(contract -> {
               if (!"PENDING_HANDOVER".equals(contract.getStatus())) return false;
               return records.findFirstByContractIdOrderByHandoverDateDesc(contract.getId())
-                  .map(record -> "ISSUE_REPORTED".equals(record.getStatus()) || "ISSUE".equals(record.getConditionStatus()))
+                  .map(record -> !reviews.existsByContractIdAndStatus(contract.getId(), "PENDING")
+                      && (record.getConfirmationDeadlineAt() == null || "ISSUE_REPORTED".equals(record.getStatus()) || "ISSUE".equals(record.getConditionStatus())))
                   .orElse(true);
             }).isPresent())
         .map(reservation -> context(reservation.getId()))
@@ -173,24 +185,13 @@ public class HandoverWorkflow {
   }
 
   @Transactional
-  public HandoverRecord reportIssue(String contractId, Map<String, Object> input) {
-    var customer = actor.require("CUSTOMER");
-    Contract visibleContract = contracts.findById(contractId).orElseThrow(Inputs::missing);
-    if (!actor.visible(customer, visibleContract.getUserId(), visibleContract.getFacilityCode())) throw Inputs.missing();
-    var reservation = reservations.lockById(visibleContract.getReservationId()).orElseThrow(Inputs::missing);
-    Contract contract = contracts.lockById(contractId).orElseThrow(Inputs::missing);
-    if (!customer.getId().equals(contract.getUserId())) throw Inputs.missing();
-    if (!"PENDING_HANDOVER".equals(contract.getStatus()) || !"RESERVED".equals(reservation.getStatus()))
-      throw Inputs.conflict("Chỉ báo vấn đề khi hợp đồng đang chờ bàn giao");
-    HandoverRecord record = records.findFirstByContractIdOrderByHandoverDateDesc(contractId)
-        .orElseThrow(() -> Inputs.conflict("Chưa có biên bản để báo vấn đề"));
-    if (!"PENDING_CUSTOMER_CONFIRMATION".equals(record.getStatus()))
-      throw Inputs.conflict("Biên bản không còn chờ xác nhận");
-    record.setStatus("ISSUE_REPORTED");
-    record.setCustomerIssueNotes("Khách hàng báo kho có vấn đề; cần liên hệ trực tiếp Staff cơ sở.");
-    record.setCustomerIssueReportedAt(LocalDateTime.now(clock)); record.setCustomerIssueReportedBy(customer.getId());
-    audit.record("HANDOVER_ISSUE_REPORTED", contractId, "Khách báo vấn đề hiện trạng bàn giao");
-    return records.save(record);
+  public HandoverReview reportIssue(String contractId, Map<String, Object> input) {
+    return reviewWorkflow.reportIssue(contractId, input, null);
+  }
+
+  @Transactional
+  public HandoverReview reportIssue(String contractId, Map<String, Object> input, MultipartFile file) {
+    return reviewWorkflow.reportIssue(contractId, input, file);
   }
 
   @Transactional(readOnly = true)
@@ -231,6 +232,12 @@ public class HandoverWorkflow {
       throw Inputs.conflict("Kho không còn được giữ cho đơn này");
     HandoverRecord h = records.findFirstByContractIdOrderByHandoverDateDesc(c.getId())
         .orElseThrow(() -> Inputs.conflict("Staff chưa lập biên bản bàn giao"));
+    if (reviews.existsByContractIdAndStatus(contractId, "PENDING"))
+      throw Inputs.conflict("Yêu cầu hủy đang chờ Manager quyết định");
+    if (h.getConfirmationDeadlineAt() == null)
+      throw Inputs.conflict("Biên bản cũ chưa có hạn xác nhận; liên hệ Staff để gửi lại");
+    if (confirmationPolicy.expired(h.getConfirmationDeadlineAt(), LocalDateTime.now(clock)))
+      throw Inputs.conflict("Đã hết 24 giờ xác nhận; yêu cầu hủy sẽ được chuyển Manager xem xét");
     if (!"PENDING_CUSTOMER_CONFIRMATION".equals(h.getStatus()))
       throw Inputs.conflict("Biên bản bàn giao không còn chờ xác nhận");
     if ("ISSUE".equals(h.getConditionStatus()))

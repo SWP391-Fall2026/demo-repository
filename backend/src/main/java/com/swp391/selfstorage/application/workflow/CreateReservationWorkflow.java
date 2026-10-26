@@ -75,17 +75,11 @@ public class CreateReservationWorkflow {
       )
       .count();
     long held = reservations
-      .findByFacilityCode(d.facilityCode())
+      .countUnassignedHolds(d.facilityCode(), now.minus(holdPolicy.pendingPaymentHold()))
       .stream()
-      .filter(
-        r ->
-          r.getUnitCode() == null &&
-          d.unitType().equals(r.getUnitType()) &&
-          ("RESERVED".equals(r.getStatus()) ||
-            ("PENDING_PAYMENT".equals(r.getStatus()) &&
-              r.getCreatedAt().plus(holdPolicy.pendingPaymentHold()).isAfter(now)))
-      )
-      .count();
+      .filter(hold -> d.unitType().equals(hold.getUnitType()))
+      .mapToLong(ReservationRepository.HoldCount::getQuantity)
+      .sum();
     if (available <= held) throw Inputs.conflict("Loại kho đã hết chỗ");
     var quote = service.quote(
       Map.of(

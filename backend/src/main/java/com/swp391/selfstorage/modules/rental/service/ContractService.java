@@ -120,6 +120,7 @@ public class ContractService {
       Map.entry("reservationId", Objects.toString(handover.getReservationId(), "")),
       Map.entry("staffId", Objects.toString(handover.getStaffId(), "")),
       Map.entry("handoverDate", Objects.toString(handover.getHandoverDate(), "")),
+      Map.entry("confirmationDeadlineAt", Objects.toString(handover.getConfirmationDeadlineAt(), "")),
       Map.entry("conditionStatus", Objects.toString(handover.getConditionStatus(), "")),
       Map.entry("unitConditionNotes", Objects.toString(handover.getUnitConditionNotes(), "")),
       Map.entry("staffNotes", Objects.toString(handover.getStaffNotes(), "")),

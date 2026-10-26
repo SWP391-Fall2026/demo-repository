@@ -1,5 +1,7 @@
 # Auth API checks — prepared, NOT RUN
 
+Luồng mới hủy trước bàn giao: hợp đồng API nằm trong `../contracts/openapi/storage-rental.openapi.json`, hướng dẫn tại `../docs/guides/handover-cancellation.md`. Các endpoint `/api/handover-reviews` được xác minh bằng MockMvc/JPA trên H2, không phải Postman runner hoặc Supabase live. Chưa tạo/publish collection mới và không thay binding/auth của collection auth hiện có.
+
 > OTP được sinh trong backend rồi gửi qua email; API response không chứa mã. Staging trước đó ghi nhận SMTP bị Brevo chặn IP. **Collection/CLI/GUI Postman vẫn NOT-RUN**.
 
 Source of truth: v3 files under collections/auth. auth.postman_collection.json is the matching GUI import snapshot, generated from the same request definitions. Do not edit the export independently.

@@ -63,6 +63,12 @@ public class HandoverRecord {
   @Column(name = "customer_issue_reported_by")
   private String customerIssueReportedBy;
 
+  @Column(name = "confirmation_deadline_at")
+  private LocalDateTime confirmationDeadlineAt;
+
+  public LocalDateTime getConfirmationDeadlineAt() { return confirmationDeadlineAt; }
+  public void setConfirmationDeadlineAt(LocalDateTime value) { confirmationDeadlineAt = value; }
+
   public String getId() {
     return id;
   }

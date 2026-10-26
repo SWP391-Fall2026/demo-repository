@@ -13,6 +13,21 @@ public interface UnitRepository extends JpaRepository<Unit, String> {
   List<Unit> findByFacilityCode(String code);
   List<Unit> findByStatus(String status);
 
+  interface AvailableCount {
+    String getFacilityCode();
+    String getUnitType();
+    long getQuantity();
+  }
+
+  @Query("""
+      select u.facilityCode as facilityCode, u.type as unitType, count(u) as quantity
+      from Unit u
+      where u.status = 'available'
+        and (:facilityCode is null or u.facilityCode = :facilityCode)
+      group by u.facilityCode, u.type
+      """)
+  List<AvailableCount> countAvailableByType(@Param("facilityCode") String facilityCode);
+
   @Query("""
       select u from Unit u
       join Facility f on f.code = u.facilityCode
