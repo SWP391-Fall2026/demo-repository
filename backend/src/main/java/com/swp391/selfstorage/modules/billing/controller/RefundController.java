@@ -61,6 +61,10 @@ public class RefundController {
   @GetMapping("/{id}/evidence")
   public ResponseEntity<?> file(@PathVariable String id) {
     var e = execution.latest(id);
+    var path = execution.evidencePath(id);
+    if (!java.nio.file.Files.exists(path)) {
+      throw com.swp391.selfstorage.common.web.Inputs.missing();
+    }
     return ResponseEntity.ok()
       .contentType(MediaType.parseMediaType(e.getContentType()))
       .header(
@@ -70,7 +74,7 @@ public class RefundController {
           .build()
           .toString()
       )
-      .body(new FileSystemResource(execution.evidencePath(id)));
+      .body(new FileSystemResource(path));
   }
 
   @PostMapping("/{id}/confirm")
