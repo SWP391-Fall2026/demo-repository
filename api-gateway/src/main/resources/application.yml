@@ -1,0 +1,47 @@
+server:
+  port: ${GATEWAY_PORT:8000}
+
+spring:
+  application:
+    name: selfstorage-api-gateway
+  cloud:
+    gateway:
+      routes:
+        # Định tuyến 1: Toàn bộ API nghiệp vụ -> Backend Spring Boot (:8080)
+        - id: backend-api-route
+          uri: ${BACKEND_SERVICE_URL:http://localhost:8080}
+          predicates:
+            - Path=/api/**
+          filters:
+            - name: RateLimiter
+              args:
+                replenishRate: 30
+                burstCapacity: 60
+
+        # Định tuyến 2: Client Web Portal (React / Vite) -> Frontend (:5173)
+        - id: frontend-web-portal-route
+          uri: ${FRONTEND_PORTAL_URL:http://localhost:5173}
+          predicates:
+            - Path=/**
+          filters:
+            - name: RateLimiter
+              args:
+                replenishRate: 100
+                burstCapacity: 200
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.gateway: INFO
+    com.swp391.gateway: INFO
