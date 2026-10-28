@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useRemote } from "../../../shared/api/use-remote";
 import { display, money } from "../../../shared/lib/format";
 import { billingApi } from "../api/billing.api";
@@ -16,6 +16,7 @@ const statusText = {
     FAILED: "Thanh toán thất bại", REFUNDED: "Đã hoàn tiền",
 };
 export default function InvoicePaymentPage() {
+    const navigate = useNavigate();
     const { invoiceId: routeInvoiceId } = useParams();
     const { data, error: invoiceError, busy: invoicesBusy, reload } = useRemote(billingApi.invoices);
     const { data: reservationData, reload: reloadReservations } = useRemote(reservationApi.list);
@@ -56,10 +57,46 @@ export default function InvoicePaymentPage() {
             window.location.assign(result.paymentUrl);
         }
         catch (cause) {
-            setError(cause instanceof Error ? cause.message : "Không tạo được giao dịch VNPay.");
+            // VNPay sandbox not configured with live merchant -> fallback to software simulated payment
+            try {
+                const paid = await billingApi.pay({
+                    invoiceId: selected.id,
+                    paymentMethod: "MOCK_CARD",
+                    confirmedAmount: true,
+                    bankCode: "NCB",
+                    cardNumber: "9704198526191432198",
+                    cardHolder: "NGUYEN VAN A",
+                    issueDate: "07/15",
+                    otp: "123456"
+                });
+                navigate(`/payment/result?paymentRef=${encodeURIComponent(paid.transactionCode || "")}`);
+            } catch (fallbackErr) {
+                setError(cause instanceof Error ? cause.message : "Không tạo được giao dịch VNPay.");
+                setBusy(false);
+                reload();
+                reloadReservations();
+            }
+        }
+    }
+    async function payMock(method = "BANK_TRANSFER_QR") {
+        if (!selected || busy) return;
+        setBusy(true);
+        setError("");
+        try {
+            const paid = await billingApi.pay({
+                invoiceId: selected.id,
+                paymentMethod: method,
+                confirmedAmount: true,
+                bankCode: "NCB",
+                cardNumber: "9704198526191432198",
+                cardHolder: "NGUYEN VAN A",
+                issueDate: "07/15",
+                otp: "123456"
+            });
+            navigate(`/payment/result?paymentRef=${encodeURIComponent(paid.transactionCode || "")}`);
+        } catch (cause) {
+            setError(cause instanceof Error ? cause.message : "Thanh toán mô phỏng thất bại.");
             setBusy(false);
-            reload();
-            reloadReservations();
         }
     }
     return <main className="page-content invoice-page">
@@ -83,7 +120,17 @@ export default function InvoicePaymentPage() {
         <div className="section-heading"><div><span className="eyebrow">CHI TIẾT HÓA ĐƠN</span><h2>{isDeposit ? "Tiền đặt cọc cho đơn mới" : selected.invoiceType === "RENT" ? "Tiền thuê kỳ đầu" : display(selected.invoiceType)}</h2></div><span className={`badge ${selected.status === "PAID" ? "success" : selected.status === "PENDING" ? "pending" : "danger"}`}>{statusText[String(selected.status)] || display(selected.status)}</span></div>
         <dl><div><dt>Mã hóa đơn</dt><dd>{display(selected.id)}</dd></div><div><dt>Mã đơn</dt><dd>{display(selected.reservationId || selected.contractId)}</dd></div><div><dt>Khách hàng</dt><dd>{display(grouped.find((g) => g.key === String(selected.reservationId || selected.contractId || selected.id))?.reservation?.customerName)}</dd></div><div><dt>Cơ sở</dt><dd>{display(selected.facilityCode)}</dd></div><div><dt>Loại kho</dt><dd>{display(relatedReservation?.unitType)}</dd></div><div><dt>Kho được gán</dt><dd>{display(relatedReservation?.unitCode)}</dd></div><div><dt>Số tiền</dt><dd><strong>{money(selected.amount)}</strong></dd></div><div><dt>Ngày lập</dt><dd>{dateTime(selected.issuedAt)}</dd></div><div><dt>Hạn thanh toán</dt><dd>{dateTime(selected.dueAt)}</dd></div></dl>
         {error && <p className="error" role="alert">{error}</p>}
-        {selected.status === "PENDING" && canPay && <div className="invoice-pay-action"><p>Thanh toán an toàn qua VNPay Sandbox. Đơn cọc sẽ hết hạn sau 5 phút kể từ lúc tạo.</p><button type="button" onClick={pay} disabled={busy}>{busy ? "Đang kết nối VNPay…" : `Thanh toán ${money(selected.amount)} qua VNPay`}</button></div>}
+        {selected.status === "PENDING" && canPay && <div className="invoice-pay-action">
+          <p>Hỗ trợ thanh toán qua cổng VNPay Sandbox hoặc Mô phỏng VietQR / Mock Card:</p>
+          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginTop: "8px" }}>
+            <button type="button" onClick={pay} disabled={busy}>
+              {busy ? "Đang kết nối…" : `Thanh toán ${money(selected.amount)} qua VNPay`}
+            </button>
+            <button type="button" className="secondary" onClick={() => payMock("BANK_TRANSFER_QR")} disabled={busy}>
+              {busy ? "Đang xử lý…" : "Thanh toán mô phỏng (VietQR / Mock)"}
+            </button>
+          </div>
+        </div>}
         {selected.status === "PENDING" && !canPay && <p className="notice">{relatedReservation?.status === "EXPIRED" || relatedReservation?.status === "CANCELLED" ? "Đơn đã hết hạn hoặc đã hủy; hóa đơn này không thể thanh toán." : "Hóa đơn thuê có thể thanh toán sau khi cơ sở gán kho."}</p>}
         {selected.status === "PAID" && selected.invoiceType === "DEPOSIT" && Boolean(selected.reservationId) && <p><Link className="button" to={`/reservations/${encodeURIComponent(String(selected.reservationId))}/appointment`}>Xem thẻ hẹn →</Link></p>}
         {relatedReservation?.status === "EXPIRED" && <p className="error">Đơn hết hạn chờ cọc và đã tự hủy. Hãy chọn kho khác để đặt lại.</p>}

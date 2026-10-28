@@ -9,8 +9,8 @@ export default function CreateReservationPage() {
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
     const [checkInDate, setCheckInDate] = useState("");
-    const facilityCode = params.get("facility") || "";
-    const unitType = params.get("type") || "S";
+    const [facilityCode, setFacilityCode] = useState(params.get("facility") || "HN-CG");
+    const [unitType, setUnitType] = useState(params.get("type") || "S");
     const unitCode = params.get("unit") || "";
     async function submit(event) {
         event.preventDefault();
@@ -63,6 +63,24 @@ export default function CreateReservationPage() {
         <p>Đơn được giữ theo cơ sở và loại kho; quản lý cơ sở gán mã kho cụ thể sau khi đặt cọc.</p>
       </section>}
       <form className="card form-grid" onSubmit={submit}>
+        {!params.get("facility") && (
+          <label>Cơ sở chi nhánh
+            <select value={facilityCode} onChange={(e) => setFacilityCode(e.target.value)} required>
+              <option value="HN-CG">Hà Nội - Cầu Giấy (HN-CG)</option>
+              <option value="HCM-Q7">TP.HCM - Quận 7 (HCM-Q7)</option>
+              <option value="HCM-TB">TP.HCM - Tân Bình (HCM-TB)</option>
+            </select>
+          </label>
+        )}
+        {!params.get("type") && (
+          <label>Loại kho lưu trữ
+            <select value={unitType} onChange={(e) => setUnitType(e.target.value)} required>
+              <option value="S">Loại S - Nhỏ (1 - 3 m²)</option>
+              <option value="M">Loại M - Vừa (4 - 8 m²)</option>
+              <option value="L">Loại L - Lớn (&gt; 8 m²)</option>
+            </select>
+          </label>
+        )}
         <label>Ngày bắt đầu thuê
           <input name="startDate" type="date" min={checkInDate || undefined} required/>
         </label>
