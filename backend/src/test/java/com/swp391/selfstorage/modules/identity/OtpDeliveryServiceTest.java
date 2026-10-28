@@ -37,4 +37,18 @@ class OtpDeliveryServiceTest {
         () -> service.send("person@example.test", "012345")).getStatusCode().value());
     verifyNoInteractions(senders);
   }
+
+  @Test
+  void failsWhenSmtpRejectsAndFallbackIsDisabled() {
+    @SuppressWarnings("unchecked")
+    ObjectProvider<JavaMailSender> senders = mock(ObjectProvider.class);
+    JavaMailSender sender = mock(JavaMailSender.class);
+    when(senders.getIfAvailable()).thenReturn(sender);
+    doThrow(new org.springframework.mail.MailSendException("SMTP rejected sender"))
+        .when(sender).send(any(SimpleMailMessage.class));
+    OtpDeliveryService service = new OtpDeliveryService(senders, "email", "noreply@example.test");
+
+    assertEquals(503, assertThrows(ResponseStatusException.class,
+        () -> service.send("person@example.test", "012345")).getStatusCode().value());
+  }
 }

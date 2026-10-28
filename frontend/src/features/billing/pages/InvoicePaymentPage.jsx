@@ -43,7 +43,8 @@ export default function InvoicePaymentPage() {
         return [...groups.entries()].map(([key, group]) => ({ key, ...group }));
     }, [invoices, reservations]);
     const isDeposit = selected?.invoiceType === "DEPOSIT";
-    const canPay = selected?.status === "PENDING" && ((isDeposit && relatedReservation?.status === "PENDING_PAYMENT") ||
+    const isRenewal = selected?.invoiceType === "RENEW";
+    const canPay = selected?.status === "PENDING" && (isRenewal || (isDeposit && relatedReservation?.status === "PENDING_PAYMENT") ||
         (selected?.invoiceType === "RENT" && relatedReservation?.status === "RESERVED" && Boolean(relatedReservation?.unitCode)));
     async function pay() {
         if (!selected || busy)

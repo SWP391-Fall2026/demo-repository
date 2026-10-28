@@ -50,7 +50,7 @@ public class RequestCheckoutWorkflow {
       LocalDate.parse(Inputs.text(d, "requestedDate"))
     );
     contracts.save(c);
-    tasks.system(
+    var returnTask = tasks.system(
       c.getFacilityCode(),
       "Nghiệm thu trả kho: " + c.getId(),
       "RETURN",
@@ -58,6 +58,7 @@ public class RequestCheckoutWorkflow {
       null,
       c.getId()
     );
+    returnTask.setDueDate(c.getCheckoutRequestedDate());
     audit.record("REQUEST_CHECKOUT", c.getId(), "Chưa dừng phí hoặc khóa PIN");
     return c;
   }

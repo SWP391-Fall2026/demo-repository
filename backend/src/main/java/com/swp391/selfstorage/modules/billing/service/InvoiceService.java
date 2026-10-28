@@ -21,6 +21,10 @@ public class InvoiceService {
       .isEmpty();
   }
 
+  public java.util.Optional<Invoice> findPendingRenewal(String id) {
+    return repo.findByContractIdAndInvoiceTypeAndStatus(id, "RENEW", "PENDING").stream().findFirst();
+  }
+
   private final InvoiceRepository repo;
   private final ActorContext actor;
 
@@ -67,9 +71,9 @@ public class InvoiceService {
   public void requirePaid(String reservation, String type) {
     var i = repo
       .findByReservationIdAndInvoiceType(reservation, type)
-      .orElseThrow(() -> Inputs.conflict("Chưa có hóa đơn " + type));
+      .orElseThrow(() -> Inputs.conflict("ChÆ°a cÃ³ hÃ³a Ä‘Æ¡n " + type));
     if (!"PAID".equals(i.getStatus())) throw Inputs.conflict(
-      "Chưa thanh toán đủ " + type
+      "ChÆ°a thanh toÃ¡n Ä‘á»§ " + type
     );
   }
 

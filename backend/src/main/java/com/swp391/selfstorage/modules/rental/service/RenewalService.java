@@ -52,13 +52,12 @@ public class RenewalService {
       .findById(id)
       .filter(v -> u.getId().equals(v.getUserId()))
       .orElseThrow(Inputs::missing);
-    if (
-      "TERMINATED".equals(c.getStatus()) || months < 1 || months > 36
-    ) throw Inputs.bad("Không thể gia hạn");
+    if ("TERMINATED".equals(c.getStatus()) || c.getCheckoutRequestedAt() != null || months < 1 || months > 36)
+      throw Inputs.bad("KhÃ´ng thá»ƒ gia háº¡n");
     var unit = units.findById(c.getUnitCode()).orElseThrow(Inputs::missing);
     var rate = unit.getPricePerMonth();
     var overdue = fees.calculate(
-      c.getEndAt(),
+      c.getEndAt().plusDays(policy.value("gracePeriodDays", BigDecimal.valueOf(3)).longValue()),
       LocalDateTime.now(clock),
       policy.fee("overdueDailyFee"),
       rate,
@@ -84,18 +83,21 @@ public class RenewalService {
   public Invoice confirm(String id, Map<String, Object> d) {
     int months = Integer.parseInt(Inputs.text(d, "months"));
     if (!Boolean.TRUE.equals(d.get("priceConfirmed"))) throw Inputs.bad(
-      "Khách cần xác nhận giá mới"
+      "KhÃ¡ch cáº§n xÃ¡c nháº­n giÃ¡ má»›i"
     );
     var c = contracts.lockById(id).orElseThrow(Inputs::missing);
-    if (invoices.hasPendingRenewal(id)) throw Inputs.conflict(
-      "Đã có hóa đơn gia hạn đang chờ"
-    );
     var q = quote(id, months);
     if (
       Inputs.money(d.get("expectedMonthlyRate")).compareTo(
         (BigDecimal) q.get("monthlyRate")
       ) != 0
-    ) throw Inputs.conflict("Giá đã thay đổi, vui lòng lấy báo giá mới");
+    ) throw Inputs.conflict("GiÃ¡ Ä‘Ã£ thay Ä‘á»•i, vui lÃ²ng láº¥y bÃ¡o giÃ¡ má»›i");
+    var pending = invoices.findPendingRenewal(id);
+    if (pending.isPresent()) {
+      Invoice existing = pending.get();
+      if (months == 1 && existing.getAmount().compareTo((BigDecimal) q.get("totalAmount")) == 0) return existing;
+      throw Inputs.conflict("Đã có hóa đơn gia hạn đang chờ; thanh toán hoặc chọn lại hợp đồng");
+    }
     Invoice i = invoices.issue(
       null,
       id,
