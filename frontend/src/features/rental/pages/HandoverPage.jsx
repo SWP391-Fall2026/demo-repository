@@ -440,7 +440,10 @@ export default function HandoverPage() {
                           Hủy bỏ / Quay lại
                         </Link>
                       </form>
-                    ) : task && task.status === "PENDING" && credentials ? (
+                    ) : task &&
+                      ["PENDING", "IN_PROGRESS"].includes(task.status) &&
+                      credentials &&
+                      !reservation?.identityVerifiedAt ? (
                       <form className="staff-form" onSubmit={verify}>
                         <label>
                           Mã thẻ hẹn

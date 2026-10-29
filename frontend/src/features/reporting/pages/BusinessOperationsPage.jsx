@@ -14,6 +14,8 @@ import "../../../shared/ui/office/management-stitch.css";
 export default function BusinessOperationsPage() {
   const [dates, setDates] = useState({ startDate: "", endDate: "" });
   const [applied, setApplied] = useState({});
+  const [exportBusy, setExportBusy] = useState(false);
+  const [exportError, setExportError] = useState("");
   const fetcher = useCallback(() => reportingApi.chain(applied), [applied]);
   const remote = useRemote(fetcher, [fetcher]);
   const data = remote.data;
@@ -25,6 +27,18 @@ export default function BusinessOperationsPage() {
   const period =
     [applied.startDate, applied.endDate].filter(Boolean).join(" – ") ||
     "Tất cả thời gian";
+  async function exportReport() {
+    if (exportBusy) return;
+    setExportBusy(true);
+    setExportError("");
+    try {
+      await reportingApi.exportFile(applied, "xlsx");
+    } catch (cause) {
+      setExportError(cause?.message || "Không xuất được báo cáo.");
+    } finally {
+      setExportBusy(false);
+    }
+  }
   return (
     <div className="office-page office-settlement">
       <OfficeHeading
@@ -139,15 +153,13 @@ export default function BusinessOperationsPage() {
             <Link className="button secondary" to="/operations/reports">
               <OfficeIcon>arrow_back</OfficeIcon>Quay lại báo cáo
             </Link>
-            <a
-              className="button"
-              href={`/api/reports/export?${new URLSearchParams({ ...applied, format: "xlsx" })}`}
-            >
-              <OfficeIcon>download</OfficeIcon>Xuất số liệu đối soát
-            </a>
+            <button className="button" type="button" onClick={exportReport} disabled={exportBusy}>
+              <OfficeIcon>download</OfficeIcon>{exportBusy ? "Đang xuất…" : "Xuất số liệu đối soát"}
+            </button>
           </footer>
         </section>
       )}
+      {exportError && <p className="error" role="alert">{exportError}</p>}
       <OfficeGovernance title="Phạm vi xử lý quyết toán">
         Báo cáo cung cấp số liệu để đối soát. Chức năng phê duyệt và kết chuyển
         chưa được kết nối; xuất báo cáo không thay đổi số liệu kế toán.

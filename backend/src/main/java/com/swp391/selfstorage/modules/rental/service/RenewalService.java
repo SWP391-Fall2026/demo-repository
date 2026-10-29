@@ -52,7 +52,7 @@ public class RenewalService {
       .findById(id)
       .filter(v -> u.getId().equals(v.getUserId()))
       .orElseThrow(Inputs::missing);
-    if ("TERMINATED".equals(c.getStatus()) || c.getCheckoutRequestedAt() != null || months < 1 || months > 36)
+    if (Set.of("TERMINATED", "OVERDUE").contains(c.getStatus()) || c.getCheckoutRequestedAt() != null || months < 1 || months > 36)
       throw Inputs.bad("Không thể gia hạn");
     var unit = units.findById(c.getUnitCode()).orElseThrow(Inputs::missing);
     var rate = unit.getPricePerMonth();
@@ -81,7 +81,12 @@ public class RenewalService {
 
   @Transactional
   public Invoice confirm(String id, Map<String, Object> d) {
-    int months = Integer.parseInt(Inputs.text(d, "months"));
+    final int months;
+    try {
+      months = Integer.parseInt(Inputs.text(d, "months"));
+    } catch (NumberFormatException ex) {
+      throw Inputs.bad("Số tháng gia hạn không hợp lệ");
+    }
     if (!Boolean.TRUE.equals(d.get("priceConfirmed"))) throw Inputs.bad(
       "Khách cần xác nhận giá mới"
     );
@@ -95,7 +100,9 @@ public class RenewalService {
     var pending = invoices.findPendingRenewal(id);
     if (pending.isPresent()) {
       Invoice existing = pending.get();
-      if (months == 1 && existing.getAmount().compareTo((BigDecimal) q.get("totalAmount")) == 0) return existing;
+      if (existing.getAmount().compareTo((BigDecimal) q.get("totalAmount")) == 0
+          && ("RENEW:" + months).equals(existing.getDescription())
+          && ("monthly=" + q.get("monthlyRate")).equals(existing.getPriceSnapshot())) return existing;
       throw Inputs.conflict("Đã có hóa đơn gia hạn đang chờ; thanh toán hoặc chọn lại hợp đồng");
     }
     Invoice i = invoices.issue(
@@ -111,5 +118,56 @@ public class RenewalService {
     i.setDescription("RENEW:" + months);
     audit.record("CONFIRM_RENEWAL_PRICE", i.getId(), q.toString());
     return i;
+  }
+
+  /**
+   * Applies a successfully settled renewal invoice. Kept in one service so
+   * mock, bank-counter and VNPay settlement produce the same contract state.
+   */
+  @Transactional
+  public void activatePaidRenewal(Invoice invoice, LocalDateTime settledAt) {
+    if (invoice == null || !"RENEW".equals(invoice.getInvoiceType()) ||
+        !"PAID".equals(invoice.getStatus())) {
+      throw Inputs.conflict("Hóa đơn gia hạn chưa sẵn sàng kích hoạt");
+    }
+    if (invoice.getContractId() == null || invoice.getDescription() == null ||
+        !invoice.getDescription().startsWith("RENEW:")) {
+      throw Inputs.conflict("Hóa đơn gia hạn thiếu thông tin hợp đồng");
+    }
+    final int months;
+    try {
+      months = Integer.parseInt(invoice.getDescription().substring("RENEW:".length()));
+    } catch (NumberFormatException ex) {
+      throw Inputs.conflict("Số tháng gia hạn không hợp lệ");
+    }
+    if (months < 1 || months > 36) throw Inputs.conflict("Số tháng gia hạn không hợp lệ");
+    var c = contracts.lockById(invoice.getContractId()).orElseThrow(Inputs::missing);
+    if (!Objects.equals(c.getUserId(), invoice.getUserId()) ||
+        !Objects.equals(c.getFacilityCode(), invoice.getFacilityCode()) ||
+        Set.of("TERMINATED", "OVERDUE").contains(c.getStatus()) ||
+        c.getCheckoutRequestedAt() != null) {
+      throw Inputs.conflict("Hợp đồng không thể gia hạn");
+    }
+    if (invoice.getPriceSnapshot() == null || !invoice.getPriceSnapshot().startsWith("monthly="))
+      throw Inputs.conflict("Hóa đơn gia hạn thiếu giá đã chốt");
+    BigDecimal monthly;
+    try {
+      monthly = new BigDecimal(invoice.getPriceSnapshot().substring("monthly=".length()));
+    } catch (NumberFormatException ex) {
+      throw Inputs.conflict("Giá gia hạn không hợp lệ");
+    }
+    if (monthly.signum() <= 0) throw Inputs.conflict("Giá gia hạn không hợp lệ");
+    var now = settledAt == null ? LocalDateTime.now(clock) : settledAt;
+    var start = c.getEndAt() != null && c.getEndAt().isAfter(now) ? c.getEndAt() : now;
+    c.setEndAt(start.plusMonths(months));
+    c.setEndDate(c.getEndAt().toLocalDate());
+    c.setMonthlyFee(monthly);
+    c.setStatus("ACTIVE");
+    if (c.getPinCode() == null) c.setPinCode(String.format("%06d", new java.security.SecureRandom().nextInt(1_000_000)));
+    var unit = units.lockByCode(c.getUnitCode()).orElseThrow(Inputs::missing);
+    unit.setPinCode(c.getPinCode());
+    units.save(unit);
+    c.setLastRenewalAt(now);
+    contracts.save(c);
   }
 }
