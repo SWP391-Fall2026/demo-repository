@@ -1,0 +1,290 @@
+﻿.landing-page .landing-pricing-grid,
+.landing-page .landing-facilities-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.landing-page .landing-pricing-card {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 24px;
+  border-radius: 12px;
+  color: #001428;
+  background: #fff;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  transition: box-shadow 150ms ease;
+}
+
+.landing-page .landing-pricing-card:hover,
+.landing-page .landing-facility-card:hover {
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.landing-page .landing-pricing-card.is-featured {
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 0.1),
+    0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+.landing-page .landing-featured-label {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  padding: 4px 12px;
+  transform: translateX(-50%);
+  border-radius: 9999px;
+  color: #fff;
+  background: #0051d5;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.landing-page .landing-pricing-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.landing-page .landing-pricing-card.is-featured .landing-pricing-card-head {
+  margin-top: 4px;
+}
+
+.landing-page .landing-chip {
+  padding: 4px 10px;
+  border-radius: 4px;
+  color: #001428;
+  background: #e5eeff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.landing-page .landing-pricing-card.is-featured .landing-chip {
+  color: #0051d5;
+  background: rgb(0 81 213 / 0.1);
+}
+
+.landing-page .landing-card-volume {
+  color: #43474d;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.02em;
+}
+
+.landing-page .landing-pricing-card h3 {
+  margin: 0 0 4px;
+  color: #001428;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+  letter-spacing: -0.005em;
+}
+
+.landing-page .landing-card-area {
+  margin: 0 0 16px;
+  color: #43474d;
+  font-size: 13px;
+  line-height: 18px;
+  letter-spacing: 0.005em;
+}
+
+.landing-page .landing-pricing-note {
+  margin-bottom: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  background: #eff4ff;
+}
+
+.landing-page .landing-pricing-note p {
+  margin: 0;
+  color: #43474d;
+  font-size: 13px;
+  line-height: 18px;
+  letter-spacing: 0.005em;
+}
+
+.landing-page .landing-pricing-note p:first-child {
+  margin-bottom: 4px;
+  color: #001428;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.02em;
+}
+
+.landing-page .landing-pricing-card-footer {
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.landing-page .landing-price {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.landing-page .landing-price strong {
+  color: #001428;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 32px;
+  letter-spacing: -0.01em;
+}
+
+.landing-page .landing-price span {
+  color: #43474d;
+  font-size: 13px;
+  line-height: 18px;
+  letter-spacing: 0.005em;
+}
+
+.landing-page .landing-pricing-card-footer .landing-button,
+.landing-page .landing-facility-body .landing-button {
+  width: 100%;
+  height: 44px;
+  padding: 0 16px;
+  border: 0;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  transform: none;
+}
+
+.landing-page .landing-pricing-card-footer .landing-button.primary {
+  background: #001428;
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.landing-page .landing-pricing-card-footer .landing-button.primary:hover {
+  background: #0f2942;
+}
+
+.landing-page .landing-facility-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  transition: box-shadow 150ms ease;
+}
+
+.landing-page .landing-facility-image {
+  position: relative;
+  height: 192px;
+  background: #e5eeff;
+}
+
+.landing-page .landing-facility-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.landing-page .landing-city-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  color: #fff;
+  background: rgb(0 20 40 / 0.8);
+  backdrop-filter: blur(4px);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.landing-page .landing-facility-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 24px;
+}
+
+.landing-page .landing-facility-body h3 {
+  margin: 0 0 4px;
+  color: #001428;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: 0;
+}
+
+.landing-page .landing-facility-address {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  margin: 0 0 16px;
+  color: #43474d;
+  font-size: 13px;
+  line-height: 18px;
+  letter-spacing: 0.005em;
+}
+
+.landing-page .landing-facility-address .material-symbols-outlined {
+  margin-top: 2px;
+  color: #0051d5;
+  font-size: 16px;
+}
+
+.landing-page .landing-facility-facts {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 16px;
+  padding: 8px;
+  border-radius: 4px;
+  list-style: none;
+  background: #eff4ff;
+}
+
+.landing-page .landing-facility-facts li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #43474d;
+  font-size: 13px;
+  line-height: 18px;
+  letter-spacing: 0.005em;
+}
+
+.landing-page .landing-facility-facts .material-symbols-outlined {
+  color: #0051d5;
+  font-size: 16px;
+}
+
+.landing-page .landing-facility-body .landing-button {
+  margin-top: auto;
+}
+
+@media (min-width: 1024px) {
+  .landing-page .landing-pricing-grid,
+  .landing-page .landing-facilities-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .landing-page .landing-pricing-card.is-featured {
+    transform: translateY(-8px);
+  }
+}

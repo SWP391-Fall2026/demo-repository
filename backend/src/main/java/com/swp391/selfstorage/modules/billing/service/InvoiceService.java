@@ -71,9 +71,9 @@ public class InvoiceService {
   public void requirePaid(String reservation, String type) {
     var i = repo
       .findByReservationIdAndInvoiceType(reservation, type)
-      .orElseThrow(() -> Inputs.conflict("ChÆ°a cÃ³ hÃ³a Ä‘Æ¡n " + type));
+      .orElseThrow(() -> Inputs.conflict("Chưa có hóa đơn " + type));
     if (!"PAID".equals(i.getStatus())) throw Inputs.conflict(
-      "ChÆ°a thanh toÃ¡n Ä‘á»§ " + type
+      "Chưa thanh toán đủ " + type
     );
   }
 
