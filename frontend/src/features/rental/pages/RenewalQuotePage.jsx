@@ -1,53 +1,21 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useRemote } from "../../../shared/api/use-remote";
 import { display, money } from "../../../shared/lib/format";
 import { rentalApi } from "../api/rental.api";
-
-const renewable = (row) => ["ACTIVE", "EXPIRING_SOON", "OVERDUE"].includes(String(row.status)) && !row.checkoutRequestedAt;
-
-export default function RenewalQuotePage() {
-    const { data, error, busy, reload } = useRemote(rentalApi.list);
-    const [contractId, setContractId] = useState("");
-    const [months, setMonths] = useState(1);
-    const [quote, setQuote] = useState(null);
-    const [invoice, setInvoice] = useState(null);
-    const [message, setMessage] = useState("");
-    const [working, setWorking] = useState(false);
-    const contracts = useMemo(() => (Array.isArray(data) ? data : []).filter(renewable), [data]);
-    const selected = contracts.find(c => String(c.id) === String(contractId));
-
-    async function getQuote(event) {
-        event.preventDefault(); setWorking(true); setMessage(""); setInvoice(null);
-        try { setQuote(await rentalApi.renew({ contractId, months: Number(months) })); }
-        catch (e) { setMessage(e.message || "Không lấy được báo giá gia hạn."); }
-        finally { setWorking(false); }
-    }
-    async function createInvoice(event) {
-        event.preventDefault(); setWorking(true); setMessage("");
-        try {
-            const result = await rentalApi.confirmRenewal({ contractId: quote.contractId, months: quote.durationMonths, priceConfirmed: true, expectedMonthlyRate: quote.monthlyRate });
-            setInvoice(result); setMessage("Đã tạo hóa đơn gia hạn. Thanh toán để cập nhật ngày hết hạn và PIN.");
-        } catch (e) { setMessage(e.message || "Không tạo được hóa đơn gia hạn."); }
-        finally { setWorking(false); }
-    }
-    return <main className="page-content">
-        <header className="page-heading"><div><span className="eyebrow">CUSTOMER · RENEWAL</span><h1>Gia hạn kho đang thuê</h1><p>Chọn hợp đồng thật từ tài khoản, lấy báo giá từ backend, rồi thanh toán hóa đơn gia hạn.</p></div><button className="secondary" onClick={reload}>Làm mới</button></header>
-        {error && <section className="card error" role="alert">{error}</section>}
-        {message && <section className="card notice" role="status">{message}</section>}
-        <section className="card"><h2>1. Chọn hợp đồng và lấy báo giá</h2>
-            {busy ? <p>Đang tải hợp đồng…</p> : <form onSubmit={getQuote} style={{ display: "grid", gap: 12, maxWidth: 650 }}>
-                <label>Hợp đồng<select required value={contractId} onChange={e => { setContractId(e.target.value); setQuote(null); setInvoice(null); }}><option value="">Chọn hợp đồng</option>{contracts.map(c => <option key={c.id} value={c.id}>{c.unitCode} · {c.id} · {c.status} · hết hạn {display(c.endAt)}</option>)}</select></label>
-                <label>Số tháng gia hạn<select value={months} onChange={e => setMonths(Number(e.target.value))}><option value={1}>1 tháng</option><option value={3}>3 tháng</option><option value={6}>6 tháng</option><option value={12}>12 tháng</option></select></label>
-                <button type="submit" disabled={!selected || working}>{working ? "Đang lấy báo giá…" : "Lấy báo giá"}</button>
-            </form>}
-            {!busy && !contracts.length && <p className="empty">Không có hợp đồng đủ điều kiện gia hạn.</p>}
-        </section>
-        {quote && <section className="card"><h2>2. Xác nhận giá và tạo hóa đơn</h2>
-            <dl><div><dt>Kho</dt><dd>{display(selected?.unitCode)}</dd></div><div><dt>Giá thuê tháng</dt><dd>{money(quote.monthlyRate)}</dd></div><div><dt>Phí quá hạn</dt><dd>{money(quote.overdueFee)}</dd></div><div><dt>Tổng phải trả</dt><dd><strong>{money(quote.totalAmount)}</strong></dd></div></dl>
-            {!invoice && <form onSubmit={createInvoice}><button type="submit" disabled={working}>{working ? "Đang tạo hóa đơn…" : "Xác nhận giá và tạo hóa đơn"}</button></form>}
-            {invoice && <p><Link className="button" to={`/invoices/${encodeURIComponent(invoice.id)}/pay`}>Mở hóa đơn {invoice.id} để thanh toán →</Link></p>}
-        </section>}
-        <p><Link to="/rentals">← Quay lại kho đang thuê</Link></p>
-    </main>;
+import { renewalEndDate as addMonths } from "../lib/renewal-date";
+import { CustomerBreadcrumb, CustomerEmpty, CustomerHeading, CustomerHelp, Icon, Status, UnitImage, dateText } from "../../customer/components/StitchCustomer";
+const renewable=row=>["ACTIVE","EXPIRING_SOON","OVERDUE"].includes(row.status)&&!row.checkoutRequestedAt;
+export default function RenewalQuotePage(){
+ const [params]=useSearchParams();const remote=useRemote(()=>rentalApi.list().then(rows=>Promise.all(rows.filter(renewable).map(async row=>{try{const detail=await rentalApi.detail(row.id);return {...row,unit:detail.unit,facility:detail.facility};}catch{return row;}}))));
+ const [contractId,setContractId]=useState(params.get("contractId")||"");const [months,setMonths]=useState(3);const [quote,setQuote]=useState(null);const [invoice,setInvoice]=useState(null);const [error,setError]=useState("");const [working,setWorking]=useState(false);
+ const contracts=useMemo(()=>Array.isArray(remote.data)?remote.data:[],[remote.data]);const selected=contracts.find(c=>String(c.id)===String(contractId));
+ async function getQuote(event){event.preventDefault();setWorking(true);setError("");setInvoice(null);try{setQuote(await rentalApi.renew({contractId,months:Number(months)}));}catch(cause){setError(cause.message||"Không lấy được báo giá gia hạn.");}finally{setWorking(false);}}
+ async function createInvoice(){if(!quote||working)return;setWorking(true);setError("");try{setInvoice(await rentalApi.confirmRenewal({contractId:quote.contractId,months:quote.durationMonths,priceConfirmed:true,expectedMonthlyRate:quote.monthlyRate}));}catch(cause){setError(cause.message||"Không tạo được hóa đơn gia hạn.");}finally{setWorking(false);}}
+ return <main className="page-content stitch-customer sc-renewal"><CustomerBreadcrumb items={[{label:"Kho đang thuê",to:"/rentals"},{label:`Gia hạn hợp đồng ${selected?.unitCode||""}`}]}/><CustomerHeading title="Gia hạn thuê" description="Gia hạn thời gian thuê cho kho đang sử dụng. Chu kỳ mới có hiệu lực sau khi hóa đơn được thanh toán." action={selected&&<Status tone="green">Hợp đồng: {selected.id}</Status>}/>
+ {remote.error?<CustomerEmpty title="Không thể tải hợp đồng" description={remote.error} error action={<button onClick={remote.reload}>Thử lại</button>}/>:remote.busy&&!remote.data?<div className="card sc-skeleton"/>:!contracts.length?<CustomerEmpty title="Không có hợp đồng đủ điều kiện gia hạn" description="Hợp đồng cần còn hoạt động và chưa có yêu cầu trả kho." action={<Link className="button" to="/rentals">Về kho đang thuê</Link>}/>:<div className="sc-two-column"><div className="stitch-detail-main"><section className="card"><div className="stitch-section-title"><h2><Icon>description</Icon>Thông tin hợp đồng &amp; Kho hiện tại</h2><span>{selected?.unitCode||"Chọn hợp đồng"}</span></div><label className="sc-contract-select">Hợp đồng<select value={contractId} required onChange={e=>{setContractId(e.target.value);setQuote(null);setInvoice(null);}}><option value="">Chọn hợp đồng đang thuê</option>{contracts.map(c=><option key={c.id} value={c.id}>{c.unitCode} · {c.id}</option>)}</select></label>{selected?<><div className="sc-contract-preview"><UnitImage unit={selected.unit||selected} screen="scr_08_gia_h_n_thu"/><div><small>MẶT BẰNG THỰC TẾ</small><h2>Phòng {selected.unitCode}</h2><p>{display(selected.facility?.name||selected.facilityCode)}</p><Status tone="green">Đang thuê / Hiệu lực</Status></div></div><dl className="stitch-definition"><div><dt>Cơ sở lưu trữ</dt><dd>{display(selected.facility?.name||selected.facilityCode)}</dd></div><div><dt>Phân loại &amp; Diện tích</dt><dd>Kho {display(selected.unit?.type)} · {display(selected.unit?.sizeSqm)} m²</dd></div><div><dt>Quy cách kho</dt><dd>{display(selected.unit?.sizeDesc)}</dd></div><div><dt>Giá thuê hợp đồng hiện tại</dt><dd>{money(selected.monthlyFee)} / tháng</dd></div><div><dt>Thời hạn ban đầu</dt><dd>{dateText(selected.startAt||selected.startDate)} – {dateText(selected.endAt||selected.endDate)}</dd></div><div className="total"><dt>Ngày hết hạn hiện tại</dt><dd>{dateText(selected.endAt||selected.endDate)}</dd></div></dl><div className="stitch-note"><Icon>lock</Icon><p>Thông tin phòng kho cố định theo hồ sơ bàn giao. Gia hạn giữ nguyên kho hiện tại.</p></div></>:<p className="sc-form-placeholder">Chọn hợp đồng để xem thông tin kho và chu kỳ hiện tại.</p>}</section><CustomerHelp title="Lưu ý nghiệp vụ" description="Chu kỳ gia hạn tiếp nối chu kỳ hiện tại. Giá và phí phát sinh được xác nhận trong báo giá trước khi tạo hóa đơn."/></div>
+ <section className="card sc-renewal-config"><div className="stitch-section-title"><h2><Icon>autorenew</Icon>Cấu hình gia hạn thuê</h2><span>Bước {quote?"2":"1"} / 2</span></div><form onSubmit={getQuote}><label>Số tháng gia hạn</label><div className="sc-renew-options">{[1,3,6,12].map(value=><button type="button" key={value} className={months===value?"selected":""} onClick={()=>{setMonths(value);setQuote(null);setInvoice(null);}}><strong>+{String(value).padStart(2,"0")} Tháng</strong><small>{selected?`Đến ${dateText(addMonths(selected.endAt||selected.endDate,value))}`:"Chọn hợp đồng"}</small>{value===3&&<span>Phổ biến</span>}</button>)}</div><div className="sc-renew-summary"><h3>Chi tiết chu kỳ gia hạn dự kiến</h3><dl className="stitch-definition"><div><dt>Ngày kết thúc hiện tại</dt><dd>{dateText(selected?.endAt||selected?.endDate)}</dd></div><div><dt>Thời gian gia hạn</dt><dd>+{months} tháng</dd></div><div className="total"><dt>Ngày kết thúc mới dự kiến</dt><dd>{dateText(addMonths(selected?.endAt||selected?.endDate,months))}</dd></div></dl></div>{error&&<p className="error" role="alert">{error}</p>}{!quote&&<button className="sc-full-button" disabled={!selected||working}>{working?"Đang lấy báo giá…":"Tiếp tục gia hạn"}<Icon>arrow_forward</Icon></button>}</form>
+ {quote&&<section className="sc-quote"><h3><Icon>receipt_long</Icon>Xác nhận báo giá gia hạn</h3><dl className="stitch-definition"><div><dt>Đơn giá chu kỳ mới</dt><dd>{money(quote.monthlyRate)} / tháng</dd></div><div><dt>Phí quá hạn</dt><dd>{money(quote.overdueFee)}</dd></div><div className="total"><dt>Tổng phải trả</dt><dd>{money(quote.totalAmount)}</dd></div></dl>{invoice?<div className="sc-success-box" role="status"><Icon>task_alt</Icon><h3>Đã tạo hóa đơn gia hạn</h3><p>Thanh toán để xác nhận chu kỳ thuê mới.</p><Link className="button" to={`/invoices/${encodeURIComponent(invoice.id)}/pay`}>Thanh toán hóa đơn<Icon>arrow_forward</Icon></Link></div>:<button className="sc-full-button" onClick={createInvoice} disabled={working}>{working?"Đang tạo hóa đơn…":"Xác nhận giá và tạo hóa đơn"}<Icon>arrow_forward</Icon></button>}</section>}
+ <Link className="stitch-payment-back" to="/rentals"><Icon>arrow_back</Icon>Quay lại kho đang thuê</Link></section></div>}
+ </main>;
 }

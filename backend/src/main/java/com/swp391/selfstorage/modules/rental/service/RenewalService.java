@@ -53,7 +53,7 @@ public class RenewalService {
       .filter(v -> u.getId().equals(v.getUserId()))
       .orElseThrow(Inputs::missing);
     if ("TERMINATED".equals(c.getStatus()) || c.getCheckoutRequestedAt() != null || months < 1 || months > 36)
-      throw Inputs.bad("KhÃ´ng thá»ƒ gia háº¡n");
+      throw Inputs.bad("Không thể gia hạn");
     var unit = units.findById(c.getUnitCode()).orElseThrow(Inputs::missing);
     var rate = unit.getPricePerMonth();
     var overdue = fees.calculate(
@@ -83,7 +83,7 @@ public class RenewalService {
   public Invoice confirm(String id, Map<String, Object> d) {
     int months = Integer.parseInt(Inputs.text(d, "months"));
     if (!Boolean.TRUE.equals(d.get("priceConfirmed"))) throw Inputs.bad(
-      "KhÃ¡ch cáº§n xÃ¡c nháº­n giÃ¡ má»›i"
+      "Khách cần xác nhận giá mới"
     );
     var c = contracts.lockById(id).orElseThrow(Inputs::missing);
     var q = quote(id, months);
@@ -91,7 +91,7 @@ public class RenewalService {
       Inputs.money(d.get("expectedMonthlyRate")).compareTo(
         (BigDecimal) q.get("monthlyRate")
       ) != 0
-    ) throw Inputs.conflict("GiÃ¡ Ä‘Ã£ thay Ä‘á»•i, vui lÃ²ng láº¥y bÃ¡o giÃ¡ má»›i");
+    ) throw Inputs.conflict("Giá đã thay đổi, vui lòng lấy báo giá mới");
     var pending = invoices.findPendingRenewal(id);
     if (pending.isPresent()) {
       Invoice existing = pending.get();

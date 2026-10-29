@@ -1,47 +1,17 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ResourcePage, Form } from "../../../shared/ui/ResourcePage";
+import { rentalApi } from "../api/rental.api";
 import { useRemote } from "../../../shared/api/use-remote";
 import { display, money } from "../../../shared/lib/format";
-import { rentalApi } from "../api/rental.api";
-export default function MyRentalsPage() {
-    const loadRentals = () => rentalApi.list().then((rows) => rows.filter((row) => !["PENDING_PAYMENT", "PENDING_HANDOVER"].includes(String(row.status))));
-    const { data, reload } = useRemote(loadRentals);
-    const [visible, setVisible] = useState(null);
-    return (<>
-      <ResourcePage title="Kho đang thuê và hợp đồng" description="Yêu cầu trả kho giữ nguyên hiệu lực hợp đồng và PIN cho đến khi Staff hoàn tất nghiệm thu." load={loadRentals}>
-        <Form fields={[
-            { name: "unitCode", label: "Mã kho", required: true },
-            {
-                name: "newPin",
-                label: "PIN mới 6 chữ số",
-                type: "password",
-                required: true,
-            },
-        ]} submit={rentalApi.updatePin} onSuccess={reload}/>
-        <Link className="button secondary" to="/rentals/return">
-          Yêu cầu trả kho
-        </Link>{" "}
-        <Link className="button secondary" to="/rentals/renew">
-          Gia hạn
-        </Link>
-      </ResourcePage>
-      <div className="metric-grid">
-        {data?.map((c) => (<article className="card" key={String(c.id)}>
-            <h2>{display(c.unitCode)}</h2>
-            <p>{display(c.id)}</p>
-            <p>
-              {display(c.status)} · {money(c.monthlyFee)}/tháng
-            </p>
-            <p>Hết hạn: {display(c.endAt)}</p>
-            <Link className="button" to={`/rentals/${encodeURIComponent(String(c.id))}`}>Xem chi tiết hợp đồng</Link>
-            {Boolean(c.pinCode) && (<>
-                <button className="secondary" onClick={() => setVisible(visible === c.id ? null : String(c.id))}>
-                  {visible === c.id ? "Ẩn PIN" : "Xem PIN truy cập"}
-                </button>
-                {visible === c.id && (<p className="pin-display">{display(c.pinCode)}</p>)}
-              </>)}
-          </article>))}
-      </div>
-    </>);
+import { CustomerBreadcrumb, CustomerEmpty, CustomerHeading, CustomerModal, Icon, Status, UnitImage, contractStatuses, dateText } from "../../customer/components/StitchCustomer";
+const tone=state=>["ACTIVE","EXPIRING_SOON"].includes(state)?"green":["OVERDUE","CHECKOUT_REQUESTED"].includes(state)?"orange":"red";
+export default function MyRentalsPage(){
+ const remote=useRemote(()=>rentalApi.list().then(rows=>Promise.all(rows.filter(row=>!["PENDING_PAYMENT","PENDING_HANDOVER"].includes(row.status)).map(async row=>{try{const d=await rentalApi.detail(row.id);return {...row,unit:d.unit,facility:d.facility};}catch{return row;}}))));
+ const [filter,setFilter]=useState("ALL");const [pinContract,setPinContract]=useState(null);const [visible,setVisible]=useState(false);const [pinBusy,setPinBusy]=useState(false);const [pinError,setPinError]=useState("");const [pinMessage,setPinMessage]=useState("");const rows=Array.isArray(remote.data)?remote.data:[];const shown=rows.filter(row=>filter==="ALL"||row.status==="EXPIRING_SOON");
+ return <main className="page-content stitch-customer sc-rentals"><CustomerBreadcrumb items={[{label:"Kho đang thuê"}]}/><CustomerHeading title="Kho đang thuê" description="Quản lý thông tin và trạng thái các kho bạn đang thuê." action={<div className="sc-rental-count"><span>HỆ THỐNG TRUY CẬP</span><strong>Đang hoạt động: {rows.filter(r=>["ACTIVE","EXPIRING_SOON","OVERDUE"].includes(r.status)).length} kho</strong></div>}/><div className="sc-tabs">{[["ALL","Tất cả kho đang thuê"],["EXPIRING_SOON","Hợp đồng sắp hết hạn"]].map(([value,label])=><button type="button" className={filter===value?"selected":""} key={value} onClick={()=>setFilter(value)}>{label}</button>)}</div>
+ {remote.error?<CustomerEmpty icon="cloud_off" title="Không thể tải dữ liệu" description={remote.error} error action={<button onClick={remote.reload}>Thử lại</button>}/>:remote.busy&&!remote.data?<div className="card sc-skeleton"/>:!shown.length?<CustomerEmpty title={filter==="ALL"?"Bạn chưa có kho đang thuê":"Chưa có hợp đồng sắp hết hạn"} description="Sau khi thanh toán và hoàn tất bàn giao, kho thuê của bạn sẽ hiển thị tại đây." action={<Link className="button" to="/storage"><Icon>search</Icon>Tìm kho lưu trữ</Link>}/>:<div className="sc-rental-list">{shown.map(c=><article className="card sc-rental-full" key={c.id}><div className="sc-rental-photo"><UnitImage unit={c.unit||c} screen="scr_07_kho_ang_thu"/><span>Mã phòng: {display(c.unitCode)}</span></div><div className="sc-rental-info"><header><div><span className="eyebrow">HỢP ĐỒNG: {display(c.id)}</span><h2>{display(c.unitCode)}</h2></div><Status tone={tone(c.status)}>{contractStatuses[c.status]||display(c.status)}</Status></header><div className="sc-rental-columns"><section><small>Cơ sở vận hành</small><h3>{display(c.facility?.name||c.facilityCode)}</h3><p className="sc-address"><Icon>location_on</Icon>{display(c.facility?.address)}</p><dl className="stitch-definition"><div><dt>Phân khúc lưu trữ</dt><dd>Kho {display(c.unit?.type||c.unitType)}</dd></div><div><dt>Thể tích / Diện tích</dt><dd>{c.unit?.sizeSqm?`${c.unit.sizeSqm} m²`:"Theo hợp đồng"}</dd></div><div><dt>Quy cách kho</dt><dd>{display(c.unit?.sizeDesc)}</dd></div></dl></section><section className="sc-rental-dates"><dl className="stitch-definition"><div><dt>Ngày bắt đầu</dt><dd>{dateText(c.startAt||c.startDate)}</dd></div><div><dt>Ngày kết thúc</dt><dd>{dateText(c.endAt||c.endDate)}</dd></div><div><dt>Thời hạn thuê</dt><dd>{display(c.durationMonths)} tháng</dd></div><div><dt>Giá thuê / tháng</dt><dd>{money(c.monthlyFee)}</dd></div><div><dt>Phương thức vào kho</dt><dd>PIN điện tử cá nhân</dd></div></dl></section></div><footer><Link className="button" to={`/rentals/${encodeURIComponent(c.id)}`}>Xem chi tiết<Icon>arrow_forward</Icon></Link><button className="secondary" onClick={()=>{setPinContract(c);setVisible(false);}}><Icon>key</Icon>Tra cứu PIN</button><Link className="button secondary" to={`/rentals/renew?contractId=${encodeURIComponent(c.id)}`}>Gia hạn</Link><Link className="button secondary" to={`/rentals/return?contractId=${encodeURIComponent(c.id)}`}>Yêu cầu trả kho</Link></footer></div></article>)}</div>}
+ <p className="sc-security-strip"><Icon>security</Icon><span><strong>Lưu ý an ninh:</strong> Mã PIN là khóa truy cập riêng tư. Không chia sẻ mã PIN cho người không có thẩm quyền.</span></p>
+ {!!rows.length&&<details className="card stitch-rental-pin-form"><summary>Cập nhật PIN cửa kho</summary><p>Đặt mã PIN mới cho kho thuộc hợp đồng hiện tại.</p>{pinMessage&&<p className="notice" role="status">{pinMessage}</p>}{pinError&&<p className="error" role="alert">{pinError}</p>}<form onSubmit={async e=>{e.preventDefault();setPinBusy(true);setPinError("");setPinMessage("");const form=e.currentTarget;const data=Object.fromEntries(new FormData(form));try{await rentalApi.updatePin(data);setPinMessage("Đã cập nhật PIN thành công.");remote.reload();form.reset();}catch(cause){setPinError(cause.message||"Không cập nhật được PIN.");}finally{setPinBusy(false);}}}><label>Kho cần cập nhật<select name="unitCode" required>{rows.filter(r=>r.pinCode).map(r=><option key={r.id} value={r.unitCode}>{r.unitCode}</option>)}</select></label><label>PIN mới 6 chữ số<input name="newPin" required pattern="[0-9]{6}" inputMode="numeric" maxLength={6}/></label><button disabled={pinBusy}>{pinBusy?"Đang lưu…":"Cập nhật PIN"}</button></form></details>}
+ {pinContract&&<CustomerModal title="Mã PIN điện tử" icon="key" onClose={()=>setPinContract(null)}><p>Kho {display(pinContract.unitCode)} · {display(pinContract.facility?.name||pinContract.facilityCode)}</p><div className="sc-pin-display"><small>MÃ PIN CỦA BẠN (6 CHỮ SỐ)</small><strong>{visible?display(pinContract.pinCode||"Chưa cấp PIN"):"••••••"}</strong><button className="secondary" onClick={()=>setVisible(!visible)} disabled={!pinContract.pinCode}><Icon>{visible?"visibility_off":"visibility"}</Icon>{visible?"Ẩn mã PIN":"Hiện mã PIN"}</button></div><p className="stitch-note"><Icon>lock</Icon>PIN có hiệu lực theo trạng thái hợp đồng. Không chia sẻ cho người khác.</p><div className="sc-dialog-actions"><button className="secondary" onClick={()=>setPinContract(null)}>Đóng cửa sổ</button><Link className="button" to="/rentals/access">Xác thực truy cập</Link></div></CustomerModal>}
+ </main>;
 }
