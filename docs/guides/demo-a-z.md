@@ -61,7 +61,7 @@ Ghi lại mã Reservation `RSV-...`, Invoice `INV-...`, Contract `CTR-...`, Task
 
 ## 3. Công cụ thanh toán mô phỏng local
 
-UI thanh toán hiện chỉ nối VNPay; lựa chọn QR/quầy chưa có nút hoàn tất giả lập. Backend đã có `/api/payments/simulate`. Mở PowerShell thứ ba, dán khối này một lần. Không cần cài Postman.
+UI hỗ trợ VNPay và chuyển khoản QR mô phỏng. Thanh toán tại quầy chỉ Staff được ghi nhận. Backend vẫn có `/api/payments/simulate` để kiểm thử lặp lại. Mở PowerShell thứ ba, dán khối này một lần. Không cần cài Postman.
 
 ```powershell
 $script:demoApi = 'http://127.0.0.1:8080/api'
@@ -113,6 +113,7 @@ Invoke-DemoApi -Path '/invoices' |
 Invoke-DemoApi -Path '/payments/simulate' -Method POST -Body @{
     invoiceId = 'THAY_BANG_MA_INV_THUC_TE'
     paymentMethod = 'BANK_TRANSFER_QR'
+    confirmedAmount = $true
 }
 ```
 
@@ -388,9 +389,9 @@ mvn -f backend/pom.xml test
 
 Các test cần staging/config riêng có thể bị skip; test pass local không đồng nghĩa toàn bộ luồng browser/email/VNPay đã được chạy thật.
 
-## 16. VNPay Sandbox cho DEPOSIT/RENT
+## 16. VNPay Sandbox cho DEPOSIT/RENT/RENEW
 
-Gia hạn trong hướng dẫn này dùng `/payments/simulate`: callback VNPay hiện mới xử lý chuyển nghiệp vụ cho DEPOSIT và RENT. Với RENEW, callback có thể ghi invoice PAID nhưng chưa cập nhật hạn thuê/giá/PIN của hợp đồng. Vì vậy chưa dùng VNPay để kết luận demo gia hạn thành công; cần sửa và kiểm thử nhánh callback này trước khi dùng.
+Gia hạn trong hướng dẫn này dùng `/payments/simulate` hoặc VNPay. Cả hai nhánh đều dùng cùng logic settlement: cập nhật hạn thuê, ngày hết hạn, giá tháng, PIN và thời điểm gia hạn sau khi invoice RENEW PAID. Chỉ coi thanh toán xong khi backend xác nhận invoice PAID.
 
 Chuẩn bị merchant sandbox hợp lệ, không dùng thông tin thẻ ngân hàng thật. Khởi chạy backend với:
 

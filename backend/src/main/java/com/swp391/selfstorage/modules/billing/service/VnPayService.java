@@ -10,6 +10,7 @@ import com.swp391.selfstorage.modules.billing.repository.PaymentRepository;
 import com.swp391.selfstorage.modules.rental.repository.ContractRepository;
 import com.swp391.selfstorage.modules.reservation.repository.ReservationRepository;
 import com.swp391.selfstorage.modules.reservation.service.ReservationHoldPolicy;
+import com.swp391.selfstorage.modules.rental.service.RenewalService;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -37,6 +38,7 @@ public class VnPayService {
   private final Clock clock;
   private final ReservationHoldPolicy holdPolicy;
   private final com.swp391.selfstorage.application.workflow.PaidRentActivationService rentActivation;
+  private final RenewalService renewalService;
   private final String url, tmnCode, hashSecret, returnUrl, frontendUrl;
 
   public VnPayService(InvoiceRepository invoices, PaymentRepository payments,
@@ -46,7 +48,8 @@ public class VnPayService {
       @Value("${vnpay.return-url:}") String returnUrl,
       @Value("${app.frontend-url:http://localhost:5173}") String frontendUrl,
       ReservationHoldPolicy holdPolicy,
-      com.swp391.selfstorage.application.workflow.PaidRentActivationService rentActivation) {
+      com.swp391.selfstorage.application.workflow.PaidRentActivationService rentActivation,
+      RenewalService renewalService) {
     this.invoices = invoices; this.payments = payments; this.reservations = reservations;
     this.contracts = contracts;
     this.actor = actor; this.audit = audit; this.clock = clock; this.url = url;
@@ -54,6 +57,7 @@ public class VnPayService {
     this.frontendUrl = frontendUrl;
     this.holdPolicy = holdPolicy;
     this.rentActivation = rentActivation;
+    this.renewalService = renewalService;
   }
 
   @Transactional
@@ -81,6 +85,11 @@ public class VnPayService {
       if (!"PENDING_PAYMENT".equals(contracts.findByReservationId(r.getId()).map(c -> c.getStatus()).orElse("")))
         throw Inputs.conflict("Hợp đồng không còn ở trạng thái chờ thanh toán");
       if (rentActivation == null) throw Inputs.conflict("Không thể kích hoạt hợp đồng trước thanh toán");
+    } else if ("RENEW".equals(invoice.getInvoiceType())) {
+      var c = contracts.lockById(invoice.getContractId()).orElseThrow(Inputs::missing);
+      if (!Objects.equals(c.getUserId(), invoice.getUserId()) ||
+          Set.of("TERMINATED", "OVERDUE").contains(c.getStatus()) || c.getCheckoutRequestedAt() != null)
+        throw Inputs.conflict("Hợp đồng không thể gia hạn");
     }
     String paymentId = "PAY-" + UUID.randomUUID();
     LocalDateTime now = LocalDateTime.now(clock);
@@ -141,12 +150,18 @@ public class VnPayService {
           return response("04", "Rent preconditions not met");
         if (!"PENDING_PAYMENT".equals(contracts.findByReservationId(rentReservation.getId()).map(c -> c.getStatus()).orElse("")))
           return response("04", "Contract payment preconditions not met");
+      } else if ("RENEW".equals(invoice.getInvoiceType())) {
+        var c = contracts.lockById(invoice.getContractId()).orElse(null);
+        if (c == null || !Objects.equals(c.getUserId(), invoice.getUserId()) ||
+            Set.of("TERMINATED", "OVERDUE").contains(c.getStatus()) || c.getCheckoutRequestedAt() != null)
+          return response("04", "Renewal preconditions not met");
       }
       payment.setStatus("PAID"); invoice.setStatus("PAID");
       if (depositReservation != null) {
         depositReservation.setStatus("RESERVED"); reservations.save(depositReservation);
       }
       if (rentReservation != null) rentActivation.activate(invoice, rentReservation);
+      if ("RENEW".equals(invoice.getInvoiceType())) renewalService.activatePaidRenewal(invoice, LocalDateTime.now(clock));
       audit.recordSystem("PAYMENT_PAID", payment.getId(), "VNPAY " + invoice.getInvoiceType() + " " + invoice.getAmount());
     } else payment.setStatus("FAILED");
     payments.save(payment); invoices.save(invoice);
