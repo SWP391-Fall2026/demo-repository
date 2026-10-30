@@ -39,16 +39,8 @@ public class DemoStaffDataInitializer implements CommandLineRunner {
     if (units.findById("HN-CG-001").isEmpty()) {
       Unit unit = new Unit(); unit.setCode("HN-CG-001"); unit.setFacilityCode(facility.getCode()); unit.setType("M"); unit.setSizeSqm(new BigDecimal("5")); unit.setSizeDesc("5 m²"); unit.setPricePerMonth(new BigDecimal("1450000")); unit.setStatus("available"); units.save(unit);
     }
-    seedManagerIfMissing(facility.getCode());
+    seedUser("DEMO-MANAGER-HNCG", "manager_demo_hncg", "Manager demo Cầu Giấy", "manager.demo@storage.local", "FMANAGER", facility.getCode(), "000000000001");
     seedUser("DEMO-STAFF-HNCG", "staff_demo_hncg", "Staff demo Cầu Giấy", "staff.demo@storage.local", "STAFF", facility.getCode(), "000000000002");
-  }
-
-  private void seedManagerIfMissing(String facilityCode) {
-    boolean managerExists = users.findAll().stream()
-        .filter(user -> facilityCode.equals(user.getFacilityCode()))
-        .filter(user -> Set.of("FMANAGER", "FACILITY_MANAGER").contains(user.getRole()))
-        .findAny().isPresent();
-    if (!managerExists) seedUser("DEMO-MANAGER-HNCG", "manager_demo_hncg", "Manager demo Cầu Giấy", "manager.demo@storage.local", "FMANAGER", facilityCode, "000000000001");
   }
 
   private void seedUser(String id, String username, String name, String email, String role, String facilityCode, String cccd) {

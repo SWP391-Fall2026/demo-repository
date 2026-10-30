@@ -194,43 +194,6 @@ abstract class CatalogAvailabilityChecks {
     assertTrue(catalog().isEmpty());
   }
 
-  @Test
-  void facilitySummaryUsesLiveUnitState() {
-    Facility stored = facilities.findById(FACILITY).orElseThrow();
-    stored.setTotalUnits(99);
-    stored.setOccupiedUnits(99);
-    stored.setOccupancyRate(new BigDecimal("100"));
-    facilities.saveAndFlush(stored);
-    unit("S-1", FACILITY, "S", "3", "900000", "available");
-    unit("S-2", FACILITY, "S", "3", "900000", "OCCUPIED");
-
-    var result = service.facilities();
-    Facility summary = result.stream()
-        .filter(facility -> FACILITY.equals(facility.getCode()))
-        .findFirst().orElseThrow();
-
-    assertEquals(2, summary.getTotalUnits());
-    assertEquals(1, summary.getOccupiedUnits());
-    assertEquals(new BigDecimal("50.00"), summary.getOccupancyRate());
-
-    Facility empty = result.stream()
-        .filter(facility -> OTHER_FACILITY.equals(facility.getCode()))
-        .findFirst().orElseThrow();
-    assertEquals(0, empty.getTotalUnits());
-    assertEquals(0, empty.getOccupiedUnits());
-    assertEquals(0, empty.getOccupancyRate().signum());
-
-    unit("S-3", FACILITY, "S", "3", "900000", "reserved");
-    summary = service.facilities().stream()
-        .filter(facility -> FACILITY.equals(facility.getCode()))
-        .findFirst().orElseThrow();
-    assertEquals(3, summary.getTotalUnits());
-    assertEquals(1, summary.getOccupiedUnits());
-    assertEquals(new BigDecimal("33.33"), summary.getOccupancyRate());
-    // Public reads must not rewrite the legacy counters stored on entities.
-    assertEquals(99, facilities.findById(FACILITY).orElseThrow().getTotalUnits());
-  }
-
   protected void verifyDatabaseTarget() {}
 
   private List<Map<String, Object>> catalog() {

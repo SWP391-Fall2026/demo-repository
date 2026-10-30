@@ -25,7 +25,6 @@ public class CompleteReturnWorkflow {
   private final OverdueFeeCalculator fees;
   private final AuditLogService audit;
   private final Clock clock;
-  private final com.swp391.selfstorage.modules.workforce.service.TaskService tasks;
 
   public CompleteReturnWorkflow(
     ContractRepository c,
@@ -35,8 +34,7 @@ public class CompleteReturnWorkflow {
     PolicyService p,
     OverdueFeeCalculator f,
     AuditLogService au,
-    Clock cl,
-    com.swp391.selfstorage.modules.workforce.service.TaskService tasks
+    Clock cl
   ) {
     contracts = c;
     inspections = i;
@@ -46,7 +44,6 @@ public class CompleteReturnWorkflow {
     fees = f;
     audit = au;
     clock = cl;
-    this.tasks = tasks;
   }
 
   @Transactional
@@ -61,7 +58,6 @@ public class CompleteReturnWorkflow {
       .orElseThrow(Inputs::missing);
     var c = contracts.lockById(found.getId()).orElseThrow(Inputs::missing);
     actor.facility(staff, c.getFacilityCode());
-    tasks.requireAssignedReturn(c.getId(), staff.getId());
     if (
       "TERMINATED".equals(c.getStatus()) || c.getCheckoutRequestedAt() == null
     ) throw Inputs.conflict("Chưa có yêu cầu trả hợp lệ");
@@ -69,7 +65,7 @@ public class CompleteReturnWorkflow {
     var now = LocalDateTime.now(clock);
     String cleanliness = Inputs.text(d, "cleanlinessStatus");
     BigDecimal deductions = fees.calculate(
-      c.getEndAt().plusDays(policy.value("gracePeriodDays", BigDecimal.valueOf(3)).longValue()),
+      c.getEndAt(),
       now,
       policy.fee("overdueDailyFee"),
       unit.getPricePerMonth(),
@@ -107,8 +103,6 @@ public class CompleteReturnWorkflow {
     unit.setHeldByReservationId(null);
     unit.setReadinessStatus(null);
     units.save(unit);
-    tasks.completeReturn(c.getId());
-    tasks.system(c.getFacilityCode(), "Vệ sinh sau trả kho: " + c.getUnitCode(), "CLEANING", c.getUnitCode(), null, c.getId());
     audit.record(
       "COMPLETE_RETURN",
       c.getId(),
