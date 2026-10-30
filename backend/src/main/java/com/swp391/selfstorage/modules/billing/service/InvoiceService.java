@@ -21,6 +21,10 @@ public class InvoiceService {
       .isEmpty();
   }
 
+  public java.util.Optional<Invoice> findPendingRenewal(String id) {
+    return repo.findByContractIdAndInvoiceTypeAndStatus(id, "RENEW", "PENDING").stream().findFirst();
+  }
+
   private final InvoiceRepository repo;
   private final ActorContext actor;
 

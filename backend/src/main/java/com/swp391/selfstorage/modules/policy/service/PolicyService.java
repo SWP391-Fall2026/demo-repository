@@ -28,6 +28,7 @@ public class PolicyService {
     Map.entry("depositMonths", "1"),
     Map.entry("cleaningFee", "200000"),
     Map.entry("overdueDailyFee", "50000"),
+    Map.entry("gracePeriodDays", "3"),
     Map.entry("newLockFee", "150000")
   );
 

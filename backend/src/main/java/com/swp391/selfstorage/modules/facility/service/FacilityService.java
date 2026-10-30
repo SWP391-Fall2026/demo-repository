@@ -45,8 +45,24 @@ public class FacilityService {
     this.clock = clock;
   }
 
+  @Transactional(readOnly = true)
   public List<Facility> facilities() {
-    return facilities.findAll();
+    // Summary columns are kept for compatibility with existing records, but
+    // unit status is source of truth. Recompute before exposing public data so
+    // newly added, reserved, or occupied units are reflected immediately.
+    Map<String, UnitRepository.FacilityCount> counts = new HashMap<>();
+    for (var count : units.countByFacility()) counts.put(count.getFacilityCode(), count);
+    return facilities.findAll().stream().map(facility -> {
+      var count = counts.get(facility.getCode());
+      int total = count == null ? 0 : Math.toIntExact(count.getTotal());
+      int occupied = count == null ? 0 : Math.toIntExact(count.getOccupied());
+      BigDecimal rate = total == 0
+          ? BigDecimal.ZERO
+          : BigDecimal.valueOf(occupied).multiply(BigDecimal.valueOf(100))
+              .divide(BigDecimal.valueOf(total), 2, RoundingMode.HALF_UP);
+      return new Facility(facility.getCode(), facility.getName(), facility.getAddress(),
+          facility.getCity(), facility.getHotline(), total, occupied, rate, facility.getStatus());
+    }).toList();
   }
 
   @Transactional(readOnly = true)
