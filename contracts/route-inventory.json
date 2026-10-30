@@ -458,5 +458,20 @@
     "method": "get",
     "path": "/api/handover-reviews/evidence/{id}",
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/HandoverReviewController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/reports/export",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/reporting/controller/ReportController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/tickets/upload",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/support/controller/SupportTicketController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/files/{key:.+}",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/support/controller/AttachmentController.java"
   }
 ]

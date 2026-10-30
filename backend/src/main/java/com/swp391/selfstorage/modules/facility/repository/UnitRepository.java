@@ -19,6 +19,19 @@ public interface UnitRepository extends JpaRepository<Unit, String> {
     long getQuantity();
   }
 
+  interface FacilityCount {
+    String getFacilityCode();
+    long getTotal();
+    long getOccupied();
+  }
+
+  @Query("""
+      select u.facilityCode as facilityCode, count(u) as total,
+        sum(case when lower(u.status) = 'occupied' then 1 else 0 end) as occupied
+      from Unit u group by u.facilityCode
+      """)
+  List<FacilityCount> countByFacility();
+
   @Query("""
       select u.facilityCode as facilityCode, u.type as unitType, count(u) as quantity
       from Unit u

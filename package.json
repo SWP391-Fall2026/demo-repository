@@ -10,10 +10,10 @@
     "build": "npm run build --workspace frontend",
     "test:frontend": "npm run test --workspace frontend",
     "test:backend": "mvn -f backend/pom.xml test",
-    "start:backend": "mvn -f backend/pom.xml spring-boot:run",
+    "start:backend": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-backend.ps1 -Profile auth-supabase",
     "check": "npm run build && npm run test:frontend && npm run check:contract",
     "check:contract": "node scripts/check-contract.mjs",
-    "start:local": "mvn -f backend/pom.xml spring-boot:run -Dspring-boot.run.profiles=local"
+    "start:local": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-backend.ps1 -Profile local"
   },
   "devDependencies": {
     "prettier": "^3.9.10",

@@ -1,7 +1,11 @@
 import AuthPage from "../features/identity/pages/AuthPage";
 import LandingPage from "../features/facility/pages/LandingPage";
 import CatalogPage from "../features/facility/pages/CatalogPage";
+import StorageDetailPage from "../features/facility/pages/StorageDetailPage";
+import StorageTypesPage from "../features/facility/pages/StorageTypesPage";
 import CreateReservationPage from "../features/reservation/pages/CreateReservationPage";
+import MyReservationsPage from "../features/reservation/pages/MyReservationsPage";
+import ReservationDetailPage from "../features/reservation/pages/ReservationDetailPage";
 import InvoicePaymentPage from "../features/billing/pages/InvoicePaymentPage";
 import FacilityInvoiceStatusPage from "../features/billing/pages/FacilityInvoiceStatusPage";
 import PaymentResultPage from "../features/billing/pages/PaymentResultPage";
@@ -11,6 +15,7 @@ import ReservationAppointmentPage from "../features/reservation/pages/Reservatio
 import ContractOfferPage from "../features/reservation/pages/ContractOfferPage";
 import MyRentalsPage from "../features/rental/pages/MyRentalsPage";
 import RentalContractDetailPage from "../features/rental/pages/RentalContractDetailPage";
+import CustomerAccessPage from "../features/rental/pages/CustomerAccessPage";
 import CustomerSupportPage from "../features/support/pages/CustomerSupportPage";
 import StaffTaskBoardPage from "../features/workforce/pages/StaffTaskBoardPage";
 import ReservationLookupPage from "../features/reservation/pages/ReservationLookupPage";
@@ -45,6 +50,7 @@ import RefundConfirmationPage from "../features/billing/pages/RefundConfirmation
 import UnitReadinessApprovalPage from "../features/facility/pages/UnitReadinessApprovalPage";
 import NoShowReviewPage from "../features/reservation/pages/NoShowReviewPage";
 import FacilityOverdueCapPage from "../features/policy/pages/FacilityOverdueCapPage";
+import BusinessOperationsPage from "../features/reporting/pages/BusinessOperationsPage";
 export const routes = [
     {
         path: "/handover-reviews",
@@ -79,6 +85,27 @@ export const routes = [
         roles: [],
         element: <CatalogPage />,
         legacy: "SCR-C01",
+    },
+    {
+        path: "/storage/:unitCode",
+        title: "Chi tiết kho",
+        roles: [],
+        element: <StorageDetailPage />,
+        legacy: "SCR-C01-DETAIL",
+    },
+    {
+        path: "/reservations",
+        title: "Đơn đặt của tôi",
+        roles: ["CUSTOMER"],
+        element: <MyReservationsPage />,
+        legacy: "SCR-C02-LIST",
+    },
+    {
+        path: "/reservations/:reservationId",
+        title: "Chi tiết đơn đặt",
+        roles: ["CUSTOMER"],
+        element: <ReservationDetailPage />,
+        legacy: "SCR-C02-DETAIL",
     },
     {
         path: "/reservations/new",
@@ -135,6 +162,13 @@ export const routes = [
         roles: ["CUSTOMER"],
         element: <RentalContractDetailPage />,
         legacy: "CONFIRMED",
+    },
+    {
+        path: "/rentals/access",
+        title: "Xác thực truy cập",
+        roles: ["CUSTOMER"],
+        element: <CustomerAccessPage />,
+        legacy: "SCR-C05-PIN",
     },
     {
         path: "/support",
@@ -214,6 +248,13 @@ export const routes = [
         legacy: "SCR-M02",
     },
     {
+        path: "/facility/storage-types",
+        title: "Quản lý loại kho",
+        roles: ["FMANAGER"],
+        element: <StorageTypesPage />,
+        legacy: "SCR-M02-TYPES",
+    },
+    {
         path: "/facility/reservations/assign",
         title: "Gán phòng",
         roles: ["FMANAGER"],
@@ -277,6 +318,13 @@ export const routes = [
         legacy: "SCR-O05",
     },
     {
+        path: "/operations/settlement",
+        title: "Quyết toán vận hành chuỗi",
+        roles: ["OPS_MGR"],
+        element: <BusinessOperationsPage />,
+        legacy: "SCR-O06",
+    },
+    {
         path: "/admin/overview",
         title: "Tổng quan quản trị",
         roles: ["ADMIN"],
@@ -317,6 +365,13 @@ export const routes = [
         roles: [],
         element: <AuthPage />,
         legacy: "CONFIRMED",
+    },
+    {
+        path: "/registration-success",
+        title: "Đăng ký thành công",
+        roles: [],
+        element: <AuthPage />,
+        legacy: "SCR-AUTH-SUCCESS",
     },
     {
         path: "/verify-otp",

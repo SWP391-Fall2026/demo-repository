@@ -71,6 +71,8 @@ public class TaskService {
     String taskType = Inputs.text(d, "taskType");
     if ("CHECKIN".equalsIgnoreCase(taskType))
       throw Inputs.bad("Task CHECKIN chỉ được tạo từ request thẻ hẹn sau khi khách đã thanh toán cọc");
+    if (!Set.of("CLEANING", "MAINTENANCE", "GENERAL").contains(taskType))
+      throw Inputs.bad("Chỉ tạo thủ công công việc vệ sinh, bảo trì hoặc công việc chung");
     var staff = users
       .findById(Inputs.text(d, "staffId"))
       .orElseThrow(Inputs::missing);
@@ -78,6 +80,9 @@ public class TaskService {
     if (!"STAFF".equals(actor.role(staff))) throw Inputs.bad(
       "Người nhận phải là Staff"
     );
+    if (!"ACTIVE".equals(staff.getStatus())) throw Inputs.bad("Nhân viên không hoạt động");
+    String unitCode = Inputs.optional(d, "unitCode");
+    if (!unitCode.isBlank()) actor.facility(m, units.findById(unitCode).orElseThrow(Inputs::missing).getFacilityCode());
     DailyTask t = system(
       m.getFacilityCode(),
       Inputs.text(d, "title"),
@@ -89,6 +94,7 @@ public class TaskService {
     t.setStaffId(staff.getId());
     t.setStaff(staff.getName());
     t.setDueDate(LocalDate.parse(Inputs.text(d, "date")));
+    if (d.containsKey("deadline")) t.setDeadline(LocalTime.parse(Inputs.text(d, "deadline")).toString());
     tasks.save(t);
     audit.record("ASSIGN_TASK", t.getId(), "Phân công " + staff.getId());
     return t;
@@ -97,12 +103,15 @@ public class TaskService {
   @Transactional
   public DailyTask progress(String id, Map<String, Object> d) {
     var u = actor.require("STAFF", "FMANAGER");
-    var t = tasks.findById(id).orElseThrow(Inputs::missing);
+    var t = tasks.lockById(id).orElseThrow(Inputs::missing);
     actor.facility(u, t.getFacilityCode());
     if (
       "STAFF".equals(actor.role(u)) && !u.getId().equals(t.getStaffId())
     ) throw Inputs.missing();
     String status = Inputs.text(d, "status");
+    if (!Set.of("PENDING", "IN_PROGRESS").contains(t.getStatus())) throw Inputs.conflict("Công việc đã kết thúc");
+    if ("RETURN".equals(t.getTaskType()) && "COMPLETED".equals(status))
+      throw Inputs.conflict("Hoàn thành công việc trả kho bằng biên bản nghiệm thu");
     if ("CHECKIN".equals(t.getTaskType()) && "COMPLETED".equals(status))
       throw Inputs.conflict("Task check-in chỉ hoàn tất sau khi xác minh khách và nhân viên bàn giao kho");
     if (!Set.of("IN_PROGRESS", "COMPLETED").contains(status)) throw Inputs.bad(
@@ -114,6 +123,22 @@ public class TaskService {
   }
 
   public DailyTask find(String id) { return tasks.findById(id).orElseThrow(Inputs::missing); }
+
+  public void requireAssignedReturn(String contractId, String staffId) {
+    var task = tasks.findByContractIdAndTaskType(contractId, "RETURN").orElseThrow(Inputs::missing);
+    if (task.getStaffId() == null) {
+      task.setStaffId(staffId); task.setStaff("Staff nhận nghiệm thu"); task.setStatus("IN_PROGRESS"); tasks.save(task);
+      return;
+    }
+    if (!staffId.equals(task.getStaffId()) || !Set.of("PENDING", "IN_PROGRESS").contains(task.getStatus()))
+      throw Inputs.conflict("Manager cần phân công nhiệm vụ nghiệm thu cho Staff này");
+  }
+
+  public void completeReturn(String contractId) {
+    tasks.findByContractIdAndTaskType(contractId, "RETURN").ifPresent(task -> {
+      task.setStatus("COMPLETED"); tasks.save(task);
+    });
+  }
 
   public DailyTask findForCustomer(String reservationId) {
     var customer = actor.require("CUSTOMER");
@@ -147,18 +172,8 @@ public class TaskService {
     t.setDueDate(LocalDate.now());
     t.setDeadline("17:00");
     t.setStatus("PENDING");
-    var staff = users
-      .findAll()
-      .stream()
-      .filter(
-        u ->
-          "STAFF".equals(u.getRole()) &&
-          Objects.equals(u.getFacilityCode(), facility) &&
-          "ACTIVE".equals(u.getStatus())
-      )
-      .findFirst();
-    t.setStaff(staff.map(u -> u.getName()).orElse("Chưa phân công"));
-    t.setStaffId(staff.map(u -> u.getId()).orElse(null));
+    t.setStaff("Chờ Manager phân công");
+    t.setStaffId(null);
     return tasks.save(t);
   }
 
@@ -188,13 +203,14 @@ public class TaskService {
   @Transactional
   public DailyTask assignExisting(String id, Map<String, Object> d) {
     var manager = actor.require("FMANAGER");
-    DailyTask task = tasks.findById(id).orElseThrow(Inputs::missing);
+    DailyTask task = tasks.lockById(id).or(() -> tasks.findById(id)).orElseThrow(Inputs::missing);
     actor.facility(manager, task.getFacilityCode());
     User staff = null;
     if (d.containsKey("staffId") && !Inputs.optional(d, "staffId").isBlank()) {
       staff = users.findById(Inputs.text(d, "staffId")).orElseThrow(Inputs::missing);
       actor.facility(staff, manager.getFacilityCode());
       if (!"STAFF".equals(actor.role(staff))) throw Inputs.bad("Người nhận phải là Staff");
+      if (!"ACTIVE".equals(staff.getStatus())) throw Inputs.bad("Nhân viên không hoạt động");
     }
     if (staff == null && !"CHECKIN".equals(task.getTaskType()))
       throw Inputs.bad("Chọn Staff để giao task");
@@ -241,6 +257,8 @@ public class TaskService {
     }
     if (staff != null) { task.setStaffId(staff.getId()); task.setStaff(staff.getName()); }
     if (d.containsKey("date")) task.setDueDate(LocalDate.parse(Inputs.text(d, "date")));
+    if (d.containsKey("deadline")) task.setDeadline(LocalTime.parse(Inputs.text(d, "deadline")).toString());
+    audit.record("ASSIGN_TASK", task.getId(), "Phân công " + task.getStaffId());
     return tasks.save(task);
   }
 
@@ -274,36 +292,15 @@ public class TaskService {
       .toList();
   }
 
-  @Transactional
+  @Transactional(readOnly = true)
   public Map<String, Object> managerDashboard() {
     var manager = actor.require("FMANAGER");
     String facilityCode = manager.getFacilityCode();
     var facility = facilities.findById(facilityCode).orElseThrow(Inputs::missing);
     List<DailyTask> facilityTasks = tasks.findByFacilityCode(facilityCode);
-    for (DailyTask task : facilityTasks) {
-      if (!"CHECKIN".equals(task.getTaskType()) || task.getUnitCode() != null || task.getReservationId() == null)
-        continue;
-      reservations.lockById(task.getReservationId())
-          .filter(reservation -> Objects.equals(facilityCode, reservation.getFacilityCode()))
-          .ifPresent(reservation -> {
-            if (!"RESERVED".equals(reservation.getStatus())) return;
-            var candidate = units.lockAvailableByFacilityAndType(
-                reservation.getFacilityCode(), reservation.getUnitType(), PageRequest.of(0, 1))
-                .stream().findFirst().orElse(null);
-            if (candidate == null) return;
-            candidate.setStatus("reserved");
-            candidate.setHeldByReservationId(reservation.getId());
-            candidate.setTenantName(reservation.getCustomerName());
-            units.save(candidate);
-            reservation.setUnitCode(candidate.getCode());
-            reservations.save(reservation);
-            task.setUnitCode(candidate.getCode());
-            tasks.save(task);
-          });
-    }
     Map<String, Long> taskCounts = new HashMap<>();
     for (DailyTask task : facilityTasks) {
-      if (task.getStaffId() != null && !"COMPLETED".equals(task.getStatus()))
+      if (task.getStaffId() != null && Set.of("PENDING", "IN_PROGRESS").contains(task.getStatus()))
         taskCounts.merge(task.getStaffId(), 1L, Long::sum);
     }
     var staff = users.findAll().stream()
@@ -329,6 +326,7 @@ public class TaskService {
       row.put("id", task.getId()); row.put("title", task.getTitle()); row.put("taskType", task.getTaskType());
       row.put("status", task.getStatus()); row.put("staffId", task.getStaffId()); row.put("staff", task.getStaff());
       row.put("reservationId", task.getReservationId()); row.put("unitCode", task.getUnitCode());
+      row.put("contractId", task.getContractId());
       row.put("facilityCode", task.getFacilityCode());
       row.put("dueDate", task.getDueDate()); row.put("deadline", task.getDeadline());
       if (task.getReservationId() != null) reservations.findById(task.getReservationId())

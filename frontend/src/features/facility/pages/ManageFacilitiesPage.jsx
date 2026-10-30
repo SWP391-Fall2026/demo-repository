@@ -1,4 +1,4 @@
-import { ResourcePage, Form } from "../../../shared/ui/ResourcePage";
+﻿import { ResourcePage, Form } from "../../../shared/ui/ResourcePage";
 import { facilityApi } from "../api/facility.api";
 export default function ManageFacilitiesPage() {
     return (<ResourcePage title="Chuỗi chi nhánh" description="" load={facilityApi.facilities}>

@@ -25,7 +25,8 @@ export const rentalApi = {
     respondHandoverReview: (id, d) => request(`/handover-reviews/${encodeURIComponent(id)}/response`, json("POST", d)),
     downloadReviewEvidence: async (id) => {
         const token = sessionStore.get()?.token;
-        const response = await fetch(`/api/handover-reviews/evidence/${encodeURIComponent(id)}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+        const base = (import.meta.env.VITE_API_BASE_URL || "/api").replace(/\/$/, "");
+        const response = await fetch(`${base}/handover-reviews/evidence/${encodeURIComponent(id)}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
         if (!response.ok) throw new Error("Không tải được bằng chứng.");
         const url = URL.createObjectURL(await response.blob());
         const link = document.createElement("a"); link.href = url; link.download = "bang-chung-ban-giao"; link.click();
@@ -33,7 +34,8 @@ export const rentalApi = {
     },
     loadHandoverEvidence: async (id) => {
         const token = sessionStore.get()?.token;
-        const response = await fetch(`/api/contracts/${encodeURIComponent(id)}/handover/evidence`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+        const base = (import.meta.env.VITE_API_BASE_URL || "/api").replace(/\/$/, "");
+        const response = await fetch(`${base}/contracts/${encodeURIComponent(id)}/handover/evidence`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
         if (!response.ok)
             throw new Error("Không tải được ảnh hiện trạng.");
         return URL.createObjectURL(await response.blob());
