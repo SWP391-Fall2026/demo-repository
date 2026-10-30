@@ -6,6 +6,7 @@ import java.util.*;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequestMapping({ "/api/tickets", "/api/tasks/tickets" })
 public class SupportTicketController {
 
   private final SupportTicketService s;
@@ -14,26 +15,21 @@ public class SupportTicketController {
     this.s = s;
   }
 
-  @GetMapping({ "/api/tickets", "/api/tasks/tickets" })
+  @GetMapping
   public ApiResponse<?> list() {
     return ApiResponse.ok(s.list());
   }
 
-  @PostMapping({ "/api/tickets", "/api/tasks/tickets" })
+  @PostMapping
   public ApiResponse<?> create(@RequestBody Map<String, Object> d) {
     return ApiResponse.ok(s.create(d));
   }
 
-  @PatchMapping({ "/api/tickets/{id}", "/api/tasks/tickets/{id}" })
+  @PatchMapping("/{id}")
   public ApiResponse<?> update(
     @PathVariable String id,
     @RequestBody Map<String, Object> d
   ) {
     return ApiResponse.ok(s.update(id, d));
-  }
-
-  @PostMapping(value = "/api/tickets/upload", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
-  public ApiResponse<?> upload(@RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
-    return ApiResponse.ok(s.uploadAttachment(file));
   }
 }

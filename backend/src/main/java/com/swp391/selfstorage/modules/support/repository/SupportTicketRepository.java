@@ -12,8 +12,4 @@ public interface SupportTicketRepository
 {
   List<SupportTicket> findByUserId(String id);
   List<SupportTicket> findByFacilityCode(String code);
-  @Lock(LockModeType.PESSIMISTIC_WRITE)
-  @Query("select t from SupportTicket t where t.id = :id")
-  Optional<SupportTicket> lockById(@Param("id") String id);
-  List<SupportTicket> findByAttachmentUrl(String attachmentUrl);
 }
