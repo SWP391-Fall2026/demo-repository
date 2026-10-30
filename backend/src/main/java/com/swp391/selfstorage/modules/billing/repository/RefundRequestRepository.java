@@ -16,5 +16,4 @@ public interface RefundRequestRepository
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query("select r from RefundRequest r where r.id=:id")
   Optional<RefundRequest> lockById(@Param("id") String id);
-
 }
