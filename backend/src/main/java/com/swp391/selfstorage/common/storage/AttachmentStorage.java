@@ -81,25 +81,6 @@ public class AttachmentStorage {
     return p;
   }
 
-  public String saveOwnedImage(MultipartFile file, String owner) {
-    String key = saveImage(file);
-    try {
-      Files.writeString(resolve(key + ".owner"), owner, StandardOpenOption.CREATE_NEW);
-      return key;
-    } catch (IOException ex) {
-      remove(key);
-      throw new IllegalStateException("Không lưu được chủ sở hữu ảnh", ex);
-    }
-  }
-
-  public void requireImageOwner(String url, String owner) {
-    if (url == null || !url.startsWith("/api/files/")) throw Inputs.bad("Ảnh phải được tải lên hệ thống");
-    String key = url.substring("/api/files/".length());
-    try {
-      if (!Files.isRegularFile(resolve(key)) || !Files.readString(resolve(key + ".owner")).equals(owner)) throw Inputs.missing();
-    } catch (IOException ex) { throw Inputs.missing(); }
-  }
-
   public void remove(String key) {
     try {
       Files.deleteIfExists(resolve(key));

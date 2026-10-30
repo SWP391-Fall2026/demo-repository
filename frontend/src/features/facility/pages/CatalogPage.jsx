@@ -1,29 +1,86 @@
-﻿import { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { facilityApi } from "../api/facility.api";
 import { useRemote } from "../../../shared/api/use-remote";
 import { useSession } from "../../identity/session";
 import { facilityFilterForSession } from "../lib/catalog-filters";
 import { display, money } from "../../../shared/lib/format";
-import { CustomerEmpty, Icon, Status, UnitImage } from "../../customer/components/StitchCustomer";
-const sizes = [["S", "Kho S", "< 3m²"], ["M", "Kho M", "4–8m²"], ["L", "Kho L", "10–20m²"], ["CLIMATE", "Kho mát", "Điều hòa"]];
 export default function CatalogPage() {
- const session = useSession(); const [params,setParams] = useSearchParams(); const scoped = facilityFilterForSession(session?.user.role,session?.user.facilityCode);
- const initial={facilityCode:scoped||params.get("facility")||"",type:(params.get("type")||"").toUpperCase(),city:"",price:""};
- const [filters,setFilters]=useState(initial); const [applied,setApplied]=useState(initial); const [sort,setSort]=useState("asc"); const [page,setPage]=useState(1);
- const remote=useRemote(()=>facilityApi.units({facilityCode:applied.facilityCode}),[applied.facilityCode]); const branches=useRemote(facilityApi.facilities); const facilities=Array.isArray(branches.data)?branches.data.filter(f=>!f.status||f.status==="ACTIVE"):[];
- useEffect(()=>{const next={facilityCode:scoped||params.get("facility")||"",type:(params.get("type")||"").toUpperCase(),city:"",price:""};setFilters(next);setApplied(next);setPage(1);},[params,scoped]);
- const change=(key,value)=>setFilters(old=>({...old,[key]:value}));
- const rows=useMemo(()=>(Array.isArray(remote.data)?remote.data:[]).filter(u=>(!applied.type||String(u.type).toUpperCase()===applied.type)&&(!applied.city||facilities.find(f=>f.code===u.facilityCode)?.city===applied.city)&&(!applied.price||(applied.price==="low"?Number(u.pricePerMonth)<1000000:applied.price==="mid"?Number(u.pricePerMonth)>=1000000&&Number(u.pricePerMonth)<=2000000:Number(u.pricePerMonth)>2000000))).sort((a,b)=>sort==="desc"?Number(b.pricePerMonth)-Number(a.pricePerMonth):sort==="code"?String(a.code).localeCompare(String(b.code)):Number(a.pricePerMonth)-Number(b.pricePerMonth)),[remote.data,applied,branches.data,sort]);
- const pages=Math.ceil(rows.length/6); const shown=rows.slice((page-1)*6,page*6);
- function clear(){const empty={facilityCode:scoped||"",type:"",city:"",price:""};setFilters(empty);setApplied(empty);setPage(1);setParams({});}
- const chips=[["city",applied.city],["facilityCode",facilities.find(f=>f.code===applied.facilityCode)?.name||applied.facilityCode],["type",applied.type&&`Kho ${applied.type}`],["price",applied.price&&({low:"Dưới 1.000.000 đ",mid:"1.000.000 – 2.000.000 đ",high:"Trên 2.000.000 đ"})[applied.price]]].filter(([,value])=>value);
- return <main className="page-content stitch-customer sc-catalog">
- <header className="sc-catalog-intro"><div><span className="eyebrow"><i/>Tra cứu trực tuyến theo thời gian thực</span><h1>Tìm kiếm &amp; Lọc cơ sở / loại kho</h1><p>Tìm kho phù hợp với nhu cầu của bạn. Khám phá không gian lưu trữ và giá thuê công khai tại các cơ sở.</p></div><div className="sc-intro-assurance"><span><i/>Tự động cập nhật phòng trống</span><span><Icon>verified_user</Icon>Thông tin từ hệ thống cơ sở</span></div></header>
- <section className="card sc-search-panel"><form className="sc-search-grid" onSubmit={e=>{e.preventDefault();setApplied({...filters});setPage(1);}}><label><span><Icon>location_on</Icon>Thành phố</span><select value={filters.city} onChange={e=>change("city",e.target.value)}><option value="">Tất cả thành phố</option>{[...new Set(facilities.map(f=>f.city))].filter(Boolean).map(city=><option key={city}>{city}</option>)}</select></label><label><span><Icon>grid_view</Icon>Kích thước kho</span><div className="sc-size-buttons">{sizes.map(([value,label,size])=><button className={filters.type===value?"selected":""} type="button" key={value} aria-pressed={filters.type===value} onClick={()=>change("type",filters.type===value?"":value)}><strong>{label}</strong><small>{size}</small></button>)}</div></label><label><span><Icon>payments</Icon>Khoảng giá / tháng</span><select value={filters.price} onChange={e=>change("price",e.target.value)}><option value="">Tất cả mức giá</option><option value="low">Dưới 1.000.000 đ</option><option value="mid">1.000.000 đ – 2.000.000 đ</option><option value="high">Trên 2.000.000 đ</option></select></label><div className="sc-search-actions"><button type="submit"><Icon>search</Icon>Tìm kiếm</button><button type="button" className="secondary" onClick={clear} aria-label="Đặt lại bộ lọc"><Icon>restart_alt</Icon></button></div></form><div className="sc-facility-filter"><Icon>tune</Icon><label>Cơ sở lưu trữ<select disabled={Boolean(scoped)} value={filters.facilityCode} onChange={e=>change("facilityCode",e.target.value)}><option value="">Tất cả cơ sở</option>{facilities.map(f=><option key={f.code} value={f.code}>{f.name}</option>)}</select></label><span>Giá thuê niêm yết · Không gian riêng biệt · Đặt giữ chỗ trực tuyến</span></div></section>
- {!!chips.length&&<div className="sc-filter-chips"><span>Đang áp dụng:</span>{chips.map(([key,label])=><button type="button" key={key} disabled={key==="facilityCode"&&Boolean(scoped)} onClick={()=>{setApplied(old=>({...old,[key]:""}));change(key,"");setPage(1);}}>{label}<Icon>close</Icon></button>)}<button className="sc-clear" onClick={clear}><Icon>delete_sweep</Icon>Xóa tất cả bộ lọc</button></div>}
- <header className="stitch-results-heading"><h2>Kết quả tìm kiếm <small>({remote.busy?"Đang tải…":`Tìm thấy ${rows.length} kho phù hợp`})</small></h2><label>Sắp xếp theo: <select value={sort} onChange={e=>{setSort(e.target.value);setPage(1);}}><option value="asc">Giá tăng dần</option><option value="desc">Giá giảm dần</option><option value="code">Mã kho</option></select></label></header>
- {remote.error?<CustomerEmpty icon="cloud_off" title="Không thể tải danh sách kho" description={remote.error} error action={<button onClick={remote.reload}>Thử lại</button>}/>:remote.busy&&!remote.data?<div className="sc-catalog-grid" aria-busy="true">{[1,2,3,4].map(i=><div className="card sc-skeleton" key={i}/>)}</div>:!rows.length?<CustomerEmpty icon="search_off" title="Không tìm thấy kho phù hợp" description="Không có kho trống đáp ứng tiêu chí tìm kiếm hiện tại. Thử đổi cơ sở, kích thước hoặc khoảng giá." action={<button onClick={clear}><Icon>restart_alt</Icon>Xóa bộ lọc tìm kiếm</button>}/>:<><div className="sc-catalog-grid">{shown.map(unit=>{const f=facilities.find(f=>f.code===unit.facilityCode);return <article className="sc-storage-card" key={unit.code}><div className="sc-storage-visual"><UnitImage unit={unit}/><Status tone="green">Còn trống</Status></div><div className="sc-storage-body"><span className="eyebrow">{display(f?.city||unit.facilityCode)} · Mã: {display(unit.code)}</span><h2>{display(f?.name||unit.facilityCode)} – Kho {display(unit.type)} tiêu chuẩn</h2><p className="sc-address"><Icon>pin_drop</Icon>{display(f?.address)}</p><div className="sc-storage-size"><Icon>aspect_ratio</Icon><span>Kho {display(unit.type)}<strong>{display(unit.sizeSqm)} m²</strong></span><small>{display(unit.sizeDesc)}</small></div><div className="sc-storage-tags"><span><Icon>lock</Icon>Kho riêng biệt</span>{unit.type==="CLIMATE"&&<span><Icon>ac_unit</Icon>Kho điều hòa</span>}{unit.floor!=null&&<span><Icon>layers</Icon>Tầng {unit.floor}</span>}</div><footer><div><small>Giá thuê niêm yết</small><strong>{money(unit.pricePerMonth)}<small>/ tháng</small></strong></div><Link className="button" to={`/storage/${encodeURIComponent(unit.code)}`}>Xem chi tiết<Icon>arrow_forward</Icon></Link></footer></div></article>})}</div><div className="sc-pagination"><span>Hiển thị {(page-1)*6+1} – {Math.min(page*6,rows.length)} trong số {rows.length} kết quả phù hợp</span><div><button className="secondary" disabled={page===1} onClick={()=>setPage(page-1)} aria-label="Trang trước"><Icon>chevron_left</Icon></button>{Array.from({length:pages},(_,i)=><button className={page===i+1?"":"secondary"} key={i} onClick={()=>setPage(i+1)}>{i+1}</button>)}<button className="secondary" disabled={page===pages} onClick={()=>setPage(page+1)} aria-label="Trang sau"><Icon>chevron_right</Icon></button></div></div></>}
- <section className="sc-catalog-help"><Icon>support_agent</Icon><div><h3>Chưa tìm thấy kích thước kho ưng ý?</h3><p>Liên hệ chuyên viên để được hướng dẫn lựa chọn không gian lưu trữ phù hợp nhu cầu.</p></div><a className="button secondary" href="tel:19006868"><Icon>phone_in_talk</Icon>Hotline: 1900 6868</a></section>
- </main>;
+    const session = useSession();
+    const customerFacilityCode = facilityFilterForSession(session?.user.role, session?.user.facilityCode);
+    const [filters, setFilters] = useState({ facilityCode: customerFacilityCode, minSize: "", maxSize: "", minPrice: "", maxPrice: "" });
+    const [appliedFilters, setAppliedFilters] = useState(filters);
+    const [facilities, setFacilities] = useState([]);
+    const { data, error, busy, reload } = useRemote(() => facilityApi.units(appliedFilters));
+    const units = Array.isArray(data) ? data : [];
+    useEffect(() => {
+        setFilters((current) => ({ ...current, facilityCode: customerFacilityCode }));
+        setAppliedFilters((current) => ({ ...current, facilityCode: customerFacilityCode }));
+        reload();
+    }, [customerFacilityCode, reload]);
+    useEffect(() => {
+        facilityApi.facilities().then(setFacilities).catch(() => setFacilities([]));
+    }, []);
+    function update(key, value) {
+        setFilters((current) => ({ ...current, [key]: value }));
+    }
+    function submitFilters(event) {
+        event.preventDefault();
+        setAppliedFilters(filters);
+        reload();
+    }
+    function clearFilters() {
+        const empty = { facilityCode: "", minSize: "", maxSize: "", minPrice: "", maxPrice: "" };
+        setFilters(empty);
+        setAppliedFilters(empty);
+        reload();
+    }
+    return (<>
+      <header className="catalog-heading">
+        <div><span className="eyebrow">HỆ THỐNG KHO TỰ PHỤC VỤ 24/7</span><h1>Danh mục cơ sở &amp; kích thước kho lưu trữ</h1><p>Lưu trữ an toàn, bảo mật bằng mã PIN điện tử, camera an ninh 24/7.</p></div>
+        <form className="catalog-location" onSubmit={submitFilters}>
+          <label className="sr-only" htmlFor="catalog-facility">Chọn cơ sở</label>
+          <select id="catalog-facility" value={filters.facilityCode} onChange={(e) => update("facilityCode", e.target.value)}>
+            <option value="">Tất cả cơ sở</option>
+            {facilities.filter((f) => !f.status || String(f.status).toUpperCase() === "ACTIVE").map((f) => <option key={String(f.code)} value={String(f.code)}>{String(f.name)} ({String(f.code)})</option>)}
+          </select>
+          <button type="submit">Tìm kiếm kho</button>
+        </form>
+      </header>
+      <form className="catalog-filters" onSubmit={submitFilters}>
+        <div className="catalog-filter-label"><h2>Bộ lọc kho</h2><span>Lọc theo diện tích và khoảng giá</span></div>
+        <div className="catalog-range-fields">
+          <label>Diện tích từ (m²)<input type="number" min="0" value={filters.minSize} onChange={(e) => update("minSize", e.target.value)}/></label>
+          <label>Đến (m²)<input type="number" min="0" value={filters.maxSize} onChange={(e) => update("maxSize", e.target.value)}/></label>
+          <label>Giá từ / tháng<input type="number" min="0" value={filters.minPrice} onChange={(e) => update("minPrice", e.target.value)}/></label>
+          <label>Đến / tháng<input type="number" min="0" value={filters.maxPrice} onChange={(e) => update("maxPrice", e.target.value)}/></label>
+          <button type="submit">Áp dụng lọc</button>
+          <button type="button" className="secondary" onClick={clearFilters}>Xóa lọc</button>
+        </div>
+      </form>
+      <section className="catalog-results">
+        <header className="page-heading">
+          <div><h2>Kho còn trống <span className="count">{units.length}</span></h2></div>
+          <button type="button" className="secondary" onClick={reload}>Làm mới</button>
+        </header>
+        {error ? <div className="empty error" role="alert">{error}</div>
+            : busy ? <div className="empty" aria-live="polite">Đang tải dữ liệu…</div>
+                : !units.length ? <div className="empty"><h3>Không có kho phù hợp</h3><p>Thử thay đổi cơ sở, diện tích hoặc khoảng giá.</p></div>
+                    : <div className="catalog-grid">{units.map((unit) => <article className="catalog-unit-card" key={String(unit.code)}>
+                  <div className="catalog-unit-image">
+                    {unit.imageUrl ? <img src={String(unit.imageUrl)} alt={String(unit.imageAltText || `Ảnh kho ${unit.code}`)} loading="lazy" onError={(event) => { event.currentTarget.style.visibility = "hidden"; }}/> : <span aria-hidden="true">▦</span>}
+                    <span className="availability"><i /> Còn trống</span>
+                  </div>
+                  <div className="catalog-unit-body">
+                    <div className="unit-meta"><span>{display(unit.type)} · {display(unit.facilityCode)}</span><span>{display(unit.code)}</span></div>
+                    <h3>Kho {display(unit.type)} · {display(unit.sizeSqm)} m²</h3>
+                    <p>Không gian lưu trữ an toàn, phù hợp nhu cầu cá nhân và doanh nghiệp.</p>
+                    <div className="unit-facts"><span>⌗ {display(unit.sizeSqm)} m²</span><span>⌖ Cơ sở {display(unit.facilityCode)}</span></div>
+                    <div className="catalog-unit-footer"><strong>{money(unit.pricePerMonth)} <small>/ tháng</small></strong>
+                      <Link className="button" to={`/reservations/new?facility=${encodeURIComponent(String(unit.facilityCode))}&type=${encodeURIComponent(String(unit.type))}&unit=${encodeURIComponent(String(unit.code))}&size=${encodeURIComponent(String(unit.sizeSqm))}&price=${encodeURIComponent(String(unit.pricePerMonth))}`}>Đặt giữ chỗ</Link>
+                    </div>
+                  </div>
+                </article>)}</div>}
+      </section>
+    </>);
 }

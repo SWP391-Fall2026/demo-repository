@@ -41,7 +41,7 @@ export function Form({ fields, submit, label = "Lưu thay đổi", onSuccess, })
           {f.label}
           {f.options ? (<select name={f.name} defaultValue={f.defaultValue} required={f.required}>
               {f.options.map((o) => (<option key={o}>{o}</option>))}
-            </select>) : f.type === "textarea" ? (<textarea name={f.name} required={f.required} defaultValue={f.defaultValue}/>) : (<input name={f.name} type={f.type || "text"} required={f.required} defaultValue={f.defaultValue} min={f.type === "number" ? 0 : undefined} step={f.step ?? (f.type === "number" ? "any" : undefined)}/>)}
+            </select>) : f.type === "textarea" ? (<textarea name={f.name} required={f.required} defaultValue={f.defaultValue}/>) : (<input name={f.name} type={f.type || "text"} required={f.required} defaultValue={f.defaultValue} min={f.type === "number" ? 0 : undefined}/>)}
         </label>))}
       <div className="form-actions">
         {error && (<p role="alert" className="error">

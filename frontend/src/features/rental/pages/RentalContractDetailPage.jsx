@@ -3,8 +3,6 @@ import { Link, useParams } from "react-router-dom";
 import { useRemote } from "../../../shared/api/use-remote";
 import { display, money } from "../../../shared/lib/format";
 import { rentalApi } from "../api/rental.api";
-import { Icon, UnitImage, CustomerBreadcrumb, CustomerHeading, CustomerEmpty, Status, contractStatuses } from "../../customer/components/StitchCustomer";
-import "../../customer/components/customer.css";
 function formattedDate(value) {
     if (!value)
         return "—";
@@ -35,11 +33,10 @@ export default function RentalContractDetailPage() {
     const { contractId = "" } = useParams();
     const { data, error, busy } = useRemote(() => rentalApi.detail(contractId), [contractId]);
     const [pinVisible, setPinVisible] = useState(false);
-    const [facilityPinVisible, setFacilityPinVisible] = useState(false);
     if (busy)
-        return <main className="page-content stitch-customer"><p>Đang tải chi tiết hợp đồng…</p></main>;
+        return <main className="page-content"><p>Đang tải chi tiết hợp đồng…</p></main>;
     if (error || !data)
-        return <main className="page-content stitch-customer"><section className="card error" role="alert">{error || "Không tìm thấy hợp đồng."}</section><Link to="/rentals">Quay lại kho đang thuê</Link></main>;
+        return <main className="page-content"><section className="card error" role="alert">{error || "Không tìm thấy hợp đồng."}</section><Link to="/rentals">Quay lại kho đang thuê</Link></main>;
     const contract = data.contract;
     const customer = data.customer;
     const facility = data.facility;
@@ -55,16 +52,16 @@ export default function RentalContractDetailPage() {
     const articles = Array.isArray(acceptedTerms.articles) ? acceptedTerms.articles : [];
     const policies = data.policies && typeof data.policies === "object" ? data.policies : {};
     if (!contract)
-        return <main className="page-content stitch-customer"><section className="card error" role="alert">Dữ liệu hợp đồng không hợp lệ.</section></main>;
-    return <main className="page-content stitch-customer contract-detail-page">
-    <CustomerBreadcrumb items={[{ label: "Kho đang thuê", to: "/rentals" }, { label: String(contract.unitCode) }]} /><div className="contract-breadcrumb" hidden><Link to="/rentals">Kho đang thuê</Link> › Chi tiết hợp đồng <strong>{display(contract.unitCode)}</strong></div>
-    <header className="contract-detail-heading"><div><h1>Chi tiết kho đang thuê <span className="badge success">{contractStatuses[contract.status] || display(contract.status)}</span></h1><p>Thông tin hợp đồng, kho lưu trữ và quyền truy cập của bạn.</p></div><div className="facility-scope"><small>KHU VỰC KIỂM SOÁT</small><strong>{display(facility?.name || contract.facilityCode)} · {display(unit?.floor ? `Tầng ${unit.floor}` : "")}</strong></div></header>
+        return <main className="page-content"><section className="card error" role="alert">Dữ liệu hợp đồng không hợp lệ.</section></main>;
+    return <main className="page-content contract-detail-page">
+    <div className="contract-breadcrumb"><Link to="/rentals">Kho đang thuê</Link> › Chi tiết hợp đồng <strong>{display(contract.unitCode)}</strong></div>
+    <header className="contract-detail-heading"><div><h1>Chi tiết kho đang thuê <span className="badge success">{display(contract.status)}</span></h1><p>Thông tin hợp đồng, kho lưu trữ và quyền truy cập của bạn.</p></div><div className="facility-scope"><small>KHU VỰC KIỂM SOÁT</small><strong>{display(facility?.name || contract.facilityCode)} · {display(unit?.floor ? `Tầng ${unit.floor}` : "")}</strong></div></header>
 
-    <div className="sc-contract-toolbar"><Link className="button" to={`/rentals/renew?contractId=${encodeURIComponent(contract.id)}`}><Icon>autorenew</Icon>Gia hạn thuê</Link><Link className="button secondary" to={`/rentals/return?contractId=${encodeURIComponent(contract.id)}`}><Icon>assignment_return</Icon>Yêu cầu trả kho</Link><Link className="button secondary" to="/support?view=new"><Icon>support_agent</Icon>Yêu cầu hỗ trợ</Link></div><div className="contract-detail-grid">
+    <div className="contract-detail-grid">
       <div className="contract-detail-main">
         <section className="contract-panel">
           <header><h2>Thông tin mặt bằng kho lưu trữ</h2><span>{display(contract.unitCode)}</span></header>
-          <UnitImage unit={unit} className="contract-unit-visual" screen="scr_07_chi_ti_t_kho_ang_thu_tra_c_u_pin"/>
+          <div className="contract-unit-visual">{unit?.imageUrl ? <img src={String(unit.imageUrl)} alt={String(unit.imageAltText || `Ảnh kho ${contract.unitCode}`)}/> : <span>Ảnh kho chưa được cung cấp</span>}</div>
           <div className="contract-info-grid">
             <div><small>CƠ SỞ VẬN HÀNH</small><strong>{display(facility?.name || contract.facilityCode)}</strong><span>{display(facility?.address)}{facility?.city ? `, ${display(facility.city)}` : ""}</span></div>
             <div><small>VỊ TRÍ PHÒNG KHO</small><strong>{display(contract.unitCode)}</strong><span>{display(unit?.floor ? `Tầng ${unit.floor}` : facility?.code)}</span></div>
@@ -106,8 +103,6 @@ export default function RentalContractDetailPage() {
       </div>
 
       <aside className="contract-security-column">
-        <section className="stitch-rental-command-card"><Icon>encrypted</Icon><h2>Quản lý truy cập kho</h2><p>Tra cứu PIN và kiểm tra quyền truy cập theo hợp đồng hiện tại.</p><Link className="button" to="/rentals/access">Nhập PIN truy cập <Icon>arrow_forward</Icon></Link></section>
-        <section className="pin-panel"><header><span className="pin-shield"><Icon>apartment</Icon></span><div><h2>Mã PIN cơ sở</h2><small>CỔNG RA VÀO CƠ SỞ</small></div></header><p>Mã dùng cho cửa vào cơ sở {display(facility?.name || contract.facilityCode)}.</p><div className="pin-code-box"><small>MÃ PIN CỬA CƠ SỞ</small><strong>{facilityPinVisible ? display(facility?.pinCode) : "••••••"}</strong><span>{facility?.pinCode ? "ĐÃ CẤP PIN" : "CHƯA CẤP PIN"}</span></div><button type="button" className="pin-toggle" onClick={() => setFacilityPinVisible((visible) => !visible)} disabled={!facility?.pinCode}>{facilityPinVisible ? "Ẩn mã PIN" : "Hiện mã PIN"}</button></section>
         <section className="pin-panel"><header><span className="pin-shield">PIN</span><div><h2>Tra cứu mã PIN</h2><small>BẢO MẬT</small></div></header><p>Mã PIN này dùng để xác thực quyền truy cập kho {display(contract.unitCode)}.</p><div className="pin-code-box"><small>MÃ PIN CỦA KHO</small><strong>{pinVisible ? display(contract.pinCode) : "••••••"}</strong><span>{contract.pinCode ? "ĐÃ XÁC THỰC" : "CHƯA CẤP PIN"}</span></div><button type="button" className="pin-toggle" onClick={() => setPinVisible((visible) => !visible)} disabled={!contract.pinCode}>{pinVisible ? "Ẩn mã PIN" : "Hiện mã PIN"}</button><p className="pin-security-note">Không chia sẻ PIN. Hệ thống lưu lại các lượt xác thực ra/vào.</p></section>
         <section className="policy-panel"><h2>Quy định &amp; chính sách</h2><p>Áp dụng theo chính sách có hiệu lực của cơ sở và hợp đồng.</p><dl>{Object.entries(policies).filter(([key]) => policyNames[key]).map(([key, value]) => <div key={key}><dt>{policyNames[key]}</dt><dd>{policyValue(key, value)}</dd></div>)}</dl><p className="policy-warning">Phí quá hạn hoặc phí phát sinh được tính theo quy định hợp đồng và hiển thị thành hóa đơn riêng.</p></section>
         <Link className="button secondary contract-back-link" to="/rentals">← Quay lại kho đang thuê</Link>

@@ -5,8 +5,8 @@ import com.swp391.selfstorage.common.web.*;
 import com.swp391.selfstorage.modules.audit.service.AuditLogService;
 import com.swp391.selfstorage.modules.billing.entity.*;
 import com.swp391.selfstorage.modules.billing.repository.*;
+import com.swp391.selfstorage.modules.facility.repository.UnitRepository;
 import com.swp391.selfstorage.modules.rental.repository.ContractRepository;
-import com.swp391.selfstorage.modules.rental.service.RenewalService;
 import com.swp391.selfstorage.modules.reservation.repository.ReservationRepository;
 import com.swp391.selfstorage.modules.reservation.service.ReservationHoldPolicy;
 import java.math.*;
@@ -22,35 +22,35 @@ public class PayInvoiceWorkflow {
   private final PaymentRepository payments;
   private final ReservationRepository reservations;
   private final ContractRepository contracts;
+  private final UnitRepository units;
   private final ActorContext actor;
   private final AuditLogService audit;
   private final Clock clock;
   private final ReservationHoldPolicy holdPolicy;
   private final PaidRentActivationService rentActivation;
-  private final RenewalService renewalService;
 
   public PayInvoiceWorkflow(
     InvoiceRepository i,
     PaymentRepository p,
     ReservationRepository r,
     ContractRepository c,
+    UnitRepository u,
     ActorContext a,
     AuditLogService au,
     Clock cl,
     ReservationHoldPolicy holdPolicy,
-    PaidRentActivationService rentActivation,
-    RenewalService renewalService
+    PaidRentActivationService rentActivation
   ) {
     invoices = i;
     payments = p;
     reservations = r;
     contracts = c;
+    units = u;
     actor = a;
     audit = au;
     clock = cl;
     this.holdPolicy = holdPolicy;
     this.rentActivation = rentActivation;
-    this.renewalService = renewalService;
   }
 
   @Transactional
@@ -113,21 +113,6 @@ public class PayInvoiceWorkflow {
     if (
       "STAFF".equals(actor.role(a)) && !"CASH_AT_COUNTER".equals(method)
     ) throw Inputs.bad("Staff chỉ ghi nhận thu tại quầy");
-    if (
-      "CASH_AT_COUNTER".equals(method) && !"STAFF".equals(actor.role(a))
-    ) throw Inputs.bad("Thanh toán tại quầy chỉ được Staff ghi nhận");
-    String customerName = a.getName();
-    if (i.getReservationId() != null) {
-      customerName = reservations.findById(i.getReservationId())
-        .map(com.swp391.selfstorage.modules.reservation.entity.Reservation::getCustomerName)
-        .filter(name -> name != null && !name.isBlank())
-        .orElse(customerName);
-    } else if (i.getContractId() != null) {
-      customerName = contracts.findById(i.getContractId())
-        .map(com.swp391.selfstorage.modules.rental.entity.Contract::getCustomerName)
-        .filter(name -> name != null && !name.isBlank())
-        .orElse(customerName);
-    }
     Payment p = new Payment();
     p.setId("PAY-" + UUID.randomUUID());
     p.setInvoiceId(i.getId());
@@ -135,7 +120,7 @@ public class PayInvoiceWorkflow {
     p.setContractId(i.getContractId());
     p.setUserId(i.getUserId());
     p.setFacilityCode(i.getFacilityCode());
-    p.setCustomerName(customerName);
+    p.setCustomerName(a.getName());
     p.setInvoiceType(i.getInvoiceType());
     p.setAmount(i.getAmount());
     p.setPaymentMethod(method);
@@ -159,7 +144,30 @@ public class PayInvoiceWorkflow {
         rentActivation.activate(i, r);
       }
       if ("RENEW".equals(i.getInvoiceType())) {
-        renewalService.activatePaidRenewal(i, now);
+        var c = contracts
+          .lockById(i.getContractId())
+          .orElseThrow(Inputs::missing);
+        int months = Integer.parseInt(i.getDescription().split(":")[1]);
+        var start = c.getEndAt().isAfter(now) ? c.getEndAt() : now;
+        c.setEndAt(start.plusMonths(months));
+        c.setEndDate(c.getEndAt().toLocalDate());
+        c.setMonthlyFee(
+          new BigDecimal(i.getPriceSnapshot().substring("monthly=".length()))
+        );
+        c.setStatus("ACTIVE");
+        if (c.getPinCode() == null) c.setPinCode(
+          String.format(
+            "%06d",
+            new java.security.SecureRandom().nextInt(1000000)
+          )
+        );
+        var unit = units
+          .lockByCode(c.getUnitCode())
+          .orElseThrow(Inputs::missing);
+        unit.setPinCode(c.getPinCode());
+        units.save(unit);
+        c.setLastRenewalAt(now);
+        contracts.save(c);
       }
     }
     audit.record(
