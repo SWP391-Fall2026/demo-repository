@@ -51,6 +51,7 @@ import UnitReadinessApprovalPage from "../features/facility/pages/UnitReadinessA
 import NoShowReviewPage from "../features/reservation/pages/NoShowReviewPage";
 import FacilityOverdueCapPage from "../features/policy/pages/FacilityOverdueCapPage";
 import BusinessOperationsPage from "../features/reporting/pages/BusinessOperationsPage";
+import RentalTermsPage from "../features/policy/pages/RentalTermsPage";
 export const routes = [
     {
         path: "/handover-reviews",
@@ -78,6 +79,13 @@ export const routes = [
         roles: [],
         element: <LandingPage />,
         legacy: "SCR-C00",
+    },
+    {
+        path: "/rental-terms",
+        title: "Điều kiện thuê",
+        roles: [],
+        element: <RentalTermsPage />,
+        legacy: "PUBLIC-TERMS",
     },
     {
         path: "/storage",

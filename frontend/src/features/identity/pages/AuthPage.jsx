@@ -143,7 +143,7 @@ export default function AuthPage() {
         {!register && !verifyUnavailable && <div className="auth-guarantee"><Icon>verified_user</Icon><p>Dữ liệu kết nối được mã hóa TLS 1.3 bảo mật chuẩn ngân hàng.</p></div>}
         {!verifyUnavailable && <div className="auth-transition">{challenge ? <button type="button" onClick={() => { setChallenge(undefined); setError(""); setFields({}); }} disabled={busy}>Đăng ký lại</button> : <>{register ? "Đã có tài khoản?" : "Chưa có tài khoản?"}<Link to={register ? "/login" : "/register"} state={navigationState}>{register ? "Đăng nhập" : "Đăng ký"}</Link></>}</div>}
       </section>
-      {register && !challenge ? <div className="auth-assurances">{[["shield", "Bảo mật cao"], ["bolt", "Kích hoạt nhanh"], ["lock_clock", "Truy cập 24/7"]].map(([icon, title]) => <span key={title}><Icon>{icon}</Icon><strong>{title}</strong></span>)}</div> : <div className="auth-help"><a href="tel:19006868"><Icon>support_agent</Icon>Tổng đài: 1900 6868</a><span>•</span><Link to="/#rental-terms">Điều khoản dịch vụ</Link></div>}
+      {register && !challenge ? <div className="auth-assurances">{[["shield", "Bảo mật cao"], ["bolt", "Kích hoạt nhanh"], ["lock_clock", "Truy cập 24/7"]].map(([icon, title]) => <span key={title}><Icon>{icon}</Icon><strong>{title}</strong></span>)}</div> : <div className="auth-help"><a href="tel:19006868"><Icon>support_agent</Icon>Tổng đài: 1900 6868</a><span>•</span><Link to="/rental-terms">Điều khoản dịch vụ</Link></div>}
     </div>}
   </main><PublicFooter/>{profileOpen && <ProfileDialog draft={draft} setDraft={setDraft} facilities={facilities} facilityError={facilityError} fields={fields} error={error} busy={busy} onClose={() => { if (!busy) setProfileOpen(false); }} onSubmit={completeProfile}/>}</div>;
 }
