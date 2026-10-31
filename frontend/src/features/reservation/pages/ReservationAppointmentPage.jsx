@@ -34,12 +34,12 @@ export default function ReservationAppointmentPage() {
         return <main className="page-content"><p>Đang tải thẻ hẹn…</p></main>;
     if (reservations.error)
         return <main className="page-content"><section className="card error" role="alert">{reservations.error}</section></main>;
-    const rows = (Array.isArray(reservations.data) ? reservations.data : reservations.data ? [reservations.data] : [])
-        .filter((row) => row.status === "RESERVED" || (!listMode && row.status === "CHECKED_IN"));
+    const sourceRows = Array.isArray(reservations.data) ? reservations.data : reservations.data ? [reservations.data] : [];
+    const cancelled = sourceRows.some((reservation) => reservation.status === "CANCELLED");
+    const rows = sourceRows.filter((row) => row.status === "RESERVED" || (!listMode && row.status === "CHECKED_IN"));
     const bills = Array.isArray(invoices.data) ? invoices.data : [];
     const branches = Array.isArray(facilities.data) ? facilities.data : [];
     const checkinTasks = new Map(Array.isArray(tasks.data) ? tasks.data : []);
-    const cancelled = rows.some(reservation => reservation.status === "CANCELLED");
     const cards = rows.filter((reservation) => reservation.status !== "CANCELLED" && bills.some((invoice) => invoice.reservationId === reservation.id && invoice.invoiceType === "DEPOSIT" && invoice.status === "PAID"));
     return <main className="page-content">
     <header className="page-heading"><div><span className="eyebrow">ĐẶT CỌC ĐÃ XÁC NHẬN</span><h1>Thẻ hẹn nhận kho</h1><p>Thẻ này xác nhận lịch hẹn sau khi đặt cọc. Chưa phải hợp đồng thuê và chưa cấp quyền truy cập kho.</p></div></header>
