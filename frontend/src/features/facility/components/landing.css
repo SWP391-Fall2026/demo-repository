@@ -87,7 +87,8 @@
   width: 100%;
   z-index: 50;
   height: 80px;
-  background: rgba(248, 249, 255, 0.9);
+  color: #fff;
+  background: #0f2942;
   box-shadow: 0 1px 8px rgba(0, 0, 0, 0.04);
   backdrop-filter: blur(24px);
 }
@@ -103,7 +104,10 @@
   align-items: center;
   gap: 16px;
   flex-shrink: 0;
-  color: var(--landing-navy);
+  color: #fff;
+}
+.landing-page .landing-logo {
+  filter: brightness(0) invert(1);
 }
 .landing-page .landing-brand > span {
   display: flex;
@@ -116,7 +120,7 @@
   letter-spacing: -0.025em;
 }
 .landing-page .landing-brand small {
-  color: var(--landing-muted);
+  color: #b8d2ff;
   font-size: 11px;
   font-weight: 700;
   line-height: 14px;
@@ -138,15 +142,15 @@
   letter-spacing: 0.01em;
 }
 .landing-page .landing-nav a {
-  color: var(--landing-muted);
+  color: #fff;
   transition: color 0.15s ease;
   white-space: nowrap;
 }
 .landing-page .landing-nav a:hover {
-  color: #0b1c30;
+  color: #b8d2ff;
 }
 .landing-page .landing-nav a.active {
-  color: var(--landing-blue);
+  color: #b8d2ff;
 }
 .landing-page .landing-auth-actions {
   display: flex;
@@ -161,20 +165,20 @@
 .landing-page .landing-login {
   display: inline-flex;
   padding: 8px 16px;
-  color: var(--landing-navy);
+  color: #fff;
 }
 .landing-page .landing-login:hover {
-  color: var(--landing-blue);
+  color: #b8d2ff;
 }
 .landing-page .landing-register {
   padding: 8px 16px;
-  color: #fff;
-  background: var(--landing-primary);
+  color: #0f2942;
+  background: #fff;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
 }
 .landing-page .landing-register:hover {
-  background: var(--landing-navy);
+  background: #dce9ff;
 }
 .landing-page .landing-user {
   display: grid;
@@ -182,8 +186,8 @@
   height: 32px;
   margin-left: 4px;
   place-items: center;
-  color: #fff;
-  background: var(--landing-navy);
+  color: #0f2942;
+  background: #fff;
   border-radius: 50%;
 }
 .landing-page .landing-user .material-symbols-outlined {
@@ -547,8 +551,14 @@
     padding-left: 32px;
   }
   .landing-page .landing-nav {
-    display: none;
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
+  .landing-page .landing-nav::-webkit-scrollbar { display: none; }
   .landing-page .landing-hero {
     grid-template-columns: 1fr;
     padding-bottom: 40px;

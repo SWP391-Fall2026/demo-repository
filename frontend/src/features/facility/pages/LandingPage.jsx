@@ -99,8 +99,9 @@ export default function LandingPage() {
               Trang chủ
             </a>
             <Link to="/storage">Kho lưu trữ</Link>
-            <a href="#rental-terms">Điều kiện thuê</a>
-            <a href="#privacy-policy">Chính sách bảo mật</a>
+            <Link to="/reservations">Đơn đặt của tôi</Link>
+            <Link to="/rental-terms">Điều kiện thuê</Link>
+            <Link to="/privacy-policy">Chính sách bảo mật</Link>
           </nav>
           <div className="landing-auth-actions">
             {session ? (

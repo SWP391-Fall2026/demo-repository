@@ -186,8 +186,8 @@ export function LandingFooter() {
           </div>
           <div>
             <h3>Chính sách &amp; Pháp lý</h3>
-            <span id="rental-terms">Điều khoản sử dụng</span>
-            <span id="privacy-policy">Chính sách bảo mật</span>
+            <Link to="/rental-terms">Điều khoản sử dụng</Link>
+            <Link to="/privacy-policy">Chính sách bảo mật</Link>
             <span>Quy định lưu trữ</span>
             <span>Bảo hiểm tài sản</span>
           </div>
