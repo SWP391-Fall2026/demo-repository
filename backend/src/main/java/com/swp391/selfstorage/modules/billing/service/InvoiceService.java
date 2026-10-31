@@ -2,10 +2,8 @@ package com.swp391.selfstorage.modules.billing.service;
 
 import com.swp391.selfstorage.common.security.ActorContext;
 import com.swp391.selfstorage.common.web.*;
-import com.swp391.selfstorage.modules.audit.service.AuditLogService;
 import com.swp391.selfstorage.modules.billing.entity.Invoice;
 import com.swp391.selfstorage.modules.billing.repository.InvoiceRepository;
-import com.swp391.selfstorage.modules.identity.entity.User;
 import java.math.*;
 import java.time.*;
 import java.util.*;
@@ -18,7 +16,9 @@ public class InvoiceService {
   public boolean hasPendingRenewal(String id) {
     return !repo
       .findByContractIdAndInvoiceTypeAndStatus(id, "RENEW", "PENDING")
-      .isEmpty();
+      .isEmpty() ||
+      !repo.findByContractIdAndInvoiceTypeAndStatus(id, "OVERDUE", "PENDING").isEmpty() ||
+      !repo.findByContractIdAndInvoiceTypeAndStatus(id, "RENT", "PENDING").isEmpty();
   }
 
   private final InvoiceRepository repo;

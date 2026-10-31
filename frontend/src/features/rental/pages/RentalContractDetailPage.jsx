@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useRemote } from "../../../shared/api/use-remote";
 import { display, money } from "../../../shared/lib/format";
 import { rentalApi } from "../api/rental.api";
+import ReturnInspectionResponse from "../components/ReturnInspectionResponse";
 function formattedDate(value) {
     if (!value)
         return "—";
@@ -31,7 +32,8 @@ function policyValue(key, value) {
 }
 export default function RentalContractDetailPage() {
     const { contractId = "" } = useParams();
-    const { data, error, busy } = useRemote(() => rentalApi.detail(contractId), [contractId]);
+    const { data, error, busy, reload } = useRemote(() => rentalApi.detail(contractId), [contractId]);
+    const { data: reviewRows, reload: reloadReviews } = useRemote(rentalApi.returnInspectionReviews);
     const [pinVisible, setPinVisible] = useState(false);
     if (busy)
         return <main className="page-content"><p>Đang tải chi tiết hợp đồng…</p></main>;
@@ -42,6 +44,10 @@ export default function RentalContractDetailPage() {
     const facility = data.facility;
     const unit = data.unit;
     const handover = data.handover;
+    const inspection = data.inspection;
+    const locked = String(contract?.status) === "OVERDUE";
+    const checkoutRequested = String(contract?.status) === "CHECKOUT_REQUESTED" || Boolean(contract?.checkoutRequestedDate);
+    const inspectionReviews = (Array.isArray(reviewRows) ? reviewRows : []).filter((item) => String(item.contractId) === String(contract?.id));
     const invoices = Array.isArray(data.invoices) ? data.invoices : [];
     const acceptedTerms = (() => { try {
         return JSON.parse(String(data.acceptedTermsSnapshot || "{}"));
@@ -100,10 +106,22 @@ export default function RentalContractDetailPage() {
           <header><h2>Hóa đơn hợp đồng &amp; thanh toán</h2><Link to="/invoices/all/pay">Mở thanh toán</Link></header>
           {!invoices.length ? <p>Chưa có hóa đơn liên quan.</p> : <div className="contract-invoice-list">{invoices.map((invoice) => <div key={String(invoice.id)}><span><strong>{invoice.invoiceType === "DEPOSIT" ? "Hóa đơn đặt cọc" : invoice.invoiceType === "RENT" ? "Hóa đơn thuê" : `Hóa đơn ${display(invoice.invoiceType)}`}</strong><small>{display(invoice.id)} · Hạn {formattedDate(invoice.dueAt)}</small></span><strong>{money(invoice.amount)}</strong><span className={`badge ${invoice.status === "PAID" ? "success" : invoice.status === "PENDING" ? "pending" : "danger"}`}>{invoice.status === "PAID" ? "Đã thanh toán" : invoice.status === "PENDING" ? "Chưa thanh toán" : "Đã hủy"}</span></div>)}</div>}
         </section>
+
+        {inspection && <section className="contract-panel">
+          <header><h2>Phiếu nghiệm thu trả kho</h2><span>{display(inspection?.status || contract.inspectionStatus)}</span></header>
+          <div className="contract-info-grid">
+            <div><small>VỆ SINH</small><strong>{display(inspection?.cleanlinessStatus || contract.inspectionCleanlinessStatus)}</strong></div>
+            <div><small>PHÍ KHẤU TRỪ</small><strong>{money(inspection?.penaltyFee ?? contract.inspectionPenaltyFee)}</strong></div>
+            <div><small>PHÍ SỬA CHỮA</small><strong>{money(inspection?.repairFee ?? contract.inspectionRepairFee)}</strong></div>
+            <div><small>HOÀN CỌC ƯỚC TÍNH</small><strong>{money(inspection?.depositRefundAmount ?? contract.inspectionRefundAmount)}</strong></div>
+          </div>
+          {(inspection?.damageNotes || contract.inspectionDamageNotes) && <p>Hiện trạng: {display(inspection?.damageNotes || contract.inspectionDamageNotes)}</p>}
+          <ReturnInspectionResponse contractId={contract.id} status={inspection.status} reviews={inspectionReviews} evidenceAvailable={inspection.evidenceAvailable} onUpdated={() => { reload(); reloadReviews(); }} />
+        </section>}
       </div>
 
       <aside className="contract-security-column">
-        <section className="pin-panel"><header><span className="pin-shield">PIN</span><div><h2>Tra cứu mã PIN</h2><small>BẢO MẬT</small></div></header><p>Mã PIN này dùng để xác thực quyền truy cập kho {display(contract.unitCode)}.</p><div className="pin-code-box"><small>MÃ PIN CỦA KHO</small><strong>{pinVisible ? display(contract.pinCode) : "••••••"}</strong><span>{contract.pinCode ? "ĐÃ XÁC THỰC" : "CHƯA CẤP PIN"}</span></div><button type="button" className="pin-toggle" onClick={() => setPinVisible((visible) => !visible)} disabled={!contract.pinCode}>{pinVisible ? "Ẩn mã PIN" : "Hiện mã PIN"}</button><p className="pin-security-note">Không chia sẻ PIN. Hệ thống lưu lại các lượt xác thực ra/vào.</p></section>
+        <section className="pin-panel"><header><span className="pin-shield">PIN</span><div><h2>Mã PIN truy cập</h2><small>BẢO MẬT</small></div></header><p>Mã PIN 6 số dùng để mở khóa kho/cửa ra vào cơ sở.</p>{locked ? <p role="alert">Kho đang trong trạng thái tạm khóa nợ cước: PIN bị hạn chế cho đến khi thanh toán.</p> : null}<div className="pin-code-box"><small>MÃ PIN CỦA KHO</small><strong>{pinVisible ? display(contract.pinCode) : "••••••"}</strong><span>{contract.pinCode ? "ĐÃ XÁC THỰC" : "CHƯA CẤP PIN"}</span></div><button type="button" className="pin-toggle" onClick={() => setPinVisible((visible) => !visible)} disabled={!contract.pinCode || locked}>{pinVisible ? "Ẩn mã PIN" : "Hiện mã PIN"}</button><p className="pin-security-note">Hướng dẫn an ninh: không chia sẻ PIN với người khác.</p>{checkoutRequested ? <p>Đã có yêu cầu trả kho ngày {formattedDate(contract.checkoutRequestedDate)}.</p> : null}</section>
         <section className="policy-panel"><h2>Quy định &amp; chính sách</h2><p>Áp dụng theo chính sách có hiệu lực của cơ sở và hợp đồng.</p><dl>{Object.entries(policies).filter(([key]) => policyNames[key]).map(([key, value]) => <div key={key}><dt>{policyNames[key]}</dt><dd>{policyValue(key, value)}</dd></div>)}</dl><p className="policy-warning">Phí quá hạn hoặc phí phát sinh được tính theo quy định hợp đồng và hiển thị thành hóa đơn riêng.</p></section>
         <Link className="button secondary contract-back-link" to="/rentals">← Quay lại kho đang thuê</Link>
       </aside>

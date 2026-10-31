@@ -188,6 +188,39 @@ public class Reservation {
     this.holdUntil = value;
   }
 
+  @Column(name = "reservation_expires_at")
+  private java.time.LocalDateTime reservationExpiresAt;
+
+  public java.time.LocalDateTime getReservationExpiresAt() {
+    return reservationExpiresAt;
+  }
+
+  public void setReservationExpiresAt(java.time.LocalDateTime value) {
+    this.reservationExpiresAt = value;
+  }
+
+  @Column(name = "reservation_hold_days_snapshot")
+  private Integer reservationHoldDaysSnapshot;
+
+  public Integer getReservationHoldDaysSnapshot() {
+    return reservationHoldDaysSnapshot;
+  }
+
+  public void setReservationHoldDaysSnapshot(Integer value) {
+    this.reservationHoldDaysSnapshot = value;
+  }
+
+  @Column(name = "refund_cancel_hours_snapshot")
+  private Integer refundCancelHoursSnapshot;
+
+  public Integer getRefundCancelHoursSnapshot() {
+    return refundCancelHoursSnapshot;
+  }
+
+  public void setRefundCancelHoursSnapshot(Integer value) {
+    this.refundCancelHoursSnapshot = value;
+  }
+
   @Column(name = "arrived_at")
   private java.time.LocalDateTime arrivedAt;
 
