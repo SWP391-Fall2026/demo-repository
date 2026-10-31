@@ -8,6 +8,7 @@ import com.swp391.selfstorage.modules.rental.repository.ContractRepository;
 import com.swp391.selfstorage.modules.workforce.service.TaskService;
 import java.math.*;
 import java.time.*;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,13 +43,23 @@ public class RequestCheckoutWorkflow {
       .lockById(Inputs.text(d, "contractId"))
       .orElseThrow(Inputs::missing);
     if (!customer.getId().equals(c.getUserId())) throw Inputs.missing();
-    if (
-      "TERMINATED".equals(c.getStatus()) || c.getCheckoutRequestedAt() != null
-    ) throw Inputs.conflict("Đã có yêu cầu hoặc hợp đồng đã kết thúc");
+    if (!Set.of("ACTIVE", "EXPIRING_SOON", "OVERDUE").contains(c.getStatus())) {
+      throw Inputs.conflict("Hợp đồng chưa đủ điều kiện gửi yêu cầu trả kho");
+    }
+    if (c.getCheckoutRequestedAt() != null) {
+      throw Inputs.conflict("Hợp đồng đã có yêu cầu trả kho");
+    }
+    LocalDate requestedDate;
+    try {
+      requestedDate = LocalDate.parse(Inputs.text(d, "requestedDate"));
+    } catch (DateTimeParseException e) {
+      throw Inputs.bad("requestedDate must use YYYY-MM-DD format");
+    }
+    if (requestedDate.isBefore(LocalDate.now(clock))) {
+      throw Inputs.bad("requestedDate must be today or later");
+    }
     c.setCheckoutRequestedAt(LocalDateTime.now(clock));
-    c.setCheckoutRequestedDate(
-      LocalDate.parse(Inputs.text(d, "requestedDate"))
-    );
+    c.setCheckoutRequestedDate(requestedDate);
     contracts.save(c);
     var returnTask = tasks.system(
       c.getFacilityCode(),
