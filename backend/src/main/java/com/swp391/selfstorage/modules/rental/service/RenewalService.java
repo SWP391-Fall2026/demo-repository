@@ -52,8 +52,14 @@ public class RenewalService {
       .findById(id)
       .filter(v -> u.getId().equals(v.getUserId()))
       .orElseThrow(Inputs::missing);
+    int maxMonths;
+    try {
+      maxMonths = policy.value("renewalMaxMonths", new BigDecimal(36)).intValueExact();
+    } catch (ArithmeticException e) {
+      throw Inputs.bad("Thông số renewalMaxMonths không hợp lệ");
+    }
     if (
-      "TERMINATED".equals(c.getStatus()) || months < 1 || months > 36
+      "TERMINATED".equals(c.getStatus()) || months < 1 || months > maxMonths
     ) throw Inputs.bad("Không thể gia hạn");
     var unit = units.findById(c.getUnitCode()).orElseThrow(Inputs::missing);
     var rate = unit.getPricePerMonth();
@@ -62,7 +68,8 @@ public class RenewalService {
       LocalDateTime.now(clock),
       policy.fee("overdueDailyFee"),
       rate,
-      policy.cap(c.getFacilityCode())
+      policy.cap(c.getFacilityCode()),
+      graceDays()
     );
     return Map.of(
       "contractId",
@@ -80,8 +87,16 @@ public class RenewalService {
     );
   }
 
+  private long graceDays() {
+    try {
+      return Math.max(0, policy.value("gracePeriodDays", BigDecimal.ZERO).longValueExact());
+    } catch (ArithmeticException e) {
+      return 0;
+    }
+  }
+
   @Transactional
-  public Invoice confirm(String id, Map<String, Object> d) {
+  public Map<String, Object> confirm(String id, Map<String, Object> d) {
     int months = Integer.parseInt(Inputs.text(d, "months"));
     if (!Boolean.TRUE.equals(d.get("priceConfirmed"))) throw Inputs.bad(
       "Khách cần xác nhận giá mới"
@@ -96,18 +111,37 @@ public class RenewalService {
         (BigDecimal) q.get("monthlyRate")
       ) != 0
     ) throw Inputs.conflict("Giá đã thay đổi, vui lòng lấy báo giá mới");
+    BigDecimal rentAmount = ((BigDecimal) q.get("monthlyRate")).multiply(BigDecimal.valueOf(months));
     Invoice i = invoices.issue(
       null,
       id,
       c.getUserId(),
       c.getFacilityCode(),
       "RENEW",
-      (BigDecimal) q.get("totalAmount"),
+      rentAmount,
       null,
       "monthly=" + q.get("monthlyRate")
     );
     i.setDescription("RENEW:" + months);
     audit.record("CONFIRM_RENEWAL_PRICE", i.getId(), q.toString());
-    return i;
+    BigDecimal overdue = (BigDecimal) q.get("overdueFee");
+    Map<String, Object> result = new LinkedHashMap<>();
+    result.put("renewalInvoice", i);
+    if (overdue.signum() > 0) {
+      Invoice late = invoices.issue(
+        null,
+        id,
+        c.getUserId(),
+        c.getFacilityCode(),
+        "OVERDUE",
+        overdue,
+        null,
+        "overdue-for-renewal:" + months
+      );
+      late.setDescription("OVERDUE:" + id);
+      audit.record("ISSUE_OVERDUE_FOR_RENEWAL", late.getId(), overdue.toPlainString());
+      result.put("overdueInvoice", late);
+    }
+    return result;
   }
 }

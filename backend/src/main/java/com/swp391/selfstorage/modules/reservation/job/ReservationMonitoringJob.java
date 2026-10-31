@@ -1,6 +1,7 @@
 package com.swp391.selfstorage.modules.reservation.job;
 
 import com.swp391.selfstorage.modules.billing.repository.InvoiceRepository;
+import com.swp391.selfstorage.modules.audit.service.AuditLogService;
 import com.swp391.selfstorage.modules.reservation.repository.ReservationRepository;
 import com.swp391.selfstorage.modules.reservation.service.NoShowRules;
 import com.swp391.selfstorage.modules.reservation.service.ReservationHoldPolicy;
@@ -19,6 +20,7 @@ public class ReservationMonitoringJob {
   private final Clock clock;
   private final ReservationHoldPolicy holdPolicy;
   private final UnitRepository units;
+  private final AuditLogService audit;
 
   public ReservationMonitoringJob(
     ReservationRepository r,
@@ -26,7 +28,8 @@ public class ReservationMonitoringJob {
     NoShowRules n,
     Clock c,
     ReservationHoldPolicy holdPolicy,
-    UnitRepository units
+    UnitRepository units,
+    AuditLogService audit
   ) {
     reservations = r;
     invoices = i;
@@ -34,6 +37,7 @@ public class ReservationMonitoringJob {
     clock = c;
     this.holdPolicy = holdPolicy;
     this.units = units;
+    this.audit = audit;
   }
 
   @Scheduled(fixedDelayString = "${app.reservation-monitor-ms:5000}")
@@ -66,6 +70,28 @@ public class ReservationMonitoringJob {
           }
         });
       }
+    }
+    for (var candidate : reservations.findByStatus("RESERVED")) {
+      if (candidate.getReservationExpiresAt() == null || candidate.getReservationExpiresAt().isAfter(now)) continue;
+      var r = reservations.lockById(candidate.getId()).orElseThrow();
+      if (!"RESERVED".equals(r.getStatus()) || r.getReservationExpiresAt() == null
+          || r.getReservationExpiresAt().isAfter(now)) continue;
+      r.setStatus("NO_SHOW");
+      if (r.getUnitCode() != null) {
+        units.lockByCode(r.getUnitCode()).ifPresent(unit -> {
+          if ("reserved".equalsIgnoreCase(unit.getStatus()) && r.getId().equals(unit.getHeldByReservationId())) {
+            unit.setStatus("available");
+            unit.setTenantName(null);
+            unit.setHeldByReservationId(null);
+            unit.setTemporaryPin(null);
+            unit.setTemporaryPinExpiresAt(null);
+            units.save(unit);
+          }
+        });
+      }
+      reservations.save(r);
+      audit.recordBackground("RESERVATION_HOLD_EXPIRED", r.getId(), r.getFacilityCode(),
+          "Hết thời hạn giữ reservation; chuyển NO_SHOW, giải phóng kho và áp dụng chính sách cọc hiện hành");
     }
     for (var candidate : reservations.findAll()) {
       if (

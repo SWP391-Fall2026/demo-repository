@@ -9,6 +9,8 @@ import com.swp391.selfstorage.modules.billing.service.InvoiceService;
 import com.swp391.selfstorage.modules.reservation.entity.Reservation;
 import com.swp391.selfstorage.modules.facility.repository.FacilityRepository;
 import com.swp391.selfstorage.modules.facility.repository.UnitRepository;
+import com.swp391.selfstorage.modules.rental.repository.ContractRepository;
+import com.swp391.selfstorage.modules.rental.repository.InspectionRecordRepository;
 import com.swp391.selfstorage.modules.reservation.repository.ReservationRepository;
 import com.swp391.selfstorage.modules.workforce.entity.DailyTask;
 import com.swp391.selfstorage.modules.workforce.repository.DailyTaskRepository;
@@ -29,6 +31,8 @@ public class TaskService {
   private final FacilityRepository facilities;
   private final UnitRepository units;
   private final ReservationRepository reservations;
+  private final ContractRepository contracts;
+  private final InspectionRecordRepository inspections;
   private final InvoiceService invoices;
   private final Clock clock;
   private final java.security.SecureRandom random = new java.security.SecureRandom();
@@ -42,6 +46,8 @@ public class TaskService {
     FacilityRepository facilities,
     UnitRepository units,
     ReservationRepository reservations,
+    ContractRepository contracts,
+    InspectionRecordRepository inspections,
     InvoiceService invoices,
     Clock clock,
     org.springframework.security.crypto.password.PasswordEncoder passwordEncoder
@@ -53,6 +59,8 @@ public class TaskService {
     this.facilities = facilities;
     this.units = units;
     this.reservations = reservations;
+    this.contracts = contracts;
+    this.inspections = inspections;
     this.invoices = invoices;
     this.clock = clock;
     this.passwordEncoder = passwordEncoder;
@@ -60,9 +68,29 @@ public class TaskService {
 
   public List<DailyTask> list() {
     var u = actor.require("STAFF", "FMANAGER");
-    return "STAFF".equals(actor.role(u))
+    List<DailyTask> rows = "STAFF".equals(actor.role(u))
       ? tasks.findByStaffId(u.getId())
       : tasks.findByFacilityCode(u.getFacilityCode());
+    rows.forEach(this::enrichReturn);
+    return rows;
+  }
+
+  private void enrichReturn(DailyTask task) {
+    if (!"RETURN".equals(task.getTaskType()) || task.getContractId() == null) return;
+    contracts.findById(task.getContractId()).ifPresent(contract -> {
+      task.setCustomerName(contract.getCustomerName());
+      task.setCustomerPhone(contract.getCustomerPhone());
+      task.setCheckoutRequestedDate(contract.getCheckoutRequestedDate());
+      task.setCheckoutReason(contract.getCheckoutReason());
+    });
+    if (task.getUnitCode() != null) {
+      units.findById(task.getUnitCode()).ifPresent(unit -> task.setUnitType(unit.getType()));
+    }
+    inspections.findFirstByContractIdOrderByInspectionDateDesc(task.getContractId()).ifPresent(inspection -> {
+      task.setInspectionStatus(inspection.getStatus());
+      task.setInspectionPenaltyFee(inspection.getPenaltyFee());
+      task.setInspectionRefundAmount(inspection.getDepositRefundAmount());
+    });
   }
 
   @Transactional
@@ -105,6 +133,8 @@ public class TaskService {
     String status = Inputs.text(d, "status");
     if ("CHECKIN".equals(t.getTaskType()) && "COMPLETED".equals(status))
       throw Inputs.conflict("Task check-in chỉ hoàn tất sau khi xác minh khách và nhân viên bàn giao kho");
+    if ("RETURN".equals(t.getTaskType()) && "COMPLETED".equals(status))
+      throw Inputs.conflict("Task trả kho chỉ hoàn tất sau khi Staff nghiệm thu trả kho");
     if (!Set.of("IN_PROGRESS", "COMPLETED").contains(status)) throw Inputs.bad(
       "Trạng thái không hợp lệ"
     );
@@ -115,11 +145,52 @@ public class TaskService {
 
   public DailyTask find(String id) { return tasks.findById(id).orElseThrow(Inputs::missing); }
 
+  public DailyTask save(DailyTask t) { return tasks.save(t); }
+
   public DailyTask findForCustomer(String reservationId) {
     var customer = actor.require("CUSTOMER");
     var reservation = reservations.findById(reservationId).orElseThrow(Inputs::missing);
     if (!actor.visible(customer, reservation.getUserId(), reservation.getFacilityCode())) throw Inputs.missing();
     return tasks.findByReservationIdAndTaskType(reservationId, "CHECKIN").orElse(null);
+  }
+
+  public void requireAssignedReturn(String contractId, String staffId) {
+    DailyTask task = tasks.findByContractIdAndTaskType(contractId, "RETURN").orElseThrow(Inputs::missing);
+    if (!staffId.equals(task.getStaffId()) || !Set.of("PENDING", "IN_PROGRESS").contains(task.getStatus()))
+      throw Inputs.conflict("Staff phải được phân công task nghiệm thu trả kho trước khi mở nghiệm thu");
+  }
+
+  @Transactional
+  public DailyTask requestReturn(String facilityCode, String contractId, String unitCode, java.time.LocalDate dueDate, String reason) {
+    var existing = tasks.findByContractIdAndTaskType(contractId, "RETURN");
+    if (existing.isPresent()) {
+      DailyTask task = existing.get();
+      task.setDueDate(dueDate);
+      task.setDeadline("17:00");
+      if (reason != null && !reason.isBlank()) task.setTitle("Nghiệm thu trả kho: " + contractId + " — " + reason);
+      return tasks.save(task);
+    }
+    DailyTask task = new DailyTask();
+    task.setId("TSK-" + UUID.randomUUID());
+    task.setFacilityCode(facilityCode);
+    task.setTitle("Nghiệm thu trả kho: " + contractId + (reason != null && !reason.isBlank() ? " — " + reason : ""));
+    task.setTaskType("RETURN");
+    task.setUnitCode(unitCode);
+    task.setContractId(contractId);
+    task.setDueDate(dueDate);
+    task.setDeadline("17:00");
+    task.setStatus("PENDING");
+    task.setStaff("Chờ Facility Manager phân công");
+    task.setStaffId(null);
+    return tasks.save(task);
+  }
+
+  @Transactional
+  public void completeReturnByContract(String contractId) {
+    tasks.findByContractIdAndTaskType(contractId, "RETURN").ifPresent(task -> {
+      task.setStatus("COMPLETED");
+      tasks.save(task);
+    });
   }
 
   public void requireAssignedCheckin(String reservationId, String staffId) {
@@ -331,6 +402,22 @@ public class TaskService {
       row.put("reservationId", task.getReservationId()); row.put("unitCode", task.getUnitCode());
       row.put("facilityCode", task.getFacilityCode());
       row.put("dueDate", task.getDueDate()); row.put("deadline", task.getDeadline());
+      row.put("contractId", task.getContractId());
+      if ("RETURN".equals(task.getTaskType()) && task.getContractId() != null) {
+        contracts.findById(task.getContractId()).ifPresent(contract -> {
+          row.put("customerName", contract.getCustomerName());
+          row.put("customerPhone", contract.getCustomerPhone());
+          row.put("checkoutRequestedDate", contract.getCheckoutRequestedDate());
+          row.put("checkoutReason", contract.getCheckoutReason());
+          row.put("contractStatus", contract.getStatus());
+          row.put("depositFee", contract.getDepositFee());
+        });
+        inspections.findFirstByContractIdOrderByInspectionDateDesc(task.getContractId()).ifPresent(inspection -> {
+          row.put("inspectionStatus", inspection.getStatus());
+          row.put("inspectionPenaltyFee", inspection.getPenaltyFee());
+          row.put("inspectionRefundAmount", inspection.getDepositRefundAmount());
+        });
+      }
       if (task.getReservationId() != null) reservations.findById(task.getReservationId())
           .filter(reservation -> Objects.equals(facilityCode, reservation.getFacilityCode())).ifPresent(reservation -> {
         row.put("customerName", reservation.getCustomerName()); row.put("customerPhone", reservation.getCustomerPhone());

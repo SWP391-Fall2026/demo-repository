@@ -263,9 +263,10 @@ class RentalLifecycleTest {
     String unitCode = currentReservation.path("unitCode").asText();
     assertFalse(unitCode.isBlank());
     var dashboard = getAs("manager", "/tasks/manager-dashboard");
-    String taskId = "";
+    String dashboardTaskId = "";
     for (var task : dashboard.path("tasks"))
-      if (rid.equals(task.path("reservationId").asText())) taskId = task.path("id").asText();
+      if (rid.equals(task.path("reservationId").asText())) dashboardTaskId = task.path("id").asText();
+    String taskId = dashboardTaskId;
     assertFalse(taskId.isBlank());
     String staffId = getAs("manager", "/tasks/staff-options").get(0).path("id").asText();
     mvc.perform(patch("/api/tasks/" + taskId + "/assign")
@@ -308,7 +309,7 @@ class RentalLifecycleTest {
     postAs(
       "customer",
       "/contracts/checkout-request",
-      Map.of("contractId", cid, "requestedDate", LocalDate.now().toString()),
+      Map.of("contractId", cid, "requestedDate", LocalDate.now().toString(), "reason", "Kết thúc thuê"),
       200
     );
     assertEquals(pin, contracts.findById(cid).orElseThrow().getPinCode());
@@ -323,13 +324,103 @@ class RentalLifecycleTest {
         "damageNotes",
         "Không hư hỏng"
       ),
-      200
+      409
     );
+    var returnDashboard = getAs("manager", "/tasks/manager-dashboard");
+    String returnTaskId = "";
+    for (var task : returnDashboard.path("tasks"))
+      if (
+        cid.equals(task.path("contractId").asText()) &&
+        "RETURN".equals(task.path("taskType").asText())
+      ) returnTaskId = task.path("id").asText();
+    assertFalse(returnTaskId.isBlank());
+    mvc
+      .perform(
+        patch("/api/tasks/" + returnTaskId + "/assign")
+          .with(user("manager"))
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(json.writeValueAsString(Map.of("staffId", staffId)))
+      )
+      .andExpect(status().isOk());
+    byte[] png = java.util.Base64.getDecoder().decode(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/pU8AAAAASUVORK5CYII=");
+    mvc.perform(multipart("/api/contracts/return-inspection")
+        .param("unitCode", unitCode)
+        .param("goodsCleared", "true")
+        .param("cleanlinessStatus", "NEEDS_CLEANING")
+        .param("repairFee", "0")
+        .param("damageNotes", "Cần vệ sinh")
+        .with(user("staff")))
+      .andExpect(status().isBadRequest());
+    mvc.perform(multipart("/api/contracts/return-inspection")
+        .file(new MockMultipartFile("evidence", "staff.png", "image/png", png))
+        .param("unitCode", unitCode)
+        .param("goodsCleared", "true")
+        .param("cleanlinessStatus", "NEEDS_CLEANING")
+        .param("repairFee", "0")
+        .param("damageNotes", "Cần vệ sinh")
+        .with(user("staff")))
+      .andExpect(status().isOk());
+    assertEquals(pin, contracts.findById(cid).orElseThrow().getPinCode());
+    assertEquals(
+      "CHECKOUT_REQUESTED",
+      contracts.findById(cid).orElseThrow().getStatus()
+    );
+    assertEquals("occupied", units.findById(unitCode).orElseThrow().getStatus());
+    mvc.perform(multipart("/api/contracts/return-inspection/respond")
+        .param("contractId", cid)
+        .param("action", "DISPUTE")
+        .param("reason", "Thiếu ảnh")
+        .with(user("customer")))
+      .andExpect(status().isBadRequest());
+    mvc.perform(multipart("/api/contracts/return-inspection/respond")
+        .file(new MockMultipartFile("evidence", "customer.png", "image/png", png))
+        .param("contractId", cid)
+        .param("action", "DISPUTE")
+        .param("reason", "Tôi không đồng ý với hiện trạng")
+        .with(user("customer")))
+      .andExpect(status().isOk());
+    JsonNode firstDispute = getAs("manager", "/return-inspection-reviews").get(0);
+    String firstDisputeId = firstDispute.path("id").asText();
+    postAs("manager", "/return-inspection-reviews/" + firstDisputeId + "/decision",
+      Map.of("proposedDeduction", 100000000000L, "managerNote", "Đề xuất vượt mức"), 400);
+    postAs("manager", "/return-inspection-reviews/" + firstDisputeId + "/decision",
+      Map.of("proposedDeduction", 0, "managerNote", "Đã kiểm tra ảnh, miễn khấu trừ"), 200);
+    mvc.perform(multipart("/api/contracts/return-inspection/respond")
+        .file(new MockMultipartFile("evidence", "customer.png", "image/png", png))
+        .param("contractId", cid)
+        .param("action", "DISPUTE")
+        .param("reason", "Tôi vẫn chưa đồng ý, đề nghị xem xét lại")
+        .with(user("customer")))
+      .andExpect(status().isOk());
+    JsonNode secondDispute = getAs("manager", "/return-inspection-reviews").get(0);
+    String secondDisputeId = secondDispute.path("id").asText();
+    postAs("manager", "/return-inspection-reviews/" + secondDisputeId + "/decision",
+      Map.of("proposedDeduction", 0, "managerNote", "Xác nhận miễn khấu trừ"), 200);
+    mvc.perform(multipart("/api/contracts/return-inspection/respond")
+        .param("contractId", cid)
+        .param("action", "ACCEPT")
+        .with(user("customer")))
+      .andExpect(status().isOk());
+    assertEquals(pin, contracts.findById(cid).orElseThrow().getPinCode());
+    assertEquals("CHECKOUT_REQUESTED", contracts.findById(cid).orElseThrow().getStatus());
+    assertEquals("occupied", units.findById(unitCode).orElseThrow().getStatus());
+    assertEquals("CUSTOMER_ACCEPTED", getAs("customer", "/contracts/" + cid)
+      .path("contract").path("inspectionStatus").asText());
+    assertTrue(getAs("customer", "/refunds").findValuesAsText("contractId").stream()
+      .noneMatch(cid::equals));
+    postAs("staff", "/contracts/return-inspection/complete", Map.of("contractId", cid), 200);
     assertNull(contracts.findById(cid).orElseThrow().getPinCode());
     assertEquals(
-      "cleaning",
+      "TERMINATED",
+      contracts.findById(cid).orElseThrow().getStatus()
+    );
+    assertEquals(
+      "available",
       units.findById(unitCode).orElseThrow().getStatus()
     );
+    assertNull(units.findById(unitCode).orElseThrow().getTenantName());
+    assertNull(units.findById(unitCode).orElseThrow().getPinCode());
     postAs(
       "manager",
       "/facilities/units/" + unitCode + "/ready/approve",
@@ -340,28 +431,18 @@ class RentalLifecycleTest {
       "staff",
       "/facilities/units/" + unitCode + "/ready",
       Map.of("notes", "Đã vệ sinh"),
-      200
-    );
-    postAs(
-      "manager",
-      "/facilities/units/" + unitCode + "/ready/approve",
-      Map.of(),
-      200
+      409
     );
     String paymentId = paid.path("id").asText();
-    var req = postAs(
-      "customer",
-      "/refunds",
-      Map.of(
-        "paymentId",
-        paymentId,
-        "amount",
-        500000,
-        "reason",
-        "Hoàn một phần tiền cọc"
-      ),
-      200
-    );
+    JsonNode autoRefund = null;
+    for (var refund : getAs("customer", "/refunds"))
+      if (
+        cid.equals(refund.path("contractId").asText()) &&
+        "PENDING".equals(refund.path("status").asText())
+      ) autoRefund = refund;
+    assertNotNull(autoRefund);
+    String ref = autoRefund.path("id").asText();
+    var refundAmount = autoRefund.path("requestedAmount").decimalValue();
     postAs(
       "customer",
       "/refunds",
@@ -376,33 +457,13 @@ class RentalLifecycleTest {
       400
     );
     postAs(
-      "customer",
-      "/refunds/" + req.path("id").asText() + "/cancel",
-      Map.of(),
-      200
-    );
-    req = postAs(
-      "customer",
-      "/refunds",
-      Map.of(
-        "paymentId",
-        paymentId,
-        "amount",
-        800000,
-        "reason",
-        "Hoàn tiền cọc sau nghiệm thu"
-      ),
-      200
-    );
-    String ref = req.path("id").asText();
-    postAs(
       "staff",
       "/refunds/" + ref + "/decision",
       Map.of(
         "decision",
         "APPROVE",
         "approvedAmount",
-        800000,
+        refundAmount,
         "reason",
         "Đủ điều kiện"
       ),
@@ -415,7 +476,7 @@ class RentalLifecycleTest {
         "decision",
         "APPROVE",
         "approvedAmount",
-        800000,
+        refundAmount,
         "reason",
         "Sai chi nhánh"
       ),
@@ -428,7 +489,7 @@ class RentalLifecycleTest {
         "decision",
         "APPROVE",
         "approvedAmount",
-        800000,
+        refundAmount,
         "reason",
         "Đủ điều kiện"
       ),

@@ -8,7 +8,6 @@ import com.swp391.selfstorage.modules.identity.entity.User;
 import com.swp391.selfstorage.modules.reservation.entity.Reservation;
 import com.swp391.selfstorage.modules.reservation.repository.ReservationRepository;
 import com.swp391.selfstorage.modules.reservation.service.NoShowRules;
-import java.math.*;
 import java.time.*;
 import java.util.*;
 import org.springframework.stereotype.Service;
@@ -139,7 +138,7 @@ public class NoShowWorkflow {
       }
     }
     reservations.save(r);
-    audit.record("CONFIRM_NO_SHOW", id, reason + "; không tự động hoàn cọc");
+    audit.record("CONFIRM_NO_SHOW", id, reason + "; cọc giữ nguyên, khách tạo yêu cầu hoàn ngoại lệ trong 24 giờ");
     return r;
   }
 

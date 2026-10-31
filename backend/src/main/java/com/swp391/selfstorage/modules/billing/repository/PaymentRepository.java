@@ -16,6 +16,8 @@ public interface PaymentRepository extends JpaRepository<Payment, String> {
   @Query("select p from Payment p where p.transactionCode=:code")
   Optional<Payment> lockByTransactionCode(@Param("code") String code);
   List<Payment> findByInvoiceId(String id);
+  List<Payment> findByStatusIgnoreCase(String status);
+  List<Payment> findByStatusIgnoreCaseAndFacilityCode(String status, String code);
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query("select p from Payment p where p.id=:id")

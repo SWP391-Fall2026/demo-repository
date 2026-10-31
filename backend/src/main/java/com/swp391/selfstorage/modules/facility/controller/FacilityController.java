@@ -29,6 +29,14 @@ public class FacilityController {
     return ApiResponse.ok(s.create(d));
   }
 
+  @PutMapping("/{code}")
+  public ApiResponse<?> update(
+    @PathVariable String code,
+    @RequestBody Map<String, Object> d
+  ) {
+    return ApiResponse.ok(s.update(code, d));
+  }
+
   @PutMapping("/{code}/checkin-pin")
   public ApiResponse<?> setCheckinPin(@PathVariable String code) {
     return ApiResponse.ok(tasks.setFacilityCheckinPin(code));

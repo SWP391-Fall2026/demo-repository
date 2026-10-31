@@ -61,17 +61,21 @@ public class ReservationService {
       "Loại kho không hợp lệ"
     );
     String facility = Inputs.optional(d, "facilityCode");
+    var availableUnits = facility.isBlank()
+      ? List.<com.swp391.selfstorage.modules.facility.entity.Unit>of()
+      : units.findByFacilityCode(facility).stream()
+          .filter(u -> type.equals(u.getType()) && "available".equalsIgnoreCase(u.getStatus()))
+          .toList();
+    if (!facility.isBlank() && availableUnits.isEmpty()) {
+      throw Inputs.conflict("Loại kho đã hết chỗ");
+    }
     BigDecimal rate = facility.isBlank()
       ? policy.monthly(type)
-      : units
-          .findByFacilityCode(facility)
-          .stream()
-          .filter(
-            u -> type.equals(u.getType()) && "available".equals(u.getStatus())
-          )
-          .map(u -> u.getPricePerMonth())
-          .min(BigDecimal::compareTo)
-          .orElseThrow(() -> Inputs.conflict("Loại kho đã hết chỗ"));
+      : policy.facilityMonthly(facility, type).orElseGet(() ->
+          availableUnits.stream()
+            .map(u -> u.getPricePerMonth())
+            .min(BigDecimal::compareTo)
+            .orElseThrow(() -> Inputs.conflict("Loại kho đã hết chỗ")));
     BigDecimal monthly = rate,
       deposit = monthly.multiply(policy.value("depositMonths", BigDecimal.ONE));
     BigDecimal discount = policy.value("discount." + months, BigDecimal.ZERO);
@@ -79,6 +83,11 @@ public class ReservationService {
       .multiply(BigDecimal.ONE.subtract(discount))
       .setScale(0, RoundingMode.HALF_UP);
     deposit = monthly.multiply(policy.value("depositMonths", BigDecimal.ONE));
+    int reservationHoldDays = policy.value("reservationHoldDays", BigDecimal.valueOf(3)).intValueExact();
+    int refundCancelHours = policy.value("refundCancelHours", BigDecimal.valueOf(24)).intValueExact();
+    if (reservationHoldDays < 1 || refundCancelHours < 0) {
+      throw new IllegalStateException("Reservation policy values are invalid");
+    }
     return Map.of(
       "monthlyRate",
       monthly,
@@ -91,7 +100,11 @@ public class ReservationService {
       "totalRent",
       monthly.multiply(BigDecimal.valueOf(months)),
       "discountRate",
-      discount
+      discount,
+      "reservationHoldDays",
+      reservationHoldDays,
+      "refundCancelHours",
+      refundCancelHours
     );
   }
 }

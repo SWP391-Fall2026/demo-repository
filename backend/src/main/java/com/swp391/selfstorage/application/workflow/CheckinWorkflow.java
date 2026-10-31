@@ -4,7 +4,6 @@ import com.swp391.selfstorage.common.security.ActorContext;
 import com.swp391.selfstorage.common.web.Inputs;
 import com.swp391.selfstorage.modules.billing.service.InvoiceService;
 import com.swp391.selfstorage.modules.billing.repository.InvoiceRepository;
-import com.swp391.selfstorage.modules.billing.entity.Invoice;
 import com.swp391.selfstorage.modules.facility.entity.Facility;
 import com.swp391.selfstorage.modules.facility.entity.Unit;
 import com.swp391.selfstorage.modules.facility.repository.FacilityRepository;
@@ -138,8 +137,6 @@ public class CheckinWorkflow {
     });
     if (!"PENDING_PAYMENT".equals(contract.getStatus()) || contract.getPinCode() != null)
       throw Inputs.conflict("Hợp đồng đã qua bước chờ thanh toán");
-    task.setStatus("IN_PROGRESS");
-    tasks.save(task);
     events.publishEvent(new CheckinVerifiedEvent(customerRecord.getEmail(), customerRecord.getName(),
         reservation.getId(), facility.getName(), unit.getCode(), now));
     return reservation;

@@ -12,6 +12,8 @@ import com.swp391.selfstorage.modules.facility.repository.FacilityRepository;
 import com.swp391.selfstorage.modules.facility.repository.UnitRepository;
 import com.swp391.selfstorage.modules.identity.entity.User;
 import com.swp391.selfstorage.modules.identity.repository.UserRepository;
+import com.swp391.selfstorage.modules.rental.repository.ContractRepository;
+import com.swp391.selfstorage.modules.rental.repository.InspectionRecordRepository;
 import com.swp391.selfstorage.modules.reservation.entity.Reservation;
 import com.swp391.selfstorage.modules.reservation.repository.ReservationRepository;
 import com.swp391.selfstorage.modules.workforce.entity.DailyTask;
@@ -36,7 +38,8 @@ class TaskServiceUnitAssignmentTest {
   private final PasswordEncoder encoder = mock(PasswordEncoder.class);
   private final TaskService service = new TaskService(
       tasks, users, actor, mock(AuditLogService.class), facilities, units,
-      reservations, invoices, Clock.systemUTC(), encoder);
+      reservations, mock(ContractRepository.class), mock(InspectionRecordRepository.class),
+      invoices, Clock.systemUTC(), encoder);
 
   @Test
   void assigningLegacyCheckinTaskAutomaticallyBindsMatchingUnit() {

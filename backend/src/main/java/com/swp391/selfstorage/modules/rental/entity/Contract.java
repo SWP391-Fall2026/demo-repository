@@ -73,8 +73,32 @@ public class Contract {
   @Transient private String handoverDate;
   @Transient private boolean handoverEvidenceAvailable;
   @Transient private String handoverStaffId;
+  @Transient private String inspectionId;
+  @Transient private String inspectionStatus;
+  @Transient private BigDecimal inspectionPenaltyFee;
+  @Transient private BigDecimal inspectionRefundAmount;
+  @Transient private String inspectionDamageNotes;
+  @Transient private String inspectionCleanlinessStatus;
+  @Transient private BigDecimal inspectionRepairFee;
+  @Transient private boolean inspectionEvidenceAvailable;
 
   public Contract() {}
+  public String getInspectionId() { return inspectionId; }
+  public void setInspectionId(String value) { inspectionId = value; }
+  public String getInspectionStatus() { return inspectionStatus; }
+  public void setInspectionStatus(String value) { inspectionStatus = value; }
+  public BigDecimal getInspectionPenaltyFee() { return inspectionPenaltyFee; }
+  public void setInspectionPenaltyFee(BigDecimal value) { inspectionPenaltyFee = value; }
+  public BigDecimal getInspectionRefundAmount() { return inspectionRefundAmount; }
+  public void setInspectionRefundAmount(BigDecimal value) { inspectionRefundAmount = value; }
+  public String getInspectionDamageNotes() { return inspectionDamageNotes; }
+  public void setInspectionDamageNotes(String value) { inspectionDamageNotes = value; }
+  public String getInspectionCleanlinessStatus() { return inspectionCleanlinessStatus; }
+  public void setInspectionCleanlinessStatus(String value) { inspectionCleanlinessStatus = value; }
+  public BigDecimal getInspectionRepairFee() { return inspectionRepairFee; }
+  public void setInspectionRepairFee(BigDecimal value) { inspectionRepairFee = value; }
+  public boolean isInspectionEvidenceAvailable() { return inspectionEvidenceAvailable; }
+  public void setInspectionEvidenceAvailable(boolean value) { inspectionEvidenceAvailable = value; }
 
   public String getId() {
     return id;
@@ -255,6 +279,17 @@ public class Contract {
     this.checkoutRequestedDate = value;
   }
 
+  @Column(name = "checkout_reason")
+  private String checkoutReason;
+
+  public String getCheckoutReason() {
+    return checkoutReason;
+  }
+
+  public void setCheckoutReason(String value) {
+    this.checkoutReason = value;
+  }
+
   @Column(name = "last_renewal_at")
   private java.time.LocalDateTime lastRenewalAt;
 
@@ -297,5 +332,16 @@ public class Contract {
 
   public void setTerminatedAt(java.time.LocalDateTime v) {
     terminatedAt = v;
+  }
+
+  @Column(name = "inspection_confirmed_at")
+  private java.time.LocalDateTime inspectionConfirmedAt;
+
+  public java.time.LocalDateTime getInspectionConfirmedAt() {
+    return inspectionConfirmedAt;
+  }
+
+  public void setInspectionConfirmedAt(java.time.LocalDateTime v) {
+    inspectionConfirmedAt = v;
   }
 }

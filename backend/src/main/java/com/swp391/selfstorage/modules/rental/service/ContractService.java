@@ -6,6 +6,7 @@ import com.swp391.selfstorage.modules.audit.service.AuditLogService;
 import com.swp391.selfstorage.modules.rental.entity.Contract;
 import com.swp391.selfstorage.modules.rental.repository.ContractRepository;
 import com.swp391.selfstorage.modules.rental.repository.HandoverRecordRepository;
+import com.swp391.selfstorage.modules.rental.repository.InspectionRecordRepository;
 import com.swp391.selfstorage.modules.billing.repository.InvoiceRepository;
 import com.swp391.selfstorage.modules.facility.repository.FacilityRepository;
 import com.swp391.selfstorage.modules.facility.repository.UnitRepository;
@@ -30,10 +31,11 @@ public class ContractService {
   private final PolicyService policies;
   private final ReservationRepository reservations;
   private final UserRepository users;
+  private final InspectionRecordRepository inspections;
 
   public ContractService(ContractRepository c, ActorContext a, HandoverRecordRepository handovers,
       InvoiceRepository invoices, FacilityRepository facilities, UnitRepository units, PolicyService policies,
-      ReservationRepository reservations, UserRepository users) {
+      ReservationRepository reservations, UserRepository users, InspectionRecordRepository inspections) {
     contracts = c;
     actor = a;
     this.handovers = handovers;
@@ -43,6 +45,7 @@ public class ContractService {
     this.policies = policies;
     this.reservations = reservations;
     this.users = users;
+    this.inspections = inspections;
   }
 
   public List<Contract> list() {
@@ -61,8 +64,9 @@ public class ContractService {
           c.setHandoverStaffId(h.getStaffId());
           c.setHandoverEvidenceAvailable(h.getEvidencePath() != null && !h.getEvidencePath().isBlank());
         });
+        attachInspection(c);
         if ("CUSTOMER".equals(actor.role(u))) {
-          if (!Set.of("ACTIVE", "EXPIRING_SOON", "OVERDUE").contains(c.getStatus())) {
+          if (!Set.of("ACTIVE", "EXPIRING_SOON", "OVERDUE", "CHECKOUT_REQUESTED").contains(c.getStatus())) {
             c.setPinCode(null);
           } else {
             facilities.findById(c.getFacilityCode()).ifPresent(f -> c.setFacilityPin(f.getCheckinPin()));
@@ -76,7 +80,7 @@ public class ContractService {
     var customer = actor.require("CUSTOMER");
     Contract contract = contracts.findById(id).orElseThrow(Inputs::missing);
     if (!actor.visible(customer, contract.getUserId(), contract.getFacilityCode())) throw Inputs.missing();
-    boolean accessGranted = Set.of("ACTIVE", "EXPIRING_SOON", "OVERDUE").contains(contract.getStatus());
+    boolean accessGranted = Set.of("ACTIVE", "EXPIRING_SOON", "OVERDUE", "CHECKOUT_REQUESTED").contains(contract.getStatus());
     if (!accessGranted) contract.setPinCode(null);
     var facility = facilities.findById(contract.getFacilityCode()).orElse(null);
     var unit = units.findById(contract.getUnitCode()).orElse(null);
@@ -134,6 +138,35 @@ public class ContractService {
     ));
     response.put("invoices", invoiceRows);
     response.put("policies", policies.get());
+    attachInspection(contract);
+    inspections.findFirstByContractIdOrderByInspectionDateDesc(id).ifPresent(inspection -> {
+      Map<String, Object> row = new LinkedHashMap<>();
+      row.put("id", inspection.getId());
+      row.put("status", inspection.getStatus());
+      row.put("penaltyFee", inspection.getPenaltyFee());
+      row.put("repairFee", inspection.getRepairFee());
+      row.put("depositRefundAmount", inspection.getDepositRefundAmount());
+      row.put("damageNotes", inspection.getDamageNotes());
+      row.put("cleanlinessStatus", inspection.getCleanlinessStatus());
+      row.put("goodsCleared", inspection.getGoodsCleared());
+      row.put("inspectionDate", Objects.toString(inspection.getInspectionDate(), ""));
+      row.put("customerConfirmedAt", Objects.toString(inspection.getCustomerConfirmedAt(), ""));
+      row.put("evidenceAvailable", inspection.getEvidencePath() != null && !inspection.getEvidencePath().isBlank());
+      response.put("inspection", row);
+    });
     return response;
+  }
+
+  private void attachInspection(Contract c) {
+    inspections.findFirstByContractIdOrderByInspectionDateDesc(c.getId()).ifPresent(inspection -> {
+      c.setInspectionId(inspection.getId());
+      c.setInspectionStatus(inspection.getStatus());
+      c.setInspectionPenaltyFee(inspection.getPenaltyFee());
+      c.setInspectionRefundAmount(inspection.getDepositRefundAmount());
+      c.setInspectionDamageNotes(inspection.getDamageNotes());
+      c.setInspectionCleanlinessStatus(inspection.getCleanlinessStatus());
+      c.setInspectionRepairFee(inspection.getRepairFee());
+      c.setInspectionEvidenceAvailable(inspection.getEvidencePath() != null && !inspection.getEvidencePath().isBlank());
+    });
   }
 }

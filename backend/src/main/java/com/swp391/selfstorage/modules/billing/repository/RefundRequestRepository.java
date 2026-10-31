@@ -12,6 +12,8 @@ public interface RefundRequestRepository
 {
   List<RefundRequest> findByPaymentId(String id);
   List<RefundRequest> findByUserId(String id);
+  List<RefundRequest> findByStatusIgnoreCase(String status);
+  List<RefundRequest> findByStatusIgnoreCaseAndFacilityCode(String status, String code);
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query("select r from RefundRequest r where r.id=:id")

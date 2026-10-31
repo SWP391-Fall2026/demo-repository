@@ -38,3 +38,13 @@ Sau khi cọc thành công, quản lý cơ sở gán mã kho cụ thể. Khách 
 Nếu chưa thanh toán đủ `DEPOSIT` và `RENT`, hoặc chưa xác nhận biên bản, hệ thống không hoàn tất handover.
 
 Khách có 24 giờ kể từ lúc Staff gửi biên bản. Hết hạn, hệ thống tự tạo yêu cầu hủy chờ Facility Manager duyệt. Nếu khách không đồng ý nhận kho, liên hệ Staff để ghi lý do, bằng chứng và chuyển Manager. Manager từ chối phải nêu lý do/điều kiện/hướng xử lý và cấp lại 24 giờ; khách xem và phản hồi tại **Yêu cầu bàn giao**. Nếu duyệt hủy, hoàn 50% tiền thuê RENT đã thanh toán, giữ lại toàn bộ tiền cọc; Staff hỗ trợ hoàn thủ công và Manager xác nhận kết quả. Xem [hướng dẫn chi tiết](handover-cancellation.md).
+
+## 5. Trả kho và nghiệm thu
+
+1. Khách gửi yêu cầu trả kho; PIN vẫn hoạt động trong khi chờ nghiệm thu.
+2. Staff được phân công kiểm tra kho, nhập tình trạng và phí. Khi có vấn đề cần vệ sinh/sửa chữa/khóa hư, Staff phải đính kèm ảnh PNG/JPEG (tối đa 10 MB).
+3. Khách xem phiếu/ảnh trong **Kho đang thuê** hoặc chi tiết hợp đồng. Khách có thể đồng ý hoặc không đồng ý.
+4. Khi không đồng ý, khách nhập lý do và bắt buộc đính kèm ảnh. Hệ thống tạo request riêng gửi đến Manager cơ sở; lịch sử các vòng thương lượng được giữ lại.
+5. Manager kiểm tra khiếu nại, nhập ghi chú và đề xuất mức khấu trừ. Mức đề xuất không được cao hơn mức ban đầu Staff đưa ra.
+6. Khách đồng ý đề xuất thì gửi yêu cầu Staff hoàn tất. Nếu tiếp tục không đồng ý, khách gửi request mới kèm lý do/ảnh và quy trình lặp lại.
+7. Chỉ Staff được phân công mới hoàn tất sau khi khách đồng ý. Khi đó hợp đồng kết thúc, PIN bị vô hiệu hóa, kho được giải phóng và hệ thống tạo yêu cầu hoàn cọc (nếu số tiền hoàn lớn hơn 0). Staff/Manager tiếp tục xử lý việc hoàn tiền theo quy trình hiện có.

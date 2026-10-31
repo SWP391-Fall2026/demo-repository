@@ -2,8 +2,12 @@ package com.swp391.selfstorage.modules.rental.controller;
 
 import com.swp391.selfstorage.application.workflow.*;
 import com.swp391.selfstorage.common.web.ApiResponse;
-import com.swp391.selfstorage.modules.rental.service.*;
+import com.swp391.selfstorage.common.web.Inputs;
+import com.swp391.selfstorage.modules.rental.service.AccessCodeService;
+import com.swp391.selfstorage.modules.rental.service.ContractService;
+import com.swp391.selfstorage.modules.rental.service.RenewalService;
 import java.util.*;
+import java.nio.file.Files;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,6 +23,8 @@ public class ContractController {
   private final HandoverWorkflow handover;
   private final RequestCheckoutWorkflow request;
   private final CompleteReturnWorkflow inspect;
+  private final ConfirmInspectionWorkflow confirmInspection;
+  private final ReturnInspectionReviewWorkflow inspectionReviews;
   private final RenewalService renewal;
 
   public ContractController(
@@ -27,14 +33,18 @@ public class ContractController {
     HandoverWorkflow h,
     RequestCheckoutWorkflow r,
     CompleteReturnWorkflow i,
-    RenewalService re
+    ConfirmInspectionWorkflow confirmInspection,
+    RenewalService re,
+    ReturnInspectionReviewWorkflow inspectionReviews
   ) {
     contracts = c;
     access = a;
     handover = h;
     request = r;
     inspect = i;
+    this.confirmInspection = confirmInspection;
     renewal = re;
+    this.inspectionReviews = inspectionReviews;
   }
 
   @GetMapping
@@ -90,23 +100,53 @@ public class ContractController {
     return ApiResponse.ok(request.execute(d));
   }
 
-  @PostMapping("/return-inspection")
-  public ApiResponse<?> inspect(@RequestBody Map<String, Object> d) {
-    return ApiResponse.ok(inspect.execute(d));
+  @PostMapping(value = "/return-inspection", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  public ApiResponse<?> inspect(@RequestParam Map<String, String> fields,
+      @RequestParam(value = "evidence", required = false) MultipartFile evidence) {
+    return ApiResponse.ok(inspect.execute(new HashMap<>(fields), evidence));
+  }
+
+  @PostMapping(value = "/return-inspection", consumes = MediaType.APPLICATION_JSON_VALUE)
+  public ApiResponse<?> inspectJson(@RequestBody Map<String, Object> d) {
+    return ApiResponse.ok(inspect.execute(d, null));
+  }
+
+  @PostMapping("/return-inspection/confirm")
+  public ApiResponse<?> confirmInspection(@RequestBody Map<String, Object> d) {
+    if (!Boolean.TRUE.equals(d.get("customerConfirmed")))
+      throw Inputs.bad("Khách cần xác nhận phiếu nghiệm thu");
+    return ApiResponse.ok(inspectionReviews.respond(
+      Map.of("contractId", Inputs.text(d, "contractId"), "action", "ACCEPT"),
+      null
+    ));
+  }
+
+  @PostMapping(value = "/return-inspection/respond", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  public ApiResponse<?> respondInspection(
+      @RequestParam Map<String, String> fields,
+      @RequestParam(value = "evidence", required = false) MultipartFile evidence) {
+    return ApiResponse.ok(inspectionReviews.respond(fields, evidence));
+  }
+
+  @PostMapping("/return-inspection/complete")
+  public ApiResponse<?> completeInspection(@RequestBody Map<String, Object> d) {
+    return ApiResponse.ok(confirmInspection.complete(d));
+  }
+
+  @GetMapping("/{contractId}/return-inspection/evidence")
+  public ResponseEntity<?> inspectionEvidence(@PathVariable String contractId) throws java.io.IOException {
+    var file = inspect.evidence(contractId);
+    String contentType = Files.probeContentType(file);
+    return ResponseEntity.ok()
+      .contentType(MediaType.parseMediaType(contentType == null
+        ? MediaType.APPLICATION_OCTET_STREAM_VALUE
+        : contentType))
+      .body(new FileSystemResource(file));
   }
 
   @PostMapping("/verify-pin")
   public ApiResponse<?> verify(@RequestBody Map<String, Object> d) {
     return ApiResponse.ok(access.verify(d));
-  }
-
-  @PatchMapping("/{unitCode}/pin")
-  public ApiResponse<?> pin(
-    @PathVariable String unitCode,
-    @RequestBody Map<String, Object> d
-  ) {
-    access.update(unitCode, d);
-    return ApiResponse.ok("Đã đổi PIN", Map.of());
   }
 
   @GetMapping("/{id}/renewal-quote")

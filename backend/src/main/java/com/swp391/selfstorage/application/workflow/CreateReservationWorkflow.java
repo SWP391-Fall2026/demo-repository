@@ -5,7 +5,6 @@ import com.swp391.selfstorage.common.web.*;
 import com.swp391.selfstorage.modules.audit.service.AuditLogService;
 import com.swp391.selfstorage.modules.billing.service.InvoiceService;
 import com.swp391.selfstorage.modules.facility.repository.*;
-import com.swp391.selfstorage.modules.identity.entity.User;
 import com.swp391.selfstorage.modules.reservation.dto.CreateReservationRequest;
 import com.swp391.selfstorage.modules.reservation.entity.Reservation;
 import com.swp391.selfstorage.modules.reservation.repository.ReservationRepository;
@@ -105,6 +104,8 @@ public class CreateReservationWorkflow {
     r.setAppointment(d.appointmentAt().toString());
     r.setDepositAmount((BigDecimal) quote.get("depositAmount"));
     r.setMonthlyPriceSnapshot((BigDecimal) quote.get("monthlyRate"));
+    r.setReservationHoldDaysSnapshot((Integer) quote.get("reservationHoldDays"));
+    r.setRefundCancelHoursSnapshot((Integer) quote.get("refundCancelHours"));
     r.setStatus("PENDING_PAYMENT");
     r.setCreatedAt(now);
     r.setExtensionMinutes(0);
@@ -124,7 +125,7 @@ public class CreateReservationWorkflow {
     audit.record(
       "CREATE_RESERVATION",
       r.getId(),
-      "Giữ giá 5 phút và giữ số lượng theo loại kho"
+      "Giữ giá " + holdPolicy.pendingPaymentHold().toMinutes() + " phút và giữ số lượng theo loại kho"
     );
     return r;
   }

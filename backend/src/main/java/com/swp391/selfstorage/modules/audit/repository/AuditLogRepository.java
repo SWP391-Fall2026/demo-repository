@@ -8,4 +8,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
   List<AuditLog> findAllByOrderByIdDesc();
+  List<AuditLog> findByActionOrderByIdDesc(String action);
 }

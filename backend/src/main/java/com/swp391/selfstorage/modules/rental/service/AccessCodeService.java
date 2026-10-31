@@ -41,35 +41,25 @@ public class AccessCodeService {
     var c = contracts
       .findFirstByUnitCodeAndStatusInOrderByCreatedAtDesc(
         code,
-        List.of("ACTIVE", "EXPIRING_SOON")
+        List.of("ACTIVE", "EXPIRING_SOON", "CHECKOUT_REQUESTED")
       )
+      .orElse(null);
+    var overdue = contracts
+      .findFirstByUnitCodeAndStatusInOrderByCreatedAtDesc(code, List.of("OVERDUE"))
+      .filter(v -> actor.visible(a, v.getUserId(), v.getFacilityCode()))
       .orElse(null);
     boolean allowed =
       c != null &&
+      overdue == null &&
       c.getEndAt() != null &&
       !LocalDateTime.now(clock).isAfter(c.getEndAt()) &&
       actor.visible(a, c.getUserId(), c.getFacilityCode()) &&
       Objects.equals(pin, c.getPinCode());
-    return Map.of("authorized", allowed, "mode", "SOFTWARE_SIMULATION");
-  }
-
-  @Transactional
-  public void update(String code, Map<String, Object> d) {
-    var a = actor.require("CUSTOMER");
-    var c = contracts
-      .findFirstByUnitCodeAndStatusInOrderByCreatedAtDesc(
-        code,
-        List.of("ACTIVE", "EXPIRING_SOON")
-      )
-      .filter(v -> a.getId().equals(v.getUserId()))
-      .orElseThrow(Inputs::missing);
-    String pin = Inputs.text(d, "newPin");
-    if (!pin.matches("[0-9]{6}")) throw Inputs.bad("PIN phải có 6 chữ số");
-    c.setPinCode(pin);
-    contracts.save(c);
-    var u = units.lockByCode(code).orElseThrow(Inputs::missing);
-    u.setPinCode(pin);
-    units.save(u);
-    audit.record("UPDATE_PIN", code, "Đổi PIN mô phỏng");
+    String reason = c == null && overdue != null ? "OVERDUE_LOCKED"
+      : c == null ? "NO_ACTIVE_CONTRACT"
+      : c.getEndAt() == null || LocalDateTime.now(clock).isAfter(c.getEndAt()) ? "CONTRACT_EXPIRED"
+      : !actor.visible(a, c.getUserId(), c.getFacilityCode()) ? "OUT_OF_SCOPE"
+      : !Objects.equals(pin, c.getPinCode()) ? "WRONG_PIN" : "OK";
+    return Map.of("authorized", allowed, "mode", "SOFTWARE_SIMULATION", "reason", reason);
   }
 }

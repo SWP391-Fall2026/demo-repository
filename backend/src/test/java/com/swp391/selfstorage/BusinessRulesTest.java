@@ -6,19 +6,33 @@ import com.swp391.selfstorage.modules.billing.service.RefundLimitCalculator;
 import com.swp391.selfstorage.modules.rental.service.OverdueFeeCalculator;
 import com.swp391.selfstorage.modules.reservation.entity.Reservation;
 import com.swp391.selfstorage.modules.reservation.service.NoShowRules;
+import com.swp391.selfstorage.modules.policy.service.PolicyService;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
+import static org.mockito.Mockito.*;
 
 class BusinessRulesTest {
 
   @Test
   void cancellationUsesRentalStartAndIncludesExactly24Hours() {
-    var policy =
-      new com.swp391.selfstorage.modules.reservation.service.CancellationPolicy();
+    var policies = mock(PolicyService.class);
+    when(policies.value("refundCancelHours", BigDecimal.valueOf(24)))
+      .thenReturn(BigDecimal.valueOf(24));
+    var policy = new com.swp391.selfstorage.modules.reservation.service.CancellationPolicy(policies);
     assertTrue(policy.fullDepositRefund(at, at.minusHours(24)));
     assertTrue(policy.fullDepositRefund(at, at.minusHours(25)));
     assertFalse(policy.fullDepositRefund(at, at.minusHours(24).plusNanos(1)));
+  }
+
+  @Test
+  void cancellationUsesTheReservationPolicySnapshot() {
+    var policies = mock(PolicyService.class);
+    var policy = new com.swp391.selfstorage.modules.reservation.service.CancellationPolicy(policies);
+
+    assertTrue(policy.fullDepositRefund(at, at.minusHours(48), 48));
+    assertFalse(policy.fullDepositRefund(at, at.minusHours(47), 48));
+    verifyNoInteractions(policies);
   }
 
   final LocalDateTime at = LocalDateTime.of(2026, 10, 18, 14, 0);

@@ -27,8 +27,17 @@ public class InspectionRecord {
   @Column(name = "damage_notes")
   private String damageNotes;
 
+  @Column(name = "goods_cleared")
+  private Boolean goodsCleared;
+
+  @Column(name = "repair_fee")
+  private BigDecimal repairFee;
+
   @Column(name = "penalty_fee")
   private BigDecimal penaltyFee;
+
+  @Column(name = "original_penalty_fee")
+  private BigDecimal originalPenaltyFee;
 
   @Column(name = "deposit_refund_amount")
   private BigDecimal depositRefundAmount;
@@ -84,12 +93,36 @@ public class InspectionRecord {
     this.damageNotes = value;
   }
 
+  public Boolean getGoodsCleared() {
+    return goodsCleared;
+  }
+
+  public void setGoodsCleared(Boolean value) {
+    this.goodsCleared = value;
+  }
+
+  public BigDecimal getRepairFee() {
+    return repairFee;
+  }
+
+  public void setRepairFee(BigDecimal value) {
+    this.repairFee = value;
+  }
+
   public BigDecimal getPenaltyFee() {
     return penaltyFee;
   }
 
   public void setPenaltyFee(BigDecimal value) {
     this.penaltyFee = value;
+  }
+
+  public BigDecimal getOriginalPenaltyFee() {
+    return originalPenaltyFee;
+  }
+
+  public void setOriginalPenaltyFee(BigDecimal value) {
+    this.originalPenaltyFee = value;
   }
 
   public BigDecimal getDepositRefundAmount() {
@@ -106,5 +139,62 @@ public class InspectionRecord {
 
   public void setIsCleared(Boolean value) {
     this.isCleared = value;
+  }
+
+  @Column(name = "status")
+  private String status = "PENDING_CONFIRM";
+
+  public String getStatus() {
+    return status;
+  }
+
+  public void setStatus(String value) {
+    this.status = value;
+  }
+
+  @Column(name = "customer_confirmed_at")
+  private LocalDateTime customerConfirmedAt;
+
+  @Column(name = "evidence_path")
+  @com.fasterxml.jackson.annotation.JsonIgnore
+  private String evidencePath;
+
+  @Column(name = "evidence_content_type")
+  private String evidenceContentType;
+
+  public LocalDateTime getCustomerConfirmedAt() {
+    return customerConfirmedAt;
+  }
+
+  public void setCustomerConfirmedAt(LocalDateTime value) {
+    this.customerConfirmedAt = value;
+  }
+
+  @Column(name = "completed_at")
+  private LocalDateTime completedAt;
+
+  public LocalDateTime getCompletedAt() {
+    return completedAt;
+  }
+
+  public void setCompletedAt(LocalDateTime value) {
+    this.completedAt = value;
+  }
+
+  @com.fasterxml.jackson.annotation.JsonIgnore
+  public String getEvidencePath() {
+    return evidencePath;
+  }
+
+  public void setEvidencePath(String value) {
+    this.evidencePath = value;
+  }
+
+  public String getEvidenceContentType() {
+    return evidenceContentType;
+  }
+
+  public void setEvidenceContentType(String value) {
+    this.evidenceContentType = value;
   }
 }

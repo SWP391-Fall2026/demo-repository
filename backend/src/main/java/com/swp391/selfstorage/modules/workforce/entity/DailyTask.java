@@ -167,4 +167,30 @@ public class DailyTask {
   public void setDueDate(java.time.LocalDate value) {
     this.dueDate = value;
   }
+
+  @Transient private String customerName;
+  @Transient private String customerPhone;
+  @Transient private java.time.LocalDate checkoutRequestedDate;
+  @Transient private String checkoutReason;
+  @Transient private String unitType;
+  @Transient private String inspectionStatus;
+  @Transient private java.math.BigDecimal inspectionPenaltyFee;
+  @Transient private java.math.BigDecimal inspectionRefundAmount;
+
+  public String getCustomerName() { return customerName; }
+  public void setCustomerName(String value) { customerName = value; }
+  public String getCustomerPhone() { return customerPhone; }
+  public void setCustomerPhone(String value) { customerPhone = value; }
+  public java.time.LocalDate getCheckoutRequestedDate() { return checkoutRequestedDate; }
+  public void setCheckoutRequestedDate(java.time.LocalDate value) { checkoutRequestedDate = value; }
+  public String getCheckoutReason() { return checkoutReason; }
+  public void setCheckoutReason(String value) { checkoutReason = value; }
+  public String getUnitType() { return unitType; }
+  public void setUnitType(String value) { unitType = value; }
+  public String getInspectionStatus() { return inspectionStatus; }
+  public void setInspectionStatus(String value) { inspectionStatus = value; }
+  public java.math.BigDecimal getInspectionPenaltyFee() { return inspectionPenaltyFee; }
+  public void setInspectionPenaltyFee(java.math.BigDecimal value) { inspectionPenaltyFee = value; }
+  public java.math.BigDecimal getInspectionRefundAmount() { return inspectionRefundAmount; }
+  public void setInspectionRefundAmount(java.math.BigDecimal value) { inspectionRefundAmount = value; }
 }

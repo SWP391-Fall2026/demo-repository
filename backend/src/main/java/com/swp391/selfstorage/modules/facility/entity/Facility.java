@@ -17,11 +17,20 @@ public class Facility {
   @Column(name = "address", nullable = false)
   private String address;
 
+  @Column(name = "total_area_sqm", precision = 12, scale = 2)
+  private BigDecimal totalAreaSqm;
+
   @Column(name = "city", nullable = false)
   private String city;
 
   @Column(name = "hotline")
   private String hotline;
+
+  @Column(name = "opening_hours")
+  private String openingHours;
+
+  @Column(name = "image_url", length = 2048)
+  private String imageUrl;
 
   @Column(name = "total_units")
   private Integer totalUnits = 0;
@@ -89,6 +98,14 @@ public class Facility {
     this.address = address;
   }
 
+  public BigDecimal getTotalAreaSqm() {
+    return totalAreaSqm;
+  }
+
+  public void setTotalAreaSqm(BigDecimal totalAreaSqm) {
+    this.totalAreaSqm = totalAreaSqm;
+  }
+
   public String getCity() {
     return city;
   }
@@ -103,6 +120,22 @@ public class Facility {
 
   public void setHotline(String hotline) {
     this.hotline = hotline;
+  }
+
+  public String getOpeningHours() {
+    return openingHours;
+  }
+
+  public void setOpeningHours(String openingHours) {
+    this.openingHours = openingHours;
+  }
+
+  public String getImageUrl() {
+    return imageUrl;
+  }
+
+  public void setImageUrl(String imageUrl) {
+    this.imageUrl = imageUrl;
   }
 
   public Integer getTotalUnits() {

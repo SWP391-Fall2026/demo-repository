@@ -55,7 +55,7 @@ public class FacilityService {
     validateRange("kích thước", minSize, maxSize);
     validateRange("giá", minPrice, maxPrice);
     if (facilityCode != null && facilityCode.isBlank()) facilityCode = null;
-    var candidates = units.findAvailableForCatalog(facilityCode, minSize, maxSize, minPrice, maxPrice);
+    var candidates = units.findAvailableForCatalog(facilityCode, minSize, maxSize, null, null);
     if (candidates.isEmpty()) return List.of();
 
     // Holds reserve capacity by facility/type, not a particular unit or a filtered subset.
@@ -81,6 +81,12 @@ public class FacilityService {
         byType.put(u.getType(), available - 1);
         return true;
       })
+      .filter(u -> {
+        BigDecimal effectivePrice = policy.facilityMonthly(u.getFacilityCode(), u.getType())
+          .orElse(u.getPricePerMonth());
+        return (minPrice == null || effectivePrice.compareTo(minPrice) >= 0)
+          && (maxPrice == null || effectivePrice.compareTo(maxPrice) <= 0);
+      })
       .map(u -> {
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("code", u.getCode());
@@ -88,7 +94,10 @@ public class FacilityService {
         m.put("type", u.getType());
         m.put("sizeDesc", u.getSizeDesc());
         m.put("sizeSqm", u.getSizeSqm());
-        m.put("pricePerMonth", u.getPricePerMonth());
+        m.put(
+          "pricePerMonth",
+          policy.facilityMonthly(u.getFacilityCode(), u.getType()).orElse(u.getPricePerMonth())
+        );
         m.put("status", u.getStatus());
         m.put("imageUrl", u.getImageUrl());
         m.put("imageAltText", u.getImageAltText());
@@ -120,14 +129,86 @@ public class FacilityService {
     );
     Facility f = new Facility();
     f.setCode(code);
-    f.setName(Inputs.text(d, "name"));
-    f.setAddress(Inputs.text(d, "address"));
-    f.setCity(Inputs.text(d, "city"));
-    f.setHotline(Inputs.optional(d, "hotline"));
+    setFacilityProfile(f, d, true);
     f.setStatus("ACTIVE");
     facilities.save(f);
     audit.record("CREATE_FACILITY", code, "Tạo chi nhánh");
     return f;
+  }
+
+  @Transactional
+  public Facility update(String code, Map<String, Object> d) {
+    actor.require("OPS_MGR");
+    var f = facilities.lockByCode(code).orElseThrow(Inputs::missing);
+    setFacilityProfile(f, d, false);
+    String status = Inputs.optional(d, "status");
+    if (!status.isBlank()) {
+      String normalized = status.trim().toUpperCase();
+      if (!Set.of("ACTIVE", "INACTIVE", "MAINTENANCE").contains(normalized)) throw Inputs.bad(
+        "Trạng thái cơ sở không hợp lệ"
+      );
+      f.setStatus(normalized);
+    }
+    facilities.save(f);
+    audit.record("UPDATE_FACILITY", code, "Cập nhật chi nhánh");
+    return f;
+  }
+
+  private void setFacilityProfile(Facility f, Map<String, Object> d, boolean required) {
+    String name = required ? Inputs.text(d, "name") : Inputs.optional(d, "name");
+    if (!name.isBlank()) {
+      String trimmed = name.trim();
+      if (trimmed.length() > 255) throw Inputs.bad("Tên cơ sở tối đa 255 ký tự");
+      boolean duplicate = facilities.findAll().stream().anyMatch(existing ->
+        existing.getName() != null &&
+        trimmed.equalsIgnoreCase(existing.getName().trim()) && !existing.getCode().equals(f.getCode()));
+      if (duplicate) throw Inputs.conflict("Trùng tên cơ sở");
+      f.setName(trimmed);
+    } else if (required) throw Inputs.bad("name is required");
+    String address = required ? Inputs.text(d, "address") : Inputs.optional(d, "address");
+    if (!address.isBlank()) f.setAddress(address);
+    else if (required) throw Inputs.bad("address is required");
+    if (required || d.containsKey("totalAreaSqm")) {
+      BigDecimal totalArea = Inputs.money(d.get("totalAreaSqm"));
+      if (totalArea.signum() <= 0) throw Inputs.bad("Diện tích mặt bằng phải lớn hơn 0");
+      try {
+        totalArea = totalArea.setScale(2, RoundingMode.UNNECESSARY);
+      } catch (ArithmeticException e) {
+        throw Inputs.bad("Diện tích mặt bằng tối đa 2 chữ số thập phân");
+      }
+      if (totalArea.precision() > 12) throw Inputs.bad("Diện tích mặt bằng vượt giới hạn cho phép");
+      f.setTotalAreaSqm(totalArea);
+    }
+    String city = required ? Inputs.text(d, "city") : Inputs.optional(d, "city");
+    if (!city.isBlank()) f.setCity(city);
+    else if (required) throw Inputs.bad("city is required");
+    String hotline = Inputs.optional(d, "hotline");
+    if (!hotline.isBlank()) {
+      if (!hotline.matches("[0-9+\\s.()-]{8,20}")) throw Inputs.bad("Hotline không hợp lệ");
+      f.setHotline(hotline);
+    } else if (d.containsKey("hotline")) f.setHotline(null);
+    String openingHours = Inputs.optional(d, "openingHours");
+    if (!openingHours.isBlank()) {
+      if (openingHours.length() > 255) throw Inputs.bad("Giờ mở cửa tối đa 255 ký tự");
+      f.setOpeningHours(openingHours);
+    } else if (d.containsKey("openingHours")) f.setOpeningHours(null);
+    if (d.containsKey("imageUrl")) setFacilityImage(f, Inputs.optional(d, "imageUrl"));
+  }
+
+  private void setFacilityImage(Facility f, String url) {
+    if (url == null || url.isBlank()) {
+      f.setImageUrl(null);
+      return;
+    }
+    try {
+      var parsed = java.net.URI.create(url);
+      if (!"https".equalsIgnoreCase(parsed.getScheme()) || parsed.getHost() == null || parsed.getUserInfo() != null)
+        throw Inputs.bad("Ảnh đại diện phải là URL HTTPS hợp lệ");
+    } catch (IllegalArgumentException e) {
+      throw Inputs.bad("Ảnh đại diện phải là URL HTTPS hợp lệ");
+    }
+    if (url.length() > 2048) throw Inputs.bad("Link ảnh tối đa 2048 ký tự");
+    f.setImageUrl(url);
   }
 
   @Transactional

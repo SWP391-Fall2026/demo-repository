@@ -21,14 +21,26 @@ public class OverdueFeeCalculator {
     BigDecimal currentMonthlyRate,
     BigDecimal capPercent
   ) {
+    return calculate(deadline, actual, dailyRate, currentMonthlyRate, capPercent, 0);
+  }
+
+  public BigDecimal calculate(
+    LocalDateTime deadline,
+    LocalDateTime actual,
+    BigDecimal dailyRate,
+    BigDecimal currentMonthlyRate,
+    BigDecimal capPercent,
+    long gracePeriodDays
+  ) {
     if (
       dailyRate.signum() < 0 ||
       currentMonthlyRate.signum() < 0 ||
       capPercent.signum() < 0 ||
       capPercent.compareTo(BigDecimal.valueOf(100)) > 0
     ) throw new IllegalArgumentException("Invalid fee inputs");
+    LocalDateTime effectiveDeadline = deadline.plusDays(Math.max(0, gracePeriodDays));
     BigDecimal raw = dailyRate.multiply(
-      BigDecimal.valueOf(days(deadline, actual))
+      BigDecimal.valueOf(days(effectiveDeadline, actual))
     );
     BigDecimal cap = currentMonthlyRate
       .multiply(capPercent)

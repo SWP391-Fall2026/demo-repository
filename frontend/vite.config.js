@@ -6,7 +6,7 @@ export default defineConfig(({ mode }) => ({
         port: 5173,
         proxy: {
             "/api": {
-                target: loadEnv(mode, ".", "").BACKEND_URL || "http://localhost:8080",
+                target: loadEnv(mode, ".", "").BACKEND_URL || "http://127.0.0.1:8080",
                 changeOrigin: true,
             },
         },

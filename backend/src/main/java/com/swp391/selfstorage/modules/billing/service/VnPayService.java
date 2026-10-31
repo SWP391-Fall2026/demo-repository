@@ -144,7 +144,10 @@ public class VnPayService {
       }
       payment.setStatus("PAID"); invoice.setStatus("PAID");
       if (depositReservation != null) {
-        depositReservation.setStatus("RESERVED"); reservations.save(depositReservation);
+        depositReservation.setStatus("RESERVED");
+        depositReservation.setReservationExpiresAt(holdPolicy.reservationExpiry(
+            LocalDateTime.now(clock), depositReservation.getReservationHoldDaysSnapshot()));
+        reservations.save(depositReservation);
       }
       if (rentReservation != null) rentActivation.activate(invoice, rentReservation);
       audit.recordSystem("PAYMENT_PAID", payment.getId(), "VNPAY " + invoice.getInvoiceType() + " " + invoice.getAmount());
