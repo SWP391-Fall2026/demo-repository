@@ -52,6 +52,7 @@ import NoShowReviewPage from "../features/reservation/pages/NoShowReviewPage";
 import FacilityOverdueCapPage from "../features/policy/pages/FacilityOverdueCapPage";
 import BusinessOperationsPage from "../features/reporting/pages/BusinessOperationsPage";
 import RentalTermsPage from "../features/policy/pages/RentalTermsPage";
+import PrivacyPolicyPage from "../features/policy/pages/PrivacyPolicyPage";
 export const routes = [
     {
         path: "/handover-reviews",
@@ -86,6 +87,13 @@ export const routes = [
         roles: [],
         element: <RentalTermsPage />,
         legacy: "PUBLIC-TERMS",
+    },
+    {
+        path: "/privacy-policy",
+        title: "Chính sách bảo mật",
+        roles: [],
+        element: <PrivacyPolicyPage />,
+        legacy: "PUBLIC-PRIVACY",
     },
     {
         path: "/storage",
