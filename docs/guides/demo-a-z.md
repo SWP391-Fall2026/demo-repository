@@ -51,7 +51,7 @@ Mật khẩu chung: `Demo123!`.
 | Business Operations | `business` — toàn chuỗi | | |
 | System Admin | `admin` — tài khoản và audit | | |
 
-Mỗi cơ sở có 8 kho: 001–002 loại S, 2 m², 800.000đ/tháng; 003–006 loại M, 5 m², 1.450.000đ/tháng; 007–008 loại L, 10 m², 2.800.000đ/tháng. Ví dụ mã `HN-CG-001`. Không seed sẵn hợp đồng hoặc giao dịch; cần tạo theo luồng.
+Mỗi cơ sở có 8 kho: 001–002 loại S, 2 m², 800.000đ/tháng; 003–005 loại M, 5 m², 1.450.000đ/tháng; 006–007 loại L, 10 m², 2.800.000đ/tháng; 008 loại CLIMATE, 8 m², 2.200.000đ/tháng. Ví dụ mã `HN-CG-001`. Không seed sẵn hợp đồng hoặc giao dịch; cần tạo theo luồng.
 
 Chọn HN-CG xuyên suốt lần demo đầu. Staff/Manager khác chi nhánh không xử lý được hồ sơ HN-CG.
 

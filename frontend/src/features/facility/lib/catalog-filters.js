@@ -1,3 +1,5 @@
 export function facilityFilterForSession(role, facilityCode) {
-    return role === "CUSTOMER" ? facilityCode?.trim() ?? "" : "";
+    // Customer catalog is global. Facility assignment is a preference for
+    // registration/account workflows, not a visibility scope for public stock.
+    return "";
 }

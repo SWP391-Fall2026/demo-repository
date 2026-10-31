@@ -16,3 +16,7 @@
 
 
 .sc-payment-methods{display:grid;gap:8px;margin:0 0 14px}.sc-payment-methods button{display:flex;align-items:center;gap:10px;min-height:64px;padding:12px 14px;color:#43474d;background:#eff4ff;border:1px solid transparent;border-radius:8px;text-align:left}.sc-payment-methods button.selected{color:#0f2942;background:#dce9ff;border-color:#0051d5;box-shadow:0 0 0 1px #0051d5}.sc-payment-methods button>.material-symbols-outlined{font-size:23px;color:#0051d5}.sc-payment-methods button>span{display:grid;gap:2px;flex:1}.sc-payment-methods button strong{font-size:12px}.sc-payment-methods button small{font-size:10px;color:#74777e}
+
+.sc-rental-heading-actions{display:flex;align-items:center;justify-content:flex-end;gap:16px}.sc-rental-heading-actions>.button{min-height:38px;padding:8px 12px;font-size:11px}.sc-rental-heading-actions>.button .material-symbols-outlined{font-size:16px}
+@media(max-width:760px){.sc-rental-heading-actions{align-items:stretch;flex-direction:column;width:100%;gap:10px}.sc-rental-count{text-align:left}.sc-rental-heading-actions>.button{width:100%}}
+.stitch-customer .sc-size-buttons button{color:#0f2942;background:#eff4ff;border:1px solid #b0c9e8}.stitch-customer .sc-size-buttons button:hover{color:#0051d5;background:#e5eeff}.stitch-customer .sc-size-buttons button.selected{color:#fff;background:#0051d5;border-color:#0051d5}

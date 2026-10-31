@@ -1,34 +1,35 @@
 .public-header {
   position: fixed; top: 0; left: 0; right: 0; z-index: 50;
-  color: #001428; background: rgb(248 249 255 / 90%); backdrop-filter: blur(20px);
-  box-shadow: 0 1px 8px rgb(0 0 0 / 4%);
+  color: #fff; background: #0f2942; backdrop-filter: blur(20px);
+  box-shadow: 0 2px 12px rgb(0 20 40 / 20%);
 }
 .stitch-app.stitch-customer { max-width: none; margin: 0; padding: 0; }
 .stitch-app .public-app-main { max-width: 1280px; width: 100%; margin: 0 auto; padding: 112px 48px 48px; }
-.public-header-inner { max-width: 1280px; min-height: 80px; margin: auto; padding: 0 48px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.public-header-inner { max-width: 1280px; min-width: 0; min-height: 80px; margin: auto; padding: 0 48px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .public-header .public-brand, .public-footer .public-brand { display: inline-flex; align-items: center; gap: 12px; color: inherit; flex-shrink: 0; text-decoration: none; }
+.public-header .public-brand img { filter: brightness(0) invert(1); }
 .public-brand img { width: 32px; height: 32px; object-fit: contain; }
 .public-brand > span { display: flex; flex-direction: column; }
 .public-brand strong { font-size: 20px; font-weight: 600; line-height: 24px; letter-spacing: -.025em; }
-.public-brand small { color: #0051d5; font-size: 11px; font-weight: 700; line-height: 14px; letter-spacing: .05em; text-transform: uppercase; }
+.public-brand small { color: #b8d2ff; font-size: 11px; font-weight: 700; line-height: 14px; letter-spacing: .05em; text-transform: uppercase; }
 .public-header-catalog .public-brand strong { font-size: 16px; }
-.public-header-catalog .public-brand small { color: #43474d; }
+.public-header-catalog .public-brand small { color: #b8d2ff; }
 .public-navigation { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
-.public-navigation a { padding: 8px 16px; color: #43474d; font-size: 14px; font-weight: 600; line-height: 20px; border-radius: 8px; }
-.public-navigation a:hover { background: #eff4ff; color: #0b1c30; }
-.public-navigation a.active { background: #dce9ff; color: #0b1c30; }
+.public-navigation a { padding: 8px 16px; color: #fff; font-size: 14px; font-weight: 600; line-height: 20px; border-radius: 8px; }
+.public-navigation a:hover { background: rgb(255 255 255 / 14%); color: #fff; }
+.public-navigation a.active { background: rgb(255 255 255 / 18%); color: #fff; }
 .public-header-catalog .public-navigation { gap: 24px; }
 .public-header-catalog .public-navigation a { padding: 0; }
-.public-header-catalog .public-navigation a.active { background: transparent; color: #0051d5; }
+.public-header-catalog .public-navigation a.active { background: transparent; color: #b8d2ff; }
 .public-account { display: flex; align-items: center; gap: 16px; white-space: nowrap; font-size: 14px; font-weight: 600; line-height: 20px; }
-.public-account a.public-login { color: #001428; padding: 8px 16px; }
-.public-account a.public-register { padding: 8px 16px; border-radius: 8px; color: #fff; background: #0f2942; }
-.public-account a.public-register:hover { background: #001428; }
-.public-account .public-avatar { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 50%; color: #fff; background: #001428; flex-shrink: 0; }
+.public-account a.public-login { color: #fff; padding: 8px 16px; }
+.public-account a.public-register { padding: 8px 16px; border-radius: 8px; color: #0f2942; background: #fff; }
+.public-account a.public-register:hover { background: #dce9ff; }
+.public-account .public-avatar { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 50%; color: #0f2942; background: #fff; flex-shrink: 0; }
 .public-account .public-avatar .material-symbols-outlined { font-size: 18px; }
 .public-account-name { display: flex; flex-direction: column; text-align: right; }
-.public-account-name strong { color: #0b1c30; font-size: 14px; font-weight: 600; }
-.public-account-name small { color: #0051d5; font-size: 11px; font-weight: 600; }
+.public-account-name strong { color: #fff; font-size: 14px; font-weight: 600; }
+.public-account-name small { color: #b8d2ff; font-size: 11px; font-weight: 600; }
 .public-account-menu { position: relative; }
 .public-account-menu summary { display: flex; align-items: center; gap: 16px; cursor: pointer; list-style: none; }
 .public-account-menu summary::-webkit-details-marker { display: none; }
@@ -36,7 +37,11 @@
 .public-account-menu nav a, .public-account-menu nav button { display: flex; align-items: center; gap: 8px; padding: 10px 12px; font-size: 13px; color: #43474d; background: transparent; border-radius: 8px; text-align: left; border: 0; }
 .public-account-menu nav a:hover, .public-account-menu nav button:hover { background: #eff4ff; color: #0051d5; }
 .public-account-menu nav button { color: #ba1a1a; justify-content: flex-start; }
-.public-header-auth { background: rgb(255 255 255 / 95%); backdrop-filter: blur(12px); }
+.public-header-auth { color: #001428; background: rgb(255 255 255 / 95%); backdrop-filter: blur(12px); }
+.public-header-auth .public-brand img { filter: none; }
+.public-header-auth .public-brand small { color: #43474d; }
+.public-header-auth .public-account-name strong { color: #0b1c30; }
+.public-header-auth .public-account-name small { color: #0051d5; }
 .public-header-auth .public-header-inner { min-height: 72px; }
 .public-header-auth .public-brand strong { font-size: 20px; font-weight: 700; line-height: 20px; }
 .public-header-auth .public-brand small { margin-top: 2px; color: #43474d; }
@@ -64,12 +69,18 @@
 .public-footer-contact strong { color: #fff; }
 .public-footer-bottom { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 24px; color: #7991af; font-size: 12px; font-weight: 600; line-height: 16px; }
 .public-footer-bottom > :last-child { text-align: right; }
-@media (max-width: 1279px) { .public-navigation { display: none; } .public-header-catalog .public-navigation { display: flex; } }
+@media (max-width: 1279px) {
+  .public-header-inner { padding-left: 24px; padding-right: 24px; gap: 10px; }
+  .public-navigation { min-width: 0; gap: 0; overflow-x: auto; scrollbar-width: none; }
+  .public-navigation::-webkit-scrollbar { display: none; }
+  .public-navigation a, .public-header-catalog .public-navigation a { padding: 7px 9px; font-size: 12px; }
+  .public-account { gap: 8px; }
+}
 @media (max-width: 1199px) { .public-header-catalog .public-brand small { display: none; } .public-header-catalog .public-navigation { gap: 16px; } }
 @media (max-width: 1023px) {
   .public-header-inner, .public-footer-inner { padding-left: 32px; padding-right: 32px; }
   .stitch-app .public-app-main { padding-left: 32px; padding-right: 32px; }
-  .public-header-catalog .public-navigation { display: none; }
+  .public-navigation, .public-header-catalog .public-navigation { display: flex; }
   .public-footer-grid { grid-template-columns: 1fr 1fr; }
   .public-footer-about { padding-right: 0; }
 }

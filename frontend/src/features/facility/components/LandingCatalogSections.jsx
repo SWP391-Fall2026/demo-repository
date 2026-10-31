@@ -36,6 +36,16 @@ const PLANS = [
       "Toàn bộ nội thất nhà phố, hàng tồn kho doanh nghiệp, thiết bị văn phòng.",
     price: "2.800.000 đ",
   },
+  {
+    type: "CLIMATE",
+    label: "Gói kho mát",
+    volume: "Kiểm soát nhiệt độ",
+    title: "Kho CLIMATE (Kho mát)",
+    area: "Diện tích ~8m²",
+    description:
+      "Tài liệu, thiết bị điện tử và hàng hóa cần môi trường lưu trữ ổn định.",
+    price: "2.200.000 đ",
+  },
 ];
 
 const FACILITIES = [

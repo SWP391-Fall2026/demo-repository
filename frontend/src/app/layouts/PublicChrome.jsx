@@ -12,8 +12,7 @@ export function PublicHeader({ auth = false, navigationState }) {
   const location = useLocation();
   const catalog = location.pathname === "/storage";
   const accountName = session?.user?.name || session?.user?.username;
-  const links = [["/", "Trang chủ"], ["/storage", "Kho lưu trữ"]];
-  if (!catalog) links.push(["/reservations", "Đơn đặt của tôi"]);
+  const links = [["/", "Trang chủ"], ["/storage", "Kho lưu trữ"], ["/reservations", "Đơn đặt của tôi"]];
   if (location.pathname.startsWith("/rentals") || location.pathname.startsWith("/support") || location.pathname.startsWith("/storage/")) links.push(["/rentals", "Kho đang thuê"]);
   if (location.pathname.startsWith("/support") || location.pathname.startsWith("/storage/")) links.push(["/support", "Hỗ trợ"]);
 
@@ -22,7 +21,7 @@ export function PublicHeader({ auth = false, navigationState }) {
       <Link className="public-brand" to="/" aria-label="Storage — Trang chủ"><img src={brandLogo} alt=""/><span><strong>STORAGE</strong><small>{auth || catalog ? "Kho Gọn - Hệ thống kho tự quản" : "Kho tự quản"}</small></span></Link>
       {!auth && <nav className="public-navigation" aria-label="Điều hướng chính">{links.map(([to, title]) => <NavLink key={to} to={to} end={to === "/"}>{title}</NavLink>)}<Link to="/rental-terms">Điều kiện thuê</Link><Link to="/privacy-policy">Chính sách bảo mật</Link></nav>}
       <div className="public-account">
-        {session && !auth ? <details className="public-account-menu"><summary><span className="public-account-name"><strong>{accountName}</strong><small>{session.user.username}</small></span><span className="public-avatar"><Symbol>person</Symbol></span></summary><nav aria-label="Tài khoản"><Link to="/reservations">Đơn đặt của tôi</Link><Link to="/rentals">Kho đang thuê</Link><Link to="/support">Yêu cầu hỗ trợ</Link><Link to="/invoices/all/pay">Thanh toán</Link><Link to="/reservations/all/pass">Thẻ check-in & bàn giao</Link><Link to="/rentals/access">Nhập PIN truy cập</Link><Link to="/handover-reviews">Yêu cầu bàn giao</Link><Link to="/refunds">Hoàn tiền của tôi</Link><button type="button" onClick={() => sessionStore.set(null)}><Symbol>logout</Symbol>Đăng xuất</button></nav></details> : <><Link className="public-login" to="/login" state={navigationState}>Đăng nhập</Link><Link className="public-register" to="/register" state={navigationState}>Đăng ký</Link><Link className="public-avatar" to="/login" state={navigationState} aria-label="Đăng nhập tài khoản"><Symbol>person</Symbol></Link></>}
+        {session && !auth ? <details className="public-account-menu"><summary><span className="public-account-name"><strong>{accountName}</strong><small>{session.user.username}</small></span><span className="public-avatar"><Symbol>person</Symbol></span></summary><nav aria-label="Tài khoản"><Link to="/reservations">Đơn đặt của tôi</Link><Link to="/rentals">Kho đang thuê</Link><Link to="/rentals/return">Yêu cầu trả kho</Link><Link to="/support">Yêu cầu hỗ trợ</Link><Link to="/invoices/all/pay">Thanh toán</Link><Link to="/reservations/all/pass">Thẻ check-in & bàn giao</Link><Link to="/rentals/access">Nhập PIN truy cập</Link><Link to="/handover-reviews">Yêu cầu bàn giao</Link><Link to="/refunds">Hoàn tiền của tôi</Link><button type="button" onClick={() => sessionStore.set(null)}><Symbol>logout</Symbol>Đăng xuất</button></nav></details> : <><Link className="public-login" to="/login" state={navigationState}>Đăng nhập</Link><Link className="public-register" to="/register" state={navigationState}>Đăng ký</Link><Link className="public-avatar" to="/login" state={navigationState} aria-label="Đăng nhập tài khoản"><Symbol>person</Symbol></Link></>}
       </div>
     </div>
   </header>;

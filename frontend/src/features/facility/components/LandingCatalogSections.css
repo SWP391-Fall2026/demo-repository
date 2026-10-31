@@ -288,3 +288,9 @@
     transform: translateY(-8px);
   }
 }
+
+@media (min-width: 1280px) {
+  .landing-page .landing-pricing-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

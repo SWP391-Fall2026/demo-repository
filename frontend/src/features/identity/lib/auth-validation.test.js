@@ -44,8 +44,8 @@ describe("registration contract", () => {
         expect(landingForRole("ADMIN")).toBe("/admin/overview");
         expect(() => landingForRole("UNKNOWN")).toThrow();
     });
-    it("scopes catalog by customer facility and leaves unassigned customers unfiltered", () => {
-        expect(facilityFilterForSession("CUSTOMER", " HN-CG ")).toBe("HN-CG");
+    it("shows catalog inventory from every facility to customers", () => {
+        expect(facilityFilterForSession("CUSTOMER", " HN-CG ")).toBe("");
         expect(facilityFilterForSession("CUSTOMER", null)).toBe("");
         expect(facilityFilterForSession("CUSTOMER", "")).toBe("");
         expect(facilityFilterForSession("ADMIN", "HN-CG")).toBe("");

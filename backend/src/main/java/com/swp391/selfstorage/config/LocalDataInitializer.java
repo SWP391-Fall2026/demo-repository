@@ -52,15 +52,15 @@ public class LocalDataInitializer implements CommandLineRunner {
         Unit u = new Unit();
         u.setCode(codes[i] + "-" + String.format("%03d", n));
         u.setFacilityCode(codes[i]);
-        String type = n < 3 ? "S" : n < 7 ? "M" : "L";
+        String type = n < 3 ? "S" : n < 6 ? "M" : n < 8 ? "L" : "CLIMATE";
         u.setType(type);
         u.setSizeSqm(
-          BigDecimal.valueOf(type.equals("S") ? 2 : type.equals("M") ? 5 : 10)
+          BigDecimal.valueOf(type.equals("S") ? 2 : type.equals("M") ? 5 : type.equals("L") ? 10 : 8)
         );
         u.setSizeDesc(u.getSizeSqm() + " m²");
         u.setPricePerMonth(
           BigDecimal.valueOf(
-            type.equals("S") ? 800000 : type.equals("M") ? 1450000 : 2800000
+            type.equals("S") ? 800000 : type.equals("M") ? 1450000 : type.equals("L") ? 2800000 : 2200000
           )
         );
         u.setStatus("available");
