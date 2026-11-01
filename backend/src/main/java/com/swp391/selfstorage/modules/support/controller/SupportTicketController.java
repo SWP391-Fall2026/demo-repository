@@ -32,6 +32,16 @@ public class SupportTicketController {
     return ApiResponse.ok(s.update(id, d));
   }
 
+  @PatchMapping({ "/api/tickets/{id}/assign", "/api/tasks/tickets/{id}/assign" })
+  public ApiResponse<?> assign(@PathVariable String id, @RequestBody Map<String, Object> d) {
+    return ApiResponse.ok(s.assign(id, d));
+  }
+
+  @PostMapping({ "/api/tickets/{id}/reset-pin", "/api/tasks/tickets/{id}/reset-pin" })
+  public ApiResponse<?> resetPin(@PathVariable String id, @RequestBody(required = false) Map<String, Object> d) {
+    return ApiResponse.ok(s.resetTemporaryPin(id, d == null ? Map.of() : d));
+  }
+
   @PostMapping(value = "/api/tickets/upload", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
   public ApiResponse<?> upload(@RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
     return ApiResponse.ok(s.uploadAttachment(file));

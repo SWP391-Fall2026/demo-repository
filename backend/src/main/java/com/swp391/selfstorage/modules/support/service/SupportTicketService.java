@@ -4,6 +4,9 @@ import com.swp391.selfstorage.common.security.ActorContext;
 import com.swp391.selfstorage.common.web.*;
 import com.swp391.selfstorage.modules.audit.service.AuditLogService;
 import com.swp391.selfstorage.modules.rental.repository.ContractRepository;
+import com.swp391.selfstorage.modules.facility.entity.Unit;
+import com.swp391.selfstorage.modules.facility.repository.UnitRepository;
+import com.swp391.selfstorage.modules.identity.repository.UserRepository;
 import com.swp391.selfstorage.modules.support.entity.SupportTicket;
 import com.swp391.selfstorage.modules.support.repository.SupportTicketRepository;
 import java.math.*;
@@ -11,6 +14,7 @@ import java.time.*;
 import java.util.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.security.SecureRandom;
 
 @Service
 public class SupportTicketService {
@@ -20,19 +24,29 @@ public class SupportTicketService {
   private final ActorContext actor;
   private final AuditLogService audit;
   private final com.swp391.selfstorage.common.storage.AttachmentStorage storage;
+  private final UnitRepository units;
+  private final UserRepository users;
+  private final Clock clock;
+  private final SecureRandom random = new SecureRandom();
 
   public SupportTicketService(
     SupportTicketRepository t,
     ContractRepository c,
     ActorContext a,
     AuditLogService au,
-    com.swp391.selfstorage.common.storage.AttachmentStorage st
+    com.swp391.selfstorage.common.storage.AttachmentStorage st,
+    UnitRepository ur,
+    UserRepository users,
+    Clock cl
   ) {
     tickets = t;
     contracts = c;
     actor = a;
     audit = au;
     storage = st;
+    units = ur;
+    this.users = users;
+    clock = cl;
   }
 
   public Map<String, String> uploadAttachment(org.springframework.web.multipart.MultipartFile file) {
@@ -128,5 +142,46 @@ public class SupportTicketService {
     t.setStatus(status);
     audit.record("UPDATE_TICKET_STATUS", id, status + (t.getRating() != null ? " (Rating: " + t.getRating() + "*)" : ""));
     return tickets.save(t);
+  }
+
+  @Transactional
+  public SupportTicket assign(String id, Map<String, Object> d) {
+    var manager = actor.require("FMANAGER");
+    var t = tickets.lockById(id).orElseThrow(Inputs::missing);
+    actor.facility(manager, t.getFacilityCode());
+    if ("CLOSED".equals(t.getStatus())) throw Inputs.conflict("Phiếu đã đóng");
+    String staffId = Inputs.text(d, "staffId");
+    var target = users.findById(staffId).orElseThrow(Inputs::missing);
+    actor.facility(target, t.getFacilityCode());
+    if (!"STAFF".equals(actor.role(target)) || !"ACTIVE".equalsIgnoreCase(target.getStatus()))
+      throw Inputs.bad("Người nhận phải là Staff đang hoạt động");
+    t.setStaffAssigned(target.getId());
+    if ("OPEN".equals(t.getStatus())) t.setStatus("IN_PROGRESS");
+    audit.record("ASSIGN_TICKET", id, "Phân công " + target.getId());
+    return tickets.save(t);
+  }
+
+  @Transactional
+  public Map<String, Object> resetTemporaryPin(String id, Map<String, Object> d) {
+    var staff = actor.require("STAFF", "FMANAGER");
+    var t = tickets.lockById(id).orElseThrow(Inputs::missing);
+    actor.facility(staff, t.getFacilityCode());
+    if ("CLOSED".equals(t.getStatus())) throw Inputs.conflict("Phiếu đã đóng");
+    if (t.getUnitCode() == null || t.getUnitCode().isBlank()) throw Inputs.conflict("Phiếu chưa gắn kho");
+    Unit unit = units.lockByCode(t.getUnitCode()).orElseThrow(Inputs::missing);
+    actor.facility(staff, unit.getFacilityCode());
+    String pin = String.format("%06d", random.nextInt(1_000_000));
+    LocalDateTime expires = LocalDateTime.now(clock).plusHours(8);
+    unit.setTemporaryPin(pin);
+    unit.setTemporaryPinExpiresAt(expires);
+    units.save(unit);
+    String note = Inputs.optional(d, "notes");
+    String update = "Cấp lại PIN tạm đến " + expires + (note.isBlank() ? "" : ": " + note);
+    t.setNotes(t.getNotes() == null || t.getNotes().isBlank() ? update : t.getNotes() + " | " + update);
+    if ("OPEN".equals(t.getStatus())) t.setStatus("IN_PROGRESS");
+    t.setStaffAssigned(staff.getId());
+    tickets.save(t);
+    audit.record("RESET_TEMPORARY_PIN", id, "Cấp PIN tạm cho kho " + unit.getCode());
+    return Map.of("ticketId", id, "unitCode", unit.getCode(), "temporaryPin", pin, "expiresAt", expires);
   }
 }

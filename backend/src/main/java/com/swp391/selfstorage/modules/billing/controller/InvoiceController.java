@@ -3,6 +3,7 @@ package com.swp391.selfstorage.modules.billing.controller;
 import com.swp391.selfstorage.common.web.ApiResponse;
 import com.swp391.selfstorage.modules.billing.service.InvoiceService;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/invoices")
@@ -17,5 +18,10 @@ public class InvoiceController {
   @GetMapping
   public ApiResponse<?> list() {
     return ApiResponse.ok(s.list());
+  }
+
+  @PostMapping("/extra")
+  public ApiResponse<?> issueExtra(@RequestBody Map<String, Object> body) {
+    return ApiResponse.ok(s.issueExtra(body));
   }
 }

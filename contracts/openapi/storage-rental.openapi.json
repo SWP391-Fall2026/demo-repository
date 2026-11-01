@@ -8119,6 +8119,525 @@
           }
         }
       }
+    },
+    "/api/facilities/{code}": {
+      "put": {
+        "operationId": "Facility_update_14",
+        "tags": [
+          "facility"
+        ],
+        "summary": "Facility: update",
+        "description": "Authorized role: OPS_MGR. Updates facility metadata or ACTIVE/INACTIVE status.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or missing input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication missing, expired or inactive account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role or facility not permitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found in authorized scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State conflict, expired hold, duplicate processing or insufficient eligibility",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "OPS_MGR"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFacility"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/facilities/units/{code}/status": {
+      "patch": {
+        "operationId": "Facility_updateStatus_18",
+        "tags": [
+          "facility"
+        ],
+        "summary": "Facility: update unit status",
+        "description": "Authorized roles: STAFF, FMANAGER. Explicit maintenance transition is supported; reservation-owned transitions remain workflow controlled.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response. Payment/PIN are simulated; OTP delivery is selected explicitly in auth configuration. Runtime verification is separate from this specification.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or missing input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication missing, expired or inactive account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role or facility not permitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found in authorized scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "State conflict, expired hold, duplicate processing or insufficient eligibility",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "STAFF",
+          "FMANAGER"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUnitStatus"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/invoices/extra": {
+      "post": {
+        "operationId": "Invoice_issueExtra",
+        "tags": [
+          "billing"
+        ],
+        "summary": "Issue standalone extra charge invoice",
+        "description": "Authorized roles: STAFF, FMANAGER.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or facility not permitted"
+          },
+          "404": {
+            "description": "Resource not found in authorized scope"
+          },
+          "409": {
+            "description": "State conflict"
+          }
+        },
+        "x-roles": [
+          "STAFF",
+          "FMANAGER"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExtraInvoiceInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tickets/{id}/assign": {
+      "patch": {
+        "operationId": "SupportTicket_assign",
+        "tags": [
+          "support"
+        ],
+        "summary": "Assign support ticket to a facility staff member",
+        "description": "Authorized roles: FMANAGER.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or facility not permitted"
+          },
+          "404": {
+            "description": "Resource not found in authorized scope"
+          },
+          "409": {
+            "description": "State conflict"
+          }
+        },
+        "x-roles": [
+          "FMANAGER"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketAssignment"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/tasks/tickets/{id}/assign": {
+      "patch": {
+        "operationId": "SupportTicket_assign_legacy",
+        "tags": [
+          "support"
+        ],
+        "summary": "Assign support ticket to a facility staff member",
+        "description": "Authorized roles: FMANAGER.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or facility not permitted"
+          },
+          "404": {
+            "description": "Resource not found in authorized scope"
+          },
+          "409": {
+            "description": "State conflict"
+          }
+        },
+        "x-roles": [
+          "FMANAGER"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketAssignment"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/tickets/{id}/reset-pin": {
+      "post": {
+        "operationId": "SupportTicket_resetTemporaryPin",
+        "tags": [
+          "support"
+        ],
+        "summary": "Issue temporary unit PIN from incident ticket",
+        "description": "Authorized roles: STAFF, FMANAGER.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or facility not permitted"
+          },
+          "404": {
+            "description": "Resource not found in authorized scope"
+          },
+          "409": {
+            "description": "State conflict"
+          }
+        },
+        "x-roles": [
+          "STAFF",
+          "FMANAGER"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPinInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/tasks/tickets/{id}/reset-pin": {
+      "post": {
+        "operationId": "SupportTicket_resetTemporaryPin_legacy",
+        "tags": [
+          "support"
+        ],
+        "summary": "Issue temporary unit PIN from incident ticket",
+        "description": "Authorized roles: STAFF, FMANAGER.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role or facility not permitted"
+          },
+          "404": {
+            "description": "Resource not found in authorized scope"
+          },
+          "409": {
+            "description": "State conflict"
+          }
+        },
+        "x-roles": [
+          "STAFF",
+          "FMANAGER"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPinInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -9356,6 +9875,107 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "UpdateFacility": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "hotline": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ]
+          }
+        }
+      },
+      "UpdateUnitStatus": {
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "available",
+              "reserved",
+              "occupied",
+              "cleaning",
+              "maintenance"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 500
+          }
+        }
+      },
+      "ExtraInvoiceInput": {
+        "type": "object",
+        "required": [
+          "contractId",
+          "category",
+          "amount",
+          "description"
+        ],
+        "properties": {
+          "contractId": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "LOST_KEY",
+              "DAMAGE",
+              "OVERDUE",
+              "OTHER"
+            ]
+          },
+          "amount": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "dueAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "TicketAssignment": {
+        "type": "object",
+        "required": [
+          "staffId"
+        ],
+        "properties": {
+          "staffId": {
+            "type": "string"
+          }
+        }
+      },
+      "ResetPinInput": {
+        "type": "object",
+        "properties": {
+          "notes": {
+            "type": "string",
+            "maxLength": 500
           }
         }
       }

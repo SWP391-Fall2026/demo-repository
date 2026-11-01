@@ -473,5 +473,40 @@
     "method": "get",
     "path": "/api/files/{key:.+}",
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/support/controller/AttachmentController.java"
+  },
+  {
+    "method": "put",
+    "path": "/api/facilities/{code}",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java"
+  },
+  {
+    "method": "patch",
+    "path": "/api/facilities/units/{code}/status",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/invoices/extra",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/billing/controller/InvoiceController.java"
+  },
+  {
+    "method": "patch",
+    "path": "/api/tickets/{id}/assign",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/support/controller/SupportTicketController.java"
+  },
+  {
+    "method": "patch",
+    "path": "/api/tasks/tickets/{id}/assign",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/support/controller/SupportTicketController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/tickets/{id}/reset-pin",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/support/controller/SupportTicketController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/tasks/tickets/{id}/reset-pin",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/support/controller/SupportTicketController.java"
   }
 ]
