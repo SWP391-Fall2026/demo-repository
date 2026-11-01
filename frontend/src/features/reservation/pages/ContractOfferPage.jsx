@@ -14,7 +14,7 @@ export default function ContractOfferPage() {
     if (busy)
         return <main className="page-content"><p>Đang tải hồ sơ hợp đồng…</p></main>;
     if (error || !data)
-        return <main className="page-content"><section className="card error" role="alert">{error || "Chưa có hồ sơ hợp đồng."}</section><Link to="/reservations/all/appointment">Về thẻ hẹn</Link></main>;
+        return <main className="page-content"><section className="card error" role="alert">{error || "Chưa có hồ sơ hợp đồng."}</section><Link to={`/reservations/${encodeURIComponent(reservationId)}/appointment`}>Về thẻ hẹn</Link></main>;
     const reservation = data.reservation;
     const contract = data.contract;
     const customer = data.customer;
