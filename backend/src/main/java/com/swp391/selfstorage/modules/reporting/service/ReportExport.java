@@ -14,11 +14,23 @@ final class ReportExport {
     rows.add(List.of("Báo cáo vận hành và dòng tiền", report.get("scope")));
     rows.add(List.of("Từ ngày", report.get("startDate"), "Đến ngày", report.get("endDate")));
     rows.add(List.of(report.get("occupancyBasis")));
-    rows.add(List.of("Mã cơ sở", "Tên cơ sở", "Tổng kho", "Đang thuê", "Sẵn sàng", "Lấp đầy (%)", "Tiền thuê", "Tiền cọc", "Phụ phí", "Đã hoàn"));
+    rows.add(List.of("Mã cơ sở", "Tên cơ sở", "Tổng kho", "Đang thuê", "Sẵn sàng", "Hợp đồng quá hạn", "Lấp đầy (%)", "Tiền thuê", "Tiền cọc", "Phụ phí", "Đã hoàn"));
     for (var row : (List<Map<String, Object>>)report.get("byFacility")) rows.add(List.of(
         row.get("facilityCode"), row.get("facilityName"), row.get("totalUnits"), row.get("occupiedUnits"),
-        row.get("availableUnits"), row.get("occupancyRate"), row.get("rentalReceipts"), row.get("depositReceipts"),
+        row.get("availableUnits"), row.get("overdueContracts"), row.get("occupancyRate"), row.get("rentalReceipts"), row.get("depositReceipts"),
         row.get("feeReceipts"), row.get("completedRefunds")));
+    rows.add(List.of());
+    rows.add(List.of("Chi tiết theo loại kho"));
+    rows.add(List.of("Mã cơ sở", "Loại kho", "Tổng", "Đang thuê", "Đang giữ", "Sẵn sàng", "Vệ sinh", "Bảo trì", "Lấp đầy (%)"));
+    for (var row : (List<Map<String, Object>>)report.getOrDefault("byUnitType", List.of())) rows.add(List.of(
+        row.get("facilityCode"), row.get("unitType"), row.get("totalUnits"), row.get("occupiedUnits"),
+        row.get("reservedUnits"), row.get("availableUnits"), row.get("cleaningUnits"),
+        row.get("maintenanceUnits"), row.get("occupancyRate")));
+    rows.add(List.of());
+    rows.add(List.of("Chi tiết theo trạng thái kho"));
+    rows.add(List.of("Mã cơ sở", "Trạng thái", "Số lượng"));
+    for (var row : (List<Map<String, Object>>)report.getOrDefault("byUnitStatus", List.of())) rows.add(List.of(
+        row.get("facilityCode"), row.get("status"), row.get("count")));
     if ("csv".equals(format)) return csv(rows);
     try {
       ByteArrayOutputStream buffer = new ByteArrayOutputStream();

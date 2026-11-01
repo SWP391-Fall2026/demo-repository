@@ -86,17 +86,75 @@ public class ReportService {
       row.put("feeReceipts", rs.getBigDecimal("fees")); row.put("completedRefunds", rs.getBigDecimal("refunds"));
       return row;
     });
+
+    // Keep operational dimensions separate from the cash-flow query above. This
+    // avoids multiplying payment rows when a facility has multiple unit types
+    // and keeps the report correct for both PostgreSQL and H2.
+    String unitScope = code == null ? "" : " where facility_code = :code";
+    Map<String, Long> overdueByFacility = new HashMap<>();
+    String overdueQuery = "select facility_code, count(*) overdue from contracts"
+        + " where upper(status) = 'OVERDUE'"
+        + (code == null ? "" : " and facility_code = :code")
+        + " group by facility_code";
+    jdbc.query(overdueQuery, params, (rs, n) -> {
+      overdueByFacility.put(rs.getString("facility_code"), rs.getLong("overdue"));
+      return null;
+    });
+
+    List<Map<String, Object>> unitTypes = jdbc.query(
+        "select facility_code, type unit_type, count(*) total,"
+            + " sum(case when lower(status)='occupied' then 1 else 0 end) occupied,"
+            + " sum(case when lower(status)='reserved' then 1 else 0 end) reserved,"
+            + " sum(case when lower(status)='available' then 1 else 0 end) available,"
+            + " sum(case when lower(status)='cleaning' then 1 else 0 end) cleaning,"
+            + " sum(case when lower(status)='maintenance' then 1 else 0 end) maintenance"
+            + " from units" + unitScope + " group by facility_code, type"
+            + " order by facility_code, type",
+        params, (rs, n) -> {
+          Map<String, Object> row = new LinkedHashMap<>();
+          long total = rs.getLong("total");
+          long occupied = rs.getLong("occupied");
+          row.put("facilityCode", rs.getString("facility_code"));
+          row.put("unitType", rs.getString("unit_type"));
+          row.put("totalUnits", total);
+          row.put("occupiedUnits", occupied);
+          row.put("reservedUnits", rs.getLong("reserved"));
+          row.put("availableUnits", rs.getLong("available"));
+          row.put("cleaningUnits", rs.getLong("cleaning"));
+          row.put("maintenanceUnits", rs.getLong("maintenance"));
+          row.put("occupancyRate", percent(occupied, total));
+          return row;
+        });
+
+    List<Map<String, Object>> unitStatuses = jdbc.query(
+        "select facility_code, lower(status) unit_status, count(*) total"
+            + " from units" + unitScope
+            + " group by facility_code, lower(status) order by facility_code, lower(status)",
+        params, (rs, n) -> {
+          Map<String, Object> row = new LinkedHashMap<>();
+          row.put("facilityCode", rs.getString("facility_code"));
+          row.put("status", rs.getString("unit_status"));
+          row.put("count", rs.getLong("total"));
+          return row;
+        });
+
+    rows.forEach(row -> row.put("overdueContracts",
+        overdueByFacility.getOrDefault(String.valueOf(row.get("facilityCode")), 0L)));
+    long overdueContracts = overdueByFacility.values().stream().mapToLong(Long::longValue).sum();
     Map<String, Object> result = new LinkedHashMap<>();
     result.put("totalBranches", rows.size());
     for (String key : List.of("totalUnits", "occupiedUnits", "availableUnits"))
       result.put(key, rows.stream().mapToLong(row -> ((Number)row.get(key)).longValue()).sum());
     result.put("occupancyRate", percent((long)result.get("occupiedUnits"), (long)result.get("totalUnits")));
+    result.put("overdueContracts", overdueContracts);
     for (String key : List.of("rentalReceipts", "depositReceipts", "feeReceipts", "completedRefunds"))
       result.put(key, rows.stream().map(row -> (BigDecimal)row.get(key)).reduce(BigDecimal.ZERO, BigDecimal::add));
     result.put("byFacility", rows);
+    result.put("byUnitType", unitTypes);
+    result.put("byUnitStatus", unitStatuses);
     result.put("scope", code == null ? "Toàn chuỗi" : code);
     result.put("startDate", start == null ? "" : start.toString()); result.put("endDate", end == null ? "" : end.toString());
-    result.put("occupancyBasis", "Trạng thái kho hiện tại; bộ lọc ngày áp dụng cho dòng tiền. Hoàn tiền tính theo ngày hoàn tất.");
+    result.put("occupancyBasis", "Trạng thái kho hiện tại; bộ lọc ngày áp dụng cho dòng tiền. Hoàn tiền tính theo ngày hoàn tất. Số hợp đồng quá hạn là số hiện tại.");
     return result;
   }
   private double percent(long occupied, long total) { return total == 0 ? 0 : Math.round(occupied * 10000.0 / total) / 100.0; }
