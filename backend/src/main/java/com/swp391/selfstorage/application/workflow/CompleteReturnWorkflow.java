@@ -71,15 +71,15 @@ public class CompleteReturnWorkflow {
     BigDecimal deductions = fees.calculate(
       c.getEndAt().plusDays(policy.value("gracePeriodDays", BigDecimal.valueOf(3)).longValue()),
       now,
-      policy.fee("overdueDailyFee"),
+      policy.feeAfterWaiver("overdue", policy.fee("overdueDailyFee")),
       unit.getPricePerMonth(),
       policy.cap(c.getFacilityCode())
     );
     if (!"CLEAN".equals(cleanliness)) deductions = deductions.add(
-      policy.fee("cleaningFee")
+      policy.feeAfterWaiver("cleaning", policy.fee("cleaningFee"))
     );
     if (Boolean.TRUE.equals(d.get("lockDamaged"))) deductions = deductions.add(
-      policy.fee("newLockFee")
+      policy.feeAfterWaiver("lock", policy.fee("newLockFee"))
     );
     InspectionRecord i = new InspectionRecord();
     i.setId("INS-" + UUID.randomUUID());

@@ -29,7 +29,12 @@ public class PolicyService {
     Map.entry("cleaningFee", "200000"),
     Map.entry("overdueDailyFee", "50000"),
     Map.entry("gracePeriodDays", "3"),
-    Map.entry("newLockFee", "150000")
+    Map.entry("newLockFee", "150000"),
+    // Ops-configurable cancellation and fee waiver rules. Percent values are 0..100.
+    Map.entry("cancellation.fullRefundHours", "24"),
+    Map.entry("feeWaiver.overduePercent", "0"),
+    Map.entry("feeWaiver.cleaningPercent", "0"),
+    Map.entry("feeWaiver.lockPercent", "0")
   );
 
   public PolicyService(
@@ -72,6 +77,21 @@ public class PolicyService {
     return value(key, new BigDecimal(DEFAULTS.getOrDefault(key, "0")));
   }
 
+  /**
+   * Return fee after the configured waiver percentage. Keeping this rule in
+   * PolicyService makes every workflow use the same Ops configuration.
+   */
+  public BigDecimal feeAfterWaiver(String feeKey, BigDecimal amount) {
+    if (amount == null || amount.signum() <= 0) return BigDecimal.ZERO;
+    BigDecimal percent = value("feeWaiver." + feeKey + "Percent", BigDecimal.ZERO)
+      .max(BigDecimal.ZERO)
+      .min(BigDecimal.valueOf(100));
+    return amount
+      .multiply(BigDecimal.ONE.subtract(percent.movePointLeft(2)))
+      .max(BigDecimal.ZERO)
+      .setScale(2, RoundingMode.HALF_UP);
+  }
+
   public BigDecimal cap(String facility) {
     return value("cap." + facility, new BigDecimal("50"));
   }
@@ -95,6 +115,12 @@ public class PolicyService {
     if (
       key.startsWith("discount.") && number.compareTo(BigDecimal.ONE) >= 0
     ) throw Inputs.bad("Tỷ lệ giảm giá phải nhỏ hơn 1");
+    if (key.startsWith("feeWaiver.") &&
+        (number.compareTo(BigDecimal.ZERO) < 0 || number.compareTo(BigDecimal.valueOf(100)) > 0))
+      throw Inputs.bad("Tỷ lệ miễn giảm phí phải nằm trong khoảng 0-100%");
+    if ("cancellation.fullRefundHours".equals(key) &&
+        (number.compareTo(BigDecimal.ZERO) <= 0 || number.compareTo(BigDecimal.valueOf(168)) > 0))
+      throw Inputs.bad("Thời hạn hoàn cọc phải nằm trong khoảng 1-168 giờ");
     if (
       key.startsWith("price.min.") &&
       number.compareTo(
