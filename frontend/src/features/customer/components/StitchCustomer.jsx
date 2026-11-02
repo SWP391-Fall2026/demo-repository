@@ -11,7 +11,7 @@ export function Icon({ children, className = "" }) {
 }
 
 export function CustomerBreadcrumb({ items = [] }) {
-  return <nav className="stitch-breadcrumb" aria-label="Đường dẫn"><Link to="/">Trang chủ</Link>{items.map((item, index) => <span key={`${item.label}-${index}`}><Icon>chevron_right</Icon>{item.to ? <Link to={item.to}>{item.label}</Link> : <strong>{item.label}</strong>}</span>)}</nav>;
+  return <nav className="stitch-breadcrumb" aria-label="Đường dẫn"><Link to="/"><Icon>home</Icon><span>Trang chủ</span></Link>{items.map((item, index) => <span key={`${item.label}-${index}`}><Icon>chevron_right</Icon>{item.to ? <Link to={item.to}>{item.label}</Link> : <strong>{item.label}</strong>}</span>)}</nav>;
 }
 
 export function CustomerHeading({ title, description, action, icon }) {

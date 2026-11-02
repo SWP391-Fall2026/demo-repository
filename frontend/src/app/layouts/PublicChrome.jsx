@@ -12,9 +12,17 @@ export function PublicHeader({ auth = false, navigationState }) {
   const location = useLocation();
   const catalog = location.pathname === "/storage";
   const accountName = session?.user?.name || session?.user?.username;
-  const links = [["/", "Trang chủ"], ["/storage", "Kho lưu trữ"], ["/reservations", "Đơn đặt của tôi"]];
-  if (location.pathname.startsWith("/rentals") || location.pathname.startsWith("/support") || location.pathname.startsWith("/storage/")) links.push(["/rentals", "Kho đang thuê"]);
-  if (location.pathname.startsWith("/support") || location.pathname.startsWith("/storage/")) links.push(["/support", "Hỗ trợ"]);
+  // Keep customer navigation stable across every customer screen. The Stitch
+  // reference keeps rental and policy links visible instead of adding them
+  // only on selected routes, which made header items appear/disappear.
+  const links = [
+    ["/", "Trang chủ"],
+    ["/storage", "Kho lưu trữ"],
+    ["/reservations", "Đơn đặt của tôi"],
+    ["/rentals", "Kho đang thuê"],
+    ["/rental-terms", "Điều kiện thuê"],
+    ["/privacy-policy", "Chính sách bảo mật"],
+  ];
 
   return <header className={`public-header ${auth ? "public-header-auth" : ""} ${catalog ? "public-header-catalog" : ""}`}>
     <div className="public-header-inner">

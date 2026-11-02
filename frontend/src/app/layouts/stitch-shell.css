@@ -93,6 +93,7 @@
 .stitch-app .stitch-account-menu nav a { padding: 9px 10px; color: var(--stitch-muted); border-radius: 6px; font-size: 12px; line-height: 17px; }
 .stitch-app .stitch-account-menu nav a:hover { color: var(--stitch-primary-container); background: var(--stitch-surface-low); }
 .stitch-app .stitch-customer-main { max-width: 1280px; padding: 32px 24px 48px; min-height: calc(100vh - 161px); flex: 1; }
+.stitch-app .stitch-customer-main.public-app-main { padding-top: 112px; }
 .stitch-app .stitch-customer-footer { border: 0; padding: 28px max(24px, calc((100vw - 1232px) / 2)); color: #a8b8cc; background: #071421; font-size: 12px; line-height: 20px; }
 
 /* Internal portals: 260px fixed sidebar and 64px top bar from SCR-10–28. */
@@ -171,4 +172,5 @@
   .stitch-app .stitch-customer-account { gap: 9px; font-size: 12px; }
   .stitch-app .stitch-customer-account > a.button { padding: 8px 12px; font-size: 12px; }
   .stitch-app .stitch-customer-footer { padding: 24px 16px; font-size: 10px; }
+  .stitch-app .stitch-customer-main.public-app-main { padding-top: 104px; }
 }

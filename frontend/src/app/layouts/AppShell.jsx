@@ -1,4 +1,5 @@
 import { Routes, Route, NavLink, Link, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import { routes } from "../router";
 import { RoleGuard } from "../guards/RoleGuard";
 import { useSession, sessionStore } from "../../features/identity/session";
@@ -31,15 +32,27 @@ function AppRoutes() {
   </Routes>;
 }
 
+// Fixed customer header must never cover first breadcrumb after route changes.
+// React Router keeps scroll position by default, which made pages such as
+// /rentals open halfway down with "Trang chủ > Kho đang thuê" hidden under
+// the header. Reset once per route while preserving in-page anchor behavior.
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
+
 export function AppShell() {
   const session = useSession();
   const location = useLocation();
   const auth = ["/login", "/register", "/verify-otp", "/registration-success"].includes(location.pathname);
   if (auth) {
-    return <Routes>{routes.filter((r) => !r.roles.length).map((r) => <Route key={r.path} path={r.path} element={r.element} />)}</Routes>;
+    return <><ScrollToTop /><Routes>{routes.filter((r) => !r.roles.length).map((r) => <Route key={r.path} path={r.path} element={r.element} />)}</Routes></>;
   }
   if (location.pathname === "/") {
-    return <div className="landing-app"><Routes><Route path="/" element={routes.find((route) => route.path === "/")?.element} /></Routes></div>;
+    return <div className="landing-app"><ScrollToTop /><Routes><Route path="/" element={routes.find((route) => route.path === "/")?.element} /></Routes></div>;
   }
 
   const role = session?.user?.role || "PUBLIC";
@@ -50,10 +63,11 @@ export function AppShell() {
   const accountName = session?.user?.name || session?.user?.username || "Khách hàng";
 
   if (backOffice) {
-    return <InternalChrome session={session}><AppRoutes /></InternalChrome>;
+    return <InternalChrome session={session}><ScrollToTop /><AppRoutes /></InternalChrome>;
   }
 
   return <div className={`app stitch-app stitch-${role.toLowerCase()} stitch-customer`}>
+    <ScrollToTop />
     <PublicHeader />
     <main className="main stitch-main stitch-customer-main public-app-main"><AppRoutes /></main>
     <PublicFooter />
