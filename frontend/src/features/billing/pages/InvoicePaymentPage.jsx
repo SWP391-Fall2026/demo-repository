@@ -24,7 +24,7 @@ export default function InvoicePaymentPage() {
   useEffect(() => { if (!selectedId && invoices.length) setSelectedId(String(invoices.find(i => i.status === "PENDING")?.id || invoices[0].id)); }, [selectedId, remote.data]);
   useEffect(() => { const timer = window.setInterval(() => { remote.reload(); reservationRemote.reload(); }, 20000); return () => window.clearInterval(timer); }, [remote.reload, reservationRemote.reload]);
   const selected = invoices.find(i => String(i.id) === selectedId); const reservation = selected ? reservations.find(r => r.id === selected.reservationId) : null;
-  const deposit = selected?.invoiceType === "DEPOSIT"; const canPay = selected?.status === "PENDING" && (selected.invoiceType === "RENEW" || deposit && reservation?.status === "PENDING_PAYMENT" || selected.invoiceType === "RENT" && reservation?.status === "RESERVED" && Boolean(reservation.unitCode));
+  const deposit = selected?.invoiceType === "DEPOSIT"; const canPay = selected?.status === "PENDING" && (selected.invoiceType === "EXTRA" || selected.invoiceType === "RENEW" || deposit && reservation?.status === "PENDING_PAYMENT" || selected.invoiceType === "RENT" && reservation?.status === "RESERVED" && Boolean(reservation.unitCode));
   async function pay() { if (!selected || busy || !confirmed) return; setBusy(true); setError(""); try {
     if (method === "qr") {
       const result = await billingApi.pay({ invoiceId: String(selected.id), paymentMethod: "BANK_TRANSFER_QR", confirmedAmount: true });

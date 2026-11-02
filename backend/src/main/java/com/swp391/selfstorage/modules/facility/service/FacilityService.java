@@ -147,6 +147,30 @@ public class FacilityService {
   }
 
   @Transactional
+  public Facility update(String code, Map<String, Object> d) {
+    actor.require("OPS_MGR");
+    var f = facilities.lockByCode(code).orElseThrow(Inputs::missing);
+    if (d.containsKey("name")) f.setName(Inputs.text(d, "name"));
+    if (d.containsKey("address")) f.setAddress(Inputs.text(d, "address"));
+    if (d.containsKey("city")) f.setCity(Inputs.text(d, "city"));
+    if (d.containsKey("hotline")) f.setHotline(Inputs.optional(d, "hotline"));
+    if (d.containsKey("status")) {
+      String status = Inputs.text(d, "status").toUpperCase(Locale.ROOT);
+      if (!Set.of("ACTIVE", "INACTIVE").contains(status)) {
+        throw Inputs.bad("Trạng thái cơ sở phải là ACTIVE hoặc INACTIVE");
+      }
+      if ("INACTIVE".equals(status)) {
+        boolean occupied = units.findByFacilityCode(code).stream()
+            .anyMatch(u -> Set.of("occupied", "reserved").contains(u.getStatus().toLowerCase(Locale.ROOT)));
+        if (occupied) throw Inputs.conflict("Không thể ngưng cơ sở đang có kho đã đặt hoặc đang thuê");
+      }
+      f.setStatus(status);
+    }
+    audit.record("UPDATE_FACILITY", code, "Cập nhật thông tin cơ sở");
+    return facilities.save(f);
+  }
+
+  @Transactional
   public Unit createUnit(Map<String, Object> d) {
     var a = actor.require("FMANAGER");
     String code = Inputs.text(d, "code");
@@ -176,6 +200,22 @@ public class FacilityService {
     var a = actor.require("FMANAGER");
     var u = units.lockByCode(code).orElseThrow(Inputs::missing);
     actor.facility(a, u.getFacilityCode());
+    String currentStatus = Objects.toString(u.getStatus(), "").toLowerCase(Locale.ROOT);
+    boolean mutableDefinition = Set.of("available", "cleaning", "maintenance").contains(currentStatus);
+    if (d.containsKey("type")) {
+      if (!mutableDefinition) throw Inputs.conflict("Không thể đổi loại kho khi kho đang được đặt hoặc đang thuê");
+      String type = Inputs.text(d, "type").toUpperCase(Locale.ROOT);
+      if (!Set.of("S", "M", "L", "CLIMATE").contains(type)) throw Inputs.bad("Loại kho không hợp lệ");
+      u.setType(type);
+    }
+    if (d.containsKey("sizeSqm")) {
+      if (!mutableDefinition) throw Inputs.conflict("Không thể đổi diện tích khi kho đang được đặt hoặc đang thuê");
+      u.setSizeSqm(Inputs.money(d.get("sizeSqm")));
+      u.setSizeDesc(u.getSizeSqm() + " m²");
+    }
+    if (d.containsKey("type") && !d.containsKey("pricePerMonth")) {
+      policy.validatePrice(u.getType(), u.getPricePerMonth());
+    }
     if (d.containsKey("pricePerMonth")) {
       var price = Inputs.money(d.get("pricePerMonth"));
       policy.validatePrice(u.getType(), price);
@@ -190,6 +230,35 @@ public class FacilityService {
       code,
       "Cập nhật thông tin kho và ảnh"
     );
+    return units.save(u);
+  }
+
+  @Transactional
+  public Unit updateStatus(String code, Map<String, Object> d) {
+    var a = actor.require("STAFF", "FMANAGER");
+    var u = units.lockByCode(code).orElseThrow(Inputs::missing);
+    actor.facility(a, u.getFacilityCode());
+    String next = Inputs.text(d, "status").toLowerCase(Locale.ROOT);
+    if (!Set.of("available", "reserved", "occupied", "cleaning", "maintenance").contains(next)) {
+      throw Inputs.bad("Trạng thái kho không hợp lệ");
+    }
+    String current = Objects.toString(u.getStatus(), "").toLowerCase(Locale.ROOT);
+    if ("maintenance".equals(next)) {
+      if (!Set.of("available", "cleaning").contains(current)) {
+        throw Inputs.conflict("Chỉ có thể đưa kho trống hoặc đang vệ sinh vào bảo trì");
+      }
+      String reason = Inputs.text(d, "reason");
+      if (reason.length() > 500) throw Inputs.bad("Lý do bảo trì tối đa 500 ký tự");
+      u.setReadinessNotes(reason);
+      u.setReadinessStatus(null);
+      u.setTenantName(null);
+      u.setPinCode(null);
+    } else if (!next.equals(current)) {
+      // Reservation, handover and return workflows own these transitions.
+      throw Inputs.conflict("Trạng thái này chỉ được cập nhật qua quy trình nghiệp vụ tương ứng");
+    }
+    u.setStatus(next);
+    audit.record("UPDATE_UNIT_STATUS", code, "Chuyển trạng thái kho: " + current + " -> " + next);
     return units.save(u);
   }
 

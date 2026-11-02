@@ -1,10 +1,14 @@
-﻿import { Link } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { useMemo } from "react";
 import tanBinh from "../../../assets/images/landing/tan-binh.jpg";
 import quan7 from "../../../assets/images/landing/quan-7.jpg";
 import cauGiay from "../../../assets/images/landing/cau-giay.jpg";
+import heroStorage from "../../../assets/images/landing/gallery.jpg";
+import { facilityApi } from "../api/facility.api";
+import { useRemote } from "../../../shared/api/use-remote";
+import { money } from "../../../shared/lib/format";
 import "./LandingCatalogSections.css";
 
-// Reference prices describe plans; the linked catalog shows current offers.
 const PLANS = [
   {
     type: "S",
@@ -13,7 +17,6 @@ const PLANS = [
     title: "Kho S (Kích thước nhỏ)",
     area: "Diện tích ~1.5m² - 3m²",
     description: "Vali du lịch, tài liệu, thùng carton, đồ dùng cá nhân.",
-    price: "650.000 đ",
   },
   {
     type: "M",
@@ -23,7 +26,6 @@ const PLANS = [
     area: "Diện tích ~4m² - 8m²",
     description:
       "Đồ nội thất căn hộ 1-2 phòng ngủ, thiết bị gia dụng, hàng hóa kinh doanh online.",
-    price: "1.450.000 đ",
     featured: true,
   },
   {
@@ -34,7 +36,6 @@ const PLANS = [
     area: "Diện tích ~10m² - 20m²",
     description:
       "Toàn bộ nội thất nhà phố, hàng tồn kho doanh nghiệp, thiết bị văn phòng.",
-    price: "2.800.000 đ",
   },
   {
     type: "CLIMATE",
@@ -44,53 +45,10 @@ const PLANS = [
     area: "Diện tích ~8m²",
     description:
       "Tài liệu, thiết bị điện tử và hàng hóa cần môi trường lưu trữ ổn định.",
-    price: "2.200.000 đ",
   },
 ];
 
-const FACILITIES = [
-  {
-    code: "HCM-TB",
-    city: "TP. Hồ Chí Minh",
-    name: "Cơ sở Tân Bình - TP. Hồ Chí Minh",
-    address: "Khu Công Nghiệp Tân Bình, P. Tây Thạnh, Q. Tân Phú, TP.HCM",
-    photo: tanBinh,
-    photoAlt:
-      "Cơ sở kho Tân Bình với sân bãi xe tải rộng rãi và cửa cuốn màu cam",
-    features: [
-      "Sảnh đỗ xe tải rộng, tiếp cận tận cửa sảnh",
-      "Thang máy nâng hàng tải trọng lớn",
-      "Camera giám sát khu vực chung",
-    ],
-  },
-  {
-    code: "HCM-Q7",
-    city: "TP. Hồ Chí Minh",
-    name: "Cơ sở Quận 7 - TP. Hồ Chí Minh",
-    address: "Đường Nguyễn Thị Thập, P. Tân Phong, Quận 7, TP.HCM",
-    photo: quan7,
-    photoAlt: "Khu kho Quận 7 với hệ thống điều hòa và dãy cửa cuốn xanh dương",
-    features: [
-      "Kho mát bảo quản tài liệu & thiết bị",
-      "Xe trung chuyển ra vào thuận lợi",
-      "Cảm biến kiểm soát độ ẩm phòng kho",
-    ],
-  },
-  {
-    code: "HN-CG",
-    city: "Hà Nội",
-    name: "Cơ sở Cầu Giấy - Hà Nội",
-    address: "Đường Duy Tân, P. Dịch Vọng Hậu, Q. Cầu Giấy, Hà Nội",
-    photo: cauGiay,
-    photoAlt:
-      "Cơ sở Cầu Giấy với lối đi thông thoáng và cửa kho đánh số rõ ràng",
-    features: [
-      "Tiếp giáp các tòa nhà văn phòng trung tâm",
-      "Khu lưu trữ sạch sẽ, thông thoáng",
-      "Xe đẩy hàng sẵn có phục vụ miễn phí",
-    ],
-  },
-];
+const facilityPhotos = { "HCM-TB": tanBinh, "HCM-Q7": quan7, "HN-CG": cauGiay };
 
 function Icon({ children }) {
   return (
@@ -101,6 +59,8 @@ function Icon({ children }) {
 }
 
 export function LandingPricing() {
+  const remote = useRemote(() => facilityApi.units({}));
+  const units = Array.isArray(remote.data) ? remote.data : [];
   return (
     <section
       id="pricing"
@@ -112,8 +72,13 @@ export function LandingPricing() {
         <h2 id="landing-pricing-title">Các loại kho lưu trữ</h2>
         <p>Bảng giá niêm yết tham khảo công khai, không chi phí ẩn.</p>
       </div>
+      {remote.error && <p role="status" className="landing-data-message">Không tải được bảng giá trực tiếp từ hệ thống.</p>}
       <div className="landing-pricing-grid">
-        {PLANS.map((plan) => (
+        {PLANS.map((plan) => {
+          const rows = units.filter((unit) => String(unit.type).toUpperCase() === plan.type);
+          const prices = rows.map((unit) => Number(unit.pricePerMonth)).filter(Number.isFinite);
+          const price = prices.length ? money(Math.min(...prices)) : remote.busy ? "Đang tải…" : "Liên hệ";
+          return (
           <article
             className={`landing-pricing-card${plan.featured ? " is-featured" : ""}`}
             key={plan.type}
@@ -133,9 +98,10 @@ export function LandingPricing() {
             </div>
             <div className="landing-pricing-card-footer">
               <div className="landing-price">
-                <strong>{plan.price}</strong>
+                <strong>{price}</strong>
                 <span>/ tháng</span>
               </div>
+              <small>{rows.length} kho đang có thể đặt trên toàn hệ thống</small>
               <Link
                 className={`landing-button${plan.featured ? " primary" : " secondary"}`}
                 to={`/storage?type=${plan.type}`}
@@ -144,13 +110,23 @@ export function LandingPricing() {
               </Link>
             </div>
           </article>
-        ))}
+          );
+        })}
       </div>
     </section>
   );
 }
 
 export function LandingFacilities() {
+  const facilitiesRemote = useRemote(facilityApi.facilities);
+  const unitsRemote = useRemote(() => facilityApi.units({}));
+  const facilities = Array.isArray(facilitiesRemote.data) ? facilitiesRemote.data.filter((facility) => !facility.status || String(facility.status).toUpperCase() === "ACTIVE") : [];
+  const units = Array.isArray(unitsRemote.data) ? unitsRemote.data : [];
+  const unitsByFacility = useMemo(() => units.reduce((result, unit) => {
+    const key = unit.facilityCode;
+    if (key) result[key] = (result[key] || 0) + 1;
+    return result;
+  }, {}), [units]);
   return (
     <section
       id="locations"
@@ -162,13 +138,14 @@ export function LandingFacilities() {
         <h2 id="landing-facilities-title">Địa điểm lưu trữ</h2>
         <p>Hệ thống kho tại các vị trí trung tâm, đường xe tải thuận tiện.</p>
       </div>
+      {(facilitiesRemote.error || unitsRemote.error) && <p role="status" className="landing-data-message">Không tải được danh sách cơ sở trực tiếp từ hệ thống.</p>}
       <div className="landing-facilities-grid">
-        {FACILITIES.map((facility) => (
+        {facilities.map((facility) => (
           <article className="landing-facility-card" key={facility.code}>
             <div className="landing-facility-image">
               <img
-                src={facility.photo}
-                alt={facility.photoAlt}
+                src={facilityPhotos[facility.code] || heroStorage}
+                alt={`Hình ảnh ${facility.name}`}
                 loading="lazy"
                 width="768"
                 height="768"
@@ -182,7 +159,11 @@ export function LandingFacilities() {
                 {facility.address}
               </p>
               <ul className="landing-facility-facts">
-                {facility.features.map((feature) => (
+                {[
+                  `${facility.totalUnits ?? 0} kho thuộc cơ sở`,
+                  `${unitsByFacility[facility.code] ?? 0} kho đang có thể đặt`,
+                  facility.hotline ? `Hotline: ${facility.hotline}` : "Thông tin liên hệ cập nhật theo hệ thống",
+                ].map((feature) => (
                   <li key={feature}>
                     <Icon>check</Icon>
                     <span>{feature}</span>

@@ -121,6 +121,13 @@ export default function FacilityReportPage() {
                 icon: "monitoring",
                 tone: "amber",
               },
+              {
+                label: "Hợp đồng quá hạn",
+                value: display(report.overdueContracts || 0),
+                icon: "schedule",
+                tone: "red",
+                note: "Cần theo dõi và xử lý",
+              },
             ]}
           />
           <section className="card office-table">
@@ -157,7 +164,7 @@ export default function FacilityReportPage() {
                         <td>{row.maintenance}</td>
                         <td>
                           <span className="badge">
-                            {Math.round((row.occupied / row.total) * 100)}%
+                            {row.total ? Math.round((row.occupied / row.total) * 100) : 0}%
                           </span>
                         </td>
                       </tr>

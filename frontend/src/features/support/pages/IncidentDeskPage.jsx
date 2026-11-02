@@ -4,6 +4,8 @@ import { useRemote } from "../../../shared/api/use-remote";
 import { supportApi } from "../api/support.api";
 import { display } from "../../../shared/lib/format";
 import { sessionStore } from "../../identity/session";
+import { useSession } from "../../identity/session";
+import { workforceApi } from "../../workforce/api/workforce.api";
 import {
   StaffFacts,
   StaffHeading,
@@ -21,6 +23,11 @@ import {
 
 export default function IncidentDeskPage() {
   const remote = useRemote(supportApi.list);
+  const session = useSession();
+  const staffRemote = useRemote(
+    () => session?.user?.role === "FMANAGER" ? workforceApi.staffOptions() : Promise.resolve([]),
+    [session?.user?.role],
+  );
   const [params, setParams] = useSearchParams();
   const [filter, setFilter] = useState("ALL"),
     [search, setSearch] = useState(""),
@@ -30,6 +37,7 @@ export default function IncidentDeskPage() {
     [error, setError] = useState(""),
     [message, setMessage] = useState(""),
     [submitting, setSubmitting] = useState(false),
+    [staffId, setStaffId] = useState(""),
     [demoEmpty, setDemoEmpty] = useState(false);
   const [attachment, setAttachment] = useState("");
   const tickets = Array.isArray(remote.data) ? remote.data : [];
@@ -63,8 +71,23 @@ export default function IncidentDeskPage() {
     if (selected) {
       setStatus(selected.status === "RESOLVED" ? "RESOLVED" : "IN_PROGRESS");
       setNotes(selected.notes || "");
+      setStaffId(selected.staffAssigned || "");
     }
   }, [selected?.id]);
+  async function assignTicket() {
+    if (!selected || !staffId) return;
+    setSubmitting(true); setError("");
+    try { await supportApi.assign(selected.id, staffId); setMessage("Đã phân công yêu cầu cho Staff."); remote.reload(); }
+    catch (cause) { setError(cause.message); }
+    finally { setSubmitting(false); }
+  }
+  async function resetPin() {
+    if (!selected) return;
+    setSubmitting(true); setError("");
+    try { const result = await supportApi.resetPin(selected.id, notes); setMessage(`PIN tạm ${result.temporaryPin} có hiệu lực đến ${result.expiresAt}.`); remote.reload(); }
+    catch (cause) { setError(cause.message); }
+    finally { setSubmitting(false); }
+  }
   useEffect(() => {
     let imageUrl;
     let active = true;
@@ -245,6 +268,10 @@ export default function IncidentDeskPage() {
             </div>
           </StaffSection>
           <StaffSection title="Phản hồi & Xử lý yêu cầu" icon="rate_review">
+            {session?.user?.role === "FMANAGER" && Array.isArray(staffRemote.data) && <div className="staff-form-actions">
+              <label>Phân công Staff<select value={staffId} onChange={(event) => setStaffId(event.target.value)}><option value="">Chọn Staff</option>{staffRemote.data.map((staff) => <option key={staff.id} value={staff.id}>{staff.name} · {staff.username}</option>)}</select></label>
+              <button type="button" className="secondary" onClick={assignTicket} disabled={submitting || !staffId}>Phân công</button>
+            </div>}
             <form className="staff-form" onSubmit={handleUpdate}>
               <label>
                 Trạng thái sau phản hồi
@@ -284,6 +311,7 @@ export default function IncidentDeskPage() {
                   Quay lại danh sách
                 </button>
               </div>
+              {selected.category === "ACCESS" && <button type="button" className="secondary" onClick={resetPin} disabled={submitting}>Cấp lại PIN tạm</button>}
             </form>
           </StaffSection>
         </div>

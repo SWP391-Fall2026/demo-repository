@@ -109,7 +109,9 @@ public class InvoiceService {
     Invoice invoice = issue(null, contract.getId(), contract.getUserId(), contract.getFacilityCode(),
         "EXTRA", amount, dueAt, snapshotWithDescription(snapshot, description));
     invoice.setDescription(description);
-    return repo.save(invoice);
+    // `issue` already persists invoice. Entity remains managed inside this
+    // transaction, so description update flushes with single INSERT/UPDATE.
+    return invoice;
   }
 
   private String snapshotWithDescription(String snapshot, String description) {

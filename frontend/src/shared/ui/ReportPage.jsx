@@ -279,6 +279,22 @@ export function ReportPage({ title, load, facilityCode, mode = "report" }) {
               </p>
             </div>
           )}
+          {overview && (
+            <section className="card office-table">
+              <div className="office-table-header">
+                <h2>Quá hạn & phân bổ loại kho</h2>
+                <span className="badge">Quá hạn: {display(data.overdueContracts || 0)}</span>
+              </div>
+              {Array.isArray(data.byUnitType) && data.byUnitType.length ? (
+                <div className="table-scroll">
+                  <table>
+                    <thead><tr><th>Cơ sở</th><th>Loại kho</th><th>Tổng</th><th>Đang thuê</th><th>Đang giữ</th><th>Trống</th><th>Bảo trì / vệ sinh</th></tr></thead>
+                    <tbody>{data.byUnitType.map((row) => <tr key={`${row.facilityCode}-${row.unitType}`}><td>{row.facilityCode}</td><td>Kho {row.unitType}</td><td>{row.totalUnits}</td><td>{row.occupiedUnits}</td><td>{row.reservedUnits}</td><td>{row.availableUnits}</td><td>{Number(row.cleaningUnits || 0) + Number(row.maintenanceUnits || 0)}</td></tr>)}</tbody>
+                  </table>
+                </div>
+              ) : <OfficeState title="Chưa có phân bổ loại kho" />}
+            </section>
+          )}
           <section className="card office-table">
             <div className="office-table-header">
               <div>

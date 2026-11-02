@@ -5,7 +5,9 @@ import { display, money } from "../../../shared/lib/format";
 import { rentalApi } from "../api/rental.api";
 import { renewalEndDate as addMonths } from "../lib/renewal-date";
 import { CustomerBreadcrumb, CustomerEmpty, CustomerHeading, CustomerHelp, Icon, Status, UnitImage, dateText } from "../../customer/components/StitchCustomer";
-const renewable=row=>["ACTIVE","EXPIRING_SOON","OVERDUE"].includes(row.status)&&!row.checkoutRequestedAt;
+// Backend RenewalService accepts only ACTIVE and EXPIRING_SOON contracts.
+// Keep OVERDUE contracts out of this page so UI does not offer a rejected action.
+const renewable=row=>["ACTIVE","EXPIRING_SOON"].includes(row.status)&&!row.checkoutRequestedAt;
 export default function RenewalQuotePage(){
  const [params]=useSearchParams();const remote=useRemote(()=>rentalApi.list().then(rows=>Promise.all(rows.filter(renewable).map(async row=>{try{const detail=await rentalApi.detail(row.id);return {...row,unit:detail.unit,facility:detail.facility};}catch{return row;}}))));
  const [contractId,setContractId]=useState(params.get("contractId")||"");const [months,setMonths]=useState(3);const [quote,setQuote]=useState(null);const [invoice,setInvoice]=useState(null);const [error,setError]=useState("");const [working,setWorking]=useState(false);

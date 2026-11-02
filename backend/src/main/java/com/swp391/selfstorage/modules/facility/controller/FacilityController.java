@@ -29,6 +29,15 @@ public class FacilityController {
     return ApiResponse.ok(s.create(d));
   }
 
+  /** Update chain-managed facility metadata/status. */
+  @PutMapping("/{code}")
+  public ApiResponse<?> update(
+    @PathVariable String code,
+    @RequestBody Map<String, Object> d
+  ) {
+    return ApiResponse.ok(s.update(code, d));
+  }
+
   @PutMapping("/{code}/checkin-pin")
   public ApiResponse<?> setCheckinPin(@PathVariable String code) {
     return ApiResponse.ok(tasks.setFacilityCheckinPin(code));
@@ -61,6 +70,15 @@ public class FacilityController {
     @RequestBody Map<String, Object> d
   ) {
     return ApiResponse.ok(s.updateUnit(code, d));
+  }
+
+  /** Explicit operational status transition (for maintenance and recovery). */
+  @PatchMapping("/units/{code}/status")
+  public ApiResponse<?> updateStatus(
+    @PathVariable String code,
+    @RequestBody Map<String, Object> d
+  ) {
+    return ApiResponse.ok(s.updateStatus(code, d));
   }
 
   @PostMapping("/units/{code}/ready")

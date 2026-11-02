@@ -13,7 +13,9 @@ export const facilityApi = {
     },
     managedUnits: () => request("/facilities/units/manage"),
     createFacility: (d) => request("/facilities", json("POST", d)),
+    updateFacility: (d) => request(`/facilities/${encodeURIComponent(d.code)}`, json("PUT", d)),
     createUnit: (d) => request("/facilities/units", json("POST", d)),
+    updateUnitStatus: (d) => request(`/facilities/units/${encodeURIComponent(d.code)}/status`, json("PATCH", d)),
     ready: (d) => request(`/facilities/units/${d.code}/ready`, json("POST", d)),
     approveReady: (d) => request(`/facilities/units/${d.code}/ready/approve`, json("POST", d)),
 };

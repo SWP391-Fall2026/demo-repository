@@ -14,5 +14,14 @@ export default function ManageFacilitiesPage() {
             },
             { name: "hotline", label: "Hotline", type: "text" },
         ]} submit={facilityApi.createFacility}/>
+      <h3>Cập nhật hoặc ngưng hoạt động cơ sở</h3>
+      <Form fields={[
+            { name: "code", label: "Mã cơ sở", type: "text", required: true },
+            { name: "name", label: "Tên cơ sở", type: "text", required: true },
+            { name: "address", label: "Địa chỉ", type: "text", required: true },
+            { name: "city", label: "Tỉnh/thành phố", type: "text", required: true },
+            { name: "hotline", label: "Hotline", type: "text" },
+            { name: "status", label: "Trạng thái", options: ["ACTIVE", "INACTIVE"], required: true },
+        ]} submit={facilityApi.updateFacility}/>
     </ResourcePage>);
 }

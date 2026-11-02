@@ -4,6 +4,8 @@ export const supportApi = {
     list: () => request("/tickets"),
     create: (d) => request("/tickets", json("POST", d)),
     progress: (d) => request(`/tickets/${d.id}`, json("PATCH", d)),
+    assign: (id, staffId) => request(`/tickets/${encodeURIComponent(id)}/assign`, json("PATCH", { staffId })),
+    resetPin: (id, notes = "") => request(`/tickets/${encodeURIComponent(id)}/reset-pin`, json("POST", { notes })),
     uploadAttachment: async (file) => {
         const formData = new FormData();
         formData.append("file", file);

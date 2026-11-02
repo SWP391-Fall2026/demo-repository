@@ -29,12 +29,15 @@ export default function ManageUnitsPage() {
       <h3>Cập nhật giá kho (trong khoảng Ops cho phép)</h3>
       <Form fields={[
             { name: "code", label: "Mã kho", required: true },
+            { name: "type", label: "Loại kho", options: ["S", "M", "L", "CLIMATE"], required: true },
+            { name: "sizeSqm", label: "Diện tích m²", type: "number", required: true },
             {
                 name: "pricePerMonth",
                 label: "Giá thuê tháng",
                 type: "number",
                 required: true,
             },
+            { name: "floor", label: "Tầng", type: "number" },
             { name: "imageUrl", label: "Link ảnh kho (URL https://...)", type: "url" },
             { name: "imageAltText", label: "Mô tả ảnh", type: "text" },
         ]} submit={facilityApi.updateUnit}/>

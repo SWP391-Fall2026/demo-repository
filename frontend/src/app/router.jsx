@@ -196,7 +196,7 @@ export const routes = [
     {
         path: "/facility/tasks/my",
         title: "Công việc",
-        roles: ["STAFF"],
+        roles: ["STAFF", "FMANAGER"],
         element: <StaffTaskBoardPage />,
         legacy: "SCR-S01",
     },
@@ -217,7 +217,7 @@ export const routes = [
     {
         path: "/facility/units/status",
         title: "Trạng thái kho",
-        roles: ["STAFF"],
+        roles: ["STAFF", "FMANAGER"],
         element: <UnitStatusPage />,
         legacy: "SCR-S04",
     },
@@ -231,7 +231,7 @@ export const routes = [
     {
         path: "/facility/incidents",
         title: "Sự cố",
-        roles: ["STAFF"],
+        roles: ["STAFF", "FMANAGER"],
         element: <IncidentDeskPage />,
         legacy: "SCR-S06",
     },

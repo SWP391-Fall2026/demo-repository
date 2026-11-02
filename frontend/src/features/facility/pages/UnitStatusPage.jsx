@@ -26,6 +26,7 @@ export default function UnitStatusPage() {
     [status, setStatus] = useState(""),
     [page, setPage] = useState(1),
     [notes, setNotes] = useState(""),
+    [maintenanceReason, setMaintenanceReason] = useState(""),
     [error, setError] = useState(""),
     [message, setMessage] = useState(""),
     [busy, setBusy] = useState(false);
@@ -69,6 +70,22 @@ export default function UnitStatusPage() {
       remote.reload();
     } catch (cause) {
       setError(cause.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function markMaintenance() {
+    if (!selected || !maintenanceReason.trim()) return;
+    setBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      await facilityApi.updateUnitStatus({ code: selected.code, status: "maintenance", reason: maintenanceReason.trim() });
+      setMessage("Đã chuyển kho sang trạng thái bảo trì.");
+      setMaintenanceReason("");
+      remote.reload();
+    } catch (cause) {
+      setError(cause.message || "Không cập nhật được trạng thái kho.");
     } finally {
       setBusy(false);
     }
@@ -242,6 +259,27 @@ export default function UnitStatusPage() {
                       sàng tới Manager.
                     </p>
                   </div>
+                )}
+                {!['occupied', 'reserved', 'maintenance'].includes(String(selected.status).toLowerCase()) && (
+                  <>
+                    <label>
+                      Lý do chuyển bảo trì
+                      <textarea
+                        value={maintenanceReason}
+                        onChange={(event) => setMaintenanceReason(event.target.value)}
+                        placeholder="Ví dụ: kiểm tra khóa, sửa vách ngăn..."
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      className="secondary"
+                      disabled={busy || !maintenanceReason.trim()}
+                      onClick={markMaintenance}
+                    >
+                      <StaffIcon name="build" />
+                      {busy ? "Đang lưu…" : "Đưa kho vào bảo trì"}
+                    </button>
+                  </>
                 )}
                 <button
                   type="button"
