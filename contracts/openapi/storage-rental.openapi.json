@@ -3409,6 +3409,127 @@
         ]
       }
     },
+    "/api/contracts/overdue": {
+      "get": {
+        "operationId": "Contract_overdueList",
+        "tags": [
+          "rental"
+        ],
+        "summary": "Facility Manager: list overdue contracts",
+        "description": "Returns OVERDUE contracts scoped to the signed-in facility manager facility.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "FMANAGER"
+        ],
+        "responses": {
+          "200": {
+            "description": "Overdue contract list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Facility Manager role required"
+          }
+        }
+      }
+    },
+    "/api/contracts/{id}/overdue-action": {
+      "post": {
+        "operationId": "Contract_overdueAction",
+        "tags": [
+          "rental"
+        ],
+        "summary": "Facility Manager: manage overdue contract",
+        "description": "Records reminder, PIN lock, or return request for an OVERDUE contract in the manager facility.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "FMANAGER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "action"
+                ],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "REMIND",
+                      "LOCK",
+                      "REQUEST_RETURN"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Overdue action result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Facility Manager role or facility scope required"
+          },
+          "404": {
+            "description": "Contract not found in facility scope"
+          },
+          "409": {
+            "description": "Contract is no longer overdue"
+          }
+        }
+      }
+    },
     "/api/contracts/{id}": {
       "get": {
         "operationId": "Contract_detail_35",
@@ -4387,6 +4508,23 @@
               "type": "string",
               "format": "date"
             }
+          },
+          {
+            "name": "contractStatus",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING_PAYMENT",
+                "PENDING_HANDOVER",
+                "ACTIVE",
+                "EXPIRING_SOON",
+                "OVERDUE",
+                "TERMINATED",
+                "CANCELLED"
+              ]
+            }
           }
         ],
         "responses": {
@@ -4486,6 +4624,23 @@
             "schema": {
               "type": "string",
               "format": "date"
+            }
+          },
+          {
+            "name": "contractStatus",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING_PAYMENT",
+                "PENDING_HANDOVER",
+                "ACTIVE",
+                "EXPIRING_SOON",
+                "OVERDUE",
+                "TERMINATED",
+                "CANCELLED"
+              ]
             }
           }
         ],
@@ -8004,6 +8159,23 @@
             }
           },
           {
+            "name": "contractStatus",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING_PAYMENT",
+                "PENDING_HANDOVER",
+                "ACTIVE",
+                "EXPIRING_SOON",
+                "OVERDUE",
+                "TERMINATED",
+                "CANCELLED"
+              ]
+            }
+          },
+          {
             "name": "format",
             "in": "query",
             "required": false,
@@ -8638,6 +8810,129 @@
           }
         ]
       }
+    },
+    "/api/auth/access-policy": {
+      "get": {
+        "operationId": "AccessPolicy_get",
+        "tags": [
+          "identity"
+        ],
+        "summary": "Access policy matrix",
+        "description": "Administrative access policy configuration. Backend still enforces ownership, facility scope and workflow permissions.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "AccessPolicy_update",
+        "tags": [
+          "identity"
+        ],
+        "summary": "Update access policy",
+        "description": "Administrative access policy configuration. Backend still enforces ownership, facility scope and workflow permissions.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -9019,7 +9314,8 @@
         "type": "object",
         "properties": {
           "reservationId": {
-            "type": "string"
+            "type": "string",
+            "description": "Required for PAYMENT/OTHER tickets before contract activation. Backend verifies customer ownership."
           },
           "unitCode": {
             "type": "string"
@@ -9358,24 +9654,38 @@
             "maxLength": 255
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 255
           },
           "category": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "DAMAGE",
+              "ACCESS",
+              "PAYMENT",
+              "OTHER"
+            ]
           },
           "unitCode": {
             "type": "string"
           },
           "priority": {
             "type": "string",
-            "enum": ["NORMAL", "HIGH", "URGENT"]
+            "enum": [
+              "NORMAL",
+              "HIGH",
+              "URGENT"
+            ]
+          },
+          "reservationId": {
+            "type": "string",
+            "description": "Owned reservation ID for PAYMENT or OTHER support before contract exists."
           }
         },
         "required": [
           "title",
           "description",
-          "category",
-          "unitCode"
+          "category"
         ]
       },
       "TicketUpdate": {

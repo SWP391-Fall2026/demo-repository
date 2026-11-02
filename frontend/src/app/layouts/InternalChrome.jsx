@@ -16,7 +16,7 @@ const portals = {
     title: "HỆ THỐNG QUẢN LÝ CƠ SỞ / FACILITY MANAGER", role: "Quản lý cơ sở (Facility Manager)",
     hotline: "Đường dây nóng quản lý", extension: "1900 6868 (Phím 8)",
     links: [["/facility/overview", "Tổng quan cơ sở", "analytics"], ["/facility/units", "Quản lý khoang & mặt bằng", "grid_view"], ["/facility/storage-types", "Quản lý loại kho", "inventory_2"], ["/facility/tasks/assign", "Phân công nhân viên", "badge"], ["/facility/overdue-cap", "Giá & chính sách cơ sở", "local_offer"], ["/facility/reports", "Báo cáo & Tổng quan hoạt động", "monitoring"]],
-    extra: [["/facility/contracts", "Hợp đồng & Đơn thuê", "description"], ["/facility/invoices", "Hóa đơn cơ sở", "receipt_long"], ["/handover-reviews", "Yêu cầu bàn giao", "fact_check"], ["/facility/units/ready", "Duyệt kho sẵn sàng", "verified"], ["/facility/no-show", "Xử lý đơn không đến", "event_busy"], ["/facility/refunds/approve", "Duyệt hoàn tiền", "payments"], ["/facility/refunds/confirm", "Xác nhận hoàn tiền", "fact_check"]],
+    extra: [["/facility/contracts", "Hợp đồng & Đơn thuê", "description"], ["/facility/overdue", "Hợp đồng quá hạn", "warning"], ["/facility/invoices", "Hóa đơn cơ sở", "receipt_long"], ["/handover-reviews", "Yêu cầu bàn giao", "fact_check"], ["/facility/units/ready", "Duyệt kho sẵn sàng", "verified"], ["/facility/no-show", "Xử lý đơn không đến", "event_busy"], ["/facility/refunds/approve", "Duyệt hoàn tiền", "payments"], ["/facility/refunds/confirm", "Xác nhận hoàn tiền", "fact_check"]],
   },
   OPS_MGR: {
     brand: "ĐIỀU HÀNH KINH DOANH", subtitle: "Bộ phận chuyên trách", category: "Quy trình BOM (SCR-21 - SCR-24)",

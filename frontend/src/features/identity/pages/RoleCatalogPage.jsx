@@ -1,6 +1,7 @@
 import { ResourcePage } from "../../../shared/ui/ResourcePage";
 import { identityApi } from "../api/identity.api";
 import { OfficeIcon } from "../../../shared/ui/office/OfficeUi";
+import { AccessPolicyEditor } from "../components/AccessPolicyEditor";
 import "../../../shared/ui/office/office-detail.css";
 const roleNames = {
   CUSTOMER: "Khách hàng",
@@ -141,6 +142,8 @@ export default function RoleCatalogPage() {
         ["permissionCount", "Số quyền hạn gán"],
       ]}
       footer={
+        <>
+        <AccessPolicyEditor />
         <aside className="office-governance">
           <span className="office-governance-icon">
             <OfficeIcon>gavel</OfficeIcon>
@@ -153,6 +156,7 @@ export default function RoleCatalogPage() {
             </p>
           </div>
         </aside>
+        </>
       }
     />
   );

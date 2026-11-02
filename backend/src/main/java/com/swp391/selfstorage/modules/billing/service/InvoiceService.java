@@ -27,6 +27,15 @@ public class InvoiceService {
     return repo.findByContractIdAndInvoiceTypeAndStatus(id, "RENEW", "PENDING").stream().findFirst();
   }
 
+  public java.util.List<Invoice> lockPendingRenewals(String id) {
+    return repo.lockPendingRenewals(id);
+  }
+
+  public Optional<String> renewalContractId(String invoiceId) { return repo.findRenewalContractId(invoiceId); }
+  public Optional<String> renewalContractIdByTransaction(String code) { return repo.findRenewalContractIdByTransaction(code); }
+
+  public void expire(Invoice invoice) { invoice.setStatus("EXPIRED"); repo.save(invoice); }
+
   private final InvoiceRepository repo;
   private final ActorContext actor;
   private final ContractRepository contracts;

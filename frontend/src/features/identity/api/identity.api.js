@@ -9,5 +9,7 @@ export const identityApi = {
     createUser: (data) => request("/auth/users", json("POST", data)),
     updateUser: (data) => request(`/auth/users/${data.id}`, json("PATCH", data)),
     roles: () => request("/auth/rbac-matrix"),
+    accessPolicy: () => request("/auth/access-policy"),
+    updateAccessPolicy: (data) => request("/auth/access-policy", json("PATCH", data)),
     loginHistory: () => request("/auth/login-history"),
 };

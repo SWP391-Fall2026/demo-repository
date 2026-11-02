@@ -52,8 +52,9 @@ public class RenewalService {
       .findById(id)
       .filter(v -> u.getId().equals(v.getUserId()))
       .orElseThrow(Inputs::missing);
-    if (Set.of("TERMINATED", "OVERDUE").contains(c.getStatus()) || c.getCheckoutRequestedAt() != null || months < 1 || months > 36)
+    if (!Set.of("ACTIVE", "EXPIRING_SOON", "OVERDUE").contains(c.getStatus()) || c.getCheckoutRequestedAt() != null || months < 1 || months > 36)
       throw Inputs.bad("Không thể gia hạn");
+    if (c.getEndAt() == null) throw Inputs.conflict("Hợp đồng chưa có ngày hết hạn hợp lệ");
     var unit = units.findById(c.getUnitCode()).orElseThrow(Inputs::missing);
     var rate = unit.getPricePerMonth();
     var overdue = fees.calculate(
@@ -63,6 +64,8 @@ public class RenewalService {
       rate,
       policy.cap(c.getFacilityCode())
     );
+    overdue = policy.feeAfterWaiver("overdue", overdue);
+    overdue = policy.feeAfterWaiver("overdue", overdue);
     return Map.of(
       "contractId",
       id,
@@ -97,9 +100,13 @@ public class RenewalService {
         (BigDecimal) q.get("monthlyRate")
       ) != 0
     ) throw Inputs.conflict("Giá đã thay đổi, vui lòng lấy báo giá mới");
-    var pending = invoices.findPendingRenewal(id);
-    if (pending.isPresent()) {
-      Invoice existing = pending.get();
+    var pendingRows = invoices.lockPendingRenewals(id);
+    var now = LocalDateTime.now(clock);
+    for (Invoice existing : pendingRows) {
+      if (existing.getDueAt() != null && !now.isBefore(existing.getDueAt())) {
+        invoices.expire(existing);
+        continue;
+      }
       if (existing.getAmount().compareTo((BigDecimal) q.get("totalAmount")) == 0
           && ("RENEW:" + months).equals(existing.getDescription())
           && ("monthly=" + q.get("monthlyRate")).equals(existing.getPriceSnapshot())) return existing;
@@ -112,12 +119,21 @@ public class RenewalService {
       c.getFacilityCode(),
       "RENEW",
       (BigDecimal) q.get("totalAmount"),
-      null,
+      now.plusMinutes(15),
       "monthly=" + q.get("monthlyRate")
     );
     i.setDescription("RENEW:" + months);
     audit.record("CONFIRM_RENEWAL_PRICE", i.getId(), q.toString());
     return i;
+  }
+
+  /** Lock renewal contract before invoice/payment, consistently with quote creation and expiry. */
+  public void lockForInvoice(String invoiceId) {
+    invoices.renewalContractId(invoiceId).ifPresent(id -> contracts.lockById(id).orElseThrow(Inputs::missing));
+  }
+
+  public void lockForTransaction(String transactionCode) {
+    invoices.renewalContractIdByTransaction(transactionCode).ifPresent(id -> contracts.lockById(id).orElseThrow(Inputs::missing));
   }
 
   /**
@@ -144,7 +160,7 @@ public class RenewalService {
     var c = contracts.lockById(invoice.getContractId()).orElseThrow(Inputs::missing);
     if (!Objects.equals(c.getUserId(), invoice.getUserId()) ||
         !Objects.equals(c.getFacilityCode(), invoice.getFacilityCode()) ||
-        Set.of("TERMINATED", "OVERDUE").contains(c.getStatus()) ||
+        !Set.of("ACTIVE", "EXPIRING_SOON", "OVERDUE").contains(c.getStatus()) ||
         c.getCheckoutRequestedAt() != null) {
       throw Inputs.conflict("Hợp đồng không thể gia hạn");
     }

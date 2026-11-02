@@ -196,6 +196,16 @@
   },
   {
     "method": "get",
+    "path": "/api/contracts/overdue",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/contracts/{id}/overdue-action",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
+  },
+  {
+    "method": "get",
     "path": "/api/contracts/{id}",
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
   },
@@ -508,5 +518,15 @@
     "method": "post",
     "path": "/api/tasks/tickets/{id}/reset-pin",
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/support/controller/SupportTicketController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/auth/access-policy",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/AccessPolicyController.java"
+  },
+  {
+    "method": "patch",
+    "path": "/api/auth/access-policy",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/AccessPolicyController.java"
   }
 ]

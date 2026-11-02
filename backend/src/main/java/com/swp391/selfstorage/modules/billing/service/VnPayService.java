@@ -64,6 +64,7 @@ public class VnPayService {
       throw Inputs.conflict("VNPay chưa được cấu hình đầy đủ");
     var user = actor.require("CUSTOMER");
     var depositReservation = depositLocks.forInvoice(invoiceId).orElse(null);
+    renewalService.lockForInvoice(invoiceId);
     Invoice invoice = invoices.lockById(invoiceId).orElseThrow(Inputs::missing);
     LocalDateTime now = LocalDateTime.now(clock);
     if (!actor.visible(user, invoice.getUserId(), invoice.getFacilityCode())) throw Inputs.missing();
@@ -87,8 +88,10 @@ public class VnPayService {
     } else if ("RENEW".equals(invoice.getInvoiceType())) {
       var c = contracts.lockById(invoice.getContractId()).orElseThrow(Inputs::missing);
       if (!Objects.equals(c.getUserId(), invoice.getUserId()) ||
-          Set.of("TERMINATED", "OVERDUE").contains(c.getStatus()) || c.getCheckoutRequestedAt() != null)
+          !Set.of("ACTIVE", "EXPIRING_SOON", "OVERDUE").contains(c.getStatus()) || c.getCheckoutRequestedAt() != null)
         throw Inputs.conflict("Hợp đồng không thể gia hạn");
+      if (invoice.getDueAt() != null && !now.isBefore(invoice.getDueAt()))
+        throw Inputs.conflict("Báo giá gia hạn đã hết hạn, vui lòng tạo báo giá mới");
     }
     String paymentId = "PAY-" + UUID.randomUUID();
     Payment p = new Payment(); p.setId(paymentId); p.setInvoiceId(invoice.getId());
@@ -124,6 +127,7 @@ public class VnPayService {
     if (!tmnCode.equals(incoming.get("vnp_TmnCode"))) return response("97", "Invalid terminal");
     String txnRef = incoming.get("vnp_TxnRef");
     var lockedDepositReservation = depositLocks.forTransaction(txnRef).orElse(null);
+    renewalService.lockForTransaction(txnRef);
     Payment payment = payments.lockByTransactionCode(txnRef).orElse(null);
     if (payment == null) return response("01", "Order not found");
     Invoice invoice = invoices.lockById(payment.getInvoiceId()).orElse(null);
@@ -153,7 +157,8 @@ public class VnPayService {
       } else if ("RENEW".equals(invoice.getInvoiceType())) {
         var c = contracts.lockById(invoice.getContractId()).orElse(null);
         if (c == null || !Objects.equals(c.getUserId(), invoice.getUserId()) ||
-            Set.of("TERMINATED", "OVERDUE").contains(c.getStatus()) || c.getCheckoutRequestedAt() != null)
+            !Set.of("ACTIVE", "EXPIRING_SOON", "OVERDUE").contains(c.getStatus()) || c.getCheckoutRequestedAt() != null
+            || (invoice.getDueAt() != null && !LocalDateTime.now(clock).isBefore(invoice.getDueAt())))
           return response("04", "Renewal preconditions not met");
       }
       payment.setStatus("PAID"); invoice.setStatus("PAID");

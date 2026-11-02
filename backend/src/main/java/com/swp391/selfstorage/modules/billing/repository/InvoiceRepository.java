@@ -8,6 +8,15 @@ import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
 public interface InvoiceRepository extends JpaRepository<Invoice, String> {
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("select i from Invoice i where i.contractId=:id and i.invoiceType='RENEW' and i.status='PENDING' order by i.id")
+  List<Invoice> lockPendingRenewals(@Param("id") String id);
+
+  @Query("select i.contractId from Invoice i where i.id=:id and i.invoiceType='RENEW'")
+  Optional<String> findRenewalContractId(@Param("id") String id);
+
+  @Query("select i.contractId from Invoice i, Payment p where p.invoiceId=i.id and p.transactionCode=:code and i.invoiceType='RENEW'")
+  Optional<String> findRenewalContractIdByTransaction(@Param("code") String code);
   interface DepositScope {
     String getFacilityCode();
     String getReservationId();

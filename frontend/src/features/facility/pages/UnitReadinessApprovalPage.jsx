@@ -1,15 +1,19 @@
-import { ResourcePage, Form } from "../../../shared/ui/ResourcePage";
+import { useMemo, useState } from "react";
 import { facilityApi } from "../api/facility.api";
+import { useRemote } from "../../../shared/api/use-remote";
+import { OfficeDialog, OfficeHeading, OfficeIcon, OfficeMetrics, OfficeState } from "../../../shared/ui/office/OfficeUi";
+
 export default function UnitReadinessApprovalPage() {
-    return (<ResourcePage title="Duyệt kho sẵn sàng" description="" load={facilityApi.managedUnits}>
-      <Form fields={[
-            { name: "code", label: "Mã kho", type: "text", required: true },
-            {
-                name: "reason",
-                label: "Lý do/xác nhận kiểm tra",
-                type: "textarea",
-                required: true,
-            },
-        ]} submit={facilityApi.approveReady}/>
-    </ResourcePage>);
+  const remote = useRemote(facilityApi.managedUnits);
+  const [query, setQuery] = useState(""); const [pendingOnly, setPendingOnly] = useState(true); const [selected, setSelected] = useState(null); const [confirmed, setConfirmed] = useState(false); const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const [message, setMessage] = useState("");
+  const rows = (Array.isArray(remote.data) ? remote.data : []).filter((row) => ["cleaning", "maintenance"].includes(row.status));
+  const visible = useMemo(() => rows.filter((row) => (!pendingOnly || row.readinessStatus === "PENDING") && (!query || [row.code, row.type, row.readinessNotes].join(" ").toLowerCase().includes(query.trim().toLowerCase()))), [rows, pendingOnly, query]);
+  async function approve(event) { event.preventDefault(); if (!confirmed || !selected || busy) return; setBusy(true); setError(""); try { await facilityApi.approveReady({ code: selected.code }); setMessage(`Đã duyệt ${selected.code} sẵn sàng cho thuê.`); setSelected(null); remote.reload(); } catch (cause) { setError(cause.message || "Không thể duyệt kho."); } finally { setBusy(false); } }
+  return <div className="office-page office-resource"><OfficeHeading title="Duyệt kho sẵn sàng" eyebrow="FACILITY MANAGER / KIỂM TRA KHO" description="Kiểm tra yêu cầu của Staff trước khi trả kho về nguồn khả dụng."><button type="button" className="secondary" onClick={remote.reload}><OfficeIcon>sync</OfficeIcon>Làm mới</button></OfficeHeading>
+    <OfficeMetrics items={[{ label: "Chờ duyệt", value: rows.filter((row) => row.readinessStatus === "PENDING").length, icon: "pending_actions", tone: "amber" }, { label: "Đang vệ sinh", value: rows.filter((row) => row.status === "cleaning").length, icon: "cleaning_services", tone: "blue" }, { label: "Đang bảo trì", value: rows.filter((row) => row.status === "maintenance").length, icon: "build", tone: "navy" }]} />
+    {(error || remote.error || message) && <div className={`office-alert ${error || remote.error ? "office-alert-error" : "office-alert-success"}`} role="alert">{error || remote.error || message}</div>}
+    <section className="office-filter"><label className="office-search"><OfficeIcon>search</OfficeIcon><input aria-label="Tìm kho chờ duyệt" placeholder="Tìm mã kho, loại, ghi chú…" value={query} onChange={(event) => setQuery(event.target.value)} /></label><label>Danh sách<select value={pendingOnly ? "PENDING" : "ALL"} onChange={(event) => setPendingOnly(event.target.value === "PENDING")}><option value="PENDING">Chờ Manager duyệt</option><option value="ALL">Tất cả kho vệ sinh/bảo trì</option></select></label></section>
+    <section className="card office-table"><div className="office-table-header"><h2>Yêu cầu sẵn sàng <span className="count">{visible.length}</span></h2></div>{remote.busy && !remote.data ? <OfficeState busy /> : remote.error ? <OfficeState error={remote.error} onRetry={remote.reload} /> : !visible.length ? <OfficeState title="Không có kho chờ duyệt" onRetry={remote.reload}>Staff gửi yêu cầu khi hoàn tất vệ sinh hoặc bảo trì.</OfficeState> : <div className="table-scroll"><table><thead><tr><th>Mã kho</th><th>Loại/diện tích</th><th>Trạng thái</th><th>Nhân viên yêu cầu</th><th>Ghi chú</th><th>Thao tác</th></tr></thead><tbody>{visible.map((row) => <tr key={row.code}><td><strong>{row.code}</strong></td><td>{row.type} · {row.sizeSqm} m²</td><td>{row.status} / {row.readinessStatus || "Chưa yêu cầu"}</td><td>{row.readinessRequestedBy || "—"}</td><td>{row.readinessNotes || "—"}</td><td><button type="button" className="office-row-action" disabled={row.readinessStatus !== "PENDING"} onClick={() => { setSelected(row); setConfirmed(false); setError(""); }}>Kiểm tra & duyệt <OfficeIcon>fact_check</OfficeIcon></button></td></tr>)}</tbody></table></div>}</section>
+    {selected && <OfficeDialog title={`Duyệt kho ${selected.code}`} onClose={() => setSelected(null)}><form className="form-grid" onSubmit={approve}><dl className="office-detail-grid"><div><dt>Mã kho</dt><dd>{selected.code}</dd></div><div><dt>Trạng thái hiện tại</dt><dd>{selected.status}</dd></div><div><dt>Nhân viên đề nghị</dt><dd>{selected.readinessRequestedBy || "—"}</dd></div><div><dt>Ghi chú kiểm tra của Staff</dt><dd>{selected.readinessNotes || "—"}</dd></div></dl><label><input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} />Đã kiểm tra thực tế, xác nhận kho đủ điều kiện cho thuê.</label><div className="form-actions"><button type="submit" disabled={busy || !confirmed}>{busy ? "Đang duyệt…" : "Duyệt về AVAILABLE"}</button>{error && <p className="error" role="alert">{error}</p>}</div></form></OfficeDialog>}
+  </div>;
 }

@@ -17,16 +17,18 @@ public class ReportController {
   public ApiResponse<?> chain(
     @RequestParam(value = "startDate", required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate startDate,
     @RequestParam(value = "endDate", required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate endDate
+    , @RequestParam(value = "contractStatus", required = false) String contractStatus
   ) {
-    return ApiResponse.ok(s.chain(startDate, endDate));
+    return ApiResponse.ok(s.chain(startDate, endDate, contractStatus));
   }
 
   @GetMapping("/api/reports/facility")
   public ApiResponse<?> facility(
     @RequestParam(value = "startDate", required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate startDate,
     @RequestParam(value = "endDate", required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate endDate
+    , @RequestParam(value = "contractStatus", required = false) String contractStatus
   ) {
-    return ApiResponse.ok(s.facility(startDate, endDate));
+    return ApiResponse.ok(s.facility(startDate, endDate, contractStatus));
   }
 
   @GetMapping("/api/reports/system")
@@ -39,10 +41,11 @@ public class ReportController {
     @RequestParam(value = "facilityCode", required = false) String facilityCode,
     @RequestParam(value = "startDate", required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate startDate,
     @RequestParam(value = "endDate", required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate endDate,
+    @RequestParam(value = "contractStatus", required = false) String contractStatus,
     @RequestParam(value = "format", defaultValue = "csv") String format
   ) {
     String selectedFormat = format.toLowerCase(java.util.Locale.ROOT);
-    byte[] data = s.export(facilityCode, startDate, endDate, selectedFormat);
+    byte[] data = s.export(facilityCode, startDate, endDate, selectedFormat, contractStatus);
     boolean xlsx = "xlsx".equals(selectedFormat);
     String filename = "report-" + (facilityCode != null ? facilityCode : "chain") + "-" + java.time.LocalDate.now() + (xlsx ? ".xlsx" : ".csv");
     return org.springframework.http.ResponseEntity.ok()

@@ -27,4 +27,4 @@ Hai kiểm tra Supabase trên dùng kết nối read-only, không chạy migrati
 
 Snapshot API: `HN-CG` có 29 kho, `HCM-Q7` có 2 kho; `HN-NTL`, `HCM-TB`, `DN-HC` có 0 kho. Catalog chỉ trả kho khả dụng sau khi trừ đơn giữ chỗ. Cần danh mục kho và nhân sự vận hành thật trước khi chạy đầy đủ luồng tại các cơ sở trống; không tự nhân bản dữ liệu Cầu Giấy.
 
-Database còn lịch sử fixture. VNPay hiện là sandbox, PIN mô phỏng khóa vật lý, hoàn tiền ghi nhận thủ công. Các giới hạn còn lại về dashboard quản trị, xử lý quá hạn riêng, ticket trước hợp đồng và quyền tùy biến được ghi trong [trạng thái triển khai](../architecture/refactoring-status.md). Chưa đánh dấu toàn bộ audit hoàn tất.
+Database còn lịch sử fixture. VNPay hiện là sandbox, PIN mô phỏng khóa vật lý, hoàn tiền ghi nhận thủ công. Dữ liệu inventory và nhân sự thật của các cơ sở đang trống vẫn cần được provision trước demo; các giới hạn còn lại được ghi trong [trạng thái triển khai](../architecture/refactoring-status.md).

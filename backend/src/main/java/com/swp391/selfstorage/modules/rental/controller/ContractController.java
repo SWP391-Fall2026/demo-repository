@@ -20,6 +20,7 @@ public class ContractController {
   private final RequestCheckoutWorkflow request;
   private final CompleteReturnWorkflow inspect;
   private final RenewalService renewal;
+  private final OverdueManagementService overdue;
 
   public ContractController(
     ContractService c,
@@ -27,7 +28,7 @@ public class ContractController {
     HandoverWorkflow h,
     RequestCheckoutWorkflow r,
     CompleteReturnWorkflow i,
-    RenewalService re
+    RenewalService re, OverdueManagementService overdue
   ) {
     contracts = c;
     access = a;
@@ -35,6 +36,7 @@ public class ContractController {
     request = r;
     inspect = i;
     renewal = re;
+    this.overdue = overdue;
   }
 
   @GetMapping
@@ -45,6 +47,14 @@ public class ContractController {
   @GetMapping("/{id}")
   public ApiResponse<?> detail(@PathVariable String id) {
     return ApiResponse.ok(contracts.detail(id));
+  }
+
+  @GetMapping("/overdue")
+  public ApiResponse<?> overdue() { return ApiResponse.ok(overdue.list()); }
+
+  @PostMapping("/{id}/overdue-action")
+  public ApiResponse<?> overdueAction(@PathVariable String id, @RequestBody Map<String, Object> d) {
+    return ApiResponse.ok(overdue.action(id, d));
   }
 
   @GetMapping("/handover/eligible")

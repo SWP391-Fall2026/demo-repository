@@ -1,45 +1,26 @@
-﻿import { ResourcePage, Form } from "../../../shared/ui/ResourcePage";
+import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { useRemote } from "../../../shared/api/use-remote";
 import { facilityApi } from "../api/facility.api";
+import { money } from "../../../shared/lib/format";
+import { OfficeDialog, OfficeHeading, OfficeIcon, OfficeMetrics, OfficeState } from "../../../shared/ui/office/OfficeUi";
+
+const EMPTY = { code: "", type: "S", sizeSqm: "", pricePerMonth: "", floor: 0, imageUrl: "", imageAltText: "" };
 export default function ManageUnitsPage() {
-    return (<ResourcePage title="Quản lý kho tại chi nhánh" description="" load={facilityApi.managedUnits}>
-      <Form fields={[
-            { name: "code", label: "Mã kho", type: "text", required: true },
-            {
-                name: "type",
-                label: "Loại kho",
-                type: "text",
-                options: ["S", "M", "L", "CLIMATE"],
-            },
-            {
-                name: "sizeSqm",
-                label: "Diện tích m²",
-                type: "number",
-                required: true,
-            },
-            {
-                name: "pricePerMonth",
-                label: "Giá thuê tháng",
-                type: "number",
-                required: true,
-            },
-            { name: "floor", label: "Tầng", type: "number" },
-            { name: "imageUrl", label: "Link ảnh kho (URL https://...)", type: "url" },
-            { name: "imageAltText", label: "Mô tả ảnh", type: "text" },
-        ]} submit={facilityApi.createUnit}/>
-      <h3>Cập nhật giá kho (trong khoảng Ops cho phép)</h3>
-      <Form fields={[
-            { name: "code", label: "Mã kho", required: true },
-            { name: "type", label: "Loại kho", options: ["S", "M", "L", "CLIMATE"], required: true },
-            { name: "sizeSqm", label: "Diện tích m²", type: "number", required: true },
-            {
-                name: "pricePerMonth",
-                label: "Giá thuê tháng",
-                type: "number",
-                required: true,
-            },
-            { name: "floor", label: "Tầng", type: "number" },
-            { name: "imageUrl", label: "Link ảnh kho (URL https://...)", type: "url" },
-            { name: "imageAltText", label: "Mô tả ảnh", type: "text" },
-        ]} submit={facilityApi.updateUnit}/>
-    </ResourcePage>);
+  const remote = useRemote(facilityApi.managedUnits);
+  const [query, setQuery] = useState(""); const [type, setType] = useState(""); const [status, setStatus] = useState("");
+  const [dialog, setDialog] = useState(null); const [form, setForm] = useState(EMPTY); const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const [message, setMessage] = useState("");
+  const rows = Array.isArray(remote.data) ? remote.data : [];
+  const visible = useMemo(() => rows.filter((row) => { const text = [row.code, row.type, row.floor, row.tenantName].join(" ").toLowerCase(); return (!query || text.includes(query.trim().toLowerCase())) && (!type || row.type === type) && (!status || String(row.status).toLowerCase() === status.toLowerCase()); }), [rows, query, type, status]);
+  const open = (row) => { setError(""); setMessage(""); setForm(row ? { ...EMPTY, ...row } : { ...EMPTY }); setDialog(row ? "edit" : "create"); };
+  const change = (event) => setForm((value) => ({ ...value, [event.target.name]: event.target.value }));
+  const mutableDefinition = dialog === "create" || ["available", "cleaning", "maintenance"].includes(form.status);
+  async function save(event) { event.preventDefault(); setBusy(true); setError(""); try { const payload = { code: form.code, pricePerMonth: Number(form.pricePerMonth), floor: Number(form.floor || 0), imageUrl: form.imageUrl || "", imageAltText: form.imageAltText || "" }; if (mutableDefinition) { payload.type = form.type; payload.sizeSqm = Number(form.sizeSqm); } if (dialog === "create") await facilityApi.createUnit(payload); else await facilityApi.updateUnit(payload); setDialog(null); setMessage(dialog === "create" ? "Đã tạo kho." : "Đã cập nhật kho."); remote.reload(); } catch (cause) { setError(cause.message || "Không thể lưu kho."); } finally { setBusy(false); } }
+  return <div className="office-page office-resource"><OfficeHeading title="Quản lý kho tại cơ sở" eyebrow="FACILITY MANAGER / KHO" description="Chọn kho để sửa thông tin. Chuyển trạng thái tại màn hình vận hành kho."><button type="button" className="secondary" onClick={remote.reload}><OfficeIcon>sync</OfficeIcon>Làm mới</button><button type="button" onClick={() => open()}><OfficeIcon>add_box</OfficeIcon>Thêm kho</button></OfficeHeading>
+    <OfficeMetrics items={[{ label: "Tổng kho", value: rows.length, icon: "warehouse", tone: "blue" }, { label: "Còn trống", value: rows.filter((row) => row.status === "available").length, icon: "meeting_room", tone: "green" }, { label: "Đang thuê", value: rows.filter((row) => row.status === "occupied").length, icon: "person", tone: "navy" }, { label: "Bảo trì/vệ sinh", value: rows.filter((row) => ["maintenance", "cleaning"].includes(row.status)).length, icon: "build", tone: "amber" }]} />
+    {(error || message || remote.error) && <div className={`office-alert ${error || remote.error ? "office-alert-error" : "office-alert-success"}`} role="alert">{error || remote.error || message}</div>}
+    <section className="office-filter" aria-label="Bộ lọc kho"><label className="office-search"><OfficeIcon>search</OfficeIcon><input aria-label="Tìm kho" placeholder="Tìm mã kho, loại, người thuê…" value={query} onChange={(event) => setQuery(event.target.value)} /></label><label>Loại kho<select value={type} onChange={(event) => setType(event.target.value)}><option value="">Tất cả</option>{["S", "M", "L", "CLIMATE"].map((item) => <option key={item}>{item}</option>)}</select></label><label>Trạng thái<select value={status} onChange={(event) => setStatus(event.target.value)}><option value="">Tất cả</option>{["available", "reserved", "occupied", "cleaning", "maintenance"].map((item) => <option key={item}>{item}</option>)}</select></label><button type="button" className="secondary" onClick={() => { setQuery(""); setType(""); setStatus(""); }}><OfficeIcon>filter_alt_off</OfficeIcon>Đặt lại</button></section>
+    <section className="card office-table"><div className="office-table-header"><h2>Danh sách kho <span className="count">{visible.length}</span></h2><small>{visible.length ? `Hiển thị ${visible.length} kho` : "Không có dữ liệu phù hợp"}</small></div>{remote.busy && !remote.data ? <OfficeState busy /> : remote.error ? <OfficeState error={remote.error} onRetry={remote.reload} /> : !visible.length ? <OfficeState title="Chưa có kho phù hợp" onRetry={() => { setQuery(""); setType(""); setStatus(""); }} /> : <div className="table-scroll"><table><thead><tr><th>Mã kho</th><th>Loại</th><th>Diện tích</th><th>Giá/tháng</th><th>Tầng</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>{visible.map((row) => <tr key={row.code}><td><strong>{row.code}</strong><small>{row.tenantName || ""}</small></td><td>{row.type}</td><td>{row.sizeSqm} m²</td><td>{money(row.pricePerMonth)}</td><td>{row.floor ?? "—"}</td><td><span className={`badge ${row.status === "available" ? "success" : row.status === "occupied" ? "info" : "warning"}`}>{row.status}</span></td><td><button type="button" className="office-row-action" onClick={() => open(row)}>Sửa <OfficeIcon>edit</OfficeIcon></button> <Link className="office-row-action" to={`/facility/units/status?unit=${encodeURIComponent(row.code)}`}>Trạng thái <OfficeIcon>swap_horiz</OfficeIcon></Link></td></tr>)}</tbody></table></div>}</section>
+    {dialog && <OfficeDialog title={dialog === "create" ? "Thêm kho" : `Cập nhật ${form.code}`} onClose={() => setDialog(null)}><form className="form-grid" onSubmit={save}><label>Mã kho<input name="code" required disabled={dialog === "edit"} value={form.code} onChange={change} /></label><label>Loại kho<select name="type" required disabled={!mutableDefinition} value={form.type} onChange={change}>{["S", "M", "L", "CLIMATE"].map((item) => <option key={item}>{item}</option>)}</select></label><label>Diện tích m²<input name="sizeSqm" required disabled={!mutableDefinition} min="0.01" type="number" step="0.01" value={form.sizeSqm} onChange={change} /></label><label>Giá thuê tháng<input name="pricePerMonth" required min="1" type="number" step="1" value={form.pricePerMonth} onChange={change} /></label><label>Tầng<input name="floor" type="number" min="0" value={form.floor} onChange={change} /></label><label>Link ảnh HTTPS<input name="imageUrl" type="url" value={form.imageUrl || ""} onChange={change} /></label><label>Mô tả ảnh<input name="imageAltText" maxLength="255" value={form.imageAltText || ""} onChange={change} /></label><div className="form-actions">{!mutableDefinition && <p>Kho đang đặt/thuê giữ nguyên loại và diện tích.</p>}<button type="submit" disabled={busy}>{busy ? "Đang lưu…" : "Lưu thay đổi"}</button>{error && <p className="error" role="alert">{error}</p>}</div></form></OfficeDialog>}
+  </div>;
 }

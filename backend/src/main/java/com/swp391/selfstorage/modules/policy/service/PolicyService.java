@@ -98,7 +98,8 @@ public class PolicyService {
 
   public Map<String, String> get() {
     Map<String, String> result = new TreeMap<>(DEFAULTS);
-    repo.findAll().forEach(p -> result.put(p.getId(), p.getPolicyValue()));
+    repo.findAll().stream().filter(p -> !p.getId().startsWith("rbac."))
+      .forEach(p -> result.put(p.getId(), p.getPolicyValue()));
     return result;
   }
 

@@ -2,6 +2,8 @@ import { request, json } from "../../../shared/api/http-client";
 import { sessionStore } from "../../identity/session";
 export const rentalApi = {
     list: () => request("/contracts"),
+    overdue: () => request("/contracts/overdue"),
+    overdueAction: (id, action) => request(`/contracts/${encodeURIComponent(id)}/overdue-action`, json("POST", { action })),
     detail: (id) => request(`/contracts/${encodeURIComponent(id)}`),
     handover: (d, evidence) => {
         const body = new FormData();

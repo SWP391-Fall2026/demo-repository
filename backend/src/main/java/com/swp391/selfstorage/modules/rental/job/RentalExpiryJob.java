@@ -50,6 +50,10 @@ public class RentalExpiryJob {
         ) continue;
         c.setStatus("OVERDUE");
         c.setPinCode(null);
+        // Renewal quote issued before grace period no longer includes the overdue fee.
+        // Expire it while holding the contract lock so customer must request a fresh quote.
+        invoices.findByContractIdAndInvoiceTypeAndStatus(c.getId(), "RENEW", "PENDING")
+            .forEach(invoice -> { invoice.setStatus("EXPIRED"); invoices.save(invoice); });
         contracts.save(c);
         units.lockByCode(c.getUnitCode()).ifPresent(u -> {
           u.setPinCode(null);

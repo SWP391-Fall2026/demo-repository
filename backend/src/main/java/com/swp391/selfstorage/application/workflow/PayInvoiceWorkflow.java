@@ -64,6 +64,7 @@ public class PayInvoiceWorkflow {
     // Shared order with assignment/capacity changes and cancellation:
     // Facility -> Reservation -> Invoice. Read clock only after waiting.
     var depositReservation = depositLocks.forInvoice(invoiceId).orElse(null);
+    renewalService.lockForInvoice(invoiceId);
     var i = invoices.lockById(invoiceId).orElseThrow(Inputs::missing);
     if (
       !actor.visible(a, i.getUserId(), i.getFacilityCode())
@@ -103,8 +104,10 @@ public class PayInvoiceWorkflow {
         .lockById(i.getContractId())
         .orElseThrow(Inputs::missing);
       if (
-        "TERMINATED".equals(c.getStatus()) || c.getCheckoutRequestedAt() != null
+        !Set.of("ACTIVE", "EXPIRING_SOON", "OVERDUE").contains(c.getStatus()) || c.getCheckoutRequestedAt() != null
       ) throw Inputs.conflict("Hợp đồng không thể gia hạn");
+      if (i.getDueAt() != null && !now.isBefore(i.getDueAt()))
+        throw Inputs.conflict("Báo giá gia hạn đã hết hạn, vui lòng tạo báo giá mới");
     }
     String method = Inputs.text(d, "paymentMethod");
     if (

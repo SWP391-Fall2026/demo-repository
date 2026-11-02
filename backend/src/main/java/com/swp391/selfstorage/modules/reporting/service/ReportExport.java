@@ -31,6 +31,11 @@ final class ReportExport {
     rows.add(List.of("Mã cơ sở", "Trạng thái", "Số lượng"));
     for (var row : (List<Map<String, Object>>)report.getOrDefault("byUnitStatus", List.of())) rows.add(List.of(
         row.get("facilityCode"), row.get("status"), row.get("count")));
+    rows.add(List.of());
+    rows.add(List.of("Chi tiết theo trạng thái thuê"));
+    rows.add(List.of("Mã cơ sở", "Trạng thái thuê", "Số hợp đồng"));
+    for (var row : (List<Map<String, Object>>)report.getOrDefault("byContractStatus", List.of())) rows.add(List.of(
+        row.get("facilityCode"), row.get("status"), row.get("count")));
     if ("csv".equals(format)) return csv(rows);
     try {
       ByteArrayOutputStream buffer = new ByteArrayOutputStream();

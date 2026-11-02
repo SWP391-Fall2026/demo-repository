@@ -43,6 +43,7 @@ import StaffFacilityAssignmentPage from "../features/identity/pages/StaffFacilit
 import AuditAndLoginHistoryPage from "../features/audit/pages/AuditAndLoginHistoryPage";
 import ReturnRequestPage from "../features/rental/pages/ReturnRequestPage";
 import RenewalQuotePage from "../features/rental/pages/RenewalQuotePage";
+import OverdueManagementPage from "../features/rental/pages/OverdueManagementPage";
 import CustomerRefundRequestsPage from "../features/billing/pages/CustomerRefundRequestsPage";
 import RefundApprovalPage from "../features/billing/pages/RefundApprovalPage";
 import RefundExecutionPage from "../features/billing/pages/RefundExecutionPage";
@@ -297,6 +298,12 @@ export const routes = [
         roles: ["FMANAGER"],
         element: <FacilityReportPage />,
         legacy: "SCR-M06",
+    },
+    {
+        path: "/facility/overdue",
+        title: "Hợp đồng quá hạn",
+        roles: ["FMANAGER"],
+        element: <OverdueManagementPage />,
     },
     {
         path: "/operations/overview",

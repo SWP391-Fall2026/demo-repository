@@ -18,10 +18,12 @@ const receipts = (row) =>
   Number(row?.depositReceipts || 0) +
   Number(row?.feeReceipts || 0);
 export function ReportPage({ title, load, facilityCode, mode = "report" }) {
-  const [draft, setDraft] = useState({ startDate: "", endDate: "" });
+  const [draft, setDraft] = useState({ startDate: "", endDate: "", contractStatus: "" });
   const [dates, setDates] = useState({});
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(false);
+  const [exportBusy, setExportBusy] = useState(false);
+  const [exportError, setExportError] = useState("");
   const fetcher = useCallback(() => load(dates), [load, dates]);
   const remote = useRemote(fetcher, [fetcher]);
   const rows = Array.isArray(remote.data?.byFacility)
@@ -49,6 +51,13 @@ export function ReportPage({ title, load, facilityCode, mode = "report" }) {
       Object.fromEntries(Object.entries(draft).filter(([, value]) => value)),
     );
   };
+  async function exportReport(format) {
+    if (exportBusy) return;
+    setExportBusy(true); setExportError("");
+    try { await reportingApi.exportFile({ ...dates, ...(facilityCode ? { facilityCode } : {}) }, format); }
+    catch (cause) { setExportError(cause.message || "Không xuất được báo cáo."); }
+    finally { setExportBusy(false); }
+  }
   if (selected)
     return (
       <OfficeDetailPage
@@ -132,6 +141,9 @@ export function ReportPage({ title, load, facilityCode, mode = "report" }) {
           </div>
         </section>
         <ReportCharts rows={rows} />
+        <section className="card office-table"><h2>Hợp đồng theo trạng thái thuê</h2><div className="table-scroll"><table><thead><tr><th>Cơ sở</th><th>Trạng thái thuê</th><th>Số hợp đồng</th></tr></thead><tbody>{(data?.byContractStatus || []).map((row) => <tr key={`${row.facilityCode}-${row.status}`}><td>{row.facilityCode}</td><td>{row.status}</td><td>{row.count}</td></tr>)}</tbody></table></div></section>
+        <div className="button-row"><button disabled={exportBusy} onClick={() => exportReport("csv")}>Xuất CSV</button><button disabled={exportBusy} onClick={() => exportReport("xlsx")}>Xuất XLSX</button></div>
+        {exportError && <p className="error" role="alert">{exportError}</p>}
         <OfficeGovernance title="Phạm vi báo cáo kinh doanh">
           Số liệu tổng hợp theo quyền truy cập và kỳ đã chọn.{" "}
           {data?.occupancyBasis}
@@ -161,6 +173,8 @@ export function ReportPage({ title, load, facilityCode, mode = "report" }) {
         <button onClick={() => setSelected(true)} disabled={!rows.length}>
           <OfficeIcon>visibility</OfficeIcon>Xem chi tiết
         </button>
+        <button className="secondary" disabled={!data || exportBusy} onClick={() => exportReport("csv")}>Xuất CSV</button>
+        <button className="secondary" disabled={!data || exportBusy} onClick={() => exportReport("xlsx")}>Xuất XLSX</button>
       </OfficeHeading>
       <form className="office-filter" onSubmit={apply}>
         <label>
@@ -179,6 +193,18 @@ export function ReportPage({ title, load, facilityCode, mode = "report" }) {
             onChange={(e) => setDraft({ ...draft, endDate: e.target.value })}
           />
         </label>
+        <label>
+          Trạng thái thuê
+          <select
+            value={draft.contractStatus}
+            onChange={(e) => setDraft({ ...draft, contractStatus: e.target.value })}
+          >
+            <option value="">Tất cả trạng thái</option>
+            {["PENDING_PAYMENT", "PENDING_HANDOVER", "ACTIVE", "EXPIRING_SOON", "OVERDUE", "TERMINATED", "CANCELLED"].map((status) => (
+              <option key={status} value={status}>{status}</option>
+            ))}
+          </select>
+        </label>
         <button>
           <OfficeIcon>filter_list</OfficeIcon>Áp dụng bộ lọc
         </button>
@@ -186,13 +212,14 @@ export function ReportPage({ title, load, facilityCode, mode = "report" }) {
           type="button"
           className="secondary"
           onClick={() => {
-            setDraft({ startDate: "", endDate: "" });
+            setDraft({ startDate: "", endDate: "", contractStatus: "" });
             setDates({});
           }}
         >
           Đặt lại
         </button>
       </form>
+      {exportError && <p className="error" role="alert">{exportError}</p>}
       {remote.error ? (
         <OfficeState error={remote.error} onRetry={remote.reload} />
       ) : remote.busy ? (
@@ -278,6 +305,14 @@ export function ReportPage({ title, load, facilityCode, mode = "report" }) {
                 <span>Trạng thái khác: {totalOther}</span>
               </p>
             </div>
+          )}
+          {overview && Array.isArray(data.byContractStatus) && (
+            <section className="card office-table">
+              <div className="office-table-header"><h2>Hợp đồng theo trạng thái thuê</h2><span className="badge">{data.contractStatus || "Tất cả"}</span></div>
+              <div className="table-scroll"><table><thead><tr><th>Cơ sở</th><th>Trạng thái</th><th>Số hợp đồng</th></tr></thead><tbody>
+                {data.byContractStatus.map((row) => <tr key={`${row.facilityCode}-${row.status}`}><td>{row.facilityCode}</td><td>{row.status}</td><td>{row.count}</td></tr>)}
+              </tbody></table></div>
+            </section>
           )}
           {overview && (
             <section className="card office-table">
@@ -370,8 +405,8 @@ export function ReportPage({ title, load, facilityCode, mode = "report" }) {
                           </td>
                           <td>{display(row.availableUnits)}</td>
                           <td>
-                            <span className="badge success">
-                              ĐANG HOẠT ĐỘNG
+                            <span className={`badge ${statusClass(row.status)}`}>
+                              {row.status || "CHƯA CẬP NHẬT"}
                             </span>
                           </td>
                         </tr>

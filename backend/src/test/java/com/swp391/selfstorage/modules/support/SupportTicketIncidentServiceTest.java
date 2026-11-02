@@ -13,6 +13,7 @@ import com.swp391.selfstorage.modules.identity.entity.User;
 import com.swp391.selfstorage.modules.identity.repository.UserRepository;
 import com.swp391.selfstorage.modules.rental.repository.ContractRepository;
 import com.swp391.selfstorage.modules.rental.entity.Contract;
+import com.swp391.selfstorage.modules.reservation.repository.ReservationRepository;
 import com.swp391.selfstorage.modules.support.entity.SupportTicket;
 import com.swp391.selfstorage.modules.support.repository.SupportTicketRepository;
 import com.swp391.selfstorage.modules.support.service.SupportTicketService;
@@ -25,6 +26,7 @@ import org.springframework.web.server.ResponseStatusException;
 class SupportTicketIncidentServiceTest {
   private final SupportTicketRepository tickets = mock(SupportTicketRepository.class);
   private final ContractRepository contracts = mock(ContractRepository.class);
+  private final ReservationRepository reservations = mock(ReservationRepository.class);
   private final ActorContext actor = mock(ActorContext.class);
   private final AuditLogService audit = mock(AuditLogService.class);
   private final AttachmentStorage storage = mock(AttachmentStorage.class);
@@ -32,7 +34,7 @@ class SupportTicketIncidentServiceTest {
   private final UserRepository users = mock(UserRepository.class);
   private final Clock clock = Clock.fixed(Instant.parse("2026-11-02T00:00:00Z"), ZoneOffset.UTC);
   private final SupportTicketService service = new SupportTicketService(
-      tickets, contracts, actor, audit, storage, units, users, clock);
+      tickets, contracts, reservations, actor, audit, storage, units, users, clock);
 
   @Test void managerAssignsTicketToActiveStaffAtSameFacility() {
     User manager = user("FM-1", "FACILITY_MANAGER", "HN-CG");

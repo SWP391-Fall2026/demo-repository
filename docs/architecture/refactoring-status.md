@@ -18,7 +18,7 @@ Tài liệu này mô tả trạng thái mã nguồn hiện tại và bằng ch�
 - Báo cáo có phạm vi FM theo facility và OPS theo toàn chuỗi. Báo cáo/export hiện trả thêm số hợp đồng `OVERDUE`, breakdown theo loại unit và breakdown theo trạng thái unit.
 - Flow gia hạn: backend tạo báo giá/hóa đơn `RENEW`; frontend không đưa hợp đồng `OVERDUE` vào lựa chọn gia hạn, khớp với backend đang chặn gia hạn trạng thái này.
 - Facility có cập nhật metadata/trạng thái `ACTIVE`/`INACTIVE`; unit có cập nhật loại, diện tích, giá và chuyển vào `maintenance` theo điều kiện nghiệp vụ. Không xóa unit đang có lịch sử; `maintenance` chủ đích dùng để rút unit khỏi nguồn kho khả dụng, sau đó Staff yêu cầu sẵn sàng và Manager duyệt trước khi quay lại `available`.
-- RBAC theo role và facility được cố định trong backend để bảo vệ nghiệp vụ. Chưa có editor cho phép người vận hành tự định nghĩa ma trận quyền tùy biến.
+- RBAC theo role và facility được kiểm tra trong backend; Admin có màn cấu hình bật/tắt quyền đọc/ghi theo module. Các kiểm tra owner, facility và SoD của workflow vẫn luôn được áp dụng.
 
 ## Giới hạn cần giữ rõ
 
@@ -32,11 +32,11 @@ Tài liệu này mô tả trạng thái mã nguồn hiện tại và bằng ch�
 
 ## Gap còn lại so với audit flow/service
 
-- Một số màn quản trị vẫn dùng `ResourcePage` và nhập mã/key thủ công: `ManageFacilitiesPage`, `ManageUnitsPage`, `PricingPolicyPage`, `RentalPolicyPage`, `RefundApprovalPage`, `UnitReadinessApprovalPage`, `StaffFacilityAssignmentPage`, `FacilityOverdueCapPage`. Chúng đã gọi API tương ứng nhưng chưa đạt dashboard, bộ lọc và thao tác theo dòng như mọi frame Figma.
-- `FacilityContractsPage` đã có bộ lọc trạng thái nhưng vẫn là bảng tổng quát; chưa có màn quản lý quá hạn riêng với nhắc nợ/hoãn khóa/quyết định xử lý. `OVERDUE` hiện không có đường gia hạn để tự khôi phục truy cập.
-- Ticket hỗ trợ yêu cầu unit thuộc hợp đồng `ACTIVE`/`EXPIRING_SOON`/`OVERDUE`; khách chưa có hợp đồng không gửi được ticket thanh toán cọc. Đây là giới hạn hiện tại của API, không phải đã hỗ trợ mọi yêu cầu thanh toán.
-- Phần report API/export đã bổ sung số quá hạn và phân loại unit/trạng thái, nhưng cần đối soát số liệu live theo từng facility và nghiệm thu cách hiển thị frontend. Không xem dữ liệu biểu đồ hiện tại là xác nhận toàn bộ chỉ số tài chính.
-- Ma trận RBAC chỉ đọc trên UI là chủ đích bảo vệ quyền cố định phía backend; không có tính năng tùy chỉnh quyền tùy ý. Việc gán role và facility cho tài khoản vẫn là nghiệp vụ Admin riêng.
+- Các màn quản trị cơ sở, kho, chính sách, hoàn tiền, duyệt kho sẵn sàng và gán nhân sự đã dùng bảng, bộ lọc, dialog và thao tác theo dòng; API vẫn là nguồn dữ liệu duy nhất.
+- `FacilityContractsPage` có bộ lọc và chi tiết hợp đồng; màn quá hạn riêng hỗ trợ nhắc nợ, khóa PIN và yêu cầu trả kho. `OVERDUE` có báo giá gia hạn gồm phí quá hạn, hóa đơn hết hạn được vô hiệu hóa và PIN chỉ khôi phục sau thanh toán.
+- Ticket PAYMENT/OTHER có thể gắn với reservation thuộc chính khách hàng trước khi có hợp đồng; vì schema live không đổi, mã reservation được lưu trong nội dung ticket và kiểm tra ownership ở backend. ACCESS/DAMAGE vẫn yêu cầu hợp đồng có hiệu lực.
+- Report API/export có bộ lọc trạng thái thuê, breakdown theo loại kho, trạng thái kho và trạng thái hợp đồng; frontend hiển thị trạng thái cơ sở thật và xuất CSV/XLSX theo bộ lọc.
+- Ma trận RBAC có màn cấu hình cho Admin; quyền nghiệp vụ quan trọng vẫn bị giới hạn bởi role, ownership, facility và quy trình duyệt phía backend.
 
 ## Kiểm thử
 

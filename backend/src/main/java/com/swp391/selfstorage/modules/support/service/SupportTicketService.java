@@ -4,6 +4,7 @@ import com.swp391.selfstorage.common.security.ActorContext;
 import com.swp391.selfstorage.common.web.*;
 import com.swp391.selfstorage.modules.audit.service.AuditLogService;
 import com.swp391.selfstorage.modules.rental.repository.ContractRepository;
+import com.swp391.selfstorage.modules.reservation.repository.ReservationRepository;
 import com.swp391.selfstorage.modules.facility.entity.Unit;
 import com.swp391.selfstorage.modules.facility.repository.UnitRepository;
 import com.swp391.selfstorage.modules.identity.repository.UserRepository;
@@ -24,6 +25,7 @@ public class SupportTicketService {
 
   private final SupportTicketRepository tickets;
   private final ContractRepository contracts;
+  private final ReservationRepository reservations;
   private final ActorContext actor;
   private final AuditLogService audit;
   private final com.swp391.selfstorage.common.storage.AttachmentStorage storage;
@@ -35,6 +37,7 @@ public class SupportTicketService {
   public SupportTicketService(
     SupportTicketRepository t,
     ContractRepository c,
+    ReservationRepository r,
     ActorContext a,
     AuditLogService au,
     com.swp391.selfstorage.common.storage.AttachmentStorage st,
@@ -44,6 +47,7 @@ public class SupportTicketService {
   ) {
     tickets = t;
     contracts = c;
+    reservations = r;
     actor = a;
     audit = au;
     storage = st;
@@ -68,26 +72,48 @@ public class SupportTicketService {
   @Transactional
   public SupportTicket create(Map<String, Object> d) {
     var u = actor.require("CUSTOMER");
-    String code = Inputs.text(d, "unitCode");
-    var c = contracts
-      .findFirstByUnitCodeAndStatusInOrderByCreatedAtDesc(
-        code,
-        List.of("ACTIVE", "EXPIRING_SOON", "OVERDUE")
-      )
-      .filter(v -> u.getId().equals(v.getUserId()))
-      .orElseThrow(Inputs::missing);
+    String category = Inputs.text(d, "category").toUpperCase(Locale.ROOT);
+    if (!Set.of("DAMAGE", "ACCESS", "PAYMENT", "OTHER").contains(category))
+      throw Inputs.bad("Phân loại hỗ trợ không hợp lệ");
+    String code = Inputs.optional(d, "unitCode");
+    String reservationId = Inputs.optional(d, "reservationId");
+    if (!code.isBlank() && !reservationId.isBlank()) throw Inputs.bad("Chỉ chọn một kho hoặc đơn đặt liên quan");
+    String facilityCode;
+    String reservationReference = "";
+    if (("PAYMENT".equals(category) || "OTHER".equals(category)) && code.isBlank()) {
+      if (reservationId.isBlank()) throw Inputs.bad("Yêu cầu PAYMENT/OTHER cần reservationId");
+      var reservation = reservations.findById(reservationId)
+        .filter(v -> u.getId().equals(v.getUserId()))
+        .orElseThrow(Inputs::missing);
+      if (!Set.of("PENDING_PAYMENT", "RESERVED", "EXPIRED", "CANCELLED").contains(reservation.getStatus()))
+        throw Inputs.conflict("Đơn đặt không còn trong phạm vi hỗ trợ");
+      facilityCode = reservation.getFacilityCode();
+      code = Objects.toString(reservation.getUnitCode(), "");
+      reservationReference = reservationId;
+    } else {
+      if (code.isBlank()) Inputs.text(d, "unitCode");
+      var c = contracts
+        .findFirstByUnitCodeAndStatusInOrderByCreatedAtDesc(
+          code,
+          List.of("ACTIVE", "EXPIRING_SOON", "OVERDUE")
+        )
+        .filter(v -> u.getId().equals(v.getUserId()))
+        .orElseThrow(Inputs::missing);
+      facilityCode = c.getFacilityCode();
+    }
     SupportTicket t = new SupportTicket();
     t.setId("TCK-" + UUID.randomUUID());
     t.setUserId(u.getId());
     t.setCustomerName(u.getName());
-    t.setFacilityCode(c.getFacilityCode());
-    t.setUnitCode(code);
-    String category = Inputs.text(d, "category");
+    t.setFacilityCode(facilityCode);
+    t.setUnitCode(code.isBlank() ? null : code);
     String description = Inputs.text(d, "description");
     String title = Inputs.text(d, "title");
     if (title.length() > 255) throw Inputs.bad("Tiêu đề tối đa 255 ký tự");
     t.setCategory(category);
-    t.setDescription(description);
+    String fullDescription = reservationReference.isBlank() ? description : "Đơn đặt liên quan: " + reservationReference + "\n\n" + description;
+    if (fullDescription.length() > 255) throw Inputs.bad("Nội dung và tham chiếu đơn đặt tối đa 255 ký tự");
+    t.setDescription(fullDescription);
     t.setTitle(title);
     if (d.containsKey("attachmentUrl") && d.get("attachmentUrl") != null) {
       String attachment = Inputs.text(d, "attachmentUrl");
@@ -99,9 +125,10 @@ public class SupportTicketService {
     if (!TICKET_PRIORITIES.contains(priority)) throw Inputs.bad("Mức ưu tiên không hợp lệ");
     t.setPriority(priority);
     t.setStatus("OPEN");
-    t.setCreatedAt(LocalDateTime.now());
+    t.setCreatedAt(LocalDateTime.now(clock));
     tickets.save(t);
-    audit.record("CREATE_TICKET", t.getId(), "Gửi yêu cầu hỗ trợ");
+    audit.record("CREATE_TICKET", t.getId(), "Gửi yêu cầu hỗ trợ" +
+      (reservationReference.isBlank() ? "" : " cho đơn " + reservationReference));
     return t;
   }
 

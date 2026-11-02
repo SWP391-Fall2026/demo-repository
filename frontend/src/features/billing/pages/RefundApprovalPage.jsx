@@ -1,22 +1,19 @@
-import { ResourcePage, Form } from "../../../shared/ui/ResourcePage";
+import { useMemo, useState } from "react";
 import { billingApi } from "../api/billing.api";
+import { useRemote } from "../../../shared/api/use-remote";
+import { money, display } from "../../../shared/lib/format";
+import { OfficeDialog, OfficeHeading, OfficeIcon, OfficeMetrics, OfficeState } from "../../../shared/ui/office/OfficeUi";
+
 export default function RefundApprovalPage() {
-    return (<ResourcePage title="Duyệt yêu cầu hoàn tiền" description="" load={billingApi.refunds}>
-      <Form fields={[
-            { name: "id", label: "Mã yêu cầu", type: "text", required: true },
-            {
-                name: "decision",
-                label: "Quyết định",
-                type: "text",
-                options: ["APPROVE", "REJECT"],
-            },
-            { name: "approvedAmount", label: "Số tiền duyệt", type: "number" },
-            {
-                name: "reason",
-                label: "Lý do quyết định",
-                type: "textarea",
-                required: true,
-            },
-        ]} submit={billingApi.decideRefund}/>
-    </ResourcePage>);
+  const remote = useRemote(billingApi.refunds);
+  const [query, setQuery] = useState(""); const [status, setStatus] = useState("PENDING"); const [selected, setSelected] = useState(null); const [decision, setDecision] = useState("APPROVE"); const [amount, setAmount] = useState(""); const [reason, setReason] = useState(""); const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const [message, setMessage] = useState("");
+  const rows = Array.isArray(remote.data) ? remote.data : [];
+  const visible = useMemo(() => rows.filter((row) => (!status || row.status === status) && (!query || [row.id, row.paymentId, row.customerName, row.reason].join(" ").toLowerCase().includes(query.trim().toLowerCase()))), [rows, status, query]);
+  function open(row) { setSelected(row); setDecision("APPROVE"); setAmount(row.requestedAmount || ""); setReason(""); setError(""); }
+  async function submit(event) { event.preventDefault(); if (!selected) return; setBusy(true); setError(""); try { await billingApi.decideRefund({ id: selected.id, decision, approvedAmount: decision === "APPROVE" ? Number(amount) : 0, reason }); setMessage(`Đã ${decision === "APPROVE" ? "duyệt" : "từ chối"} ${selected.id}.`); setSelected(null); remote.reload(); } catch (cause) { setError(cause.message || "Không thể xử lý yêu cầu hoàn tiền."); } finally { setBusy(false); } }
+  return <div className="office-page office-resource"><OfficeHeading title="Duyệt yêu cầu hoàn tiền" eyebrow="FACILITY MANAGER / HOÀN TIỀN" description="Chọn trực tiếp yêu cầu trong phạm vi cơ sở; hạn mức được backend kiểm tra lại trước khi duyệt."><button type="button" className="secondary" onClick={remote.reload}><OfficeIcon>sync</OfficeIcon>Làm mới</button></OfficeHeading><OfficeMetrics items={[{ label: "Chờ duyệt", value: rows.filter((row) => row.status === "PENDING").length, icon: "pending_actions", tone: "amber" }, { label: "Đã duyệt", value: rows.filter((row) => ["APPROVED", "EVIDENCE_SUBMITTED"].includes(row.status)).length, icon: "verified", tone: "blue" }, { label: "Hoàn tất", value: rows.filter((row) => row.status === "COMPLETED").length, icon: "task_alt", tone: "green" }]} />
+    {(error || message || remote.error) && <div className={`office-alert ${error || remote.error ? "office-alert-error" : "office-alert-success"}`} role="alert">{error || remote.error || message}</div>}<section className="office-filter"><label className="office-search"><OfficeIcon>search</OfficeIcon><input aria-label="Tìm yêu cầu hoàn tiền" placeholder="Tìm mã yêu cầu, giao dịch, khách hàng…" value={query} onChange={(event) => setQuery(event.target.value)} /></label><label>Trạng thái<select value={status} onChange={(event) => setStatus(event.target.value)}><option value="">Tất cả</option>{["PENDING", "APPROVED", "EVIDENCE_SUBMITTED", "COMPLETED", "REJECTED", "CANCELLED"].map((item) => <option key={item}>{item}</option>)}</select></label></section>
+    <section className="card office-table"><div className="office-table-header"><h2>Yêu cầu hoàn tiền <span className="count">{visible.length}</span></h2></div>{remote.busy && !remote.data ? <OfficeState busy /> : remote.error ? <OfficeState error={remote.error} onRetry={remote.reload} /> : !visible.length ? <OfficeState title="Không có yêu cầu phù hợp" onRetry={remote.reload} /> : <div className="table-scroll"><table><thead><tr><th>Mã</th><th>Giao dịch</th><th>Loại</th><th>Số tiền yêu cầu</th><th>Lý do</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>{visible.map((row) => <tr key={row.id}><td><strong>{row.id}</strong></td><td>{display(row.paymentId)}</td><td>{row.refundType}</td><td>{money(row.requestedAmount)}</td><td>{row.reason}</td><td><span className="badge">{row.status}</span></td><td>{row.status === "PENDING" ? <button type="button" className="office-row-action" onClick={() => open(row)}>Xử lý <OfficeIcon>gavel</OfficeIcon></button> : <span>—</span>}</td></tr>)}</tbody></table></div>}</section>
+    {selected && <OfficeDialog title={`Xử lý ${selected.id}`} onClose={() => setSelected(null)}><form className="form-grid" onSubmit={submit}><dl className="office-detail-grid"><div><dt>Mã thanh toán</dt><dd>{selected.paymentId}</dd></div><div><dt>Khách hàng</dt><dd>{selected.userId}</dd></div><div><dt>Yêu cầu</dt><dd>{money(selected.requestedAmount)}</dd></div><div><dt>Lý do</dt><dd>{selected.reason}</dd></div></dl><label>Quyết định<select value={decision} onChange={(event) => setDecision(event.target.value)}><option value="APPROVE">APPROVE</option><option value="REJECT">REJECT</option></select></label>{decision === "APPROVE" && <label>Số tiền duyệt<input type="number" min="0" step="1" required value={amount} onChange={(event) => setAmount(event.target.value)} /></label>}<label>Lý do quyết định<textarea required maxLength="500" value={reason} onChange={(event) => setReason(event.target.value)} /></label><div className="form-actions"><button type="submit" disabled={busy}>{busy ? "Đang lưu…" : "Xác nhận quyết định"}</button>{error && <p className="error" role="alert">{error}</p>}</div></form></OfficeDialog>}
+  </div>;
 }

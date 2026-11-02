@@ -19,8 +19,10 @@ async function load(params) {
   return { report, dashboard };
 }
 export default function FacilityReportPage() {
-  const [draft, setDraft] = useState({ startDate: "", endDate: "" });
+  const [draft, setDraft] = useState({ startDate: "", endDate: "", contractStatus: "" });
   const [dates, setDates] = useState({});
+  const [exportBusy, setExportBusy] = useState(false);
+  const [exportError, setExportError] = useState("");
   const fetcher = useCallback(() => load(dates), [dates]);
   const remote = useRemote(fetcher, [fetcher]);
   const report = remote.data?.report;
@@ -46,6 +48,13 @@ export default function FacilityReportPage() {
   const support = tasks.filter((task) =>
     ["SUPPORT", "INCIDENT"].includes(task.taskType),
   );
+  async function exportReport(format) {
+    if (exportBusy) return;
+    setExportBusy(true); setExportError("");
+    try { await reportingApi.exportFile({ ...dates }, format); }
+    catch (cause) { setExportError(cause.message || "Không xuất được báo cáo."); }
+    finally { setExportBusy(false); }
+  }
   return (
     <div className="office-page office-facility-report">
       <OfficeHeading
@@ -56,6 +65,8 @@ export default function FacilityReportPage() {
         <button className="secondary" onClick={remote.reload}>
           <OfficeIcon>sync</OfficeIcon>Làm mới dữ liệu
         </button>
+        <button className="secondary" disabled={!report || exportBusy} onClick={() => exportReport("csv")}>Xuất CSV</button>
+        <button className="secondary" disabled={!report || exportBusy} onClick={() => exportReport("xlsx")}>Xuất XLSX</button>
       </OfficeHeading>
       <form
         className="office-filter"
@@ -84,10 +95,18 @@ export default function FacilityReportPage() {
             onChange={(e) => setDraft({ ...draft, endDate: e.target.value })}
           />
         </label>
+        <label>
+          Trạng thái thuê
+          <select value={draft.contractStatus} onChange={(e) => setDraft({ ...draft, contractStatus: e.target.value })}>
+            <option value="">Tất cả trạng thái</option>
+            {["PENDING_PAYMENT", "PENDING_HANDOVER", "ACTIVE", "EXPIRING_SOON", "OVERDUE", "TERMINATED", "CANCELLED"].map((status) => <option key={status} value={status}>{status}</option>)}
+          </select>
+        </label>
         <button>
           <OfficeIcon>filter_list</OfficeIcon>Xem báo cáo
         </button>
       </form>
+      {exportError && <p className="error" role="alert">{exportError}</p>}
       {remote.error ? (
         <OfficeState error={remote.error} onRetry={remote.reload} />
       ) : remote.busy ? (
@@ -175,6 +194,12 @@ export default function FacilityReportPage() {
             )}
           </section>
           <div className="office-report-panels">
+            <section className="card office-table">
+              <h2>Hợp đồng theo trạng thái thuê</h2>
+              <div className="table-scroll"><table><thead><tr><th>Trạng thái</th><th>Số hợp đồng</th></tr></thead><tbody>
+                {(report.byContractStatus || []).map((row) => <tr key={row.status}><td>{row.status}</td><td>{row.count}</td></tr>)}
+              </tbody></table></div>
+            </section>
             <section className="card">
               <h2>
                 <OfficeIcon>description</OfficeIcon>Báo cáo hoạt động hợp đồng &
