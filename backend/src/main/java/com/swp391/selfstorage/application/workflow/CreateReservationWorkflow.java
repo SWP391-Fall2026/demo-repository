@@ -65,7 +65,8 @@ public class CreateReservationWorkflow {
       d.startDate().isBefore(now.toLocalDate()) ||
       d.appointmentAt().isBefore(now)
     ) throw Inputs.bad("Ngày thuê và lịch hẹn không được trong quá khứ");
-    facilities.lockByCode(d.facilityCode()).orElseThrow(Inputs::missing);
+    var facility = facilities.lockByCode(d.facilityCode()).orElseThrow(Inputs::missing);
+    if (!"ACTIVE".equalsIgnoreCase(facility.getStatus())) throw Inputs.conflict("Cơ sở đã ngưng nhận đơn đặt kho");
     long available = units
       .findByFacilityCode(d.facilityCode())
       .stream()

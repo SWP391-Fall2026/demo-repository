@@ -20,17 +20,20 @@ public class ReservationService {
   private final ActorContext actor;
   private final PolicyService policy;
   private final com.swp391.selfstorage.modules.facility.repository.UnitRepository units;
+  private final com.swp391.selfstorage.modules.facility.repository.FacilityRepository facilities;
 
   public ReservationService(
     ReservationRepository r,
     ActorContext a,
     PolicyService p,
-    com.swp391.selfstorage.modules.facility.repository.UnitRepository units
+    com.swp391.selfstorage.modules.facility.repository.UnitRepository units,
+    com.swp391.selfstorage.modules.facility.repository.FacilityRepository facilities
   ) {
     repo = r;
     actor = a;
     policy = p;
     this.units = units;
+    this.facilities = facilities;
   }
 
   public List<Reservation> list() {
@@ -61,6 +64,8 @@ public class ReservationService {
       "Loại kho không hợp lệ"
     );
     String facility = Inputs.optional(d, "facilityCode");
+    if (!facility.isBlank() && !"ACTIVE".equalsIgnoreCase(facilities.findById(facility).orElseThrow(Inputs::missing).getStatus()))
+      throw Inputs.conflict("Cơ sở đã ngưng nhận đơn đặt kho");
     BigDecimal rate = facility.isBlank()
       ? policy.monthly(type)
       : units

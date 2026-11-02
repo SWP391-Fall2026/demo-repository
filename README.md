@@ -11,13 +11,19 @@ npm ci
 npm run dev
 ```
 
-Frontend: http://127.0.0.1:5173. Ở terminal khác, chạy backend local với H2 độc lập:
+Frontend: http://127.0.0.1:5173. Ở terminal khác, chạy backend với Supabase:
 
 ```powershell
-mvn -f backend/pom.xml spring-boot:run -Dspring-boot.run.profiles=local
+npm run start:backend
 ```
 
-Backend: http://localhost:8080. Local reset dữ liệu khi dừng. Profile local chỉ dùng database H2 cố định, không dùng DB_URL. Tất cả tài khoản local có mật khẩu `Demo123!`:
+Backend: http://127.0.0.1:8080. Lệnh này chọn profile `auth-supabase`, đọc PostgreSQL qua backend và chỉ validate schema. Cấu hình kết nối nằm trong file riêng bị Git ignore `storage-rental-secrets/backend.properties`, hoặc biến môi trường `SUPABASE_DB_URL`, `SUPABASE_DB_USERNAME`, `SUPABASE_DB_PASSWORD`, `JWT_SECRET`. Máy mới clone cần cấp cấu hình riêng; không đưa mật khẩu vào frontend hoặc Git.
+
+Danh sách cơ sở/kho lấy từ database, không tự sinh đủ kho cho mọi cơ sở. Cơ sở chưa có kho khả dụng cần được nhập dữ liệu vận hành qua tài khoản quản lý đúng cơ sở.
+
+## Demo cục bộ tùy chọn
+
+Chạy `npm run start:local` thay backend Supabase khi cần H2 độc lập. Local reset dữ liệu khi dừng; không dùng tài khoản seed dưới đây cho Supabase. Tất cả tài khoản local có mật khẩu `Demo123!`:
 
 | Vai trò | Tài khoản | Chi nhánh |
 | --- | --- | --- |
@@ -27,7 +33,7 @@ Backend: http://localhost:8080. Local reset dữ liệu khi dừng. Profile loca
 | Business Operations Manager | business | Toàn chuỗi |
 | System Administrator | admin | Tài khoản và audit |
 
-Thanh toán, OTP và PIN là mô phỏng phần mềm. Giao dịch hoàn thủ công chỉ ghi nhận bằng chứng do Staff cung cấp và Manager xác nhận; ứng dụng không tự chuyển tiền ngân hàng. Không có ví số dư.
+Thanh toán QR/card mô phỏng chỉ bật mặc định trong local/test. Supabase mặc định tắt `app.payments.simulation-enabled`: khách thanh toán qua VNPay đã cấu hình, hoặc Staff ghi nhận thu tại quầy. VNPay hiện dùng sandbox; cần merchant production để thu tiền qua cổng thật. OTP/email phụ thuộc SMTP; PIN mô phỏng khóa vật lý. Hoàn tiền thủ công ghi nhận bằng chứng do Staff cung cấp và Manager xác nhận; ứng dụng không tự chuyển tiền ngân hàng.
 
 ## Cấu trúc
 
@@ -64,9 +70,9 @@ npm run check
 mvn -f backend/pom.xml test
 ```
 
-Môi trường thực dùng DB_URL, DB_USERNAME, DB_PASSWORD, JWT_SECRET và APP_UPLOAD_DIR. Spring Boot không tự đọc file .env; phải export biến hoặc cấu hình trên môi trường chạy. Không bật profile local với database thật. Seed prototype cũ được lưu ngoài runtime trong docs/archive. Xem hướng dẫn migration trước khi dùng schema hiện tại.
+Profile `auth-supabase` dùng các biến `SUPABASE_DB_*` nói trên; profile mặc định khác dùng `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`. Spring Boot không tự đọc file `.env`; phải cấp biến hoặc file cấu hình riêng. Không bật profile local với database thật. Xem hướng dẫn migration trước khi đổi schema.
 
 Khi chạy backend từ thư mục `backend`, Spring Boot tự nạp file cấu hình riêng nếu tồn tại tại `../storage-rental-secrets/backend.properties`. File này bị Git ignore. Nếu file không tồn tại, cấu hình môi trường phải cấp datasource và `JWT_SECRET`; mặc định datasource trỏ localhost.
 
-Nguồn tái cấu trúc: ZIP đã xác nhận (baseline commit 21cbce8), schema 15 bảng cung cấp riêng và quyết định nghiệp vụ đã chốt. Checkout cũ D:/SWP/demo-repository được giữ nguyên; mã mới ở D:/SWP/storage-rental, branch codex/restructure-storage-rental.
+Trạng thái chức năng, dữ liệu và giới hạn kiểm chứng cập nhật trong [trạng thái triển khai](docs/architecture/refactoring-status.md).
 

@@ -77,7 +77,7 @@ if ($Profile) {
 # Local profile is self-contained for UI development. Use an in-memory H2
 # database and a valid signing key when caller did not provide overrides.
 if ($Profile -eq 'local' -and -not $MavenArgs) {
-    $mvnArgs += '-Dspring-boot.run.arguments=--spring.datasource.url=jdbc:h2:mem:storage_local;MODE=PostgreSQL;DB_CLOSE_DELAY=-1 --spring.datasource.driver-class-name=org.h2.Driver --spring.datasource.username=sa --spring.datasource.password= --spring.jpa.hibernate.ddl-auto=create-drop --jwt.secret=local-dev-jwt-signing-key-2026-strong-secret-0123456789 --app.scheduling.enabled=false'
+    $mvnArgs += '-Dspring-boot.run.arguments=--spring.datasource.url=jdbc:h2:mem:storage_local;MODE=PostgreSQL;DB_CLOSE_DELAY=-1 --spring.datasource.driver-class-name=org.h2.Driver --spring.datasource.username=sa --spring.datasource.password= --spring.jpa.hibernate.ddl-auto=create-drop --jwt.secret=local-dev-jwt-signing-key-2026-strong-secret-0123456789 --app.scheduling.enabled=false --app.payments.simulation-enabled=true'
 }
 if ($MavenArgs) {
     $mvnArgs += $MavenArgs

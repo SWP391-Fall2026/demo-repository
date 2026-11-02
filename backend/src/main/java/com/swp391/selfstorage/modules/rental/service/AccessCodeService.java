@@ -44,12 +44,20 @@ public class AccessCodeService {
         List.of("ACTIVE", "EXPIRING_SOON")
       )
       .orElse(null);
+    var now = LocalDateTime.now(clock);
+    var unit = units.findById(code).orElse(null);
+    boolean credentialMatches = c != null && (Objects.equals(pin, c.getPinCode()) ||
+      unit != null && unit.getTemporaryPinExpiresAt() != null &&
+      now.isBefore(unit.getTemporaryPinExpiresAt()) && Objects.equals(pin, unit.getTemporaryPin()));
     boolean allowed =
       c != null &&
       c.getEndAt() != null &&
-      !LocalDateTime.now(clock).isAfter(c.getEndAt()) &&
+      now.isBefore(c.getEndAt()) &&
+      (c.getStartAt() == null || !now.isBefore(c.getStartAt())) &&
+      unit != null && "occupied".equalsIgnoreCase(unit.getStatus()) &&
+      Objects.equals(unit.getFacilityCode(), c.getFacilityCode()) &&
       actor.visible(a, c.getUserId(), c.getFacilityCode()) &&
-      Objects.equals(pin, c.getPinCode());
+      credentialMatches;
     return Map.of("authorized", allowed, "mode", "SOFTWARE_SIMULATION");
   }
 
@@ -57,7 +65,7 @@ public class AccessCodeService {
   public void update(String code, Map<String, Object> d) {
     var a = actor.require("CUSTOMER");
     var c = contracts
-      .findFirstByUnitCodeAndStatusInOrderByCreatedAtDesc(
+      .findFirstForUpdateByUnitCodeAndStatusInOrderByCreatedAtDesc(
         code,
         List.of("ACTIVE", "EXPIRING_SOON")
       )
@@ -65,10 +73,19 @@ public class AccessCodeService {
       .orElseThrow(Inputs::missing);
     String pin = Inputs.text(d, "newPin");
     if (!pin.matches("[0-9]{6}")) throw Inputs.bad("PIN phải có 6 chữ số");
+    var u = units.lockByCode(code).orElseThrow(Inputs::missing);
+    var now = LocalDateTime.now(clock);
+    if (!Set.of("ACTIVE", "EXPIRING_SOON").contains(c.getStatus()) ||
+        c.getEndAt() == null || !now.isBefore(c.getEndAt()) ||
+        c.getStartAt() != null && now.isBefore(c.getStartAt()))
+      throw Inputs.conflict("Hợp đồng không còn quyền đổi PIN");
+    if (!"occupied".equalsIgnoreCase(u.getStatus()) || !Objects.equals(u.getFacilityCode(), c.getFacilityCode()))
+      throw Inputs.conflict("Kho không ở trạng thái đang thuê hợp lệ");
     c.setPinCode(pin);
     contracts.save(c);
-    var u = units.lockByCode(code).orElseThrow(Inputs::missing);
     u.setPinCode(pin);
+    u.setTemporaryPin(null);
+    u.setTemporaryPinExpiresAt(null);
     units.save(u);
     audit.record("UPDATE_PIN", code, "Đổi PIN mô phỏng");
   }

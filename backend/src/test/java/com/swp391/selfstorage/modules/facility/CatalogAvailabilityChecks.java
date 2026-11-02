@@ -231,6 +231,78 @@ abstract class CatalogAvailabilityChecks {
     assertEquals(99, facilities.findById(FACILITY).orElseThrow().getTotalUnits());
   }
 
+  @Test
+  void maintenanceConsumesOnlySpareCapacityAfterUnassignedPaidHolds() {
+    facilityOperators();
+    unit("S-1", FACILITY, "S", "3", "900000", "available");
+    unit("S-2", FACILITY, "S", "3", "900000", "available");
+    hold("R-1", FACILITY, "S", "RESERVED", NOW.minusDays(1), null);
+
+    service.updateStatus(PREFIX + "S-1", Map.of("status", "maintenance", "reason", "Sửa cửa"));
+    var failure = assertThrows(ResponseStatusException.class,
+        () -> service.updateStatus(PREFIX + "S-2", Map.of("status", "maintenance", "reason", "Sửa cửa")));
+
+    assertEquals(HttpStatus.CONFLICT, failure.getStatusCode());
+    assertEquals("maintenance", units.findById(PREFIX + "S-1").orElseThrow().getStatus());
+    assertEquals("available", units.findById(PREFIX + "S-2").orElseThrow().getStatus());
+    assertTrue(catalog().isEmpty()); // Remaining S unit still backs the paid hold.
+  }
+
+  @Test
+  void changingTypeCannotConsumeCapacityPromisedToAnotherCustomer() {
+    facilityOperators();
+    unit("S-1", FACILITY, "S", "3", "900000", "available");
+    hold("R-1", FACILITY, "S", "PENDING_PAYMENT", NOW.minusMinutes(1), null);
+
+    var failure = assertThrows(ResponseStatusException.class,
+        () -> service.updateUnit(PREFIX + "S-1", Map.of("type", "M", "pricePerMonth", "1500000")));
+    assertEquals(HttpStatus.CONFLICT, failure.getStatusCode());
+    assertEquals("S", units.findById(PREFIX + "S-1").orElseThrow().getType());
+
+    // Editing metadata within the same sold type does not remove capacity.
+    service.updateUnit(PREFIX + "S-1", Map.of("type", "S", "floor", "2"));
+    assertEquals(2, units.findById(PREFIX + "S-1").orElseThrow().getFloor());
+  }
+
+  @Test
+  void expiredPendingHoldsAndAssignedReservationsDoNotBlockCapacityEdits() {
+    facilityOperators();
+    unit("S-1", FACILITY, "S", "3", "900000", "available");
+    unit("S-2", FACILITY, "S", "3", "900000", "reserved");
+    hold("R-EXPIRED", FACILITY, "S", "PENDING_PAYMENT", NOW.minusMinutes(5), null);
+    hold("R-ASSIGNED", FACILITY, "S", "RESERVED", NOW, "S-2");
+
+    service.updateStatus(PREFIX + "S-1", Map.of("status", "maintenance", "reason", "Sửa cửa"));
+    assertEquals("maintenance", units.findById(PREFIX + "S-1").orElseThrow().getStatus());
+  }
+
+  @Test
+  void holdsAtOtherFacilityOrForOtherTypeDoNotBlockTypeChange() {
+    facilityOperators();
+    unit("S-1", FACILITY, "S", "3", "900000", "available");
+    hold("R-M", FACILITY, "M", "RESERVED", NOW, null);
+    hold("R-OTHER", OTHER_FACILITY, "S", "RESERVED", NOW, null);
+
+    service.updateUnit(PREFIX + "S-1", Map.of("type", "L", "pricePerMonth", "2800000"));
+    assertEquals("L", units.findById(PREFIX + "S-1").orElseThrow().getType());
+  }
+
+  @Test
+  void inactiveFacilityCannotAbandonUnassignedPaidReservations() {
+    unit("S-1", FACILITY, "S", "3", "900000", "available");
+    hold("R-1", FACILITY, "S", "RESERVED", NOW, null);
+    var failure = assertThrows(ResponseStatusException.class,
+        () -> service.update(FACILITY, Map.of("status", "INACTIVE")));
+    assertEquals(HttpStatus.CONFLICT, failure.getStatusCode());
+    assertEquals("ACTIVE", facilities.findById(FACILITY).orElseThrow().getStatus());
+  }
+
+  private void facilityOperators() {
+    User manager = new User(); manager.setId(PREFIX + "MANAGER"); manager.setFacilityCode(FACILITY);
+    when(actor.require("FMANAGER")).thenReturn(manager);
+    when(actor.require("STAFF", "FMANAGER")).thenReturn(manager);
+  }
+
   protected void verifyDatabaseTarget() {}
 
   private List<Map<String, Object>> catalog() {

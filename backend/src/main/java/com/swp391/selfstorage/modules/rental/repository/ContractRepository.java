@@ -15,6 +15,12 @@ public interface ContractRepository extends JpaRepository<Contract, String> {
     String code,
     Collection<String> statuses
   );
+
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  Optional<Contract> findFirstForUpdateByUnitCodeAndStatusInOrderByCreatedAtDesc(
+    String code,
+    Collection<String> statuses
+  );
   Optional<Contract> findByReservationId(String id);
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)

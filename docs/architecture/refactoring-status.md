@@ -1,34 +1,45 @@
-# Trạng thái tái cấu trúc — 18/10/2026
+﻿# Trạng thái triển khai hiện tại — 02/11/2026
 
-Mã mới: D:/SWP/storage-rental, branch codex/restructure-storage-rental, từ baseline 21cbce8 khớp ZIP đã xác nhận. Checkout D:/SWP/demo-repository và các thay đổi có sẵn được giữ riêng. Chưa commit/push.
+Tài liệu này mô tả trạng thái mã nguồn hiện tại và bằng chứng môi trường đã quan sát. Đây không phải xác nhận nghiệm thu toàn bộ SRS, không phải xác nhận dữ liệu production sạch, và không thay thế kiểm thử end-to-end trên từng cơ sở.
 
-## Đã triển khai trong đợt này
+## Runtime và dữ liệu
 
-- Backend 103 file Java, chia 10 module theo nghiệp vụ; controller/service/repository/entity/dto cùng module, workflow liên module có transaction riêng.
-- Frontend React + Vite + TypeScript: 41 page, 43 route cho năm vai trò; AppShell, RoleGuard, Form, ResourcePage, ActionResult và HTTP client riêng.
-- Tách Auth/UserAdmin, Policy/Reporting, Workforce/Support; không còn combined controller/service cũ trong runtime.
-- Invoice riêng, Payment từng lần thử; hoàn tiền theo giao dịch gốc, giữ hạn mức ngay lúc tạo, hủy chờ duyệt, Manager quyết định, Staff tải bằng chứng, Manager xác nhận kết quả.
-- NO_SHOW cảnh báo/Staff xác nhận, ghi nhận đã đến quầy, gia hạn một lần, sự cố, lịch/hạn giữ được Manager duyệt.
-- Bàn giao, yêu cầu trả, nghiệm thu dừng phí/khóa PIN, yêu cầu vệ sinh và Manager duyệt AVAILABLE; gia hạn phải xác nhận giá.
-- Kiểm tra chủ sở hữu/chi nhánh/vai trò phía backend, audit từ principal, khóa dữ liệu và khóa chống xử lý trùng. Frontend giữ nguyên khóa khi thử lại sau mất phản hồi.
-- Policy lưu database; Ops cấu hình khung giá/phí, FM giá kho trong phạm vi và trần quá hạn; báo cáo thu/hoàn từ dữ liệu thực, không dùng số cố định.
-- Tách prototype/seed/generator cũ khỏi runtime. Schema 15 bảng được giữ làm tham chiếu; SQL mở rộng chỉ là đề xuất triển khai.
-- OpenAPI 66 thao tác, 33 schema đầu vào; kiểm tra 56 lời gọi frontend khớp endpoint trong hợp đồng. CI chạy frontend và backend độc lập.
+- Lượt kiểm tra hiện tại ghi nhận backend profile `auth-supabase` đang chạy API tại cổng `8080`, với biến môi trường riêng trong `storage-rental-secrets/backend.properties`.
+- Profile Supabase dùng PostgreSQL/Supabase với `spring.jpa.hibernate.ddl-auto=validate`; ứng dụng không tự tạo hoặc sửa schema khi khởi động.
+- Snapshot schema đã đối chiếu theo hướng read-only cho 18 entity; đã ghi nhận effects của migration `002` đến `016` hiện diện trên schema live. Đây là bằng chứng kiểm tra schema, không phải lượt thực thi migration mới.
+- Snapshot live được báo cáo có 5 facility: `HN-CG` có 29 unit, `HCM-Q7` có 2 unit, `HN-NTL`, `HCM-TB` và `DN-HC` hiện có 0 unit. Đây là số liệu của snapshot có sẵn, không phải dữ liệu seed sạch và không chứng minh tất cả cơ sở đã được nhập đủ dữ liệu vận hành.
+- Database còn lịch sử fixture và dữ liệu nghiệp vụ cũ. Không xem các con số snapshot này là số liệu kinh doanh production.
+- `npm run start:local` vẫn là H2 demo, có seed cục bộ và mất dữ liệu khi backend dừng; không dùng lệnh này để kết luận Supabase đã hoạt động.
 
-## Kết quả kiểm chứng
+## Đã có trong mã nguồn
 
-- npm run check: production build, 3 kiểm thử frontend và kiểm tra contract/adapter đều qua.
-- mvn -o verify: 8 kiểm thử backend qua, JAR Spring Boot đóng gói thành công.
-- Các bài backend kiểm tra biên hủy đúng 24 giờ, phí trễ làm tròn mỗi 24 giờ bắt đầu và trần theo giá hiện hành, NO_SHOW/đến quầy/sự cố/giữ chỗ, hạn mức hoàn, vai trò/chi nhánh, thuê–bàn giao–trả–nghiệm thu–vệ sinh–hoàn thủ công, thao tác trùng và hai yêu cầu hoàn đồng thời.
-- HTTP local đã kiểm tra đăng nhập và endpoint đúng quyền của cả 5 vai trò. Trình duyệt đã kiểm tra trang chủ tải catalog, đăng nhập khách local, menu đúng vai trò và tạo Reservation qua React → Vite proxy → Spring Boot → H2. Ảnh ở artifacts/react-reservation-smoke.png (đầu ra local được ignore).
+- Backend đã tách các module identity, facility, reservation, billing, rental, workforce, support, policy, reporting và audit; workflow liên module dùng transaction và kiểm tra owner/facility/role ở backend.
+- Flow reservation, check-in/handover, rented unit/return, policy/pricing/reporting và facility/staff có API và route frontend tương ứng.
+- Báo cáo có phạm vi FM theo facility và OPS theo toàn chuỗi. Báo cáo/export hiện trả thêm số hợp đồng `OVERDUE`, breakdown theo loại unit và breakdown theo trạng thái unit.
+- Flow gia hạn: backend tạo báo giá/hóa đơn `RENEW`; frontend không đưa hợp đồng `OVERDUE` vào lựa chọn gia hạn, khớp với backend đang chặn gia hạn trạng thái này.
+- Facility có cập nhật metadata/trạng thái `ACTIVE`/`INACTIVE`; unit có cập nhật loại, diện tích, giá và chuyển vào `maintenance` theo điều kiện nghiệp vụ. Không xóa unit đang có lịch sử; `maintenance` chủ đích dùng để rút unit khỏi nguồn kho khả dụng, sau đó Staff yêu cầu sẵn sàng và Manager duyệt trước khi quay lại `available`.
+- RBAC theo role và facility được cố định trong backend để bảo vệ nghiệp vụ. Chưa có editor cho phép người vận hành tự định nghĩa ma trận quyền tùy biến.
 
-## Giới hạn cần phân biệt với hoàn thiện toàn bộ sản phẩm
+## Giới hạn cần giữ rõ
 
-- Chưa chạy hoặc đối soát migration trên PostgreSQL/Supabase thật; H2 không chứng minh khóa/constraint và dữ liệu lịch sử trên PostgreSQL. Xem docs/guides/database-migration.md.
-- Một số màn hình vận hành dùng biểu mẫu nhập mã. Chưa nghiệm thu mọi màn hình/trạng thái theo từng frame Figma, mọi kích thước màn hình hoặc toàn bộ AC trong SRS.
-- Hợp đồng hiện mô tả route, quyền, đầu vào và lỗi; phần data của nhiều response vẫn dùng Envelope chung, cần bổ sung DTO response chi tiết khi triển khai từng phần tiếp theo.
-- OTP, thu tiền/QR và PIN là mô phỏng phần mềm, không kết nối email/ngân hàng/khóa IoT thật. Hoàn thủ công ghi nhận chứng từ, không tự chuyển tiền.
-- Báo cáo hiện là tổng thu/hoàn/lấp đầy theo phạm vi; chưa có bộ lọc thời kỳ, xuất báo cáo và đầy đủ chỉ số công nợ/đối soát.
-- Ticket ảnh/đánh giá, hoàn thiện tương tác chọn kho/nhân sự và các ngoại lệ vận hành còn cần phát triển/kiểm thử tiếp. Tái cấu trúc này không được dùng làm xác nhận toàn bộ nghiệp vụ đã nghiệm thu.
+- PIN kho và PIN cơ sở hiện là mô phỏng phần mềm; chưa kết nối khóa IoT, NFC/RFID hay thiết bị vật lý.
+- VNPay hiện dùng sandbox/integration mô phỏng theo môi trường; chưa phải thanh toán production.
+- `app.payments.simulation-enabled` mặc định là `false` và tắt ở Supabase; profile local/test mới bật mô phỏng. UI chỉ hiện QR mô phỏng khi API `/payments/bank-info` xác nhận cờ này là `true`. Supabase không tự ghi `PAID` từ thao tác xác nhận QR của Customer; thanh toán online đi qua VNPay và xác minh từ backend.
+- Hoàn tiền là quy trình thủ công: Staff cung cấp bằng chứng, Manager xác nhận; hệ thống không tự chuyển tiền ngân hàng.
+- OTP/email cần SMTP/Brevo hợp lệ trong Supabase profile; không coi việc có API login là bằng chứng email production đã giao thành công.
+- Facility/unit/staff/manager của từng cơ sở phải được kiểm tra và provision trong Supabase trước khi demo toàn chuỗi. Tài khoản `demo-seed` chỉ phục vụ dữ liệu mẫu, không đại diện dữ liệu thật.
+- Chưa dùng tài liệu này để khẳng định toàn bộ AC, mọi màn hình Figma, mọi nhánh lỗi, hoặc toàn bộ 5 flow đã nghiệm thu trên dữ liệu live.
 
-Không thực hiện ghi dữ liệu hoặc migration vào Supabase đang dùng.
+## Gap còn lại so với audit flow/service
+
+- Một số màn quản trị vẫn dùng `ResourcePage` và nhập mã/key thủ công: `ManageFacilitiesPage`, `ManageUnitsPage`, `PricingPolicyPage`, `RentalPolicyPage`, `RefundApprovalPage`, `UnitReadinessApprovalPage`, `StaffFacilityAssignmentPage`, `FacilityOverdueCapPage`. Chúng đã gọi API tương ứng nhưng chưa đạt dashboard, bộ lọc và thao tác theo dòng như mọi frame Figma.
+- `FacilityContractsPage` đã có bộ lọc trạng thái nhưng vẫn là bảng tổng quát; chưa có màn quản lý quá hạn riêng với nhắc nợ/hoãn khóa/quyết định xử lý. `OVERDUE` hiện không có đường gia hạn để tự khôi phục truy cập.
+- Ticket hỗ trợ yêu cầu unit thuộc hợp đồng `ACTIVE`/`EXPIRING_SOON`/`OVERDUE`; khách chưa có hợp đồng không gửi được ticket thanh toán cọc. Đây là giới hạn hiện tại của API, không phải đã hỗ trợ mọi yêu cầu thanh toán.
+- Phần report API/export đã bổ sung số quá hạn và phân loại unit/trạng thái, nhưng cần đối soát số liệu live theo từng facility và nghiệm thu cách hiển thị frontend. Không xem dữ liệu biểu đồ hiện tại là xác nhận toàn bộ chỉ số tài chính.
+- Ma trận RBAC chỉ đọc trên UI là chủ đích bảo vệ quyền cố định phía backend; không có tính năng tùy chỉnh quyền tùy ý. Việc gán role và facility cho tài khoản vẫn là nghiệp vụ Admin riêng.
+
+## Kiểm thử
+
+Chạy các bộ kiểm thử hiện tại từ root project bằng `npm run test:frontend`, `npm run build`, `npm run check:contract` và `mvn -f backend/pom.xml test`. Số lượng test có thể thay đổi theo commit; kết quả của từng lần chạy là bằng chứng của lần chạy đó, không ghi cố định vào tài liệu này.
+
+Không thực hiện migration hoặc ghi dữ liệu vào Supabase chỉ bằng việc đọc tài liệu trạng thái này.

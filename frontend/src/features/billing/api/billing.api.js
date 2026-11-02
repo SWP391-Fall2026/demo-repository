@@ -4,6 +4,7 @@ import { sessionStore } from "../../identity/session";
 export const billingApi = {
     invoices: () => request("/invoices"),
     payments: () => request("/payments/transactions"),
+    bankInfo: () => request("/payments/bank-info"),
     pay: (d) => idempotentRequest("/payments/simulate", d),
     createVnPay: (invoiceId) => request("/payments/vnpay/create", json("POST", { invoiceId })),
     refunds: () => request("/refunds"),

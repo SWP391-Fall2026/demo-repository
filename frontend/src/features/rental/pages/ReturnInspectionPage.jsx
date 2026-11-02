@@ -103,6 +103,10 @@ export default function ReturnInspectionPage() {
                 ["Hiện trạng kho", <StaffStatus value="CLEANING" />],
                 ["Khấu trừ theo chính sách", money(result.deductions)],
                 ["Tiền cọc có thể hoàn", money(result.refundableDeposit)],
+                ["Phụ phí vượt tiền cọc", money(result.extraCharge || 0)],
+                ...(result.extraInvoiceId
+                  ? [["Hóa đơn phụ phí", result.extraInvoiceId]]
+                  : []),
               ]}
             />
             <div className="staff-callout">
@@ -110,6 +114,12 @@ export default function ReturnInspectionPage() {
                 Tiền cọc được xử lý qua luồng yêu cầu và duyệt hoàn tiền. Kết
                 quả này chưa xác nhận chuyển tiền cho khách.
               </p>
+              {result.extraInvoiceId && (
+                <p>
+                  Phần phí vượt cọc đã có hóa đơn riêng. Khách xem và thanh toán
+                  trong mục Thanh toán của tài khoản.
+                </p>
+              )}
             </div>
             <Link className="button" to="/facility/tasks/my?type=RETURN">
               <StaffIcon name="list_alt" />

@@ -163,6 +163,8 @@ public class FacilityService {
         boolean occupied = units.findByFacilityCode(code).stream()
             .anyMatch(u -> Set.of("occupied", "reserved").contains(u.getStatus().toLowerCase(Locale.ROOT)));
         if (occupied) throw Inputs.conflict("Không thể ngưng cơ sở đang có kho đã đặt hoặc đang thuê");
+        if (!reservations.countUnassignedHolds(code, LocalDateTime.now(clock).minus(holdPolicy.pendingPaymentHold())).isEmpty())
+          throw Inputs.conflict("Không thể ngưng cơ sở đang có đơn giữ chỗ chưa gán kho");
       }
       f.setStatus(status);
     }
@@ -198,6 +200,10 @@ public class FacilityService {
   @Transactional
   public Unit updateUnit(String code, Map<String, Object> d) {
     var a = actor.require("FMANAGER");
+    // Reservation creation holds this same lock while selling capacity. Keep
+    // capacity edits serialized with new holds and with each other.
+    if (a.getFacilityCode() == null || a.getFacilityCode().isBlank()) throw Inputs.conflict("Tài khoản chưa được gán cơ sở");
+    facilities.lockByCode(a.getFacilityCode()).orElseThrow(Inputs::missing);
     var u = units.lockByCode(code).orElseThrow(Inputs::missing);
     actor.facility(a, u.getFacilityCode());
     String currentStatus = Objects.toString(u.getStatus(), "").toLowerCase(Locale.ROOT);
@@ -206,6 +212,7 @@ public class FacilityService {
       if (!mutableDefinition) throw Inputs.conflict("Không thể đổi loại kho khi kho đang được đặt hoặc đang thuê");
       String type = Inputs.text(d, "type").toUpperCase(Locale.ROOT);
       if (!Set.of("S", "M", "L", "CLIMATE").contains(type)) throw Inputs.bad("Loại kho không hợp lệ");
+      if ("available".equals(currentStatus) && !Objects.equals(type, u.getType())) requireSpareCapacity(u);
       u.setType(type);
     }
     if (d.containsKey("sizeSqm")) {
@@ -236,6 +243,8 @@ public class FacilityService {
   @Transactional
   public Unit updateStatus(String code, Map<String, Object> d) {
     var a = actor.require("STAFF", "FMANAGER");
+    if (a.getFacilityCode() == null || a.getFacilityCode().isBlank()) throw Inputs.conflict("Tài khoản chưa được gán cơ sở");
+    facilities.lockByCode(a.getFacilityCode()).orElseThrow(Inputs::missing);
     var u = units.lockByCode(code).orElseThrow(Inputs::missing);
     actor.facility(a, u.getFacilityCode());
     String next = Inputs.text(d, "status").toLowerCase(Locale.ROOT);
@@ -248,7 +257,8 @@ public class FacilityService {
         throw Inputs.conflict("Chỉ có thể đưa kho trống hoặc đang vệ sinh vào bảo trì");
       }
       String reason = Inputs.text(d, "reason");
-      if (reason.length() > 500) throw Inputs.bad("Lý do bảo trì tối đa 500 ký tự");
+      if (reason.length() > 255) throw Inputs.bad("Lý do bảo trì tối đa 255 ký tự");
+      if ("available".equals(current)) requireSpareCapacity(u);
       u.setReadinessNotes(reason);
       u.setReadinessStatus(null);
       u.setTenantName(null);
@@ -260,6 +270,17 @@ public class FacilityService {
     u.setStatus(next);
     audit.record("UPDATE_UNIT_STATUS", code, "Chuyển trạng thái kho: " + current + " -> " + next);
     return units.save(u);
+  }
+
+  private void requireSpareCapacity(Unit unit) {
+    long available = units.countAvailableByType(unit.getFacilityCode()).stream()
+      .filter(count -> Objects.equals(unit.getType(), count.getUnitType()))
+      .mapToLong(UnitRepository.AvailableCount::getQuantity).sum();
+    long held = reservations.countUnassignedHolds(unit.getFacilityCode(), LocalDateTime.now(clock).minus(holdPolicy.pendingPaymentHold())).stream()
+      .filter(hold -> Objects.equals(unit.getType(), hold.getUnitType()))
+      .mapToLong(ReservationRepository.HoldCount::getQuantity).sum();
+    if (available <= held)
+      throw Inputs.conflict("Không thể giảm số kho trống đang bảo đảm cho đơn giữ chỗ chưa gán kho");
   }
 
   private void setImageLink(Unit unit, Map<String, Object> data) {

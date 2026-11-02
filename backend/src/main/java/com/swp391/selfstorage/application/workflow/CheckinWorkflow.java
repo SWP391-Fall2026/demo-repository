@@ -63,6 +63,11 @@ public class CheckinWorkflow {
   @Transactional
   public DailyTask request(String reservationId) {
     var customer = actor.require("CUSTOMER");
+    var visible = reservations.findScopeById(reservationId).orElseThrow(Inputs::missing);
+    if (!actor.visible(customer, visible.getUserId(), visible.getFacilityCode())) throw Inputs.missing();
+    // Keep the same Facility -> Reservation -> Unit lock order as manager
+    // assignment and capacity edits; assigning also consumes available capacity.
+    facilities.lockByCode(visible.getFacilityCode()).orElseThrow(Inputs::missing);
     Reservation reservation = reservations.lockById(reservationId).orElseThrow(Inputs::missing);
     if (!actor.visible(customer, reservation.getUserId(), reservation.getFacilityCode())) throw Inputs.missing();
     if (!"RESERVED".equals(reservation.getStatus()))

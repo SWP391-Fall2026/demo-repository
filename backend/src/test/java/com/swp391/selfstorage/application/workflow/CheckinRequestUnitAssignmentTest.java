@@ -1,14 +1,15 @@
 package com.swp391.selfstorage.application.workflow;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.swp391.selfstorage.common.security.ActorContext;
-import com.swp391.selfstorage.modules.audit.service.AuditLogService;
 import com.swp391.selfstorage.modules.billing.repository.InvoiceRepository;
 import com.swp391.selfstorage.modules.billing.service.InvoiceService;
 import com.swp391.selfstorage.modules.facility.entity.Unit;
+import com.swp391.selfstorage.modules.facility.entity.Facility;
 import com.swp391.selfstorage.modules.facility.repository.FacilityRepository;
 import com.swp391.selfstorage.modules.facility.repository.UnitRepository;
 import com.swp391.selfstorage.modules.identity.entity.User;
@@ -26,6 +27,8 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 class CheckinRequestUnitAssignmentTest {
   private final ReservationRepository reservations = mock(ReservationRepository.class);
@@ -64,6 +67,8 @@ class CheckinRequestUnitAssignmentTest {
     task.setId("TSK-1");
     when(actor.require("CUSTOMER")).thenReturn(customer);
     when(actor.visible(customer, customer.getId(), "HN-CG")).thenReturn(true);
+    when(reservations.findScopeById("RSV-1")).thenReturn(Optional.of(scope(reservation)));
+    when(facilities.lockByCode("HN-CG")).thenReturn(Optional.of(new Facility()));
     when(reservations.lockById("RSV-1")).thenReturn(Optional.of(reservation));
     when(units.lockAvailableByFacilityAndType("HN-CG", "S", PageRequest.of(0, 1)))
         .thenReturn(List.of(unit));
@@ -78,7 +83,10 @@ class CheckinRequestUnitAssignmentTest {
     assertEquals("reserved", unit.getStatus());
     verify(invoices).requirePaid("RSV-1", "DEPOSIT");
     verify(taskService).requestCheckin(reservation);
-    verify(units).lockAvailableByFacilityAndType("HN-CG", "S", PageRequest.of(0, 1));
+    var order = inOrder(facilities, reservations, units);
+    order.verify(facilities).lockByCode("HN-CG");
+    order.verify(reservations).lockById("RSV-1");
+    order.verify(units).lockAvailableByFacilityAndType("HN-CG", "S", PageRequest.of(0, 1));
   }
 
   @Test
@@ -101,6 +109,8 @@ class CheckinRequestUnitAssignmentTest {
     DailyTask task = new DailyTask();
     when(actor.require("CUSTOMER")).thenReturn(customer);
     when(actor.visible(customer, customer.getId(), "HN-CG")).thenReturn(true);
+    when(reservations.findScopeById("RSV-1")).thenReturn(Optional.of(scope(reservation)));
+    when(facilities.lockByCode("HN-CG")).thenReturn(Optional.of(new Facility()));
     when(reservations.lockById("RSV-1")).thenReturn(Optional.of(reservation));
     when(units.lockByCode("HN-CG-S-01")).thenReturn(Optional.of(unit));
     when(tasks.findByReservationIdAndTaskType("RSV-1", "CHECKIN"))
@@ -109,5 +119,27 @@ class CheckinRequestUnitAssignmentTest {
     assertEquals(task, workflow.request("RSV-1"));
     verify(units, never()).lockAvailableByFacilityAndType(any(), any(), any());
     verify(taskService, never()).requestCheckin(any());
+  }
+
+  @Test
+  void unownedReservationDoesNotAcquireCapacityLock() {
+    User customer = new User(); customer.setId("OTHER-CUSTOMER");
+    Reservation reservation = new Reservation();
+    reservation.setUserId("OWNER"); reservation.setFacilityCode("HN-CG");
+    when(actor.require("CUSTOMER")).thenReturn(customer);
+    when(reservations.findScopeById("RSV-1")).thenReturn(Optional.of(scope(reservation)));
+
+    var failure = assertThrows(ResponseStatusException.class, () -> workflow.request("RSV-1"));
+
+    assertEquals(HttpStatus.NOT_FOUND, failure.getStatusCode());
+    verifyNoInteractions(facilities, units, invoices, tasks, taskService);
+    verify(reservations, never()).lockById(any());
+  }
+
+  private ReservationRepository.ReservationScope scope(Reservation reservation) {
+    return new ReservationRepository.ReservationScope() {
+      public String getUserId() { return reservation.getUserId(); }
+      public String getFacilityCode() { return reservation.getFacilityCode(); }
+    };
   }
 }

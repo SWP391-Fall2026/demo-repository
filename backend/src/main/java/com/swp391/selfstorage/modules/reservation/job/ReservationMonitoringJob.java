@@ -39,14 +39,16 @@ public class ReservationMonitoringJob {
   @Scheduled(fixedDelayString = "${app.reservation-monitor-ms:5000}")
   @Transactional
   public void monitor() {
-    var now = LocalDateTime.now(clock);
-    for (var candidate : reservations.findByStatus("PENDING_PAYMENT")) {
+    for (var id : reservations.findPendingPaymentIds()) {
+      // Lock state before reading its deadline; never preload managed candidates
+      // that may change while settlement waits for a capacity lock.
+      var r = reservations.lockById(id).orElseThrow();
+      var now = LocalDateTime.now(clock);
       if (
-        !candidate.getCreatedAt().plus(holdPolicy.pendingPaymentHold()).isAfter(now)
+        "PENDING_PAYMENT".equals(r.getStatus()) &&
+        !r.getCreatedAt().plus(holdPolicy.pendingPaymentHold()).isAfter(now)
       ) {
-        var pendingInvoices = invoices.lockByReservationId(candidate.getId());
-        var r = reservations.lockById(candidate.getId()).orElseThrow();
-        if (!"PENDING_PAYMENT".equals(r.getStatus())) continue;
+        var pendingInvoices = invoices.lockByReservationId(r.getId());
         r.setStatus("EXPIRED");
         if (r.getUnitCode() != null) {
           units.lockByCode(r.getUnitCode()).ifPresent(unit -> {
@@ -67,6 +69,7 @@ public class ReservationMonitoringJob {
         });
       }
     }
+    var now = LocalDateTime.now(clock);
     for (var candidate : reservations.findAll()) {
       if (
         rules.eligible(candidate, now) && candidate.getNoShowAlertAt() == null

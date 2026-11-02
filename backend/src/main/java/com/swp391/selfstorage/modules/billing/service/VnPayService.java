@@ -9,7 +9,6 @@ import com.swp391.selfstorage.modules.billing.repository.InvoiceRepository;
 import com.swp391.selfstorage.modules.billing.repository.PaymentRepository;
 import com.swp391.selfstorage.modules.rental.repository.ContractRepository;
 import com.swp391.selfstorage.modules.reservation.repository.ReservationRepository;
-import com.swp391.selfstorage.modules.reservation.service.ReservationHoldPolicy;
 import com.swp391.selfstorage.modules.rental.service.RenewalService;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
@@ -36,9 +35,9 @@ public class VnPayService {
   private final ActorContext actor;
   private final AuditLogService audit;
   private final Clock clock;
-  private final ReservationHoldPolicy holdPolicy;
   private final com.swp391.selfstorage.application.workflow.PaidRentActivationService rentActivation;
   private final RenewalService renewalService;
+  private final DepositPaymentLockService depositLocks;
   private final String url, tmnCode, hashSecret, returnUrl, frontendUrl;
 
   public VnPayService(InvoiceRepository invoices, PaymentRepository payments,
@@ -47,17 +46,16 @@ public class VnPayService {
       @Value("${vnpay.hash-secret:}") String hashSecret,
       @Value("${vnpay.return-url:}") String returnUrl,
       @Value("${app.frontend-url:http://localhost:5173}") String frontendUrl,
-      ReservationHoldPolicy holdPolicy,
       com.swp391.selfstorage.application.workflow.PaidRentActivationService rentActivation,
-      RenewalService renewalService) {
+      RenewalService renewalService, DepositPaymentLockService depositLocks) {
     this.invoices = invoices; this.payments = payments; this.reservations = reservations;
     this.contracts = contracts;
     this.actor = actor; this.audit = audit; this.clock = clock; this.url = url;
     this.tmnCode = tmnCode; this.hashSecret = hashSecret; this.returnUrl = returnUrl;
     this.frontendUrl = frontendUrl;
-    this.holdPolicy = holdPolicy;
     this.rentActivation = rentActivation;
     this.renewalService = renewalService;
+    this.depositLocks = depositLocks;
   }
 
   @Transactional
@@ -65,7 +63,9 @@ public class VnPayService {
     if (url.isBlank() || tmnCode.isBlank() || hashSecret.isBlank() || returnUrl.isBlank())
       throw Inputs.conflict("VNPay chưa được cấu hình đầy đủ");
     var user = actor.require("CUSTOMER");
+    var depositReservation = depositLocks.forInvoice(invoiceId).orElse(null);
     Invoice invoice = invoices.lockById(invoiceId).orElseThrow(Inputs::missing);
+    LocalDateTime now = LocalDateTime.now(clock);
     if (!actor.visible(user, invoice.getUserId(), invoice.getFacilityCode())) throw Inputs.missing();
     if (!"PENDING".equals(invoice.getStatus())) throw Inputs.conflict("Hóa đơn không còn chờ thanh toán");
     if (invoice.getAmount() == null || invoice.getAmount().signum() <= 0 ||
@@ -73,8 +73,7 @@ public class VnPayService {
       throw Inputs.bad("Số tiền hóa đơn phải là số VND nguyên dương");
     }
     if ("DEPOSIT".equals(invoice.getInvoiceType())) {
-      var r = reservations.lockById(invoice.getReservationId()).orElseThrow(Inputs::missing);
-      if (!"PENDING_PAYMENT".equals(r.getStatus()) || !r.getCreatedAt().plus(holdPolicy.pendingPaymentHold()).isAfter(LocalDateTime.now(clock)))
+      if (!depositLocks.payable(invoice, depositReservation, now))
         throw Inputs.conflict("Đơn đặt cọc đã hết hạn");
     } else if ("RENT".equals(invoice.getInvoiceType())) {
       var r = reservations.lockById(invoice.getReservationId()).orElseThrow(Inputs::missing);
@@ -92,7 +91,6 @@ public class VnPayService {
         throw Inputs.conflict("Hợp đồng không thể gia hạn");
     }
     String paymentId = "PAY-" + UUID.randomUUID();
-    LocalDateTime now = LocalDateTime.now(clock);
     Payment p = new Payment(); p.setId(paymentId); p.setInvoiceId(invoice.getId());
     p.setReservationId(invoice.getReservationId()); p.setContractId(invoice.getContractId());
     p.setUserId(invoice.getUserId()); p.setFacilityCode(invoice.getFacilityCode());
@@ -125,12 +123,15 @@ public class VnPayService {
     if (!validSignature(incoming)) return response("97", "Invalid signature");
     if (!tmnCode.equals(incoming.get("vnp_TmnCode"))) return response("97", "Invalid terminal");
     String txnRef = incoming.get("vnp_TxnRef");
+    var lockedDepositReservation = depositLocks.forTransaction(txnRef).orElse(null);
     Payment payment = payments.lockByTransactionCode(txnRef).orElse(null);
     if (payment == null) return response("01", "Order not found");
     Invoice invoice = invoices.lockById(payment.getInvoiceId()).orElse(null);
     if (invoice == null) return response("01", "Invoice not found");
     if (!"PENDING".equals(payment.getStatus()))
       return response("PAID".equals(payment.getStatus()) ? "00" : "02", "Order already processed");
+    if (!"PENDING".equals(invoice.getStatus()))
+      return response("02", "Invoice already processed");
     String amount = incoming.get("vnp_Amount");
     String expected = invoice.getAmount().multiply(BigDecimal.valueOf(100)).toBigIntegerExact().toString();
     if (!expected.equals(amount) || !txnRef.equals(payment.getTransactionCode()) ||
@@ -139,9 +140,8 @@ public class VnPayService {
     com.swp391.selfstorage.modules.reservation.entity.Reservation rentReservation = null;
     if ("00".equals(incoming.get("vnp_ResponseCode")) && "00".equals(incoming.get("vnp_TransactionStatus"))) {
       if ("DEPOSIT".equals(invoice.getInvoiceType())) {
-        depositReservation = reservations.lockById(invoice.getReservationId()).orElse(null);
-        if (depositReservation == null || !"PENDING_PAYMENT".equals(depositReservation.getStatus())) return response("04", "Reservation state mismatch");
-        if (!depositReservation.getCreatedAt().plus(holdPolicy.pendingPaymentHold()).isAfter(LocalDateTime.now(clock)))
+        depositReservation = lockedDepositReservation;
+        if (!depositLocks.payable(invoice, depositReservation, LocalDateTime.now(clock)))
           return response("04", "Reservation payment window expired");
       } else if ("RENT".equals(invoice.getInvoiceType())) {
         rentReservation = reservations.lockById(invoice.getReservationId()).orElse(null);

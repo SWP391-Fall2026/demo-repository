@@ -3,6 +3,7 @@ package com.swp391.selfstorage;
 import static org.junit.jupiter.api.Assertions.*;
 import com.swp391.selfstorage.modules.workforce.entity.DailyTask;
 import com.swp391.selfstorage.modules.workforce.repository.DailyTaskRepository;
+import java.util.ArrayList;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
@@ -27,14 +28,27 @@ class DailyTasksSupabaseReadTest {
   void currentTaskRepositoryWorksWithoutLegacyTable()throws Exception{
     assertEquals("postgres.xnerbsgbwdpemvnatvuy",environment.getProperty("spring.datasource.username"));
     assertEquals("daily_tasks",DailyTask.class.getAnnotation(jakarta.persistence.Table.class).name());
+    var facilityCodes = new ArrayList<String>();
     try(var c=dataSource.getConnection()){
       HandoverMigration015Test.target(c);
       assertNull(HandoverMigration015Test.scalar(c,"select to_regclass('public.staff_tasks')::text"));
       assertNotNull(HandoverMigration015Test.scalar(c,"select to_regclass('public.daily_tasks')::text"));
+      try (var query = c.prepareStatement("select code from public.facilities order by code");
+           var rows = query.executeQuery()) {
+        while (rows.next()) facilityCodes.add(rows.getString(1));
+      }
     }
-    var rows=tasks.findByFacilityCode("HN-CG");
-    for(var task:rows){assertEquals("HN-CG",task.getFacilityCode());assertNotNull(task.getId());}
-    assertTrue(tasks.count()>=rows.size());
-    System.out.println("DailyTask PostgreSQL mapping/query PASS; legacy table absent; HN-CG tasks="+rows.size());
+    long scopedTaskCount = 0;
+    for (String facilityCode : facilityCodes) {
+      var rows = tasks.findByFacilityCode(facilityCode);
+      for (var task : rows) {
+        assertEquals(facilityCode, task.getFacilityCode());
+        assertNotNull(task.getId());
+      }
+      scopedTaskCount += rows.size();
+    }
+    assertTrue(tasks.count() >= scopedTaskCount);
+    System.out.println("DailyTask PostgreSQL mapping/query PASS; legacy table absent; facilities="
+      + facilityCodes + "; scoped tasks=" + scopedTaskCount);
   }
 }

@@ -1,6 +1,7 @@
 package com.swp391.selfstorage.modules.workforce;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -24,6 +25,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.server.ResponseStatusException;
 
 class TaskServiceUnitAssignmentTest {
   private final DailyTaskRepository tasks = mock(DailyTaskRepository.class);
@@ -47,6 +49,7 @@ class TaskServiceUnitAssignmentTest {
     staff.setId("USR-STAFF");
     staff.setName("Test Staff");
     staff.setFacilityCode("HN-CG");
+    staff.setStatus("ACTIVE");
     Reservation reservation = new Reservation();
     reservation.setId("RSV-LEGACY");
     reservation.setFacilityCode("HN-CG");
@@ -65,8 +68,9 @@ class TaskServiceUnitAssignmentTest {
     unit.setType("S");
     unit.setStatus("available");
     when(actor.require("FMANAGER")).thenReturn(manager);
+    when(facilities.lockByCode("HN-CG")).thenReturn(Optional.of(new com.swp391.selfstorage.modules.facility.entity.Facility()));
     when(actor.role(staff)).thenReturn("STAFF");
-    when(tasks.findById(task.getId())).thenReturn(Optional.of(task));
+    when(tasks.lockById(task.getId())).thenReturn(Optional.of(task));
     when(users.findById(staff.getId())).thenReturn(Optional.of(staff));
     when(reservations.lockById(reservation.getId())).thenReturn(Optional.of(reservation));
     when(reservations.findById(reservation.getId())).thenReturn(Optional.of(reservation));
@@ -85,5 +89,17 @@ class TaskServiceUnitAssignmentTest {
     assertEquals(staff.getId(), task.getStaffId());
     verify(invoices).requirePaid(reservation.getId(), "DEPOSIT");
     verify(units).lockAvailableByFacilityAndType("HN-CG", "S", PageRequest.of(0, 1));
+    var order = inOrder(facilities, tasks, reservations, units);
+    order.verify(facilities).lockByCode("HN-CG");
+    order.verify(tasks).lockById(task.getId());
+    order.verify(reservations).lockById(reservation.getId());
+    order.verify(units).lockAvailableByFacilityAndType("HN-CG", "S", PageRequest.of(0, 1));
+  }
+
+  @Test
+  void managerWithoutFacilityCannotAssignTaskOrConsumeCapacity() {
+    when(actor.require("FMANAGER")).thenReturn(new User());
+    assertThrows(ResponseStatusException.class, () -> service.assignExisting("TSK-1", Map.of()));
+    verifyNoInteractions(facilities, tasks, reservations, units);
   }
 }

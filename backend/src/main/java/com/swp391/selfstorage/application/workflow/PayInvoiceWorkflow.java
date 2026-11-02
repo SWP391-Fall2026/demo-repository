@@ -5,13 +5,14 @@ import com.swp391.selfstorage.common.web.*;
 import com.swp391.selfstorage.modules.audit.service.AuditLogService;
 import com.swp391.selfstorage.modules.billing.entity.*;
 import com.swp391.selfstorage.modules.billing.repository.*;
+import com.swp391.selfstorage.modules.billing.service.DepositPaymentLockService;
 import com.swp391.selfstorage.modules.rental.repository.ContractRepository;
 import com.swp391.selfstorage.modules.rental.service.RenewalService;
 import com.swp391.selfstorage.modules.reservation.repository.ReservationRepository;
-import com.swp391.selfstorage.modules.reservation.service.ReservationHoldPolicy;
 import java.math.*;
 import java.time.*;
 import java.util.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,9 +26,10 @@ public class PayInvoiceWorkflow {
   private final ActorContext actor;
   private final AuditLogService audit;
   private final Clock clock;
-  private final ReservationHoldPolicy holdPolicy;
   private final PaidRentActivationService rentActivation;
   private final RenewalService renewalService;
+  private final DepositPaymentLockService depositLocks;
+  private final boolean simulationEnabled;
 
   public PayInvoiceWorkflow(
     InvoiceRepository i,
@@ -37,9 +39,10 @@ public class PayInvoiceWorkflow {
     ActorContext a,
     AuditLogService au,
     Clock cl,
-    ReservationHoldPolicy holdPolicy,
     PaidRentActivationService rentActivation,
-    RenewalService renewalService
+    RenewalService renewalService,
+    DepositPaymentLockService depositLocks,
+    @Value("${app.payments.simulation-enabled:false}") boolean simulationEnabled
   ) {
     invoices = i;
     payments = p;
@@ -48,15 +51,19 @@ public class PayInvoiceWorkflow {
     actor = a;
     audit = au;
     clock = cl;
-    this.holdPolicy = holdPolicy;
     this.rentActivation = rentActivation;
     this.renewalService = renewalService;
+    this.depositLocks = depositLocks;
+    this.simulationEnabled = simulationEnabled;
   }
 
   @Transactional
   public Payment execute(Map<String, Object> d, String key) {
     var a = actor.require("CUSTOMER", "STAFF");
     String invoiceId = Inputs.text(d, "invoiceId");
+    // Shared order with assignment/capacity changes and cancellation:
+    // Facility -> Reservation -> Invoice. Read clock only after waiting.
+    var depositReservation = depositLocks.forInvoice(invoiceId).orElse(null);
     var i = invoices.lockById(invoiceId).orElseThrow(Inputs::missing);
     if (
       !actor.visible(a, i.getUserId(), i.getFacilityCode())
@@ -75,12 +82,8 @@ public class PayInvoiceWorkflow {
     );
     var now = LocalDateTime.now(clock);
     if ("DEPOSIT".equals(i.getInvoiceType())) {
-      var r = reservations
-        .lockById(i.getReservationId())
-        .orElseThrow(Inputs::missing);
       if (
-        !"PENDING_PAYMENT".equals(r.getStatus()) ||
-        !r.getCreatedAt().plus(holdPolicy.pendingPaymentHold()).isAfter(now)
+        !depositLocks.payable(i, depositReservation, now)
       ) throw Inputs.conflict("Đơn đã hết hạn đóng cọc");
     }
     if ("RENT".equals(i.getInvoiceType())) {
@@ -109,6 +112,8 @@ public class PayInvoiceWorkflow {
         method
       )
     ) throw Inputs.bad("Phương thức thanh toán không hợp lệ");
+    if (!simulationEnabled && Set.of("MOCK_CARD", "BANK_TRANSFER_QR").contains(method))
+      throw Inputs.conflict("Thanh toán mô phỏng đang tắt. Chọn VNPay hoặc thanh toán tại quầy.");
     if ("MOCK_CARD".equals(method)) validateMockCard(d);
     if (
       "STAFF".equals(actor.role(a)) && !"CASH_AT_COUNTER".equals(method)
@@ -150,9 +155,8 @@ public class PayInvoiceWorkflow {
       i.setStatus("PAID");
       invoices.save(i);
       if ("DEPOSIT".equals(i.getInvoiceType())) {
-        var r = reservations.lockById(i.getReservationId()).orElseThrow();
-        r.setStatus("RESERVED");
-        reservations.save(r);
+        depositReservation.setStatus("RESERVED");
+        reservations.save(depositReservation);
       }
       if ("RENT".equals(i.getInvoiceType())) {
         var r = reservations.lockById(i.getReservationId()).orElseThrow(Inputs::missing);

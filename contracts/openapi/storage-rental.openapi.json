@@ -284,7 +284,7 @@
           "billing"
         ],
         "summary": "Payment: bank",
-        "description": "Authorized roles: CUSTOMER, STAFF, FMANAGER. Customer ownership and assigned-facility scope are enforced by the service.",
+        "description": "Authorized roles: CUSTOMER, STAFF, FMANAGER. Returns gateway and simulationEnabled capabilities. Simulated QR/card payments are disabled by default; enable explicitly for local tests.",
         "security": [
           {
             "bearerAuth": []
@@ -455,7 +455,7 @@
           "billing"
         ],
         "summary": "Payment: pay",
-        "description": "Authorized roles: CUSTOMER, STAFF. Customer ownership and assigned-facility scope are enforced by the service.",
+        "description": "Authorized roles: CUSTOMER, STAFF. Customer ownership and assigned-facility scope are enforced by the service. MOCK_CARD and BANK_TRANSFER_QR require app.payments.simulation-enabled=true; CASH_AT_COUNTER requires STAFF. VNPay settlement uses the signed gateway endpoints.",
         "security": [
           {
             "bearerAuth": []
@@ -9354,7 +9354,8 @@
         "type": "object",
         "properties": {
           "title": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 255
           },
           "description": {
             "type": "string"
@@ -9366,7 +9367,8 @@
             "type": "string"
           },
           "priority": {
-            "type": "string"
+            "type": "string",
+            "enum": ["NORMAL", "HIGH", "URGENT"]
           }
         },
         "required": [
@@ -9383,7 +9385,13 @@
             "type": "string"
           },
           "notes": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 255
+          },
+          "rating": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
           },
           "staffAssigned": {
             "type": "string"
@@ -9920,7 +9928,7 @@
           },
           "reason": {
             "type": "string",
-            "maxLength": 500
+            "maxLength": 255
           }
         }
       },
@@ -9975,7 +9983,7 @@
         "properties": {
           "notes": {
             "type": "string",
-            "maxLength": 500
+            "maxLength": 200
           }
         }
       }

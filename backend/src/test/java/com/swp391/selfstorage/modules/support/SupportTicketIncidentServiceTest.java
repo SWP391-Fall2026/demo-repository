@@ -12,6 +12,7 @@ import com.swp391.selfstorage.modules.facility.repository.UnitRepository;
 import com.swp391.selfstorage.modules.identity.entity.User;
 import com.swp391.selfstorage.modules.identity.repository.UserRepository;
 import com.swp391.selfstorage.modules.rental.repository.ContractRepository;
+import com.swp391.selfstorage.modules.rental.entity.Contract;
 import com.swp391.selfstorage.modules.support.entity.SupportTicket;
 import com.swp391.selfstorage.modules.support.repository.SupportTicketRepository;
 import com.swp391.selfstorage.modules.support.service.SupportTicketService;
@@ -19,6 +20,7 @@ import java.math.BigDecimal;
 import java.time.*;
 import java.util.*;
 import org.junit.jupiter.api.Test;
+import org.springframework.web.server.ResponseStatusException;
 
 class SupportTicketIncidentServiceTest {
   private final SupportTicketRepository tickets = mock(SupportTicketRepository.class);
@@ -58,7 +60,10 @@ class SupportTicketIncidentServiceTest {
     unit.setSizeSqm(new BigDecimal("1")); unit.setPricePerMonth(new BigDecimal("100"));
     unit.setStatus("occupied");
     when(actor.require("STAFF", "FMANAGER")).thenReturn(staff);
+    when(actor.role(staff)).thenReturn("STAFF");
     when(tickets.lockById("T-1")).thenReturn(Optional.of(ticket));
+    Contract contract = activeContract();
+    when(contracts.findFirstForUpdateByUnitCodeAndStatusInOrderByCreatedAtDesc(eq(ticket.getUnitCode()), anyCollection())).thenReturn(Optional.of(contract));
     when(units.lockByCode("HN-CG-S-01")).thenReturn(Optional.of(unit));
     when(tickets.save(any(SupportTicket.class))).thenAnswer(call -> call.getArgument(0));
 
@@ -73,9 +78,51 @@ class SupportTicketIncidentServiceTest {
     verify(audit).record("RESET_TEMPORARY_PIN", "T-1", "Cấp PIN tạm cho kho HN-CG-S-01");
   }
 
+  @Test void resetPinRejectsTicketAssignedToAnotherStaff() {
+    User staff = user("ST-1", "STAFF", "HN-CG");
+    SupportTicket ticket = ticket(); ticket.setStaffAssigned("ST-2");
+    when(actor.require("STAFF", "FMANAGER")).thenReturn(staff);
+    when(actor.role(staff)).thenReturn("STAFF");
+    when(tickets.lockById("T-1")).thenReturn(Optional.of(ticket));
+    assertThrows(ResponseStatusException.class, () -> service.resetTemporaryPin("T-1", Map.of()));
+    verify(units, never()).save(any());
+  }
+
+  @Test void resetPinRejectsFormerTenantTicketAndResolvedTicket() {
+    User staff = user("ST-1", "STAFF", "HN-CG");
+    SupportTicket ticket = ticket();
+    when(actor.require("STAFF", "FMANAGER")).thenReturn(staff);
+    when(actor.role(staff)).thenReturn("STAFF");
+    when(tickets.lockById("T-1")).thenReturn(Optional.of(ticket));
+    Contract contract = activeContract(); contract.setUserId("NEW-CUSTOMER");
+    when(contracts.findFirstForUpdateByUnitCodeAndStatusInOrderByCreatedAtDesc(eq(ticket.getUnitCode()), anyCollection())).thenReturn(Optional.of(contract));
+    assertThrows(ResponseStatusException.class, () -> service.resetTemporaryPin("T-1", Map.of()));
+    ticket.setStatus("RESOLVED");
+    assertThrows(ResponseStatusException.class, () -> service.resetTemporaryPin("T-1", Map.of()));
+    verify(units, never()).save(any());
+  }
+
+  @Test void resetPinRejectsTerminatedRentalBeforeIssuingCredential() {
+    User staff = user("ST-1", "STAFF", "HN-CG");
+    SupportTicket ticket = ticket();
+    when(actor.require("STAFF", "FMANAGER")).thenReturn(staff);
+    when(actor.role(staff)).thenReturn("STAFF");
+    when(tickets.lockById("T-1")).thenReturn(Optional.of(ticket));
+    when(contracts.findFirstForUpdateByUnitCodeAndStatusInOrderByCreatedAtDesc(eq(ticket.getUnitCode()), anyCollection())).thenReturn(Optional.empty());
+    assertThrows(ResponseStatusException.class, () -> service.resetTemporaryPin("T-1", Map.of()));
+    verify(units, never()).lockByCode(any());
+    verify(units, never()).save(any()); verify(tickets, never()).save(any());
+  }
+
+  private static Contract activeContract() {
+    Contract c = new Contract(); c.setId("C-1"); c.setUserId("CUS-1"); c.setFacilityCode("HN-CG"); c.setUnitCode("HN-CG-S-01");
+    c.setStatus("ACTIVE"); c.setCreatedAt(LocalDateTime.of(2026, 11, 1, 0, 0)); c.setEndAt(LocalDateTime.of(2026, 12, 2, 0, 0));
+    return c;
+  }
+
   private static SupportTicket ticket() {
     SupportTicket t = new SupportTicket(); t.setId("T-1"); t.setFacilityCode("HN-CG"); t.setUnitCode("HN-CG-S-01");
-    t.setUserId("CUS-1"); t.setStatus("OPEN"); t.setTitle("Quên PIN"); return t;
+    t.setUserId("CUS-1"); t.setStatus("OPEN"); t.setCategory("ACCESS"); t.setTitle("Quên PIN"); return t;
   }
 
   private static User user(String id, String role, String facility) {

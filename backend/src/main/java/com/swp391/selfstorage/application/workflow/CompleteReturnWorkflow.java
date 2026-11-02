@@ -3,6 +3,7 @@ package com.swp391.selfstorage.application.workflow;
 import com.swp391.selfstorage.common.security.ActorContext;
 import com.swp391.selfstorage.common.web.*;
 import com.swp391.selfstorage.modules.audit.service.AuditLogService;
+import com.swp391.selfstorage.modules.billing.service.InvoiceService;
 import com.swp391.selfstorage.modules.facility.repository.UnitRepository;
 import com.swp391.selfstorage.modules.policy.service.PolicyService;
 import com.swp391.selfstorage.modules.rental.entity.*;
@@ -26,6 +27,7 @@ public class CompleteReturnWorkflow {
   private final AuditLogService audit;
   private final Clock clock;
   private final com.swp391.selfstorage.modules.workforce.service.TaskService tasks;
+  private final InvoiceService invoices;
 
   public CompleteReturnWorkflow(
     ContractRepository c,
@@ -36,7 +38,8 @@ public class CompleteReturnWorkflow {
     OverdueFeeCalculator f,
     AuditLogService au,
     Clock cl,
-    com.swp391.selfstorage.modules.workforce.service.TaskService tasks
+    com.swp391.selfstorage.modules.workforce.service.TaskService tasks,
+    InvoiceService invoices
   ) {
     contracts = c;
     inspections = i;
@@ -47,23 +50,23 @@ public class CompleteReturnWorkflow {
     audit = au;
     clock = cl;
     this.tasks = tasks;
+    this.invoices = invoices;
   }
 
   @Transactional
   public Map<String, Object> execute(Map<String, Object> d) {
     var staff = actor.require("STAFF");
     String unitCode = Inputs.text(d, "unitCode");
-    var found = contracts
-      .findFirstByUnitCodeAndStatusInOrderByCreatedAtDesc(
+    var c = contracts
+      .findFirstForUpdateByUnitCodeAndStatusInOrderByCreatedAtDesc(
         unitCode,
         List.of("ACTIVE", "EXPIRING_SOON", "OVERDUE")
       )
       .orElseThrow(Inputs::missing);
-    var c = contracts.lockById(found.getId()).orElseThrow(Inputs::missing);
     actor.facility(staff, c.getFacilityCode());
     tasks.requireAssignedReturn(c.getId(), staff.getId());
     if (
-      "TERMINATED".equals(c.getStatus()) || c.getCheckoutRequestedAt() == null
+      !Set.of("ACTIVE", "EXPIRING_SOON", "OVERDUE").contains(c.getStatus()) || c.getCheckoutRequestedAt() == null
     ) throw Inputs.conflict("Chưa có yêu cầu trả hợp lệ");
     var unit = units.lockByCode(unitCode).orElseThrow(Inputs::missing);
     var now = LocalDateTime.now(clock);
@@ -96,6 +99,14 @@ public class CompleteReturnWorkflow {
       "CLEAN".equals(cleanliness) && !Boolean.TRUE.equals(d.get("lockDamaged"))
     );
     inspections.save(i);
+    BigDecimal extraCharge = deductions.subtract(c.getDepositFee()).max(BigDecimal.ZERO);
+    String extraInvoiceId = "";
+    if (extraCharge.signum() > 0) {
+      var invoice = invoices.issue(null, c.getId(), c.getUserId(), c.getFacilityCode(), "EXTRA", extraCharge,
+        now.plusDays(3), "{\"source\":\"RETURN_INSPECTION\",\"inspectionId\":\"" + i.getId() + "\"}");
+      invoice.setDescription("Phụ phí nghiệm thu vượt tiền cọc: " + i.getId());
+      extraInvoiceId = invoice.getId();
+    }
     c.setStatus("TERMINATED");
     c.setTerminatedAt(now);
     c.setPinCode(null);
@@ -124,7 +135,11 @@ public class CompleteReturnWorkflow {
       "refundableDeposit",
       i.getDepositRefundAmount(),
       "unitStatus",
-      "cleaning"
+      "cleaning",
+      "extraCharge",
+      extraCharge,
+      "extraInvoiceId",
+      extraInvoiceId
     );
   }
 }

@@ -203,6 +203,11 @@ public class TaskService {
   @Transactional
   public DailyTask assignExisting(String id, Map<String, Object> d) {
     var manager = actor.require("FMANAGER");
+    if (manager.getFacilityCode() == null || manager.getFacilityCode().isBlank())
+      throw Inputs.conflict("Tài khoản chưa được gán cơ sở");
+    // Check-in assignment consumes capacity, like direct manager assignment.
+    // Acquire Facility before Task to avoid cycles with workflows binding tasks.
+    facilities.lockByCode(manager.getFacilityCode()).orElseThrow(Inputs::missing);
     DailyTask task = tasks.lockById(id).or(() -> tasks.findById(id)).orElseThrow(Inputs::missing);
     actor.facility(manager, task.getFacilityCode());
     User staff = null;

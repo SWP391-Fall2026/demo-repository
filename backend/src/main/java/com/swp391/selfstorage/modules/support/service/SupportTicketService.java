@@ -19,6 +19,9 @@ import java.security.SecureRandom;
 @Service
 public class SupportTicketService {
 
+  private static final Set<String> TICKET_PRIORITIES = Set.of("NORMAL", "HIGH", "URGENT");
+  private static final int NOTES_MAX_LENGTH = 255;
+
   private final SupportTicketRepository tickets;
   private final ContractRepository contracts;
   private final ActorContext actor;
@@ -79,15 +82,22 @@ public class SupportTicketService {
     t.setCustomerName(u.getName());
     t.setFacilityCode(c.getFacilityCode());
     t.setUnitCode(code);
-    t.setCategory(Inputs.text(d, "category"));
-    t.setDescription(Inputs.text(d, "description"));
-    t.setTitle(Inputs.text(d, "title"));
+    String category = Inputs.text(d, "category");
+    String description = Inputs.text(d, "description");
+    String title = Inputs.text(d, "title");
+    if (title.length() > 255) throw Inputs.bad("Tiêu đề tối đa 255 ký tự");
+    t.setCategory(category);
+    t.setDescription(description);
+    t.setTitle(title);
     if (d.containsKey("attachmentUrl") && d.get("attachmentUrl") != null) {
       String attachment = Inputs.text(d, "attachmentUrl");
       storage.requireImageOwner(attachment, u.getId());
       t.setAttachmentUrl(attachment);
     }
-    t.setPriority(d.containsKey("priority") && d.get("priority") != null ? Inputs.text(d, "priority") : "NORMAL");
+    String priority = d.containsKey("priority") && d.get("priority") != null
+      ? Inputs.text(d, "priority").toUpperCase(Locale.ROOT) : "NORMAL";
+    if (!TICKET_PRIORITIES.contains(priority)) throw Inputs.bad("Mức ưu tiên không hợp lệ");
+    t.setPriority(priority);
     t.setStatus("OPEN");
     t.setCreatedAt(LocalDateTime.now());
     tickets.save(t);
@@ -110,14 +120,17 @@ public class SupportTicketService {
       if (d.containsKey("rating") && d.get("rating") != null) {
         try {
           int rate = Integer.parseInt(String.valueOf(d.get("rating")));
-          if (rate >= 1 && rate <= 5) {
-            t.setRating(rate);
-          }
-        } catch (Exception ignored) {}
+          if (rate < 1 || rate > 5) throw Inputs.bad("Đánh giá phải từ 1 đến 5 sao");
+          t.setRating(rate);
+        } catch (NumberFormatException ex) {
+          throw Inputs.bad("Đánh giá phải là số nguyên từ 1 đến 5");
+        }
       }
       if (d.containsKey("notes") && d.get("notes") != null) {
         String feedback = Inputs.text(d, "notes");
-        t.setNotes((t.getNotes() != null ? t.getNotes() + " | Phản hồi khách: " : "Phản hồi khách: ") + feedback);
+        String nextNotes = (t.getNotes() != null ? t.getNotes() + " | Phản hồi khách: " : "Phản hồi khách: ") + feedback;
+        if (nextNotes.length() > NOTES_MAX_LENGTH) throw Inputs.bad("Ghi chú tối đa 255 ký tự");
+        t.setNotes(nextNotes);
       }
     } else {
       if ("CLOSED".equals(t.getStatus())) throw Inputs.conflict("Phiếu đã đóng");
@@ -130,7 +143,9 @@ public class SupportTicketService {
         throw Inputs.conflict("Phiếu đang do nhân viên khác xử lý");
       t.setStaffAssigned(u.getId());
       if (d.containsKey("notes") && d.get("notes") != null) {
-        t.setNotes(Inputs.text(d, "notes"));
+        String notes = Inputs.text(d, "notes");
+        if (notes.length() > NOTES_MAX_LENGTH) throw Inputs.bad("Ghi chú tối đa 255 ký tự");
+        t.setNotes(notes);
       }
       if (d.containsKey("attachmentUrl") && d.get("attachmentUrl") != null) {
         String attachment = Inputs.text(d, "attachmentUrl");
@@ -149,7 +164,7 @@ public class SupportTicketService {
     var manager = actor.require("FMANAGER");
     var t = tickets.lockById(id).orElseThrow(Inputs::missing);
     actor.facility(manager, t.getFacilityCode());
-    if ("CLOSED".equals(t.getStatus())) throw Inputs.conflict("Phiếu đã đóng");
+    if (!Set.of("OPEN", "IN_PROGRESS").contains(t.getStatus())) throw Inputs.conflict("Phiếu không còn chờ xử lý");
     String staffId = Inputs.text(d, "staffId");
     var target = users.findById(staffId).orElseThrow(Inputs::missing);
     actor.facility(target, t.getFacilityCode());
@@ -166,20 +181,37 @@ public class SupportTicketService {
     var staff = actor.require("STAFF", "FMANAGER");
     var t = tickets.lockById(id).orElseThrow(Inputs::missing);
     actor.facility(staff, t.getFacilityCode());
-    if ("CLOSED".equals(t.getStatus())) throw Inputs.conflict("Phiếu đã đóng");
+    if (!Set.of("OPEN", "IN_PROGRESS").contains(t.getStatus())) throw Inputs.conflict("Phiếu không còn chờ xử lý");
+    if (!"ACCESS".equals(t.getCategory())) throw Inputs.conflict("Chỉ cấp lại PIN cho phiếu hỗ trợ truy cập");
+    if ("STAFF".equals(actor.role(staff)) && t.getStaffAssigned() != null && !staff.getId().equals(t.getStaffAssigned()))
+      throw Inputs.conflict("Phiếu đang do nhân viên khác xử lý");
     if (t.getUnitCode() == null || t.getUnitCode().isBlank()) throw Inputs.conflict("Phiếu chưa gắn kho");
+    var contract = contracts.findFirstForUpdateByUnitCodeAndStatusInOrderByCreatedAtDesc(t.getUnitCode(), List.of("ACTIVE", "EXPIRING_SOON"))
+      .filter(c -> Objects.equals(t.getUserId(), c.getUserId()) && Objects.equals(t.getFacilityCode(), c.getFacilityCode()))
+      .orElseThrow(() -> Inputs.conflict("Phiếu không gắn với hợp đồng đang có quyền truy cập"));
     Unit unit = units.lockByCode(t.getUnitCode()).orElseThrow(Inputs::missing);
+    var now = LocalDateTime.now(clock);
+    if (!Set.of("ACTIVE", "EXPIRING_SOON").contains(contract.getStatus()) ||
+         !Objects.equals(t.getUnitCode(), contract.getUnitCode()) ||
+         !Objects.equals(t.getUserId(), contract.getUserId()) || !Objects.equals(t.getFacilityCode(), contract.getFacilityCode()) ||
+        contract.getEndAt() == null || !now.isBefore(contract.getEndAt()) ||
+        contract.getStartAt() != null && now.isBefore(contract.getStartAt()) ||
+        t.getCreatedAt() != null && contract.getCreatedAt() != null && t.getCreatedAt().isBefore(contract.getCreatedAt()))
+      throw Inputs.conflict("Hợp đồng không còn quyền truy cập hoặc phiếu thuộc kỳ thuê cũ");
     actor.facility(staff, unit.getFacilityCode());
+    if (!"occupied".equalsIgnoreCase(unit.getStatus()) || !Objects.equals(unit.getFacilityCode(), contract.getFacilityCode()))
+      throw Inputs.conflict("Kho không ở trạng thái đang thuê hợp lệ");
     String pin = String.format("%06d", random.nextInt(1_000_000));
-    LocalDateTime expires = LocalDateTime.now(clock).plusHours(8);
+    LocalDateTime expires = now.plusHours(8).isAfter(contract.getEndAt()) ? contract.getEndAt() : now.plusHours(8);
     unit.setTemporaryPin(pin);
     unit.setTemporaryPinExpiresAt(expires);
     units.save(unit);
     String note = Inputs.optional(d, "notes");
     String update = "Cấp lại PIN tạm đến " + expires + (note.isBlank() ? "" : ": " + note);
-    t.setNotes(t.getNotes() == null || t.getNotes().isBlank() ? update : t.getNotes() + " | " + update);
+    if (update.length() > 255) throw Inputs.bad("Ghi chú cấp lại PIN tối đa 255 ký tự");
+    t.setNotes(update);
     if ("OPEN".equals(t.getStatus())) t.setStatus("IN_PROGRESS");
-    t.setStaffAssigned(staff.getId());
+    if ("STAFF".equals(actor.role(staff))) t.setStaffAssigned(staff.getId());
     tickets.save(t);
     audit.record("RESET_TEMPORARY_PIN", id, "Cấp PIN tạm cho kho " + unit.getCode());
     return Map.of("ticketId", id, "unitCode", unit.getCode(), "temporaryPin", pin, "expiresAt", expires);

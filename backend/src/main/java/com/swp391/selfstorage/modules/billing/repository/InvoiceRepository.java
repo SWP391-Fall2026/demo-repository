@@ -8,6 +8,18 @@ import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
 public interface InvoiceRepository extends JpaRepository<Invoice, String> {
+  interface DepositScope {
+    String getFacilityCode();
+    String getReservationId();
+  }
+
+  // Scalar routing fields avoid caching invoice/reservation state before locks.
+  @Query("select i.facilityCode as facilityCode, i.reservationId as reservationId from Invoice i where i.id=:id and i.invoiceType='DEPOSIT'")
+  Optional<DepositScope> findDepositScopeById(@Param("id") String id);
+
+  @Query("select i.facilityCode as facilityCode, i.reservationId as reservationId from Invoice i, Payment p where p.invoiceId=i.id and p.transactionCode=:code and i.invoiceType='DEPOSIT'")
+  Optional<DepositScope> findDepositScopeByTransactionCode(@Param("code") String code);
+
   List<Invoice> findByContractIdAndInvoiceTypeAndStatus(
     String id,
     String type,
