@@ -1,5 +1,4 @@
-import { ReportPage } from "../../../shared/ui/ReportPage";
-import { reportingApi } from "../api/reporting.api";
+import { RevenueReport } from "./RevenueReport";
 export default function ChainReportPage() {
-    return <ReportPage title="Báo cáo toàn hệ thống" load={reportingApi.chain}/>;
+    return <RevenueReport title="Báo cáo toàn chuỗi" />;
 }

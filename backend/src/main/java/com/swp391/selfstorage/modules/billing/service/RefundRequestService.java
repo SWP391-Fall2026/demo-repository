@@ -114,10 +114,11 @@ public class RefundRequestService {
         var cancelled = r.getCancelledAt() != null ? r.getCancelledAt() : now;
         if (
           "DEPOSIT".equals(p.getInvoiceType()) &&
-          !cancellation.fullDepositRefund(start, cancelled) &&
+          !cancellation.fullDepositRefund(start, cancelled, r.getRefundCancelHoursSnapshot()) &&
           !exception
         ) throw Inputs.conflict(
-          "Hủy dưới 24 giờ không hoàn cọc theo chính sách; có thể gửi ngoại lệ có lý do"
+          "Hủy dưới " + cancellation.refundHours(r.getRefundCancelHoursSnapshot())
+            + " giờ không hoàn cọc theo chính sách; có thể gửi ngoại lệ có lý do"
         );
       } else if (!"CHECKED_IN".equals(r.getStatus())) throw Inputs.conflict(
         "Đơn cần được hủy hoặc xác nhận NO_SHOW trước khi yêu cầu hoàn"

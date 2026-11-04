@@ -4,7 +4,7 @@ import { display, money, statusClass } from "../lib/format";
 import { fieldLabel } from "../lib/field-labels";
 import { ReloadContext } from "./resource-context";
 export { Form } from "./Form";
-export function ResourcePage({ title, description, load, columns, children, }) {
+export function ResourcePage({ title, description, load, columns, children, actions, childrenTitle = "Thao tác nghiệp vụ" }) {
     const { data, error, busy, reload } = useRemote(load);
     const [search, setSearch] = useState("");
     const rows = Array.isArray(data) ? data : data ? [data] : [];
@@ -31,12 +31,15 @@ export function ResourcePage({ title, description, load, columns, children, }) {
             "Dữ liệu được tải từ hệ thống theo quyền truy cập của bạn."}
           </p>
         </div>
-        <button className="secondary" onClick={reload}>
-          Làm mới
-        </button>
+        <div className="action-row">
+          {actions}
+          <button className="secondary" onClick={reload}>
+            Làm mới
+          </button>
+        </div>
       </header>
       {children && (<section className="card action-card">
-          <h2>Thao tác nghiệp vụ</h2>
+          <h2>{childrenTitle}</h2>
           <ReloadContext.Provider value={reload}>
             {children}
           </ReloadContext.Provider>
