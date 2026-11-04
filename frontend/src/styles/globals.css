@@ -1,6 +1,6 @@
-@import url("https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap");
+﻿@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap");
 :root {
-  font-family: "Be Vietnam Pro", Arial, sans-serif;
+  font-family: "Nunito", system-ui, sans-serif;
   color: #1c344b;
   background: #f4f7fb;
   font-synthesis: none;
@@ -1379,3 +1379,4 @@ dd { overflow-wrap: anywhere; }
 .handover-form-section { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px 18px; padding: 14px 0; border-top: 1px solid #e7edf2; }
 .handover-form-section h3 { grid-column: 1 / -1; margin: 0; font-size: 14px; color: #173653; }
 .handover-form-section > p, .handover-form-section > .handover-context-grid { grid-column: 1 / -1; }
+
