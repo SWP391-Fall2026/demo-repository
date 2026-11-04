@@ -18,6 +18,7 @@ import HandoverPage from "../features/rental/pages/HandoverPage";
 import HandoverReviewPage from "../features/rental/pages/HandoverReviewPage";
 import UnitStatusPage from "../features/facility/pages/UnitStatusPage";
 import ReturnInspectionPage from "../features/rental/pages/ReturnInspectionPage";
+import ReturnInspectionReviewPage from "../features/rental/pages/ReturnInspectionReviewPage";
 import IncidentDeskPage from "../features/support/pages/IncidentDeskPage";
 import AccessSimulatorPage from "../features/rental/pages/AccessSimulatorPage";
 import FacilityDashboardPage from "../features/reporting/pages/FacilityDashboardPage";
@@ -158,6 +159,12 @@ export const routes = [
         legacy: "SCR-S02",
     },
     {
+        path: "/facility/handovers",
+        title: "Check-in & Bàn giao",
+        roles: ["STAFF"],
+        element: <HandoverPage />,
+    },
+    {
         path: "/facility/handovers/:reservationId",
         title: "Bàn giao",
         roles: ["STAFF"],
@@ -172,11 +179,23 @@ export const routes = [
         legacy: "SCR-S04",
     },
     {
-        path: "/facility/inspections/:contractId",
-        title: "Nghiệm thu",
+        path: "/facility/inspections",
+        title: "Yêu cầu trả kho",
         roles: ["STAFF"],
         element: <ReturnInspectionPage />,
+    },
+    {
+        path: "/facility/inspections/:contractId",
+        title: "Nghiệm thu",
+        roles: ["STAFF", "FMANAGER"],
+        element: <ReturnInspectionPage />,
         legacy: "SCR-S05",
+    },
+    {
+        path: "/facility/return-inspection-reviews",
+        title: "Khiếu nại nghiệm thu",
+        roles: ["FMANAGER"],
+        element: <ReturnInspectionReviewPage />,
     },
     {
         path: "/facility/incidents",

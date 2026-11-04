@@ -176,19 +176,19 @@ graph TD
 | **FR-018** | Xem danh sách kho đang thuê (My Rentals) | Customer | Vào mục "Kho của tôi" | Hiển thị toàn bộ các kho khách đang thuê: Tên cơ sở, mã số kho (Unit Code), ngày bắt đầu, ngày kết thúc dự kiến, trạng thái hợp đồng, mã PIN truy cập. | Khách chưa thuê kho nào. | Khách xem được toàn bộ quyền lợi và thông tin kho của mình. |
 | **FR-019** | Tra cứu mã truy cập điện tử (Access Code) | Customer | Chọn vào chi tiết kho đang thuê | Hệ thống hiển thị mã PIN 6 số dùng để mở khóa kho/cửa ra vào cơ sở, kèm hướng dẫn an ninh và nút "Đổi mã PIN cá nhân". | Kho đang trong trạng thái tạm khóa nợ cước. | Khách xem và sử dụng được mã mở kho một cách thuận tiện. |
 | **FR-020** | Gửi yêu cầu trả kho (Checkout Request) | Customer | Khách có nhu cầu kết thúc hợp đồng thuê | Khách chọn kho cần trả, chọn ngày hẹn trả kho thực tế, nhập lý do kết thúc thuê và gửi yêu cầu. | Kho đang có công nợ chưa thanh toán. | Yêu cầu trả kho được tạo ở trạng thái `CHECKOUT_REQUESTED`. |
-| **FR-021** | Kiểm tra hiện trạng khi trả kho (Inspection) | Facility Staff | Khách đến bàn giao lại kho | Staff mở yêu cầu trả kho, cùng khách kiểm tra: Hàng hóa đã dọn sạch chưa, vách/cửa có hư hại không, thu hồi thẻ/ổ khóa. Staff lập phiếu nghiệm thu bàn giao trả. | Kho bị hư hại hoặc đồ đạc chưa dọn hết. | Phiếu nghiệm thu được ghi nhận; ghi nhận phụ phí sửa chữa/vệ sinh nếu có vi phạm. |
-| **FR-022** | Hoàn tất Check-out & Thanh lý hợp đồng | Facility Staff / Manager | Nghiệm thu trả kho đạt yêu cầu | Hệ thống tính toán hoàn trả tiền cọc (sau khi trừ các chi phí phạt/hư hỏng nếu có). Xác nhận kết thúc hợp đồng (`TERMINATED`). Mã PIN bị vô hiệu hóa. | Tranh chấp tiền cọc. | Hợp đồng hoàn tất, chuyển trạng thái kho sang `CLEANING` / `AVAILABLE`. |
+| **FR-021** | Kiểm tra hiện trạng khi trả kho (Inspection) | Facility Staff | Khách đến bàn giao lại kho | Staff kiểm tra kho, lập phiếu hiện trạng/phí và đính kèm ảnh khi có vấn đề vệ sinh/sửa chữa/khóa hư; gửi khách xác nhận. | Kho bị hư hại hoặc đồ đạc chưa dọn hết. | Phiếu và ảnh được lưu; hợp đồng/PIN chưa kết thúc trong khi chờ khách. |
+| **FR-022** | Xác nhận, thương lượng và hoàn tất Check-out | Customer / Facility Manager / Facility Staff | Khách nhận phiếu nghiệm thu | Khách đồng ý thì Staff hoàn tất. Nếu khách không đồng ý, tạo request mới kèm lý do/ảnh cho Manager; Manager gửi lý do và mức khấu trừ mới (không vượt mức Staff ban đầu) cho khách. Lặp lại đến khi khách đồng ý; Staff mới kết thúc hợp đồng, vô hiệu PIN và tạo yêu cầu hoàn cọc. | Thiếu lý do/ảnh khi khiếu nại; Manager đề xuất mức vượt trần; khách tiếp tục không đồng ý. | Lịch sử từng request được giữ; hợp đồng chỉ kết thúc sau xác nhận khách và Staff hoàn tất. |
 
 ---
 
 ### Module 5: Quản lý Chính sách, Biểu phí & Doanh thu (Fee & Revenue Monitoring - Flow 4)
 | ID | Tên chức năng | Actor | Trigger | Xử lý (Processing) | Ngoại lệ (Exception) | Kết quả mong đợi |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **FR-023** | Quản lý danh mục cơ sở toàn hệ thống | Business Ops Mgr | Ops Mgr mở trang Quản lý cơ sở | Thêm mới, chỉnh sửa thông tin chi nhánh: Tên cơ sở, địa chỉ, tổng diện tích, giờ mở cửa, số hotline, ảnh đại diện, trạng thái hoạt động. | Trùng tên cơ sở hoặc thiếu thông tin bắt buộc. | Danh mục chi nhánh toàn hệ thống được cập nhật. |
-| **FR-024** | Cấu hình chính sách cho thuê chung (Rental Policies) | Business Ops Mgr | Ops Mgr vào cài đặt chính sách | Thiết lập: Tỉ lệ tiền cọc tối thiểu (% hoặc số tháng), số ngày giữ chỗ reservation tối đa, quy định hoàn tiền khi hủy, quy định gia hạn và thời gian ân hạn quá hạn (Grace Period). | Nhập thông số không hợp lệ (ví dụ cọc âm). | Chính sách toàn hệ thống được áp dụng tự động cho các đơn mới. |
-| **FR-025** | Cấu hình khung giá thuê & Phụ phí | Business Ops Mgr | Ops Mgr mở bảng giá | Thiết lập khung giá cơ chuẩn theo loại kho (S/M/L) và cơ sở; thiết lập biểu phí phụ: Phí khóa thay thế, phí vệ sinh dọn kho, phí phạt trễ hạn theo ngày. | Khung giá không hợp lệ. | Bảng giá hệ thống cập nhật và áp dụng cho tính toán hóa đơn. |
-| **FR-026** | Báo cáo doanh thu toàn hệ thống | Business Ops Mgr | Ops Mgr mở báo cáo doanh thu | Tổng hợp doanh thu theo thời gian (ngày/tháng/quý), theo từng chi nhánh, theo phân loại nguồn thu (tiền thuê, tiền cọc, phụ phí phạt). Có biểu đồ trực quan. | Chưa có dữ liệu phát sinh. | Báo cáo tài chính rõ ràng, hỗ trợ lọc và xuất file Excel/CSV. |
-| **FR-027** | Báo cáo tỉ lệ lấp đầy kho (Occupancy Rate) | Business Ops Mgr | Ops Mgr mở báo cáo vận hành | Thống kê tỉ lệ kho đã thuê / tổng số kho theo từng chi nhánh, nhận diện cơ sở có tỉ lệ trống cao để tối ưu kinh doanh. | Không có dữ liệu. | Biểu đồ tỉ lệ lấp đầy trực quan toàn hệ thống. |
+| **FR-023** | Quản lý danh mục cơ sở toàn hệ thống | Business Ops Mgr | Ops Mgr mở trang Quản lý cơ sở | Thêm mới, chỉnh sửa thông tin chi nhánh: Tên cơ sở, địa chỉ, diện tích mặt bằng (m²), giờ mở cửa, số hotline, ảnh đại diện, trạng thái hoạt động. | Trùng tên cơ sở, diện tích không dương hoặc thiếu thông tin bắt buộc. | Danh mục chi nhánh toàn hệ thống được cập nhật; diện tích lịch sử chưa nhập được hiển thị là chưa có dữ liệu. |
+| **FR-024** | Cấu hình chính sách cho thuê chung (Rental Policies) | Business Ops Mgr | Ops Mgr vào cài đặt chính sách | Thiết lập tiền cọc theo số tháng, số ngày giữ reservation tối đa sau thanh toán cọc, số giờ tối thiểu để được hoàn cọc khi hủy, giới hạn gia hạn và thời gian ân hạn quá hạn. Reservation hết hạn chuyển NO_SHOW, giải phóng kho và áp dụng chính sách cọc NO_SHOW hiện hành. | Nhập thông số không hợp lệ (ví dụ cọc âm, số ngày giữ không dương). | Chính sách toàn hệ thống được áp dụng cho giao dịch mới; giao dịch đã tạo giữ snapshot/điều kiện ban đầu. |
+| **FR-025** | Cấu hình khung giá thuê & Phụ phí | Business Ops Mgr | Ops Mgr mở bảng giá | Thiết lập giá chuẩn toàn chuỗi theo loại kho và giá ghi đè theo cơ sở/loại kho; giá cơ sở được kiểm tra theo giới hạn Ops. Thiết lập phí thay khóa, vệ sinh và trễ hạn theo ngày. | Khung giá không hợp lệ hoặc ngoài giới hạn. | Giá mới áp dụng cho giao dịch mới; đơn reservation đã tạo giữ giá snapshot. |
+| **FR-026** | Báo cáo doanh thu toàn hệ thống | Business Ops Mgr | Ops Mgr mở báo cáo doanh thu | Tổng hợp theo ngày/tháng/quý, cơ sở và nguồn thu. Tiền cọc được tách khỏi doanh thu vận hành; hoàn cọc/hoàn tiền thuê tính theo ngày hoàn thực tế; khấu trừ cọc chỉ tính từ nghiệm thu hoàn tất, theo đúng cơ sở. Hỗ trợ CSV gồm thời gian, nguồn thu và lấp đầy. | Chưa có dữ liệu phát sinh. | Báo cáo thể hiện tiền thuê/phụ phí gộp, hoàn tiền, thu vận hành thuần và các khoản cọc riêng; có thể lọc và xuất CSV. |
+| **FR-027** | Báo cáo tỉ lệ lấp đầy kho (Occupancy Rate) | Business Ops Mgr | Ops Mgr mở báo cáo vận hành | Thống kê kho OCCUPIED / toàn bộ kho vật lý theo từng chi nhánh; hiển thị thêm số kho trống, giữ chỗ và bảo trì để giải thích mẫu số. | Không có dữ liệu. | Báo cáo có cả chi nhánh chưa có kho và nêu rõ mẫu số là toàn bộ kho vật lý. |
 
 ---
 
@@ -282,6 +282,7 @@ sequenceDiagram
     autonumber
     actor Customer as Storage Customer
     actor Staff as Facility Staff
+    actor Manager as Facility Manager
     participant Sys as Hệ thống Self-Storage
 
     Note over Customer,Sys: Giai đoạn sử dụng: Khách xem thông tin, mã PIN mở kho bất cứ lúc nào
@@ -290,10 +291,20 @@ sequenceDiagram
     Customer->>Sys: 2. Gửi yêu cầu Checkout (chọn ngày trả)
     Sys->>Staff: 3. Thông báo lịch hẹn trả kho hiển thị trên Daily Task List
     Customer->>Staff: 4. Khách dọn sạch đồ, gặp Staff tại cơ sở để bàn giao lại kho
-    Staff->>Sys: 5. Lập phiếu Inspection: Kiểm tra kho sạch, không hư hỏng
-    Staff->>Sys: 6. Xác nhận hoàn tất Checkout
-    Sys->>Sys: 7. Vô hiệu hóa mã PIN, kết thúc Hợp đồng (TERMINATED)
-    Sys->>Sys: 8. Tạo lệnh hoàn trả tiền cọc cho khách, đổi Unit -> AVAILABLE/CLEANING
+    Staff->>Sys: 5. Lập phiếu Inspection và đính kèm ảnh nếu có vấn đề
+    Sys-->>Customer: 6. Gửi phiếu nghiệm thu chờ xác nhận
+    alt Khách đồng ý
+        Customer->>Sys: 7. Xác nhận phiếu
+    else Khách không đồng ý
+        Customer->>Sys: 7. Tạo request mới, nhập lý do và ảnh minh chứng
+        Sys-->>Manager: 8. Gửi khiếu nại đến Manager cơ sở
+        Manager->>Sys: 9. Xem minh chứng và gửi mức phí đề xuất (không tăng phí ban đầu)
+        Sys-->>Customer: 10. Gửi đề xuất chờ khách xác nhận
+        Customer->>Sys: 11. Đồng ý hoặc tiếp tục khiếu nại (lặp lại)
+    end
+    Sys-->>Staff: 12. Yêu cầu Staff hoàn tất sau khi khách đồng ý
+    Staff->>Sys: 13. Hoàn tất nghiệm thu và tạo yêu cầu hoàn cọc
+    Sys->>Sys: 14. Vô hiệu hóa PIN, kết thúc hợp đồng, đổi Unit -> AVAILABLE/CLEANING
 ```
 
 ---

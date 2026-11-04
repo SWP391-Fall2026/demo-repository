@@ -47,9 +47,12 @@ export default function RenewalQuotePage() {
                 setInvoice(i);
                 return i;
             }}/>
-          {invoice && (<Link className="button" to={`/invoices/${invoice.id}/pay`}>
+          {invoice && (<>
+            <Link className="button" to={`/invoices/${(invoice.renewalInvoice ?? invoice).id}/pay`}>
               Thanh toán hóa đơn gia hạn
-            </Link>)}
+            </Link>
+            {invoice.overdueInvoice && <p className="notice">Đã tách phí quá hạn thành hóa đơn riêng: {money(invoice.overdueInvoice.amount)} — thanh toán tại <Link to={`/invoices/${invoice.overdueInvoice.id}/pay`}>hóa đơn quá hạn</Link>.</p>}
+          </>)}
         </section>)}
     </ResourcePage>);
 }

@@ -11,4 +11,5 @@ public interface DailyTaskRepository extends JpaRepository<DailyTask, String> {
   List<DailyTask> findByStaffId(String id);
   List<DailyTask> findByFacilityCode(String code);
   Optional<DailyTask> findByReservationIdAndTaskType(String reservationId, String taskType);
+  Optional<DailyTask> findByContractIdAndTaskType(String contractId, String taskType);
 }

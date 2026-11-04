@@ -130,13 +130,24 @@ public class PayInvoiceWorkflow {
     p.setTimeStr(now.toString());
     boolean failed = Boolean.TRUE.equals(d.get("simulateFailure"));
     p.setStatus(failed ? "FAILED" : "PAID");
-    payments.save(p);
+    try {
+      payments.saveAndFlush(p);
+    } catch (org.springframework.dao.DataIntegrityViolationException e) {
+      var existing = key == null || key.isBlank() ? Optional.<Payment>empty() : payments.findByIdempotencyKey(key);
+      if (existing.isPresent()) {
+        if (!invoiceId.equals(existing.get().getInvoiceId()))
+          throw Inputs.conflict("Idempotency key belongs to another invoice");
+        return existing.get();
+      }
+      throw Inputs.conflict("Thanh toán đã được xử lý");
+    }
     if (!failed) {
       i.setStatus("PAID");
       invoices.save(i);
       if ("DEPOSIT".equals(i.getInvoiceType())) {
         var r = reservations.lockById(i.getReservationId()).orElseThrow();
         r.setStatus("RESERVED");
+        r.setReservationExpiresAt(holdPolicy.reservationExpiry(now, r.getReservationHoldDaysSnapshot()));
         reservations.save(r);
       }
       if ("RENT".equals(i.getInvoiceType())) {
@@ -147,13 +158,11 @@ public class PayInvoiceWorkflow {
         var c = contracts
           .lockById(i.getContractId())
           .orElseThrow(Inputs::missing);
-        int months = Integer.parseInt(i.getDescription().split(":")[1]);
+        int months = parseRenewalMonths(i);
         var start = c.getEndAt().isAfter(now) ? c.getEndAt() : now;
         c.setEndAt(start.plusMonths(months));
         c.setEndDate(c.getEndAt().toLocalDate());
-        c.setMonthlyFee(
-          new BigDecimal(i.getPriceSnapshot().substring("monthly=".length()))
-        );
+        c.setMonthlyFee(parseMonthlySnapshot(i));
         c.setStatus("ACTIVE");
         if (c.getPinCode() == null) c.setPinCode(
           String.format(
@@ -178,8 +187,30 @@ public class PayInvoiceWorkflow {
     return p;
   }
 
-  private void validateMockCard(Map<String, Object> request) {
-    if (!Boolean.TRUE.equals(request.get("confirmedAmount"))) {
+  private int parseRenewalMonths(com.swp391.selfstorage.modules.billing.entity.Invoice i) {
+    String description = i.getDescription() == null ? "" : i.getDescription();
+    String[] parts = description.split(":");
+    if (parts.length != 2) throw Inputs.conflict("Hóa đơn gia hạn không hợp lệ");
+    try {
+      int months = Integer.parseInt(parts[1]);
+      if (months < 1) throw new NumberFormatException();
+      return months;
+    } catch (NumberFormatException e) {
+      throw Inputs.conflict("Hóa đơn gia hạn không hợp lệ");
+    }
+  }
+
+  private BigDecimal parseMonthlySnapshot(com.swp391.selfstorage.modules.billing.entity.Invoice i) {
+    String snapshot = i.getPriceSnapshot() == null ? "" : i.getPriceSnapshot();
+    if (!snapshot.startsWith("monthly=")) throw Inputs.conflict("Hóa đơn gia hạn không hợp lệ");
+    try {
+      return new BigDecimal(snapshot.substring("monthly=".length()));
+    } catch (NumberFormatException e) {
+      throw Inputs.conflict("Hóa đơn gia hạn không hợp lệ");
+    }
+  }
+
+  private void validateMockCard(Map<String, Object> request) {    if (!Boolean.TRUE.equals(request.get("confirmedAmount"))) {
       throw Inputs.bad("Cần xác nhận số tiền thanh toán");
     }
     if (!"NCB".equals(Inputs.text(request, "bankCode"))) {
