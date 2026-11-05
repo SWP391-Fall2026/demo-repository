@@ -14,7 +14,7 @@ export default function StaffAssignmentPage() {
     async function rotatePin(event) { event.preventDefault(); if (!session?.user.facilityCode)
         return; setBusy(true); setMessage(""); try {
         const result = await facilityApi.setCheckinPin(session.user.facilityCode);
-        setMessage(`PIN cơ sở mới: ${String(result.pin || "—")}. Chuyển cho Staff qua kênh nội bộ.`);
+        setMessage(`Mã PIN cơ sở mới: ${String(result.pin || "—")}. Lưu ý: Mã chỉ hiển thị một lần, vui lòng chuyển cho nhân viên qua kênh bảo mật nội bộ.`);
     }
     catch (e) {
         setMessage(e instanceof Error ? e.message : "Không cấp được PIN.");
@@ -23,7 +23,7 @@ export default function StaffAssignmentPage() {
         setBusy(false);
     } }
     return <main className="page-content"><header className="page-heading"><div><span className="eyebrow">FACILITY MANAGER · WORKFORCE</span><h1>Phân công nhân viên</h1><p>Nhận request từ khách, gán đúng Staff và cấp credential check-in có thời hạn.</p></div><button className="secondary" onClick={dashboard.reload}>Làm mới</button></header>
-    <section className="card form-grid"><form onSubmit={rotatePin}><p>PIN cơ sở do backend sinh mới, lưu dạng hash và chỉ hiển thị một lần.</p><button disabled={busy}>{busy ? "Đang cấp…" : "Cấp PIN cơ sở mới"}</button></form>{message && <p className="notice">{message}</p>}</section>
+    <section className="card form-grid"><form onSubmit={rotatePin}><p style={{ margin: 0, color: '#64748B', fontSize: '13.5px' }}>Mã PIN cơ sở do hệ thống sinh ngẫu nhiên, mã hóa bảo mật và chỉ hiển thị một lần duy nhất.</p><button className="btn-figma btn-primary-dark btn-sm" disabled={busy}>{busy ? "Đang xử lý…" : "Cấp mã PIN cơ sở mới"}</button></form>{message && <p className="notice" style={{ marginTop: '10px' }}>{message}</p>}</section>
     {dashboard.error && <section className="card error" role="alert">{dashboard.error}</section>}
     <section className="card"><h2>Yêu cầu từ thẻ hẹn và phân công</h2>{dashboard.busy ? <p>Đang tải…</p> : !taskRows.length ? <p>Chưa có task tại cơ sở phụ trách.</p> : <div className="table-scroll"><table><thead><tr><th>Task / thẻ hẹn</th><th>Khách hàng</th><th>Kho / hợp đồng</th><th>Ngày hẹn · Lý do</th><th>Trạng thái</th><th>Nhân viên</th></tr></thead><tbody>{taskRows.map((task) => <TaskRow key={String(task.id)} task={task} staff={staffRows.filter((person) => person.canReceiveTasks)} onDone={dashboard.reload}/>)}</tbody></table></div>}</section>
   </main>;
