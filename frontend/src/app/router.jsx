@@ -200,7 +200,7 @@ export const routes = [
     {
         path: "/facility/incidents",
         title: "Sự cố",
-        roles: ["STAFF"],
+        roles: ["STAFF", "FMANAGER"],
         element: <IncidentDeskPage />,
         legacy: "SCR-S06",
     },

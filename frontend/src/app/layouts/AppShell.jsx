@@ -56,6 +56,7 @@ export function AppShell() {
             ["/facility/units", "Quản lý kho"],
             ["/facility/reservations/assign", "Phân bổ kho"],
             ["/facility/tasks/assign", "Nhân viên"],
+            ["/facility/incidents", "Yêu cầu hỗ trợ"],
             ["/facility/contracts", "Hợp đồng"],
             ["/facility/return-inspection-reviews", "Khiếu nại nghiệm thu"],
             ["/facility/invoices", "Hóa đơn"],
