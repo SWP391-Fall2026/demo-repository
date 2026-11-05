@@ -194,29 +194,24 @@ input:focus, select:focus, textarea:focus {
 .nav-menu {
   display: flex;
   align-items: center;
-  gap: clamp(6px, 1.2vw, 20px);
+  gap: clamp(4px, 0.7vw, 12px);
   min-width: 0;
   overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  padding: 6px 0;
-}
-
-.nav-menu::-webkit-scrollbar {
-  display: none;
+  scrollbar-width: thin;
+  padding: 4px 0;
 }
 
 .nav-menu a {
-  font-size: clamp(12.5px, 0.9vw, 14px);
+  font-size: clamp(12px, 0.85vw, 13.5px);
   font-weight: 600;
   color: var(--color-text-muted);
   text-decoration: none;
   transition: all 0.15s ease;
   position: relative;
-  padding: 8px clamp(4px, 0.6vw, 10px);
+  padding: 6px clamp(4px, 0.5vw, 8px);
   white-space: nowrap !important;
   flex-shrink: 0;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 .nav-menu a:hover {

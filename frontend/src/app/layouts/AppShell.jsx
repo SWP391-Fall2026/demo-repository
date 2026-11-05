@@ -33,14 +33,14 @@ export function AppShell() {
     const roleMenu = {
         CUSTOMER: [
             ["/storage", "Kho lưu trữ"],
-            ["/reservations/new", "Đặt giữ chỗ"],
-            ["/invoices/all/pay", "Thanh toán cọc/phí"],
-            ["/reservations/all/appointment", "Thẻ hẹn"],
-            ["/reservations/all/pass", "Thẻ Check-in"],
             ["/rentals", "Kho đang thuê"],
+            ["/support", "Hỗ trợ"],
+            ["/reservations/new", "Đặt chỗ"],
+            ["/invoices/all/pay", "Thanh toán"],
+            ["/reservations/all/appointment", "Thẻ hẹn"],
+            ["/reservations/all/pass", "Check-in"],
             ["/handover-reviews", "Bàn giao"],
-            ["/refunds", "Hoàn tiền"],
-            ["/support", "Hỗ trợ"]
+            ["/refunds", "Hoàn tiền"]
         ],
         STAFF: [
             ["/facility/tasks/my", "Dashboard / Hàng đợi"],
