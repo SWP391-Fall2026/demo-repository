@@ -4,7 +4,14 @@ import com.swp391.selfstorage.modules.facility.entity.*;
 import com.swp391.selfstorage.modules.facility.repository.*;
 import com.swp391.selfstorage.modules.identity.entity.User;
 import com.swp391.selfstorage.modules.identity.repository.UserRepository;
+import com.swp391.selfstorage.modules.rental.entity.Contract;
+import com.swp391.selfstorage.modules.rental.repository.ContractRepository;
+import com.swp391.selfstorage.modules.support.entity.SupportTicket;
+import com.swp391.selfstorage.modules.support.repository.SupportTicketRepository;
+import com.swp391.selfstorage.modules.workforce.entity.DailyTask;
+import com.swp391.selfstorage.modules.workforce.repository.DailyTaskRepository;
 import java.math.*;
+import java.time.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,6 +25,9 @@ public class LocalDataInitializer implements CommandLineRunner {
   private final UnitRepository units;
   private final UserRepository users;
   private final PasswordEncoder passwords;
+  private final ContractRepository contracts;
+  private final SupportTicketRepository tickets;
+  private final DailyTaskRepository tasks;
 
   public LocalDataInitializer(
     FacilityRepository f,
@@ -25,10 +35,25 @@ public class LocalDataInitializer implements CommandLineRunner {
     UserRepository us,
     PasswordEncoder p
   ) {
-    facilities = f;
-    units = u;
-    users = us;
-    passwords = p;
+    this(f, u, us, p, null, null, null);
+  }
+
+  public LocalDataInitializer(
+    FacilityRepository f,
+    UnitRepository u,
+    UserRepository us,
+    PasswordEncoder p,
+    ContractRepository c,
+    SupportTicketRepository t,
+    DailyTaskRepository dt
+  ) {
+    this.facilities = f;
+    this.units = u;
+    this.users = us;
+    this.passwords = p;
+    this.contracts = c;
+    this.tickets = t;
+    this.tasks = dt;
   }
 
   public void run(String... args) {
@@ -63,8 +88,8 @@ public class LocalDataInitializer implements CommandLineRunner {
             type.equals("S") ? 800000 : type.equals("M") ? 1450000 : 2800000
           )
         );
-        u.setStatus("available");
-        u.setPinCode(null);
+        u.setStatus(i == 0 && n == 1 ? "OCCUPIED" : "available");
+        u.setPinCode(i == 0 && n == 1 ? "123456" : null);
         units.save(u);
       }
     }
@@ -92,6 +117,61 @@ public class LocalDataInitializer implements CommandLineRunner {
       u.setPassword(passwords.encode("Demo123!"));
       u.setStatus("ACTIVE");
       users.save(u);
+    }
+
+    // Seed 1 active contract for LOCAL-customer so Support Tickets and Rentals can be tested immediately
+    if (contracts != null) {
+      Contract contract = new Contract();
+      contract.setId("CTR-HN-CG-1001");
+      contract.setUserId("LOCAL-customer");
+      contract.setCustomerName("Khách hàng demo");
+      contract.setCustomerPhone("0901234567");
+      contract.setUnitCode("HN-CG-001");
+      contract.setFacilityCode("HN-CG");
+      contract.setStartDate(LocalDate.now().minusDays(10));
+      contract.setEndDate(LocalDate.now().plusMonths(3));
+      contract.setDurationMonths(3);
+      contract.setMonthlyFee(BigDecimal.valueOf(800000));
+      contract.setDepositFee(BigDecimal.valueOf(800000));
+      contract.setPinCode("123456");
+      contract.setStatus("ACTIVE");
+      contract.setCreatedAt(LocalDateTime.now().minusDays(10));
+      contracts.save(contract);
+    }
+
+    // Seed 1 demo support ticket
+    if (tickets != null) {
+      SupportTicket ticket = new SupportTicket();
+      ticket.setId("TCK-DEMO-001");
+      ticket.setUserId("LOCAL-customer");
+      ticket.setCustomerName("Khách hàng demo");
+      ticket.setFacilityCode("HN-CG");
+      ticket.setUnitCode("HN-CG-001");
+      ticket.setCategory("ACCESS");
+      ticket.setTitle("Yêu cầu kiểm tra bàn phím mã PIN khoang HN-CG-001");
+      ticket.setDescription("Bàn phím điện tử bấm phím số 6 hơi chập chờn, nhờ nhân viên kiểm tra lại pin hoặc vệ sinh cảm biến.");
+      ticket.setPriority("NORMAL");
+      ticket.setStatus("OPEN");
+      ticket.setCreatedAt(LocalDateTime.now().minusHours(2));
+      tickets.save(ticket);
+    }
+
+    // Seed 1 demo daily task for staff
+    if (tasks != null) {
+      DailyTask task = new DailyTask();
+      task.setId("TSK-DEMO-001");
+      task.setTitle("Kiểm tra thiết bị khóa điện tử buồng kho HN-CG-001");
+      task.setStaff("Nhân viên Cầu Giấy");
+      task.setStaffId("LOCAL-staff");
+      task.setFacilityCode("HN-CG");
+      task.setUnitCode("HN-CG-001");
+      task.setCustomerName("Khách hàng demo");
+      task.setCustomerPhone("0901234567");
+      task.setDeadline("Hôm nay 17:00");
+      task.setTaskType("SUPPORT");
+      task.setStatus("PENDING");
+      task.setCreatedAt(LocalDateTime.now().minusHours(1));
+      tasks.save(task);
     }
   }
 }
