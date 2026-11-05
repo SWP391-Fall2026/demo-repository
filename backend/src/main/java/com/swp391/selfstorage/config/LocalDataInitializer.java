@@ -12,6 +12,7 @@ import com.swp391.selfstorage.modules.workforce.entity.DailyTask;
 import com.swp391.selfstorage.modules.workforce.repository.DailyTaskRepository;
 import java.math.*;
 import java.time.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -38,6 +39,7 @@ public class LocalDataInitializer implements CommandLineRunner {
     this(f, u, us, p, null, null, null);
   }
 
+  @Autowired
   public LocalDataInitializer(
     FacilityRepository f,
     UnitRepository u,
