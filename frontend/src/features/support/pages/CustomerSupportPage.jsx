@@ -131,33 +131,31 @@ export default function CustomerSupportPage() {
                 </article>
             </section>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1.8fr", gap: "28px", alignItems: "start" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(380px, 1fr))", gap: "28px", alignItems: "start" }}>
                 {/* Form tạo ticket */}
-                <section className="card">
-                    <h2 style={{ fontSize: "18px", fontWeight: 800, marginBottom: "16px" }}>Gửi phiếu hỗ trợ mới</h2>
-                    <form onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                <section className="card" style={{ padding: "24px" }}>
+                    <h2 style={{ fontSize: "18px", fontWeight: 800, marginBottom: "16px", color: "#0F172A" }}>Gửi phiếu hỗ trợ mới</h2>
+                    <form onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                         <div>
-                            <label style={{ display: "block", fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>
+                            <label style={{ display: "block", fontSize: "13.5px", fontWeight: 700, marginBottom: "6px", color: "#1E293B" }}>
                                 Kho lưu trữ liên quan
                             </label>
                             {activeContracts.length > 0 ? (
                                 <select
-                                    className="input-with-icon"
-                                    style={{ paddingLeft: "14px" }}
+                                    className="form-select-clean"
                                     value={unitCode}
                                     onChange={(e) => setUnitCode(e.target.value)}
                                     required
                                 >
                                     {activeContracts.map((c) => (
                                         <option key={String(c.id)} value={c.unitCode}>
-                                            Kho {c.unitCode} ({c.facilityCode}) · Hợp đồng {c.id}
+                                            Kho {c.unitCode} ({c.facilityCode}) — HĐ #{c.id}
                                         </option>
                                     ))}
                                 </select>
                             ) : (
                                 <input
-                                    className="input-with-icon"
-                                    style={{ paddingLeft: "14px" }}
+                                    className="form-input-clean"
                                     placeholder="Nhập mã kho (vd: HN-CG-001)"
                                     value={unitCode}
                                     onChange={(e) => setUnitCode(e.target.value)}
@@ -166,30 +164,30 @@ export default function CustomerSupportPage() {
                             )}
                         </div>
 
-                        <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "12px" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
                             <div>
-                                <label style={{ display: "block", fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>
+                                <label style={{ display: "block", fontSize: "13.5px", fontWeight: 700, marginBottom: "6px", color: "#1E293B" }}>
                                     Phân loại sự cố
                                 </label>
                                 <select
-                                    className="input-with-icon"
-                                    style={{ paddingLeft: "14px" }}
+                                    className="form-select-clean"
                                     value={category}
                                     onChange={(e) => setCategory(e.target.value)}
                                 >
-                                    <option value="ACCESS">Kẹt cửa / Quên mã PIN / Khóa</option>
-                                    <option value="DAMAGE">Hư hỏng kho / Ẩm mốc / Thiết bị</option>
-                                    <option value="PAYMENT">Hóa đơn / Tiền cọc / Phí</option>
-                                    <option value="OTHER">Yêu cầu hỗ trợ khác</option>
+                                    <option value="ACCESS">Khóa & mã PIN</option>
+                                    <option value="DAMAGE">Hư hỏng, ẩm mốc</option>
+                                    <option value="PAYMENT">Hóa đơn & thanh toán</option>
+                                    <option value="SECURITY">Camera & an ninh</option>
+                                    <option value="CLEANLINESS">Vệ sinh khoang</option>
+                                    <option value="OTHER">Vấn đề khác</option>
                                 </select>
                             </div>
                             <div>
-                                <label style={{ display: "block", fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>
+                                <label style={{ display: "block", fontSize: "13.5px", fontWeight: 700, marginBottom: "6px", color: "#1E293B" }}>
                                     Mức độ ưu tiên
                                 </label>
                                 <select
-                                    className="input-with-icon"
-                                    style={{ paddingLeft: "14px" }}
+                                    className="form-select-clean"
                                     value={priority}
                                     onChange={(e) => setPriority(e.target.value)}
                                 >
@@ -201,13 +199,12 @@ export default function CustomerSupportPage() {
                         </div>
 
                         <div>
-                            <label style={{ display: "block", fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>
+                            <label style={{ display: "block", fontSize: "13.5px", fontWeight: 700, marginBottom: "6px", color: "#1E293B" }}>
                                 Tiêu đề sự cố
                             </label>
                             <input
-                                className="input-with-icon"
-                                style={{ paddingLeft: "14px" }}
-                                placeholder="Tóm tắt ngắn gọn vấn đề gặp phải"
+                                className="form-input-clean"
+                                placeholder="Tóm tắt ngắn gọn vấn đề gặp phải..."
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 required
@@ -215,18 +212,17 @@ export default function CustomerSupportPage() {
                         </div>
 
                         <div>
-                            <label style={{ display: "block", fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>
+                            <label style={{ display: "block", fontSize: "13.5px", fontWeight: 700, marginBottom: "6px", color: "#1E293B" }}>
                                 Mô tả chi tiết
                             </label>
                             <textarea
                                 rows={4}
+                                className="form-input-clean"
                                 style={{
-                                    width: "100%",
+                                    height: "auto",
                                     padding: "10px 14px",
-                                    borderRadius: "10px",
-                                    border: "1.5px solid #E2E8F0",
-                                    fontSize: "13.5px",
-                                    fontFamily: "inherit",
+                                    lineHeight: "1.5",
+                                    resize: "vertical",
                                 }}
                                 placeholder="Mô tả cụ thể thời gian, hiện tượng gặp phải để nhân viên xử lý nhanh nhất..."
                                 value={description}
@@ -236,12 +232,11 @@ export default function CustomerSupportPage() {
                         </div>
 
                         <div>
-                            <label style={{ display: "block", fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>
+                            <label style={{ display: "block", fontSize: "13.5px", fontWeight: 700, marginBottom: "6px", color: "#1E293B" }}>
                                 Link ảnh / Bằng chứng minh họa (không bắt buộc)
                             </label>
                             <input
-                                className="input-with-icon"
-                                style={{ paddingLeft: "14px" }}
+                                className="form-input-clean"
                                 placeholder="https://example.com/photo.jpg"
                                 value={attachmentUrl}
                                 onChange={(e) => setAttachmentUrl(e.target.value)}
@@ -251,7 +246,7 @@ export default function CustomerSupportPage() {
                         <button
                             type="submit"
                             className="btn-figma btn-primary-dark"
-                            style={{ width: "100%", marginTop: "6px" }}
+                            style={{ width: "100%", marginTop: "6px", height: "46px", fontSize: "14.5px", fontWeight: 700 }}
                             disabled={submitting}
                         >
                             {submitting ? "Đang gửi phiếu…" : "Gửi yêu cầu hỗ trợ →"}

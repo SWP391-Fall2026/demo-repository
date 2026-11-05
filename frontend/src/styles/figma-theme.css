@@ -2092,6 +2092,28 @@ tr:hover td {
   outline: none !important;
 }
 
+.form-select-clean,
+.form-input-clean {
+  width: 100% !important;
+  height: 44px !important;
+  padding: 0 12px !important;
+  font-size: 14px !important;
+  font-family: inherit !important;
+  border-radius: 10px !important;
+  border: 1.5px solid #E2E8F0 !important;
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s ease !important;
+}
+
+.form-select-clean:focus,
+.form-input-clean:focus {
+  border-color: #0066FF !important;
+  box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.12) !important;
+  outline: none !important;
+}
+
 .password-toggle-btn {
   position: absolute;
   right: 12px;
