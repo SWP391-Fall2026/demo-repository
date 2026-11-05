@@ -3,9 +3,18 @@ import { Link } from "react-router-dom";
 import { ResourcePage, Form } from "../../../shared/ui/ResourcePage";
 import { money } from "../../../shared/lib/format";
 import { rentalApi } from "../api/rental.api";
+const renewalColumns = [
+    ["id", "Mã hợp đồng"],
+    ["unitCode", "Kho thuê"],
+    ["facilityCode", "Cơ sở"],
+    ["monthlyFee", "Giá thuê / tháng"],
+    ["endDate", "Hạn thuê hiện tại"],
+    ["status", "Trạng thái"],
+];
+
 export default function RenewalQuotePage() {
     const [quote, setQuote] = useState(null), [invoice, setInvoice] = useState(null);
-    return (<ResourcePage title="Xác nhận giá gia hạn" description="Giá mới chỉ có hiệu lực sau khi khách xác nhận và thanh toán hóa đơn gia hạn." load={rentalApi.list}>
+    return (<ResourcePage eyebrow="STORAGE / GIA HẠN HỢP ĐỒNG" title="Báo giá & Gia hạn hợp đồng" description="Xem báo giá gia hạn thuê kho, áp dụng chiết khấu kỳ hạn và tạo hóa đơn thanh toán gia hạn." load={rentalApi.list} columns={renewalColumns}>
       <Form fields={[
             { name: "contractId", label: "Mã hợp đồng", required: true },
             {

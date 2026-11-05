@@ -1,8 +1,9 @@
 import { ResourcePage, Form } from "../../../shared/ui/ResourcePage";
 import { rentalApi } from "../api/rental.api";
 export default function ReturnRequestPage() {
-    return (<ResourcePage title="Yêu cầu trả kho" description="Khách chọn kho cần trả, chọn ngày hẹn trả kho thực tế, nhập lý do kết thúc thuê và gửi yêu cầu. Kho đang có công nợ chưa thanh toán thì bị từ chối. Yêu cầu tạo ở trạng thái CHECKOUT_REQUESTED; chưa dừng tính tiền hoặc khóa PIN cho đến khi Staff nghiệm thu." load={rentalApi.list} columns={[
+    return (<ResourcePage eyebrow="STORAGE / TRẢ KHO" title="Yêu cầu trả kho" description="Khách hàng gửi yêu cầu trả kho, chọn ngày hẹn thực tế để nhân viên hỗ trợ kiểm tra buồng kho và làm thủ tục nghiệm thu." load={rentalApi.list} columns={[
             ["id", "Mã hợp đồng"],
+            ["unitCode", "Kho thuê"],
             ["facilityCode", "Cơ sở"],
             ["status", "Trạng thái"],
             ["endAt", "Ngày kết thúc dự kiến"],

@@ -68,14 +68,14 @@ export function AppShell() {
             ["/operations/facilities", "Quản lý cơ sở"],
             ["/operations/pricing", "Giá & phí"],
             ["/operations/policies", "Chính sách thuê"],
-            ["/operations/reports", "Báo cáo"]
+            ["/operations/reports", "Báo cáo chuỗi"]
         ],
         ADMIN: [
             ["/admin/overview", "Tổng quan"],
             ["/admin/users", "Người dùng"],
-            ["/admin/roles", "Vai trò"],
-            ["/admin/staff-assignments", "Gán cơ sở"],
-            ["/admin/activity", "Audit & login"]
+            ["/admin/roles", "Vai trò & RBAC"],
+            ["/admin/staff-assignments", "Phân công cơ sở"],
+            ["/admin/activity", "Audit & Đăng nhập"]
         ],
     };
 

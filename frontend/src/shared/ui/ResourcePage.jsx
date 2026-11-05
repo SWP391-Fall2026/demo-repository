@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useRemote } from "../api/use-remote";
-import { display, money, statusClass } from "../lib/format";
+import { display, money, statusClass, statusLabel } from "../lib/format";
 import { fieldLabel } from "../lib/field-labels";
 import { ReloadContext } from "./resource-context";
 export { Form } from "./Form";
 
 export function ResourcePage({
     title,
+    eyebrow = "STORAGE / HỆ THỐNG",
     description,
     load,
     columns,
@@ -45,7 +46,7 @@ export function ResourcePage({
             {/* Page Header */}
             <header className="page-heading">
                 <div>
-                    <span className="eyebrow-pill">STORAGE / VẬN HÀNH CƠ SỞ</span>
+                    <span className="eyebrow-pill">{eyebrow}</span>
                     <h1>{title}</h1>
                     <p className="page-description">
                         {description ||
@@ -131,7 +132,7 @@ export function ResourcePage({
                                             <td key={key}>
                                                 {/status/i.test(key) ? (
                                                     <span className={"badge " + statusClass(r[key])}>
-                                                        {display(r[key])}
+                                                        {statusLabel(r[key])}
                                                     </span>
                                                 ) : /amount|price|fee|deposit/i.test(key) ? (
                                                     <strong>{money(r[key])}</strong>

@@ -1,8 +1,8 @@
 import { ResourcePage } from "../../../shared/ui/ResourcePage";
 import { billingApi } from "../api/billing.api";
 export default function PaymentHistoryPage() {
-    return (<ResourcePage title="Lịch sử thanh toán" description="Mỗi dòng là một lần thanh toán. Dùng mã giao dịch PAID gốc khi gửi yêu cầu hoàn tiền thuê hoặc tiền cọc." load={billingApi.payments} columns={[
-            ["id", "Giao dịch gốc"],
+    return (<ResourcePage eyebrow="STORAGE / LỊCH SỬ THANH TOÁN" title="Lịch sử thanh toán & Hóa đơn" description="Tra cứu chi tiết các giao dịch thanh toán tiền cọc, tiền thuê kho và phụ phí phát sinh." load={billingApi.payments} columns={[
+            ["id", "Mã giao dịch"],
             ["facilityCode", "Cơ sở"],
             ["invoiceType", "Khoản thu"],
             ["amount", "Số tiền"],

@@ -1,7 +1,7 @@
 import { ResourcePage, Form } from "../../../shared/ui/ResourcePage";
 import { facilityApi } from "../api/facility.api";
 export default function ManageFacilitiesPage() {
-    return (<ResourcePage title="Quản lý cơ sở" description="Thông tin hoạt động, địa chỉ và quy mô mặt bằng lưu trữ của các cơ sở trong hệ thống." load={facilityApi.facilities} columns={[
+    return (<ResourcePage eyebrow="STORAGE / VẬN HÀNH CHUỖI" title="Quản lý mạng lưới chi nhánh cơ sở" description="Quản trị thông tin chi nhánh, địa chỉ, đường dây nóng và quy mô diện tích mặt bằng kho." load={facilityApi.facilities} columns={[
       ["code", "Mã cơ sở"],
       ["name", "Tên cơ sở"],
       ["address", "Địa chỉ"],

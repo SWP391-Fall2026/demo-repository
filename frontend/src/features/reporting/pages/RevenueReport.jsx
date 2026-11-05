@@ -114,15 +114,15 @@ export function RevenueReport({ title, fixedFacility }) {
                     {!fixedFacility && <input name="facilityCode" placeholder="Mã chi nhánh (trống = toàn chuỗi)" defaultValue={filters.facilityCode} />}
                     <input name="from" placeholder="Từ (yyyy-MM-dd)" defaultValue={filters.from} />
                     <input name="to" placeholder="Đến (yyyy-MM-dd)" defaultValue={filters.to} />
-                    <select name="granularity" defaultValue={filters.granularity}>
-                        <option value="day">day</option>
-                        <option value="month">month</option>
-                        <option value="quarter">quarter</option>
+                    <select name="granularity" defaultValue={filters.granularity} className="form-select-clean">
+                        <option value="day">Theo ngày</option>
+                        <option value="month">Theo tháng</option>
+                        <option value="quarter">Theo quý</option>
                     </select>
-                    <button>Lọc</button>
+                    <button className="btn-figma btn-primary-dark btn-sm">Lọc dữ liệu</button>
                     {(timeline.length > 0 || branches.length > 0 || Object.keys(sources).length > 0) && (
-                        <button type="button" className="secondary" onClick={downloadCsv}>
-                            Xuất CSV
+                        <button type="button" className="btn-figma btn-outline btn-sm" onClick={downloadCsv}>
+                            Xuất file CSV
                         </button>
                     )}
                 </form>

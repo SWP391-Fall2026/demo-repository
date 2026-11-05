@@ -2,6 +2,15 @@ import { useState } from "react";
 import { useRemote } from "../../../shared/api/use-remote";
 import { ResourcePage } from "../../../shared/ui/ResourcePage";
 import { rentalApi } from "../api/rental.api";
+const handoverColumns = [
+    ["id", "Mã hợp đồng"],
+    ["customerName", "Khách hàng"],
+    ["unitCode", "Kho"],
+    ["facilityCode", "Cơ sở"],
+    ["startDate", "Ngày nhận kho"],
+    ["status", "Trạng thái hợp đồng"],
+];
+
 export default function HandoverPage() {
     const [evidence, setEvidence] = useState();
     const eligible = useRemote(rentalApi.eligibleHandovers);
@@ -35,7 +44,7 @@ export default function HandoverPage() {
             setBusy(false);
         }
     }
-    return (<ResourcePage title="Check-in và bàn giao kho" description="Staff lập biên bản hiện trạng. Customer xem biên bản và xác nhận riêng; chỉ sau đó hợp đồng mới ACTIVE." load={rentalApi.list}>
+    return (<ResourcePage eyebrow="STORAGE / THỦ TỤC NHẬN KHO" title="Check-in và bàn giao kho" description="Staff lập biên bản hiện trạng bàn giao. Customer xem biên bản và ký nhận; hợp đồng chuyển ACTIVE." load={rentalApi.list} columns={handoverColumns}>
       <form className="form-grid" onSubmit={submit}>
         <section className="handover-form-section"><h3>A. Reservation và hợp đồng</h3>
           <label>Hồ sơ đã thanh toán, chờ bàn giao<select name="reservationId" value={selectedId} onChange={(event) => setSelectedId(event.target.value)} required><option value="">Chọn hồ sơ</option>{(Array.isArray(eligible.data) ? eligible.data : []).map((row) => <option key={String(row.reservationId)} value={String(row.reservationId)}>{String(row.reservationId)} · {String(row.customerName)} · {String(row.unitCode)}</option>)}</select></label>

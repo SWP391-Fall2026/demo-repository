@@ -5,6 +5,19 @@ import { useRemote } from "../../../shared/api/use-remote";
 import { useSession } from "../../identity/session";
 import { facilityFilterForSession } from "../lib/catalog-filters";
 import { display, money } from "../../../shared/lib/format";
+import imgCauGiay from "../../../assets/images/facility_cau_giay.jpg";
+import imgQuan7 from "../../../assets/images/facility_quan_7.jpg";
+import imgTanBinh from "../../../assets/images/facility_tan_binh.jpg";
+import imgClean from "../../../assets/images/facility_clean.jpg";
+
+function getUnitImage(unit) {
+    if (unit.imageUrl) return String(unit.imageUrl);
+    const code = String(unit.code || unit.facilityCode || "").toUpperCase();
+    if (code.includes("CG") || code.includes("HN")) return imgCauGiay;
+    if (code.includes("Q7")) return imgQuan7;
+    if (code.includes("TB")) return imgTanBinh;
+    return imgClean;
+}
 
 export default function CatalogPage() {
     const session = useSession();
@@ -181,18 +194,12 @@ export default function CatalogPage() {
                         {units.map((unit) => (
                             <article className="clean-card unit-showcase-card" key={String(unit.code)}>
                                 <div className="unit-card-media">
-                                    {unit.imageUrl ? (
-                                        <img
-                                            src={String(unit.imageUrl)}
-                                            alt={String(unit.imageAltText || `Ảnh kho ${unit.code}`)}
-                                            loading="lazy"
-                                            onError={(event) => { event.currentTarget.style.display = "none"; }}
-                                        />
-                                    ) : (
-                                        <div className="unit-placeholder-graphic">
-                                            <span className="graphic-icon">▦</span>
-                                        </div>
-                                    )}
+                                    <img
+                                        src={getUnitImage(unit)}
+                                        alt={String(unit.imageAltText || `Ảnh khoang lưu trữ ${unit.code}`)}
+                                        loading="lazy"
+                                        onError={(event) => { event.currentTarget.src = imgClean; }}
+                                    />
                                     <span className="available-pill">
                                         <span className="green-dot"></span> Còn trống
                                     </span>

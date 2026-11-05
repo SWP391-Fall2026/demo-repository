@@ -31,16 +31,17 @@ export default function MyRentalsPage() {
         reloadReviews();
     };
     return (<>
-      <ResourcePage title="Kho đang thuê và hợp đồng" description="Tên cơ sở, thời hạn, trạng thái hợp đồng và PIN 6 chữ số. Yêu cầu trả kho giữ PIN đến khi Staff hoàn tất nghiệm thu." load={loadRentals} columns={[
+      <ResourcePage eyebrow="STORAGE / DỊCH VỤ CỦA TÔI" title="Kho đang thuê và hợp đồng" description="Theo dõi thời hạn thuê, mã PIN mở kho 24/7 và trạng thái các hợp đồng lưu trữ của bạn." load={loadRentals} columns={[
+            ["id", "Mã hợp đồng"],
+            ["unitCode", "Kho thuê"],
             ["facilityCode", "Cơ sở"],
-            ["status", "Trạng thái hợp đồng"],
-            ["startDate", "Ngày bắt đầu"],
-            ["endAt", "Ngày kết thúc dự kiến"],
-            ["monthlyFee", "Giá thuê / tháng"],
-            ["checkoutRequestedDate", "Ngày hẹn trả"],
+            ["status", "Trạng thái"],
+            ["startDate", "Bắt đầu"],
+            ["endAt", "Hạn thuê"],
+            ["monthlyFee", "Giá / tháng"],
         ]} actions={<>
-          <Link className="button" to="/rentals/return">Yêu cầu trả kho</Link>
-          <Link className="button secondary" to="/rentals/renew">Gia hạn</Link>
+          <Link className="btn-figma btn-outline btn-sm" to="/rentals/return">Yêu cầu trả kho</Link>
+          <Link className="btn-figma btn-primary-dark btn-sm" to="/rentals/renew">Gia hạn hợp đồng</Link>
         </>}/>
       {rentalsError && <section className="card error" role="alert">{rentalsError}</section>}
       {rentalsBusy && <section className="card empty">Đang tải hợp đồng…</section>}
