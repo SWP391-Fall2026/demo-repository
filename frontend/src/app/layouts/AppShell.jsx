@@ -212,26 +212,40 @@ export function AppShell() {
         return (
             <div className={`app role-shell role-shell-${internalRole.toLowerCase()}`}>
                 <header className="role-header">
-                    <Link className="figma-brand" to={links[0]?.[0] || "/"}>
-                        <span className="brand-logo-icon">▦</span>
-                        <div className="brand-text">
-                            <span className="brand-title">STORAGE</span>
-                            <span className="brand-sub">HỆ THỐNG KHO TỰ QUẢN</span>
-                        </div>
-                    </Link>
-                    <div className="role-header-context">
-                        <span className="context-badge">{roleShell.title}</span>
-                        <strong>{roleShell.context}</strong>
+                    <div className="role-header-brand-box">
+                        <Link className="figma-brand" to={links[0]?.[0] || "/admin/overview"}>
+                            <span className="brand-logo-icon light">▦</span>
+                            <div className="brand-text light">
+                                <span className="brand-title">STORAGE</span>
+                                <span className="brand-sub">HỆ THỐNG KHO TỰ QUẢN</span>
+                            </div>
+                        </Link>
                     </div>
-                    <div className="role-account">
-                        <span className="avatar">{session.user.name?.slice(0, 1)}</span>
-                        <div className="role-account-name">
-                            <strong>{session.user.name || session.user.username}</strong>
-                            <small>{labels[internalRole]}</small>
+                    <div className="role-header-main-bar">
+                        <div className="role-header-context">
+                            <span className="context-badge">{roleShell.title}</span>
+                            <strong className="context-title">{roleShell.context}</strong>
                         </div>
-                        <button className="secondary" onClick={() => sessionStore.set(null)}>
-                            Đăng xuất
-                        </button>
+                        <div className="role-account">
+                            <span className="avatar-circle backoffice-avatar">
+                                {session.user.name?.slice(0, 1) || session.user.username?.slice(0, 1) || "U"}
+                            </span>
+                            <div className="role-account-name">
+                                <strong>{session.user.name || session.user.username}</strong>
+                                <small>
+                                    {session.user.name === labels[internalRole]
+                                        ? "Toàn quyền quản trị"
+                                        : labels[internalRole]}
+                                </small>
+                            </div>
+                            <button
+                                type="button"
+                                className="role-logout-btn"
+                                onClick={() => sessionStore.set(null)}
+                            >
+                                Đăng xuất
+                            </button>
+                        </div>
                     </div>
                 </header>
                 <div className="role-layout">

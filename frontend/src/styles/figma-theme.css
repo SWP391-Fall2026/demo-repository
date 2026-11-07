@@ -118,9 +118,9 @@ input:focus, select:focus, textarea:focus {
 
 .topbar-container {
   width: 100%;
-  max-width: 1680px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 0 clamp(16px, 2.5vw, 40px);
+  padding: 0 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -209,7 +209,11 @@ input:focus, select:focus, textarea:focus {
   text-decoration: none;
   transition: all 0.15s ease;
   position: relative;
-  padding: 6px clamp(4px, 0.5vw, 8px);
+  padding: 7px clamp(6px, 0.6vw, 10px);
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
   white-space: nowrap !important;
   flex-shrink: 0;
   border-radius: 6px;
@@ -1134,21 +1138,123 @@ input:focus, select:focus, textarea:focus {
   background: #FFFFFF !important;
   border-bottom: 1px solid var(--color-border) !important;
   height: 72px !important;
-  padding: 0 32px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 100 !important;
+}
+
+.role-header-brand-box {
+  width: 248px !important;
+  min-width: 248px !important;
+  max-width: 248px !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 0 20px !important;
+  background: #0B192C !important;
+  border-right: 1px solid #1E293B !important;
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+}
+
+.role-header-brand-box .figma-brand {
+  text-decoration: none;
+}
+
+.role-header-main-bar {
+  flex: 1 !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0 38px !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  background: #FFFFFF !important;
 }
 
 .role-header-context {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
 }
 
 .context-badge {
-  font-size: 10px;
-  font-weight: 800;
-  color: var(--color-accent-blue);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 10.5px !important;
+  font-weight: 800 !important;
+  color: var(--color-accent-blue) !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+.context-title {
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  color: #0F172A !important;
+}
+
+.role-account {
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+}
+
+.backoffice-avatar {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  background: #0066FF !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  display: grid !important;
+  place-items: center !important;
+  box-shadow: 0 2px 8px rgba(0, 102, 255, 0.25) !important;
+  flex-shrink: 0 !important;
+}
+
+.role-account-name {
+  display: flex !important;
+  flex-direction: column !important;
+  line-height: 1.25 !important;
+}
+
+.role-account-name strong {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: #0F172A !important;
+}
+
+.role-account-name small {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: #64748B !important;
+}
+
+.role-logout-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  height: 34px !important;
+  padding: 0 14px !important;
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  border: 1px solid #CBD5E1 !important;
+  background: #FFFFFF !important;
+  color: #475569 !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  white-space: nowrap !important;
+}
+
+.role-logout-btn:hover {
+  background: #FEF2F2 !important;
+  color: #DC2626 !important;
+  border-color: #FECACA !important;
 }
 
 .role-sidebar {
@@ -2720,6 +2826,8 @@ tr:hover td {
   color: var(--color-text-main);
   cursor: pointer;
   padding: 7px clamp(8px, 0.8vw, 12px);
+  height: 38px;
+  box-sizing: border-box;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -2896,6 +3004,8 @@ tr:hover td {
   font-weight: 700;
   font-size: 13.5px;
   padding: 6px 10px;
+  height: 38px;
+  box-sizing: border-box;
   border-radius: 6px;
   transition: all 0.15s ease;
   white-space: nowrap;
@@ -2919,6 +3029,8 @@ tr:hover td {
   font-weight: 800;
   font-size: 13px;
   padding: 8px 18px;
+  height: 38px;
+  box-sizing: border-box;
   border-radius: 9999px;
   text-decoration: none;
   letter-spacing: 0.3px;
