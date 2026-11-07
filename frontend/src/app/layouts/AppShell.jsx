@@ -4,90 +4,34 @@ import { routes } from "../router";
 import { RoleGuard } from "../guards/RoleGuard";
 import { useSession, sessionStore } from "../../features/identity/session";
 
-const customerDropdownItems = [
-    {
-        path: "/storage",
-        icon: "🔍",
-        title: "Tìm kiếm & Danh mục kho",
-        desc: "Tra cứu tất cả chi nhánh và diện tích kho",
-    },
-    {
-        path: "/rentals",
-        icon: "📦",
-        title: "Kho đang thuê của tôi",
-        desc: "Quản lý hợp đồng & mã PIN mở cửa 24/7",
-    },
-    {
-        path: "/reservations/new",
-        icon: "📝",
-        title: "Đặt giữ chỗ mới",
-        desc: "Tạo đơn đặt thuê khoang lưu trữ",
-    },
-    {
-        path: "/payments",
-        icon: "💳",
-        title: "Thanh toán & Hóa đơn",
-        desc: "Lịch sử giao dịch và đóng phí cọc / thuê",
-    },
-    {
-        path: "/reservations/all/appointment",
-        icon: "📅",
-        title: "Thẻ hẹn nhận kho",
-        desc: "Lịch hẹn làm thủ tục check-in cơ sở",
-    },
-    {
-        path: "/reservations/all/pass",
-        icon: "🔑",
-        title: "Thẻ Check-in điện tử",
-        desc: "Mã QR & mã số vào cổng chi nhánh",
-    },
-    {
-        path: "/handover-reviews",
-        icon: "🤝",
-        title: "Biên bản bàn giao kho",
-        desc: "Xác nhận hiện trạng buồng kho khi nhận",
-    },
-    {
-        path: "/rentals/return",
-        icon: "↩️",
-        title: "Yêu cầu trả kho",
-        desc: "Lập lịch hẹn trả buồng kho thực tế",
-    },
-    {
-        path: "/refunds",
-        icon: "💰",
-        title: "Yêu cầu hoàn tiền",
-        desc: "Theo dõi hồ sơ hoàn cọc & tiền thuê",
-    },
-    {
-        path: "/support",
-        icon: "🛠️",
-        title: "Hỗ trợ & Báo cáo sự cố",
-        desc: "Gửi phản ánh kỹ thuật và an ninh 24/7",
-    },
-];
-
 export function AppShell() {
     const session = useSession(), location = useLocation();
-    const [userMenuOpen, setUserMenuOpen] = useState(false);
-    const dropdownRef = useRef(null);
+    const [locationsOpen, setLocationsOpen] = useState(false);
+    const [rentalsOpen, setRentalsOpen] = useState(false);
+    const locationsRef = useRef(null);
+    const rentalsRef = useRef(null);
 
     useEffect(() => {
-        setUserMenuOpen(false);
+        setLocationsOpen(false);
+        setRentalsOpen(false);
     }, [location.pathname]);
 
     useEffect(() => {
         function handleClickOutside(event) {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                setUserMenuOpen(false);
+            if (locationsRef.current && !locationsRef.current.contains(event.target)) {
+                setLocationsOpen(false);
+            }
+            if (rentalsRef.current && !rentalsRef.current.contains(event.target)) {
+                setRentalsOpen(false);
             }
         }
         function handleKeyDown(event) {
             if (event.key === "Escape") {
-                setUserMenuOpen(false);
+                setLocationsOpen(false);
+                setRentalsOpen(false);
             }
         }
-        if (userMenuOpen) {
+        if (locationsOpen || rentalsOpen) {
             document.addEventListener("mousedown", handleClickOutside);
             document.addEventListener("keydown", handleKeyDown);
         }
@@ -95,7 +39,7 @@ export function AppShell() {
             document.removeEventListener("mousedown", handleClickOutside);
             document.removeEventListener("keydown", handleKeyDown);
         };
-    }, [userMenuOpen]);
+    }, [locationsOpen, rentalsOpen]);
 
     const auth = ["/login", "/register", "/verify-otp"].includes(location.pathname);
     const labels = {
@@ -294,38 +238,24 @@ export function AppShell() {
 
                     <nav className="figma-navbar">
                         <div className="nav-menu">
-                            {session ? (
-                                links.map(([path, title]) => (
-                                    <NavLink key={path} to={path}>
-                                        {title}
-                                    </NavLink>
-                                ))
-                            ) : (
-                                <>
-                                    <NavLink to="/" end>Trang chủ</NavLink>
-                                    <NavLink to="/storage">Kho lưu trữ</NavLink>
-                                    <Link to="/storage">Điều kiện thuê</Link>
-                                    <Link to="/storage">Chính sách bảo mật</Link>
-                                </>
-                            )}
-                        </div>
-
-                        {session ? (
-                            <div className="nav-account-dropdown-wrapper" ref={dropdownRef}>
+                            {/* 1. ĐỊA ĐIỂM KHO DROPDOWN (MyStorage Style) */}
+                            <div
+                                className="navbar-dropdown-wrapper"
+                                ref={locationsRef}
+                                onMouseEnter={() => setLocationsOpen(true)}
+                                onMouseLeave={() => setLocationsOpen(false)}
+                            >
                                 <button
                                     type="button"
-                                    className="nav-account-trigger"
-                                    onClick={() => setUserMenuOpen((prev) => !prev)}
-                                    aria-expanded={userMenuOpen}
-                                    aria-label="Menu tài khoản khách hàng"
+                                    className={`navbar-dropdown-trigger ${locationsOpen ? "active" : ""}`}
+                                    onClick={() => setLocationsOpen((prev) => !prev)}
+                                    aria-expanded={locationsOpen}
                                 >
-                                    <span className="avatar-circle">{session.user.name?.slice(0, 1) || "K"}</span>
-                                    <span className="user-name">{session.user.name || session.user.username}</span>
-                                    <span className="user-badge">{labels[session.user.role]}</span>
+                                    <span>Địa Điểm Kho</span>
                                     <svg
-                                        className={`nav-account-caret ${userMenuOpen ? "open" : ""}`}
-                                        width="12"
-                                        height="12"
+                                        className={`navbar-caret-icon ${locationsOpen ? "open" : ""}`}
+                                        width="10"
+                                        height="10"
                                         viewBox="0 0 24 24"
                                         fill="none"
                                         stroke="currentColor"
@@ -337,49 +267,183 @@ export function AppShell() {
                                     </svg>
                                 </button>
 
-                                {userMenuOpen && (
-                                    <div className="customer-dropdown-menu">
-                                        <div className="dropdown-user-header">
-                                            <div className="dropdown-user-name">
-                                                {session.user.name || session.user.username}
-                                            </div>
-                                            <div className="dropdown-user-sub">
-                                                {session.user.phone || session.user.email || labels[session.user.role]}
-                                            </div>
+                                {locationsOpen && (
+                                    <div className="navbar-dropdown-menu locations-dropdown">
+                                        <div className="dropdown-section">
+                                            <div className="dropdown-city-title">HÀ NỘI</div>
+                                            <Link
+                                                to="/storage?facility=HN-CG"
+                                                className="dropdown-location-link"
+                                                onClick={() => setLocationsOpen(false)}
+                                            >
+                                                <span className="location-name">Kho Cầu Giấy</span>
+                                                <span className="location-sub">15 Duy Tân, Q. Cầu Giấy</span>
+                                            </Link>
+                                            <a
+                                                href="https://maps.google.com/?q=15+Duy+Tân+Cầu+Giấy+Hà+Nội"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="dropdown-location-sublink"
+                                                onClick={() => setLocationsOpen(false)}
+                                            >
+                                                Bản đồ kho – 15 Duy Tân
+                                            </a>
                                         </div>
 
-                                        <div className="dropdown-nav-list">
-                                            {customerDropdownItems.map((item) => (
-                                                <Link
-                                                    key={item.path}
-                                                    to={item.path}
-                                                    className="dropdown-nav-item"
-                                                    onClick={() => setUserMenuOpen(false)}
-                                                >
-                                                    <span className="dropdown-item-icon">{item.icon}</span>
-                                                    <div className="dropdown-item-text">
-                                                        <span className="dropdown-item-title">{item.title}</span>
-                                                        <span className="dropdown-item-desc">{item.desc}</span>
-                                                    </div>
-                                                </Link>
-                                            ))}
+                                        <div className="dropdown-section">
+                                            <div className="dropdown-city-title">TP. HỒ CHÍ MINH</div>
+                                            <Link
+                                                to="/storage?facility=HCM-TB"
+                                                className="dropdown-location-link"
+                                                onClick={() => setLocationsOpen(false)}
+                                            >
+                                                <span className="location-name">Kho Tân Bình</span>
+                                                <span className="location-sub">45 Cộng Hòa, P. 4, Q. Tân Bình</span>
+                                            </Link>
+                                            <a
+                                                href="https://maps.google.com/?q=45+Cộng+Hòa+Tân+Bình+Hồ+Chí+Minh"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="dropdown-location-sublink"
+                                                onClick={() => setLocationsOpen(false)}
+                                            >
+                                                Bản đồ kho – 45 Cộng Hòa
+                                            </a>
+                                            <Link
+                                                to="/storage?facility=HCM-Q7"
+                                                className="dropdown-location-link"
+                                                onClick={() => setLocationsOpen(false)}
+                                            >
+                                                <span className="location-name">Kho Quận 7</span>
+                                                <span className="location-sub">128 Nguyễn Thị Thập, Q. 7</span>
+                                            </Link>
+                                            <Link
+                                                to="/storage"
+                                                className="dropdown-location-link"
+                                                onClick={() => setLocationsOpen(false)}
+                                            >
+                                                <span className="location-name">Tủ Locker Thủ Đức</span>
+                                                <span className="location-sub">375 Võ Nguyên Giáp, TP. Thủ Đức</span>
+                                            </Link>
                                         </div>
 
-                                        <div className="dropdown-divider"></div>
-
-                                        <button
-                                            type="button"
-                                            className="dropdown-logout-btn"
-                                            onClick={() => {
-                                                setUserMenuOpen(false);
-                                                sessionStore.set(null);
-                                            }}
-                                        >
-                                            <span style={{ fontSize: "16px" }}>🚪</span>
-                                            <span>Đăng xuất tài khoản</span>
-                                        </button>
+                                        <div className="dropdown-section-footer">
+                                            <Link
+                                                to="/storage"
+                                                className="dropdown-view-all-link"
+                                                onClick={() => setLocationsOpen(false)}
+                                            >
+                                                <span>👉 Xem tất cả chi nhánh &amp; bảng giá</span>
+                                            </Link>
+                                        </div>
                                     </div>
                                 )}
+                            </div>
+
+                            {/* 2. TÌM KHO (Direct Catalog Link) */}
+                            <NavLink to="/storage">
+                                Tìm kho
+                            </NavLink>
+
+                            {/* 3. KHO HIỆN TẠI DROPDOWN (Customer Service & Procedure Links) */}
+                            {session?.user?.role === "CUSTOMER" ? (
+                                <div
+                                    className="navbar-dropdown-wrapper"
+                                    ref={rentalsRef}
+                                    onMouseEnter={() => setRentalsOpen(true)}
+                                    onMouseLeave={() => setRentalsOpen(false)}
+                                >
+                                    <button
+                                        type="button"
+                                        className={`navbar-dropdown-trigger ${rentalsOpen ? "active" : ""}`}
+                                        onClick={() => setRentalsOpen((prev) => !prev)}
+                                        aria-expanded={rentalsOpen}
+                                    >
+                                        <span>Kho Hiện Tại</span>
+                                        <svg
+                                            className={`navbar-caret-icon ${rentalsOpen ? "open" : ""}`}
+                                            width="10"
+                                            height="10"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2.5"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        >
+                                            <polyline points="6 9 12 15 18 9"></polyline>
+                                        </svg>
+                                    </button>
+
+                                    {rentalsOpen && (
+                                        <div className="navbar-dropdown-menu rentals-dropdown">
+                                            <div className="dropdown-section">
+                                                <div className="dropdown-city-title">QUẢN LÝ KHO ĐANG THUÊ</div>
+                                                <Link to="/rentals" className="dropdown-location-link" onClick={() => setRentalsOpen(false)}>
+                                                    <span className="location-name">📦 Kho đang thuê &amp; Mã PIN</span>
+                                                    <span className="location-sub">Mã PIN mở khóa điện tử 24/7 &amp; hợp đồng</span>
+                                                </Link>
+                                                <Link to="/reservations/all/pass" className="dropdown-location-link" onClick={() => setRentalsOpen(false)}>
+                                                    <span className="location-name">🔑 Thẻ Check-in điện tử</span>
+                                                    <span className="location-sub">Mã QR và thẻ số ra vào cơ sở</span>
+                                                </Link>
+                                                <Link to="/reservations/all/appointment" className="dropdown-location-link" onClick={() => setRentalsOpen(false)}>
+                                                    <span className="location-name">📅 Thẻ hẹn nhận kho</span>
+                                                    <span className="location-sub">Lịch hẹn làm thủ tục nhận kho</span>
+                                                </Link>
+                                                <Link to="/handover-reviews" className="dropdown-location-link" onClick={() => setRentalsOpen(false)}>
+                                                    <span className="location-name">🤝 Biên bản bàn giao kho</span>
+                                                    <span className="location-sub">Xác nhận hiện trạng buồng kho</span>
+                                                </Link>
+                                                <Link to="/rentals/return" className="dropdown-location-link" onClick={() => setRentalsOpen(false)}>
+                                                    <span className="location-name">↩️ Yêu cầu trả kho</span>
+                                                    <span className="location-sub">Lập lịch bàn giao &amp; nghiệm thu</span>
+                                                </Link>
+                                            </div>
+
+                                            <div className="dropdown-section">
+                                                <div className="dropdown-city-title">DỊCH VỤ &amp; HỖ TRỢ</div>
+                                                <Link to="/reservations/new" className="dropdown-location-link" onClick={() => setRentalsOpen(false)}>
+                                                    <span className="location-name">📝 Đặt giữ chỗ mới</span>
+                                                    <span className="location-sub">Tạo đơn đặt thuê khoang lưu trữ mới</span>
+                                                </Link>
+                                                <Link to="/payments" className="dropdown-location-link" onClick={() => setRentalsOpen(false)}>
+                                                    <span className="location-name">💳 Thanh toán &amp; Hóa đơn</span>
+                                                    <span className="location-sub">Thanh toán tiền cọc và phí thuê kho</span>
+                                                </Link>
+                                                <Link to="/refunds" className="dropdown-location-link" onClick={() => setRentalsOpen(false)}>
+                                                    <span className="location-name">💰 Yêu cầu hoàn tiền</span>
+                                                    <span className="location-sub">Theo dõi hồ sơ hoàn tiền &amp; cọc</span>
+                                                </Link>
+                                                <Link to="/support" className="dropdown-location-link" onClick={() => setRentalsOpen(false)}>
+                                                    <span className="location-name">🛠️ Hỗ trợ sự cố 24/7</span>
+                                                    <span className="location-sub">Gửi báo cáo sự cố &amp; yêu cầu kỹ thuật</span>
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : !session ? (
+                                <>
+                                    <Link to="/storage">Điều kiện thuê</Link>
+                                    <Link to="/storage">Chính sách bảo mật</Link>
+                                </>
+                            ) : null}
+                        </div>
+
+                        {/* RIGHT ACCOUNT AREA: Clean & Standard */}
+                        {session ? (
+                            <div className="nav-account-logged">
+                                <span className="user-badge">{labels[session.user.role]}</span>
+                                <span className="avatar-circle">{session.user.name?.slice(0, 1) || "K"}</span>
+                                <span className="user-name">{session.user.name || session.user.username}</span>
+                                <button
+                                    type="button"
+                                    className="figma-btn figma-btn-outline btn-sm"
+                                    onClick={() => sessionStore.set(null)}
+                                >
+                                    Đăng xuất
+                                </button>
                             </div>
                         ) : (
                             <div className="nav-account-guest">

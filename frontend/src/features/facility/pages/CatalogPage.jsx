@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { facilityApi } from "../api/facility.api";
 import { useRemote } from "../../../shared/api/use-remote";
 import { useSession } from "../../identity/session";
@@ -21,7 +21,9 @@ function getUnitImage(unit) {
 
 export default function CatalogPage() {
     const session = useSession();
-    const customerFacilityCode = facilityFilterForSession(session?.user.role, session?.user.facilityCode);
+    const [searchParams] = useSearchParams();
+    const urlFacility = searchParams.get("facility") || "";
+    const customerFacilityCode = urlFacility || facilityFilterForSession(session?.user?.role, session?.user?.facilityCode);
     const [filters, setFilters] = useState({ facilityCode: customerFacilityCode, minSize: "", maxSize: "", minPrice: "", maxPrice: "" });
     const [appliedFilters, setAppliedFilters] = useState(filters);
     const [facilities, setFacilities] = useState([]);
@@ -29,10 +31,11 @@ export default function CatalogPage() {
     const units = Array.isArray(data) ? data : [];
 
     useEffect(() => {
-        setFilters((current) => ({ ...current, facilityCode: customerFacilityCode }));
-        setAppliedFilters((current) => ({ ...current, facilityCode: customerFacilityCode }));
+        const activeFacility = urlFacility || customerFacilityCode;
+        setFilters((current) => ({ ...current, facilityCode: activeFacility }));
+        setAppliedFilters((current) => ({ ...current, facilityCode: activeFacility }));
         reload();
-    }, [customerFacilityCode, reload]);
+    }, [urlFacility, customerFacilityCode, reload]);
 
     useEffect(() => {
         facilityApi.facilities().then(setFacilities).catch(() => setFacilities([]));
