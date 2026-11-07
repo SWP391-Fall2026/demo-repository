@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Routes, Route, NavLink, Link, useLocation } from "react-router-dom";
+import { Routes, Route, NavLink, Link, useLocation, Navigate } from "react-router-dom";
 import { routes } from "../router";
 import { RoleGuard } from "../guards/RoleGuard";
 import { useSession, sessionStore } from "../../features/identity/session";
@@ -170,6 +170,21 @@ export function AppShell() {
     const isBackoffice = internalRole && internalRole !== "CUSTOMER";
     const roleShell = isBackoffice ? roleShells[internalRole] : null;
 
+    if (isBackoffice) {
+        if (location.pathname === "/" || location.pathname === "") {
+            return <Navigate to={links[0]?.[0] || "/admin/overview"} replace />;
+        }
+        if (location.pathname === "/storage") {
+            const redirectMap = {
+                ADMIN: "/admin/overview",
+                STAFF: "/facility/units/status",
+                FMANAGER: "/facility/units",
+                OPS_MGR: "/operations/facilities",
+            };
+            return <Navigate to={redirectMap[internalRole] || links[0]?.[0] || "/admin/overview"} replace />;
+        }
+    }
+
     const pageRoutes = (
         <Routes>
             {routes.map((r) => (
@@ -184,7 +199,9 @@ export function AppShell() {
                 element={
                     <section className="card empty">
                         <h1>Không tìm thấy trang</h1>
-                        <Link to="/">Về trang chủ</Link>
+                        <Link to={isBackoffice ? (links[0]?.[0] || "/admin/overview") : "/"}>
+                            {isBackoffice ? "Về bàn làm việc" : "Về trang chủ"}
+                        </Link>
                     </section>
                 }
             />
