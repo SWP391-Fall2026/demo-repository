@@ -10,11 +10,37 @@ export function AppShell() {
     const [rentalsOpen, setRentalsOpen] = useState(false);
     const locationsRef = useRef(null);
     const rentalsRef = useRef(null);
+    const locationsTimer = useRef(null);
+    const rentalsTimer = useRef(null);
+
+    const openLocations = () => {
+        if (locationsTimer.current) clearTimeout(locationsTimer.current);
+        setLocationsOpen(true);
+    };
+    const closeLocations = () => {
+        if (locationsTimer.current) clearTimeout(locationsTimer.current);
+        locationsTimer.current = setTimeout(() => {
+            setLocationsOpen(false);
+        }, 220);
+    };
+
+    const openRentals = () => {
+        if (rentalsTimer.current) clearTimeout(rentalsTimer.current);
+        setRentalsOpen(true);
+    };
+    const closeRentals = () => {
+        if (rentalsTimer.current) clearTimeout(rentalsTimer.current);
+        rentalsTimer.current = setTimeout(() => {
+            setRentalsOpen(false);
+        }, 220);
+    };
 
     useEffect(() => {
+        if (locationsTimer.current) clearTimeout(locationsTimer.current);
+        if (rentalsTimer.current) clearTimeout(rentalsTimer.current);
         setLocationsOpen(false);
         setRentalsOpen(false);
-    }, [location.pathname]);
+    }, [location.pathname, location.search]);
 
     useEffect(() => {
         function handleClickOutside(event) {
@@ -242,13 +268,16 @@ export function AppShell() {
                             <div
                                 className="navbar-dropdown-wrapper"
                                 ref={locationsRef}
-                                onMouseEnter={() => setLocationsOpen(true)}
-                                onMouseLeave={() => setLocationsOpen(false)}
+                                onMouseEnter={openLocations}
+                                onMouseLeave={closeLocations}
                             >
                                 <button
                                     type="button"
                                     className={`navbar-dropdown-trigger ${locationsOpen ? "active" : ""}`}
-                                    onClick={() => setLocationsOpen((prev) => !prev)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setLocationsOpen((prev) => !prev);
+                                    }}
                                     aria-expanded={locationsOpen}
                                 >
                                     <span>Địa Điểm Kho</span>
@@ -345,18 +374,21 @@ export function AppShell() {
                                 Tìm kho
                             </NavLink>
 
-                            {/* 3. KHO HIỆN TẠI DROPDOWN (Customer Service & Procedure Links) */}
+                            {/* 3. KHO HIỆN TẠI / DỊCH VỤ DROPDOWN */}
                             {session?.user?.role === "CUSTOMER" ? (
                                 <div
                                     className="navbar-dropdown-wrapper"
                                     ref={rentalsRef}
-                                    onMouseEnter={() => setRentalsOpen(true)}
-                                    onMouseLeave={() => setRentalsOpen(false)}
+                                    onMouseEnter={openRentals}
+                                    onMouseLeave={closeRentals}
                                 >
                                     <button
                                         type="button"
                                         className={`navbar-dropdown-trigger ${rentalsOpen ? "active" : ""}`}
-                                        onClick={() => setRentalsOpen((prev) => !prev)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setRentalsOpen((prev) => !prev);
+                                        }}
                                         aria-expanded={rentalsOpen}
                                     >
                                         <span>Kho Hiện Tại</span>
@@ -424,10 +456,69 @@ export function AppShell() {
                                     )}
                                 </div>
                             ) : !session ? (
-                                <>
-                                    <Link to="/storage">Điều kiện thuê</Link>
-                                    <Link to="/storage">Chính sách bảo mật</Link>
-                                </>
+                                <div
+                                    className="navbar-dropdown-wrapper"
+                                    ref={rentalsRef}
+                                    onMouseEnter={openRentals}
+                                    onMouseLeave={closeRentals}
+                                >
+                                    <button
+                                        type="button"
+                                        className={`navbar-dropdown-trigger ${rentalsOpen ? "active" : ""}`}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setRentalsOpen((prev) => !prev);
+                                        }}
+                                        aria-expanded={rentalsOpen}
+                                    >
+                                        <span>Dịch Vụ &amp; Tiện Ích</span>
+                                        <svg
+                                            className={`navbar-caret-icon ${rentalsOpen ? "open" : ""}`}
+                                            width="10"
+                                            height="10"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2.5"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        >
+                                            <polyline points="6 9 12 15 18 9"></polyline>
+                                        </svg>
+                                    </button>
+
+                                    {rentalsOpen && (
+                                        <div className="navbar-dropdown-menu rentals-dropdown">
+                                            <div className="dropdown-section">
+                                                <div className="dropdown-city-title">GIẢI PHÁP LƯU TRỮ</div>
+                                                <Link to="/storage" className="dropdown-location-link" onClick={() => setRentalsOpen(false)}>
+                                                    <span className="location-name">🏢 Kho lưu trữ cá nhân &amp; gia đình</span>
+                                                    <span className="location-sub">Kích thước từ 2m² đến 10m²</span>
+                                                </Link>
+                                                <Link to="/storage" className="dropdown-location-link" onClick={() => setRentalsOpen(false)}>
+                                                    <span className="location-name">📦 Kho lưu trữ hồ sơ doanh nghiệp</span>
+                                                    <span className="location-sub">Bảo mật cao, kiểm soát nhiệt độ</span>
+                                                </Link>
+                                                <Link to="/reservations/new" className="dropdown-location-link" onClick={() => setRentalsOpen(false)}>
+                                                    <span className="location-name">📝 Đặt giữ chỗ trực tuyến</span>
+                                                    <span className="location-sub">Nhận buồng kho nhanh chóng</span>
+                                                </Link>
+                                            </div>
+
+                                            <div className="dropdown-section">
+                                                <div className="dropdown-city-title">HƯỚNG DẪN &amp; HỖ TRỢ</div>
+                                                <Link to="/storage" className="dropdown-location-link" onClick={() => setRentalsOpen(false)}>
+                                                    <span className="location-name">📋 Quy định &amp; Điều kiện thuê kho</span>
+                                                    <span className="location-sub">Chính sách bảo mật &amp; cam kết dịch vụ</span>
+                                                </Link>
+                                                <Link to="/support" className="dropdown-location-link" onClick={() => setRentalsOpen(false)}>
+                                                    <span className="location-name">🛠️ Tổng đài hỗ trợ 24/7</span>
+                                                    <span className="location-sub">Giải đáp thắc mắc và cứu hộ kho</span>
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             ) : null}
                         </div>
 

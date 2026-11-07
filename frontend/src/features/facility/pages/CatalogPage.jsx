@@ -27,15 +27,14 @@ export default function CatalogPage() {
     const [filters, setFilters] = useState({ facilityCode: customerFacilityCode, minSize: "", maxSize: "", minPrice: "", maxPrice: "" });
     const [appliedFilters, setAppliedFilters] = useState(filters);
     const [facilities, setFacilities] = useState([]);
-    const { data, error, busy, reload } = useRemote(() => facilityApi.units(appliedFilters));
+    const { data, error, busy, reload } = useRemote(() => facilityApi.units(appliedFilters), [appliedFilters]);
     const units = Array.isArray(data) ? data : [];
 
     useEffect(() => {
-        const activeFacility = urlFacility || customerFacilityCode;
+        const activeFacility = urlFacility || customerFacilityCode || "";
         setFilters((current) => ({ ...current, facilityCode: activeFacility }));
         setAppliedFilters((current) => ({ ...current, facilityCode: activeFacility }));
-        reload();
-    }, [urlFacility, customerFacilityCode, reload]);
+    }, [urlFacility, customerFacilityCode]);
 
     useEffect(() => {
         facilityApi.facilities().then(setFacilities).catch(() => setFacilities([]));
