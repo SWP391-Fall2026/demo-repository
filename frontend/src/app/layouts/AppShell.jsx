@@ -522,30 +522,40 @@ export function AppShell() {
                             ) : null}
                         </div>
 
-                        {/* RIGHT ACCOUNT AREA: Clean & Standard */}
-                        {session ? (
-                            <div className="nav-account-logged">
-                                <span className="user-badge">{labels[session.user.role]}</span>
-                                <span className="avatar-circle">{session.user.name?.slice(0, 1) || "K"}</span>
-                                <span className="user-name">{session.user.name || session.user.username}</span>
-                                <button
-                                    type="button"
-                                    className="figma-btn figma-btn-outline btn-sm"
-                                    onClick={() => sessionStore.set(null)}
-                                >
-                                    Đăng xuất
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="nav-account-guest">
-                                <Link className="guest-login-link" to="/login">
-                                    Đăng nhập
-                                </Link>
-                                <Link className="figma-btn figma-btn-dark btn-sm" to="/register">
-                                    Đăng ký
-                                </Link>
-                            </div>
-                        )}
+                        {/* RIGHT ACCOUNT AREA: Clean & Standard with Hotline & CTA */}
+                        <div className="nav-actions-right">
+                            <a href="tel:02877700117" className="navbar-hotline" title="Tổng đài tư vấn 24/7">
+                                <span className="hotline-icon">📞</span>
+                                <span className="hotline-text">028 7770 0117</span>
+                            </a>
+                            <Link to="/storage" className="navbar-cta-orange">
+                                ĐẶT KHO NGAY
+                            </Link>
+
+                            {session ? (
+                                <div className="nav-account-logged">
+                                    <span className="user-badge">{labels[session.user.role]}</span>
+                                    <span className="avatar-circle">{session.user.name?.slice(0, 1) || "K"}</span>
+                                    <span className="user-name">{session.user.name || session.user.username}</span>
+                                    <button
+                                        type="button"
+                                        className="figma-btn figma-btn-outline btn-sm"
+                                        onClick={() => sessionStore.set(null)}
+                                    >
+                                        Đăng xuất
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="nav-account-guest">
+                                    <Link className="guest-login-link" to="/login">
+                                        Đăng nhập
+                                    </Link>
+                                    <Link className="figma-btn figma-btn-dark btn-sm" to="/register">
+                                        Đăng ký
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
                     </nav>
                 </div>
             </header>

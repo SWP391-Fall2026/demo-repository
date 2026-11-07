@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import hero from "../../../assets/images/hero_storage.jpg";
 import cleanHallway from "../../../assets/images/facility_clean.jpg";
@@ -6,6 +7,12 @@ import quan7Img from "../../../assets/images/facility_quan_7.jpg";
 import cauGiayImg from "../../../assets/images/facility_cau_giay.jpg";
 
 export default function LandingPage() {
+    const [openFaq, setOpenFaq] = useState(null);
+
+    const toggleFaq = (index) => {
+        setOpenFaq(openFaq === index ? null : index);
+    };
+
     return (
         <div className="landing-page-container">
             {/* 1. HERO SECTION */}
@@ -76,46 +83,58 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            {/* 2. SECTION: ƯU THẾ DỊCH VỤ */}
+            {/* 2. SECTION: NHU CẦU LƯU TRỮ PHỔ BIẾN (USE CASES) */}
             <section className="figma-section text-center">
                 <div className="figma-pill-badge center">
-                    ƯU THẾ DỊCH VỤ
+                    GIẢI PHÁP LƯU TRỮ
                 </div>
                 <h2 className="figma-section-title">
-                    Trải nghiệm lưu trữ bài bản và tiện ích
+                    Không gian lưu trữ cho mọi nhu cầu
                 </h2>
                 <p className="figma-section-desc">
-                    Được thiết kế nhằm tối ưu hóa sự thuận tiện cho việc lưu giữ đồ gia đình lẫn hàng hoá kinh doanh.
+                    Giải pháp thuê kho tự quản thông minh, bảo mật mã PIN riêng và hỗ trợ ra vào tự do 24/7.
                 </p>
 
                 <div className="figma-grid-4">
                     <div className="figma-card service-card">
-                        <div className="card-icon-box">▦</div>
-                        <h3>Nhiều kích thước kho</h3>
+                        <div className="card-icon-box">🏠</div>
+                        <h3>Đồ gia đình &amp; Dọn nhà</h3>
                         <p>
-                            Đa dạng kích cỡ từ tủ đồ mini, kho cá nhân đến kho lưu trữ vật dụng gia đình và doanh nghiệp vừa.
+                            Bảo quản nội thất, sofa, nệm giường, đồ theo mùa hoặc đồ đạc khi sửa nhà, dọn nhà an toàn và khô ráo.
                         </p>
+                        <Link className="card-link-action" to="/storage?type=M">
+                            Xem kho phù hợp →
+                        </Link>
                     </div>
                     <div className="figma-card service-card">
-                        <div className="card-icon-box">🚚</div>
-                        <h3>Vị trí thuận tiện</h3>
+                        <div className="card-icon-box">📂</div>
+                        <h3>Hồ sơ &amp; Tài liệu doanh nghiệp</h3>
                         <p>
-                            Nằm tại các trục đường giao thông trọng điểm, xe tải và xe bán tải dễ dàng tiếp cận tận cửa sảnh.
+                            Lưu trữ chứng từ kế toán, hợp đồng, hồ sơ dự án định kỳ với hệ thống kiểm soát nhiệt độ và PCCC đạt chuẩn.
                         </p>
+                        <Link className="card-link-action" to="/storage?type=S">
+                            Xem kho phù hợp →
+                        </Link>
                     </div>
                     <div className="figma-card service-card">
-                        <div className="card-icon-box">📋</div>
-                        <h3>Quy trình đặt kho rõ ràng</h3>
+                        <div className="card-icon-box">📦</div>
+                        <h3>Hàng hóa kinh doanh Online</h3>
                         <p>
-                            Đặt chỗ trực tuyến minh bạch, hiển thị diện tích và giá niêm yết rõ ràng từng kho.
+                            Khoang chứa đồ riêng tư cho shop online, chủ động xuất nhập hàng hóa bất cứ lúc nào, xe tải đỗ tận sảnh.
                         </p>
+                        <Link className="card-link-action" to="/storage?type=M">
+                            Xem kho phù hợp →
+                        </Link>
                     </div>
                     <div className="figma-card service-card">
-                        <div className="card-icon-box">📱</div>
-                        <h3>Theo dõi kho thuê dễ dàng</h3>
+                        <div className="card-icon-box">🧳</div>
+                        <h3>Hành lý &amp; Đồ cá nhân</h3>
                         <p>
-                            Xem thông tin hợp đồng thuê, ngày gia hạn và lịch sử thanh toán trên cổng khách hàng.
+                            Tủ kho mini tiện lợi lưu giữ vali, xe đạp, thiết bị thể thao, đồ cắm trại trong thời gian đi công tác hoặc du lịch.
                         </p>
+                        <Link className="card-link-action" to="/storage?type=S">
+                            Xem kho phù hợp →
+                        </Link>
                     </div>
                 </div>
             </section>
@@ -384,7 +403,92 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            {/* 7. BANNER CTA ĐÁY TRANG */}
+            {/* 7. SECTION: CÂU HỎI THƯỜNG GẶP (FAQS) */}
+            <section className="figma-section bg-subtle text-center">
+                <div className="figma-pill-badge center">
+                    GIẢI ĐÁP THẮC MẮC
+                </div>
+                <h2 className="figma-section-title">
+                    Câu hỏi thường gặp
+                </h2>
+                <p className="figma-section-desc">
+                    Thông tin cần biết trước khi bắt đầu thuê kho tự quản tại hệ thống.
+                </p>
+
+                <div className="faq-section">
+                    <div className="faq-list">
+                        <div className={`faq-item ${openFaq === 0 ? "active" : ""}`}>
+                            <button
+                                type="button"
+                                className="faq-question"
+                                onClick={() => toggleFaq(0)}
+                                aria-expanded={openFaq === 0}
+                            >
+                                <span>1. Tôi có thể ra vào kho vào ban đêm hoặc ngày nghỉ lễ không?</span>
+                                <span className="faq-icon">{openFaq === 0 ? "▲" : "▼"}</span>
+                            </button>
+                            {openFaq === 0 && (
+                                <div className="faq-answer">
+                                    Có. Hệ thống kho tự quản ứng dụng công nghệ kiểm soát ra vào 24/7. Sau khi nhận bàn giao kho, bạn được cấp mã PIN điện tử riêng biệt để chủ động mở cửa và ra vào bất kỳ thời gian nào trong ngày.
+                                </div>
+                            )}
+                        </div>
+
+                        <div className={`faq-item ${openFaq === 1 ? "active" : ""}`}>
+                            <button
+                                type="button"
+                                className="faq-question"
+                                onClick={() => toggleFaq(1)}
+                                aria-expanded={openFaq === 1}
+                            >
+                                <span>2. Thủ tục đặt kho và nhận kho mất bao lâu?</span>
+                                <span className="faq-icon">{openFaq === 1 ? "▲" : "▼"}</span>
+                            </button>
+                            {openFaq === 1 && (
+                                <div className="faq-answer">
+                                    Chỉ mất từ 3-5 phút thực hiện trực tuyến. Bạn chọn buồng kho, đặt giữ chỗ, thanh toán tiền cọc và sẽ nhận ngay Thẻ Check-in QR điện tử cùng lịch hẹn nhận kho trực tiếp tại cơ sở.
+                                </div>
+                            )}
+                        </div>
+
+                        <div className={`faq-item ${openFaq === 2 ? "active" : ""}`}>
+                            <button
+                                type="button"
+                                className="faq-question"
+                                onClick={() => toggleFaq(2)}
+                                aria-expanded={openFaq === 2}
+                            >
+                                <span>3. Những mặt hàng nào bị nghiêm cấm lưu trữ tại kho?</span>
+                                <span className="faq-icon">{openFaq === 2 ? "▲" : "▼"}</span>
+                            </button>
+                            {openFaq === 2 && (
+                                <div className="faq-answer">
+                                    Vì lý do an toàn PCCC chung, hệ thống nghiêm cấm: chất dễ cháy nổ, vũ khí, hóa chất độc hại, động vật sống, và thực phẩm tươi sống dễ ôi thiu. Đồ khô đóng hộp và hàng hóa thương mại hợp pháp đều được phép lưu trữ.
+                                </div>
+                            )}
+                        </div>
+
+                        <div className={`faq-item ${openFaq === 3 ? "active" : ""}`}>
+                            <button
+                                type="button"
+                                className="faq-question"
+                                onClick={() => toggleFaq(3)}
+                                aria-expanded={openFaq === 3}
+                            >
+                                <span>4. Khi kết thúc hợp đồng, tiền cọc được hoàn lại như thế nào?</span>
+                                <span className="faq-icon">{openFaq === 3 ? "▲" : "▼"}</span>
+                            </button>
+                            {openFaq === 3 && (
+                                <div className="faq-answer">
+                                    Khi bạn tạo yêu cầu trả kho trên hệ thống, nhân viên cơ sở sẽ cùng bạn nghiệm thu hiện trạng buồng kho. Tiền cọc sẽ được hoàn trả tự động về tài khoản ngân hàng của bạn trong vòng 3-5 ngày làm việc.
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* 8. BANNER CTA ĐÁY TRANG */}
             <section className="figma-cta-banner">
                 <div className="cta-inner">
                     <span className="cta-tag">ĐẶT KHO TRỰC TUYẾN TIỆN LỢI</span>
