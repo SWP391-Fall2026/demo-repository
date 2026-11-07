@@ -1,10 +1,102 @@
+import { useState, useRef, useEffect } from "react";
 import { Routes, Route, NavLink, Link, useLocation } from "react-router-dom";
 import { routes } from "../router";
 import { RoleGuard } from "../guards/RoleGuard";
 import { useSession, sessionStore } from "../../features/identity/session";
 
+const customerDropdownItems = [
+    {
+        path: "/storage",
+        icon: "🔍",
+        title: "Tìm kiếm & Danh mục kho",
+        desc: "Tra cứu tất cả chi nhánh và diện tích kho",
+    },
+    {
+        path: "/rentals",
+        icon: "📦",
+        title: "Kho đang thuê của tôi",
+        desc: "Quản lý hợp đồng & mã PIN mở cửa 24/7",
+    },
+    {
+        path: "/reservations/new",
+        icon: "📝",
+        title: "Đặt giữ chỗ mới",
+        desc: "Tạo đơn đặt thuê khoang lưu trữ",
+    },
+    {
+        path: "/payments",
+        icon: "💳",
+        title: "Thanh toán & Hóa đơn",
+        desc: "Lịch sử giao dịch và đóng phí cọc / thuê",
+    },
+    {
+        path: "/reservations/all/appointment",
+        icon: "📅",
+        title: "Thẻ hẹn nhận kho",
+        desc: "Lịch hẹn làm thủ tục check-in cơ sở",
+    },
+    {
+        path: "/reservations/all/pass",
+        icon: "🔑",
+        title: "Thẻ Check-in điện tử",
+        desc: "Mã QR & mã số vào cổng chi nhánh",
+    },
+    {
+        path: "/handover-reviews",
+        icon: "🤝",
+        title: "Biên bản bàn giao kho",
+        desc: "Xác nhận hiện trạng buồng kho khi nhận",
+    },
+    {
+        path: "/rentals/return",
+        icon: "↩️",
+        title: "Yêu cầu trả kho",
+        desc: "Lập lịch hẹn trả buồng kho thực tế",
+    },
+    {
+        path: "/refunds",
+        icon: "💰",
+        title: "Yêu cầu hoàn tiền",
+        desc: "Theo dõi hồ sơ hoàn cọc & tiền thuê",
+    },
+    {
+        path: "/support",
+        icon: "🛠️",
+        title: "Hỗ trợ & Báo cáo sự cố",
+        desc: "Gửi phản ánh kỹ thuật và an ninh 24/7",
+    },
+];
+
 export function AppShell() {
     const session = useSession(), location = useLocation();
+    const [userMenuOpen, setUserMenuOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
+    useEffect(() => {
+        setUserMenuOpen(false);
+    }, [location.pathname]);
+
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setUserMenuOpen(false);
+            }
+        }
+        function handleKeyDown(event) {
+            if (event.key === "Escape") {
+                setUserMenuOpen(false);
+            }
+        }
+        if (userMenuOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+            document.addEventListener("keydown", handleKeyDown);
+        }
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [userMenuOpen]);
+
     const auth = ["/login", "/register", "/verify-otp"].includes(location.pathname);
     const labels = {
         CUSTOMER: "Khách hàng",
@@ -34,13 +126,6 @@ export function AppShell() {
         CUSTOMER: [
             ["/storage", "Kho lưu trữ"],
             ["/rentals", "Kho đang thuê"],
-            ["/support", "Hỗ trợ"],
-            ["/reservations/new", "Đặt chỗ"],
-            ["/invoices/all/pay", "Thanh toán"],
-            ["/reservations/all/appointment", "Thẻ hẹn"],
-            ["/reservations/all/pass", "Check-in"],
-            ["/handover-reviews", "Bàn giao"],
-            ["/refunds", "Hoàn tiền"]
         ],
         STAFF: [
             ["/facility/tasks/my", "Dashboard / Hàng đợi"],
@@ -226,16 +311,75 @@ export function AppShell() {
                         </div>
 
                         {session ? (
-                            <div className="nav-account-logged">
-                                <span className="user-badge">{labels[session.user.role]}</span>
-                                <span className="avatar-circle">{session.user.name?.slice(0, 1)}</span>
-                                <span className="user-name">{session.user.name || session.user.username}</span>
+                            <div className="nav-account-dropdown-wrapper" ref={dropdownRef}>
                                 <button
-                                    className="figma-btn figma-btn-outline btn-sm"
-                                    onClick={() => sessionStore.set(null)}
+                                    type="button"
+                                    className="nav-account-trigger"
+                                    onClick={() => setUserMenuOpen((prev) => !prev)}
+                                    aria-expanded={userMenuOpen}
+                                    aria-label="Menu tài khoản khách hàng"
                                 >
-                                    Đăng xuất
+                                    <span className="avatar-circle">{session.user.name?.slice(0, 1) || "K"}</span>
+                                    <span className="user-name">{session.user.name || session.user.username}</span>
+                                    <span className="user-badge">{labels[session.user.role]}</span>
+                                    <svg
+                                        className={`nav-account-caret ${userMenuOpen ? "open" : ""}`}
+                                        width="12"
+                                        height="12"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2.5"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    >
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
                                 </button>
+
+                                {userMenuOpen && (
+                                    <div className="customer-dropdown-menu">
+                                        <div className="dropdown-user-header">
+                                            <div className="dropdown-user-name">
+                                                {session.user.name || session.user.username}
+                                            </div>
+                                            <div className="dropdown-user-sub">
+                                                {session.user.phone || session.user.email || labels[session.user.role]}
+                                            </div>
+                                        </div>
+
+                                        <div className="dropdown-nav-list">
+                                            {customerDropdownItems.map((item) => (
+                                                <Link
+                                                    key={item.path}
+                                                    to={item.path}
+                                                    className="dropdown-nav-item"
+                                                    onClick={() => setUserMenuOpen(false)}
+                                                >
+                                                    <span className="dropdown-item-icon">{item.icon}</span>
+                                                    <div className="dropdown-item-text">
+                                                        <span className="dropdown-item-title">{item.title}</span>
+                                                        <span className="dropdown-item-desc">{item.desc}</span>
+                                                    </div>
+                                                </Link>
+                                            ))}
+                                        </div>
+
+                                        <div className="dropdown-divider"></div>
+
+                                        <button
+                                            type="button"
+                                            className="dropdown-logout-btn"
+                                            onClick={() => {
+                                                setUserMenuOpen(false);
+                                                sessionStore.set(null);
+                                            }}
+                                        >
+                                            <span style={{ fontSize: "16px" }}>🚪</span>
+                                            <span>Đăng xuất tài khoản</span>
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <div className="nav-account-guest">
