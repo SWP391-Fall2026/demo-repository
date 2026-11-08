@@ -4,10 +4,16 @@ import { reportingApi } from "../api/reporting.api";
 import { identityApi } from "../../identity/api/identity.api";
 import { facilityApi } from "../../facility/api/facility.api";
 import { auditApi } from "../../audit/api/audit.api";
-import { display } from "../../../shared/lib/format";
+import { display, statusClass, statusLabel } from "../../../shared/lib/format";
+
+function formatLogTime(value) {
+    if (!value) return "Vừa xong";
+    const d = new Date(value);
+    return isNaN(d.getTime()) ? String(value) : d.toLocaleString("vi-VN");
+}
 
 export default function SystemDashboardPage() {
-    const [systemData, setSystemData] = useState({ users: 10, facilities: 3 });
+    const [systemData, setSystemData] = useState(null);
     const [usersList, setUsersList] = useState([]);
     const [facilitiesList, setFacilitiesList] = useState([]);
     const [auditList, setAuditList] = useState([]);
@@ -49,8 +55,8 @@ export default function SystemDashboardPage() {
     }, []);
 
     // Derived statistics
-    const totalUsers = usersList.length || Number(systemData?.users) || 10;
-    const totalFacilities = facilitiesList.length || Number(systemData?.facilities) || 3;
+    const totalUsers = usersList.length > 0 ? usersList.length : (Number(systemData?.users) || 0);
+    const totalFacilities = facilitiesList.length > 0 ? facilitiesList.length : (Number(systemData?.facilities) || 0);
 
     const staffUsers = usersList.filter(
         (u) => u.role === "STAFF" || u.role === "FMANAGER" || u.role === "OPS_MGR" || u.role === "ADMIN"
@@ -62,111 +68,44 @@ export default function SystemDashboardPage() {
             role: "ADMIN",
             label: "Quản trị viên hệ thống",
             icon: "👑",
-            count: usersList.filter((u) => u.role === "ADMIN").length || 1,
+            count: usersList.filter((u) => u.role === "ADMIN").length,
         },
         {
             role: "OPS_MGR",
             label: "Quản lý chuỗi (Ops Manager)",
             icon: "📊",
-            count: usersList.filter((u) => u.role === "OPS_MGR").length || 1,
+            count: usersList.filter((u) => u.role === "OPS_MGR").length,
         },
         {
             role: "FMANAGER",
             label: "Quản lý cơ sở (Facility Manager)",
             icon: "🏢",
-            count: usersList.filter((u) => u.role === "FMANAGER").length || 2,
+            count: usersList.filter((u) => u.role === "FMANAGER").length,
         },
         {
             role: "STAFF",
             label: "Nhân viên trực cơ sở (Staff)",
             icon: "👷",
-            count: usersList.filter((u) => u.role === "STAFF").length || 3,
+            count: usersList.filter((u) => u.role === "STAFF").length,
         },
         {
             role: "CUSTOMER",
             label: "Khách hàng cá nhân / doanh nghiệp",
             icon: "👤",
-            count: usersList.filter((u) => u.role === "CUSTOMER").length || 3,
+            count: usersList.filter((u) => u.role === "CUSTOMER").length,
         },
     ];
 
-    const fallbackFacilities = [
-        {
-            code: "HN-CG",
-            name: "Kho Cầu Giấy Hà Nội",
-            address: "15 Duy Tân, Dịch Vọng Hậu",
-            city: "Cầu Giấy, Hà Nội",
-            hotline: "024-3888-9999",
-            status: "ACTIVE",
-        },
-        {
-            code: "HCM-Q7",
-            name: "Kho Quận 7 TP.HCM",
-            address: "128 Nguyễn Thị Thập, Tân Phú",
-            city: "Quận 7, TP.HCM",
-            hotline: "028-3777-8888",
-            status: "ACTIVE",
-        },
-        {
-            code: "HCM-TB",
-            name: "Kho Tân Bình TP.HCM",
-            address: "45 Cộng Hòa, Phường 4",
-            city: "Tân Bình, TP.HCM",
-            hotline: "028-3666-5555",
-            status: "ACTIVE",
-        },
-    ];
-
-    const displayFacilities = facilitiesList.length > 0 ? facilitiesList : fallbackFacilities;
-
-    const fallbackAudit = [
-        {
-            id: 1,
-            timeStr: "Hôm nay, 10:24",
-            userName: "admin",
-            role: "ADMIN",
-            action: "Đăng nhập hệ thống",
-            detail: "Đăng nhập quản trị thành công từ IP 127.0.0.1",
-            status: "SUCCESS",
-        },
-        {
-            id: 2,
-            timeStr: "Hôm nay, 09:15",
-            userName: "admin",
-            role: "ADMIN",
-            action: "Cập nhật nhân sự",
-            detail: "Điều phối phân công cơ sở chi nhánh HN-CG",
-            status: "SUCCESS",
-        },
-        {
-            id: 3,
-            timeStr: "Hôm qua, 16:40",
-            userName: "ops_mgr",
-            role: "OPS_MGR",
-            action: "Cập nhật giá",
-            detail: "Điều chỉnh bảng giá buồng kho tiêu chuẩn",
-            status: "SUCCESS",
-        },
-        {
-            id: 4,
-            timeStr: "Hôm qua, 14:10",
-            userName: "fmanager_cg",
-            role: "FMANAGER",
-            action: "Cấp mã PIN cơ sở",
-            detail: "Sinh mã PIN check-in ca trực cơ sở HN-CG",
-            status: "SUCCESS",
-        },
-    ];
-
-    const displayAudit = auditList.length > 0 ? auditList : fallbackAudit;
+    const displayFacilities = facilitiesList;
+    const displayAudit = auditList;
 
     const exportCsv = () => {
         const rows = [
             ["DANH MỤC", "CHỈ SỐ", "GIÁ TRỊ"],
             ["Tổng quan", "Tổng tài khoản người dùng", totalUsers],
             ["Tổng quan", "Số cơ sở hoạt động", totalFacilities],
-            ["Tổng quan", "Nhân sự nội bộ", staffUsers.length || 7],
-            ["Tổng quan", "Khách hàng", customerUsers.length || 3],
+            ["Tổng quan", "Nhân sự nội bộ", staffUsers.length],
+            ["Tổng quan", "Khách hàng", customerUsers.length],
             ["Tổng quan", "Trạng thái hệ thống", "Trực tuyến 100%"],
             [],
             ["CƠ CẤU VAI TRÒ", "MÃ VAI TRÒ", "SỐ LƯỢNG"],
@@ -643,25 +582,33 @@ export default function SystemDashboardPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {displayFacilities.map((f) => (
-                                    <tr key={f.code}>
-                                        <td>
-                                            <strong style={{ color: "#0066FF" }}>{display(f.code)}</strong>
-                                        </td>
-                                        <td>
-                                            <strong>{display(f.name)}</strong>
-                                        </td>
-                                        <td>
-                                            <small style={{ color: "#64748B" }}>
-                                                {display(f.address)}, {display(f.city)}
-                                            </small>
-                                        </td>
-                                        <td>{display(f.hotline || "—")}</td>
-                                        <td>
-                                            <span className="badge success">Hoạt động</span>
+                                {displayFacilities.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={5} style={{ textAlign: "center", padding: "28px", color: "#64748B" }}>
+                                            Chưa có dữ liệu cơ sở từ hệ thống.
                                         </td>
                                     </tr>
-                                ))}
+                                ) : (
+                                    displayFacilities.map((f) => (
+                                        <tr key={f.code}>
+                                            <td>
+                                                <strong style={{ color: "#0066FF" }}>{display(f.code)}</strong>
+                                            </td>
+                                            <td>
+                                                <strong>{display(f.name)}</strong>
+                                            </td>
+                                            <td>
+                                                <small style={{ color: "#64748B" }}>
+                                                    {display(f.address)}, {display(f.city)}
+                                                </small>
+                                            </td>
+                                            <td>{display(f.hotline || "—")}</td>
+                                            <td>
+                                                <span className="badge success">Hoạt động</span>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
                             </tbody>
                         </table>
                     </div>
@@ -777,43 +724,53 @@ export default function SystemDashboardPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {displayAudit.slice(0, 6).map((log, index) => (
-                                <tr key={log.id || index}>
-                                    <td>
-                                        <small style={{ color: "#64748B", whiteSpace: "nowrap" }}>
-                                            {display(log.timeStr || log.createdAt || "Vừa xong")}
-                                        </small>
-                                    </td>
-                                    <td>
-                                        <strong>{display(log.userName || "admin")}</strong>
-                                    </td>
-                                    <td>
-                                        <span
-                                            className="badge"
-                                            style={{
-                                                background: "#EFF6FF",
-                                                color: "#0066FF",
-                                                fontWeight: "700",
-                                                padding: "2px 8px",
-                                                borderRadius: "6px",
-                                            }}
-                                        >
-                                            {display(log.role || "ADMIN")}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <strong>{display(log.action || "Thao tác hệ thống")}</strong>
-                                    </td>
-                                    <td>
-                                        <small style={{ color: "#475569" }}>
-                                            {display(log.detail || "Thực thi cấu hình quản trị an toàn")}
-                                        </small>
-                                    </td>
-                                    <td>
-                                        <span className="badge success">Thành công</span>
+                            {displayAudit.length === 0 ? (
+                                <tr>
+                                    <td colSpan={6} style={{ textAlign: "center", padding: "28px", color: "#64748B" }}>
+                                        Chưa có nhật ký hoạt động nào được ghi nhận.
                                     </td>
                                 </tr>
-                            ))}
+                            ) : (
+                                displayAudit.slice(0, 6).map((log, index) => (
+                                    <tr key={log.id || index}>
+                                        <td>
+                                            <small style={{ color: "#64748B", whiteSpace: "nowrap" }}>
+                                                {display(formatLogTime(log.createdAt || log.timeStr))}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <strong>{display(log.userName || "admin")}</strong>
+                                        </td>
+                                        <td>
+                                            <span
+                                                className="badge"
+                                                style={{
+                                                    background: "#EFF6FF",
+                                                    color: "#0066FF",
+                                                    fontWeight: "700",
+                                                    padding: "2px 8px",
+                                                    borderRadius: "6px",
+                                                }}
+                                            >
+                                                {display(log.role || "ADMIN")}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <strong>{display(log.action || "Thao tác hệ thống")}</strong>
+                                        </td>
+                                        <td>
+                                            <small style={{ color: "#475569" }}>
+                                                {display(log.detail || "Thực thi cấu hình quản trị an toàn")}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <span className={`badge ${statusClass(log.status || "SUCCESS")}`}>
+                                                {statusLabel(log.status || "SUCCESS")}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
