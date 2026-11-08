@@ -44,7 +44,9 @@ body {
 }
 
 /* Form controls */
-input, select, textarea {
+input,
+select,
+textarea {
   box-sizing: border-box !important;
   max-width: 100% !important;
   font-family: var(--font-sans) !important;
@@ -57,7 +59,9 @@ input, select, textarea {
   transition: all 0.15s ease-in-out;
 }
 
-input:focus, select:focus, textarea:focus {
+input:focus,
+select:focus,
+textarea:focus {
   outline: none !important;
   border-color: var(--color-accent-blue) !important;
   box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.15) !important;
@@ -118,13 +122,13 @@ input:focus, select:focus, textarea:focus {
 
 .topbar-container {
   width: 100%;
-  max-width: 1280px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 clamp(16px, 2vw, 28px);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: clamp(12px, 2vw, 32px);
+  gap: clamp(10px, 1.5vw, 24px);
 }
 
 .figma-brand {
@@ -187,7 +191,7 @@ input:focus, select:focus, textarea:focus {
 .figma-navbar {
   display: flex;
   align-items: center;
-  gap: clamp(12px, 1.8vw, 32px);
+  gap: clamp(10px, 1.4vw, 24px);
   flex: 1;
   justify-content: flex-end;
   min-width: 0;
@@ -196,9 +200,8 @@ input:focus, select:focus, textarea:focus {
 .nav-menu {
   display: flex;
   align-items: center;
-  gap: clamp(6px, 1.1vw, 18px);
-  min-width: 0;
-  overflow: visible !important;
+  gap: clamp(4px, 0.8vw, 14px);
+  flex-shrink: 0;
   padding: 4px 0;
 }
 
@@ -1373,15 +1376,19 @@ tr:hover td {
     grid-template-columns: 1fr;
     padding: 40px 20px 60px;
   }
+
   .figma-grid-4 {
     grid-template-columns: repeat(2, 1fr);
   }
+
   .figma-grid-3 {
     grid-template-columns: 1fr;
   }
+
   .standards-layout {
     grid-template-columns: 1fr;
   }
+
   .footer-columns {
     grid-template-columns: 1fr 1fr;
     gap: 36px;
@@ -1392,15 +1399,19 @@ tr:hover td {
   .figma-hero-title {
     font-size: 32px;
   }
+
   .figma-grid-4 {
     grid-template-columns: 1fr;
   }
+
   .nav-menu {
     display: none;
   }
+
   .footer-columns {
     grid-template-columns: 1fr;
   }
+
   .footer-bottom {
     flex-direction: column;
     gap: 10px;
@@ -1726,7 +1737,9 @@ tr:hover td {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ==============================================================================
@@ -2406,9 +2419,11 @@ tr:hover td {
   .auth-split-wrapper {
     grid-template-columns: 1fr;
   }
+
   .auth-showcase-side {
     display: none;
   }
+
   .auth-form-side {
     padding: 32px 20px;
     min-height: 100vh;
@@ -2735,20 +2750,68 @@ tr:hover td {
   margin-left: 8px !important;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1240px) {
   .topbar-container {
     padding: 0 16px;
-    gap: 16px;
+    gap: 12px;
   }
-  .nav-menu {
+
+  .brand-sub {
+    display: none;
+  }
+
+  .user-badge {
+    display: none;
+  }
+
+  .figma-navbar {
     gap: 10px;
   }
+
+  .nav-menu {
+    gap: 6px;
+  }
+
   .nav-menu a {
     font-size: 13px;
     padding: 6px 8px;
   }
+
+  .navbar-dropdown-trigger {
+    font-size: 13px;
+    padding: 6px 8px;
+  }
+
+  .navbar-cta-orange {
+    font-size: 12.5px;
+    padding: 7px 14px;
+  }
+
+  .nav-actions-right {
+    gap: 8px;
+  }
+
   .user-name {
     max-width: 110px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 1120px) {
+  .navbar-hotline .hotline-text {
+    display: none;
+  }
+
+  .navbar-hotline {
+    padding: 6px 8px;
+  }
+}
+
+@media (max-width: 960px) {
+  .navbar-hotline {
+    display: none;
   }
 }
 
@@ -2756,6 +2819,7 @@ tr:hover td {
   .rental-guide-steps {
     grid-template-columns: repeat(2, 1fr) !important;
   }
+
   .checkin-card-grid {
     grid-template-columns: 1fr !important;
   }
@@ -2767,15 +2831,18 @@ tr:hover td {
     min-height: 68px;
     padding: 8px 0;
   }
+
   .topbar-container {
     flex-wrap: wrap;
     gap: 10px;
   }
+
   .figma-navbar {
     width: 100%;
     order: 3;
     justify-content: space-between;
   }
+
   .nav-menu {
     width: 100%;
     overflow: visible !important;
@@ -2787,20 +2854,25 @@ tr:hover td {
   .rental-guide-steps {
     grid-template-columns: 1fr !important;
   }
+
   .page-heading {
     flex-direction: column !important;
     gap: 16px !important;
   }
+
   .page-heading .action-row {
     width: 100% !important;
     justify-content: flex-start !important;
   }
+
   .brand-sub {
     display: none;
   }
+
   .user-badge {
     display: none;
   }
+
   .nav-account-logged {
     gap: 8px;
   }
@@ -2814,6 +2886,7 @@ tr:hover td {
   position: relative;
   display: inline-flex;
   align-items: center;
+  flex-shrink: 0;
   padding: 4px 0;
 }
 
@@ -2889,6 +2962,7 @@ tr:hover td {
     opacity: 0;
     transform: translateY(-4px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -2899,7 +2973,7 @@ tr:hover td {
   padding: 4px 0;
 }
 
-.dropdown-section + .dropdown-section {
+.dropdown-section+.dropdown-section {
   border-top: 1px solid #F1F5F9;
   margin-top: 4px;
   padding-top: 8px;
@@ -2990,7 +3064,7 @@ tr:hover td {
 .nav-actions-right {
   display: flex;
   align-items: center;
-  gap: clamp(8px, 1.2vw, 16px);
+  gap: clamp(6px, 1vw, 14px);
   margin-left: auto;
   flex-shrink: 0;
 }
@@ -3009,6 +3083,7 @@ tr:hover td {
   border-radius: 6px;
   transition: all 0.15s ease;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .navbar-hotline:hover {
@@ -3045,11 +3120,6 @@ tr:hover td {
   transform: translateY(-1px);
 }
 
-@media (max-width: 900px) {
-  .navbar-hotline {
-    display: none;
-  }
-}
 
 /* Service Card Action Link */
 .card-link-action {

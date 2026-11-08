@@ -555,7 +555,7 @@ export function AppShell() {
 
                         {/* RIGHT ACCOUNT AREA: Clean & Standard with Hotline & CTA */}
                         <div className="nav-actions-right">
-                            <a href="tel:02877700117" className="navbar-hotline" title="Tổng đài tư vấn 24/7">
+                            <a href="tel:02877700117" className="navbar-hotline" title="Tổng đài tư vấn 24/7: 028 7770 0117">
                                 <span className="hotline-icon">📞</span>
                                 <span className="hotline-text">028 7770 0117</span>
                             </a>
