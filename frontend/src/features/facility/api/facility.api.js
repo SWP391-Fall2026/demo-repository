@@ -17,4 +17,5 @@ export const facilityApi = {
     createUnit: (d) => request("/facilities/units", json("POST", d)),
     ready: (d) => request(`/facilities/units/${d.code}/ready`, json("POST", d)),
     approveReady: (d) => request(`/facilities/units/${d.code}/ready/approve`, json("POST", d)),
+    accessLogs: (code) => request(`/facilities/${encodeURIComponent(code)}/access-logs`),
 };

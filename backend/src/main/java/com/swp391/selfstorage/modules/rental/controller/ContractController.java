@@ -5,6 +5,7 @@ import com.swp391.selfstorage.common.web.ApiResponse;
 import com.swp391.selfstorage.common.web.Inputs;
 import com.swp391.selfstorage.modules.rental.service.AccessCodeService;
 import com.swp391.selfstorage.modules.rental.service.ContractService;
+import com.swp391.selfstorage.modules.rental.service.CustomerAccessService;
 import com.swp391.selfstorage.modules.rental.service.RenewalService;
 import java.util.*;
 import java.nio.file.Files;
@@ -26,6 +27,7 @@ public class ContractController {
   private final ConfirmInspectionWorkflow confirmInspection;
   private final ReturnInspectionReviewWorkflow inspectionReviews;
   private final RenewalService renewal;
+  private final CustomerAccessService customerAccess;
 
   public ContractController(
     ContractService c,
@@ -35,7 +37,8 @@ public class ContractController {
     CompleteReturnWorkflow i,
     ConfirmInspectionWorkflow confirmInspection,
     RenewalService re,
-    ReturnInspectionReviewWorkflow inspectionReviews
+    ReturnInspectionReviewWorkflow inspectionReviews,
+    CustomerAccessService customerAccess
   ) {
     contracts = c;
     access = a;
@@ -45,6 +48,7 @@ public class ContractController {
     this.confirmInspection = confirmInspection;
     renewal = re;
     this.inspectionReviews = inspectionReviews;
+    this.customerAccess = customerAccess;
   }
 
   @GetMapping
@@ -163,5 +167,20 @@ public class ContractController {
     @RequestBody Map<String, Object> d
   ) {
     return ApiResponse.ok(renewal.confirm(id, d));
+  }
+
+  @PostMapping("/{id}/access-checkin")
+  public ApiResponse<?> checkinAccess(@PathVariable String id, @RequestBody(required = false) Map<String, Object> d) {
+    return ApiResponse.ok(customerAccess.checkin(id, d != null ? d : Map.of()));
+  }
+
+  @PostMapping("/{id}/access-checkout")
+  public ApiResponse<?> checkoutAccess(@PathVariable String id, @RequestBody(required = false) Map<String, Object> d) {
+    return ApiResponse.ok(customerAccess.checkout(id, d != null ? d : Map.of()));
+  }
+
+  @GetMapping("/{id}/access-history")
+  public ApiResponse<?> accessHistory(@PathVariable String id) {
+    return ApiResponse.ok(customerAccess.history(id));
   }
 }

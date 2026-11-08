@@ -13,7 +13,9 @@ import com.swp391.selfstorage.modules.facility.repository.*;
 import com.swp391.selfstorage.modules.identity.entity.User;
 import com.swp391.selfstorage.modules.identity.repository.UserRepository;
 import com.swp391.selfstorage.modules.rental.entity.Contract;
+import com.swp391.selfstorage.modules.rental.entity.CustomerAccessLog;
 import com.swp391.selfstorage.modules.rental.repository.ContractRepository;
+import com.swp391.selfstorage.modules.rental.repository.CustomerAccessLogRepository;
 import com.swp391.selfstorage.modules.reservation.entity.Reservation;
 import com.swp391.selfstorage.modules.reservation.repository.ReservationRepository;
 import com.swp391.selfstorage.modules.support.entity.SupportTicket;
@@ -44,6 +46,7 @@ public class LocalDataInitializer implements CommandLineRunner {
   private final PaymentRepository payments;
   private final RefundRequestRepository refundRequests;
   private final AuditLogRepository auditLogs;
+  private final CustomerAccessLogRepository accessLogs;
 
   public LocalDataInitializer(
     FacilityRepository f,
@@ -51,7 +54,7 @@ public class LocalDataInitializer implements CommandLineRunner {
     UserRepository us,
     PasswordEncoder p
   ) {
-    this(f, u, us, p, null, null, null, null, null, null, null, null);
+    this(f, u, us, p, null, null, null, null, null, null, null, null, null);
   }
 
   @Autowired
@@ -67,7 +70,8 @@ public class LocalDataInitializer implements CommandLineRunner {
     InvoiceRepository inv,
     PaymentRepository pay,
     RefundRequestRepository ref,
-    AuditLogRepository audit
+    AuditLogRepository audit,
+    CustomerAccessLogRepository accessLogs
   ) {
     this.facilities = f;
     this.units = u;
@@ -81,6 +85,7 @@ public class LocalDataInitializer implements CommandLineRunner {
     this.payments = pay;
     this.refundRequests = ref;
     this.auditLogs = audit;
+    this.accessLogs = accessLogs;
   }
 
   public void run(String... args) {
@@ -537,6 +542,80 @@ public class LocalDataInitializer implements CommandLineRunner {
         "SUCCESS"
       );
       auditLogs.save(l4);
+    }
+
+    // Seed Customer Access Logs
+    if (accessLogs != null) {
+      CustomerAccessLog a1 = new CustomerAccessLog();
+      a1.setId("ACC-HN-1001");
+      a1.setContractId("CTR-HN-CG-1001");
+      a1.setUnitCode("HN-CG-001");
+      a1.setFacilityCode("HN-CG");
+      a1.setUserId("LOCAL-customer");
+      a1.setCustomerName("Khách hàng demo");
+      a1.setCustomerPhone("0901234567");
+      a1.setAccessType("ENTRY");
+      a1.setAccessMethod("PIN_CODE");
+      a1.setStatus("GRANTED");
+      a1.setCheckinAt(LocalDateTime.now().minusDays(5).withHour(9).withMinute(15));
+      a1.setCheckoutAt(LocalDateTime.now().minusDays(5).withHour(9).withMinute(45));
+      a1.setDurationMinutes(30);
+      a1.setNotes("Cất đồ gia dụng sau khi nhận bàn giao buồng kho");
+      a1.setCreatedAt(a1.getCheckinAt());
+      accessLogs.save(a1);
+
+      CustomerAccessLog a2 = new CustomerAccessLog();
+      a2.setId("ACC-HN-1002");
+      a2.setContractId("CTR-HN-CG-1001");
+      a2.setUnitCode("HN-CG-001");
+      a2.setFacilityCode("HN-CG");
+      a2.setUserId("LOCAL-customer");
+      a2.setCustomerName("Khách hàng demo");
+      a2.setCustomerPhone("0901234567");
+      a2.setAccessType("ENTRY");
+      a2.setAccessMethod("PIN_CODE");
+      a2.setStatus("GRANTED");
+      a2.setCheckinAt(LocalDateTime.now().minusDays(2).withHour(14).withMinute(10));
+      a2.setCheckoutAt(LocalDateTime.now().minusDays(2).withHour(14).withMinute(35));
+      a2.setDurationMinutes(25);
+      a2.setNotes("Lấy tài liệu và hồ sơ cá nhân");
+      a2.setCreatedAt(a2.getCheckinAt());
+      accessLogs.save(a2);
+
+      CustomerAccessLog a3 = new CustomerAccessLog();
+      a3.setId("ACC-HN-1003");
+      a3.setContractId("CTR-HN-CG-1001");
+      a3.setUnitCode("HN-CG-001");
+      a3.setFacilityCode("HN-CG");
+      a3.setUserId("LOCAL-customer");
+      a3.setCustomerName("Khách hàng demo");
+      a3.setCustomerPhone("0901234567");
+      a3.setAccessType("ENTRY");
+      a3.setAccessMethod("PIN_CODE");
+      a3.setStatus("GRANTED");
+      a3.setCheckinAt(LocalDateTime.now().minusMinutes(35));
+      a3.setCheckoutAt(null); // Currently inside unit
+      a3.setNotes("Đang kiểm tra và cất thêm thiết bị điện tử");
+      a3.setCreatedAt(a3.getCheckinAt());
+      accessLogs.save(a3);
+
+      CustomerAccessLog a4 = new CustomerAccessLog();
+      a4.setId("ACC-HCM-2001");
+      a4.setContractId("CTR-HCM-Q7-2001");
+      a4.setUnitCode("HCM-Q7-001");
+      a4.setFacilityCode("HCM-Q7");
+      a4.setUserId("LOCAL-customer2");
+      a4.setCustomerName("Khách hàng thứ hai");
+      a4.setCustomerPhone("0908889999");
+      a4.setAccessType("ENTRY");
+      a4.setAccessMethod("QR_SCAN");
+      a4.setStatus("GRANTED");
+      a4.setCheckinAt(LocalDateTime.now().minusDays(1).withHour(16).withMinute(0));
+      a4.setCheckoutAt(LocalDateTime.now().minusDays(1).withHour(16).withMinute(40));
+      a4.setDurationMinutes(40);
+      a4.setNotes("Nhập thêm hàng mẫu kinh doanh");
+      a4.setCreatedAt(a4.getCheckinAt());
+      accessLogs.save(a4);
     }
   }
 }

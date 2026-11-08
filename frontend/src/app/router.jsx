@@ -46,6 +46,7 @@ import RefundConfirmationPage from "../features/billing/pages/RefundConfirmation
 import UnitReadinessApprovalPage from "../features/facility/pages/UnitReadinessApprovalPage";
 import NoShowReviewPage from "../features/reservation/pages/NoShowReviewPage";
 import FacilityOverdueCapPage from "../features/policy/pages/FacilityOverdueCapPage";
+import FacilityAccessLogsPage from "../features/facility/pages/FacilityAccessLogsPage";
 export const routes = [
     {
         path: "/handover-reviews",
@@ -210,6 +211,12 @@ export const routes = [
         roles: ["STAFF"],
         element: <AccessSimulatorPage />,
         legacy: "SCR-S07",
+    },
+    {
+        path: "/facility/access-logs",
+        title: "Lịch sử ra vào cơ sở",
+        roles: ["STAFF", "FMANAGER", "OPS_MGR", "ADMIN"],
+        element: <FacilityAccessLogsPage />,
     },
     {
         path: "/facility/overview",

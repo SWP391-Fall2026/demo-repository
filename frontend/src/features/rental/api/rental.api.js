@@ -76,4 +76,7 @@ export const rentalApi = {
     verifyPin: (d) => request("/contracts/verify-pin", json("POST", d)),
     confirmRenewal: (d) => request(`/contracts/${d.contractId}/renewal-invoice`, json("POST", d)),
     renew: (d) => request(`/contracts/${d.contractId}/renewal-quote?months=${d.months}`),
+    checkinAccess: (id, d = {}) => request(`/contracts/${encodeURIComponent(id)}/access-checkin`, json("POST", d)),
+    checkoutAccess: (id, d = {}) => request(`/contracts/${encodeURIComponent(id)}/access-checkout`, json("POST", d)),
+    accessHistory: (id) => request(`/contracts/${encodeURIComponent(id)}/access-history`),
 };

@@ -4022,15 +4022,35 @@
             "multipart/form-data": {
               "schema": {
                 "type": "object",
-                "required": ["unitCode", "cleanlinessStatus", "damageNotes"],
+                "required": [
+                  "unitCode",
+                  "cleanlinessStatus",
+                  "damageNotes"
+                ],
                 "properties": {
-                  "unitCode": {"type": "string"},
-                  "goodsCleared": {"type": "boolean"},
-                  "cleanlinessStatus": {"type": "string"},
-                  "repairFee": {"type": "number"},
-                  "damageNotes": {"type": "string"},
-                  "lockDamaged": {"type": "boolean"},
-                  "evidence": {"type": "string", "format": "binary", "description": "Required when cleaning, repair, or lock damage is reported."}
+                  "unitCode": {
+                    "type": "string"
+                  },
+                  "goodsCleared": {
+                    "type": "boolean"
+                  },
+                  "cleanlinessStatus": {
+                    "type": "string"
+                  },
+                  "repairFee": {
+                    "type": "number"
+                  },
+                  "damageNotes": {
+                    "type": "string"
+                  },
+                  "lockDamaged": {
+                    "type": "boolean"
+                  },
+                  "evidence": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Required when cleaning, repair, or lock damage is reported."
+                  }
                 }
               }
             }
@@ -4143,114 +4163,292 @@
     "/api/contracts/return-inspection/respond": {
       "post": {
         "operationId": "Contract_respondReturnInspection",
-        "tags": ["rental"],
+        "tags": [
+          "rental"
+        ],
         "summary": "Customer: accept or dispute a return inspection",
         "description": "A dispute requires a reason and PNG/JPEG evidence. Each subsequent disagreement creates a separate request for Facility Manager review.",
-        "security": [{"bearerAuth": []}],
-        "x-roles": ["CUSTOMER"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "CUSTOMER"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "multipart/form-data": {
               "schema": {
                 "type": "object",
-                "required": ["contractId", "action"],
+                "required": [
+                  "contractId",
+                  "action"
+                ],
                 "properties": {
-                  "contractId": {"type": "string"},
-                  "action": {"type": "string", "enum": ["ACCEPT", "DISPUTE"]},
-                  "reason": {"type": "string"},
-                  "evidence": {"type": "string", "format": "binary"}
+                  "contractId": {
+                    "type": "string"
+                  },
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "ACCEPT",
+                      "DISPUTE"
+                    ]
+                  },
+                  "reason": {
+                    "type": "string"
+                  },
+                  "evidence": {
+                    "type": "string",
+                    "format": "binary"
+                  }
                 }
               }
             }
           }
         },
         "responses": {
-          "200": {"description": "Customer response recorded"},
-          "400": {"description": "Missing reason or evidence"},
-          "403": {"description": "Role or facility not permitted"},
-          "404": {"description": "Contract not found"},
-          "409": {"description": "Inspection is not awaiting customer response"}
+          "200": {
+            "description": "Customer response recorded"
+          },
+          "400": {
+            "description": "Missing reason or evidence"
+          },
+          "403": {
+            "description": "Role or facility not permitted"
+          },
+          "404": {
+            "description": "Contract not found"
+          },
+          "409": {
+            "description": "Inspection is not awaiting customer response"
+          }
         }
       }
     },
     "/api/contracts/return-inspection/complete": {
       "post": {
         "operationId": "Contract_completeReturnInspection",
-        "tags": ["rental"],
+        "tags": [
+          "rental"
+        ],
         "summary": "Staff: finalize an accepted return inspection",
-        "security": [{"bearerAuth": []}],
-        "x-roles": ["STAFF"],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {"type": "object", "required": ["contractId"], "properties": {"contractId": {"type": "string"}}}
-            }
+        "security": [
+          {
+            "bearerAuth": []
           }
-        },
-        "responses": {
-          "200": {"description": "Contract terminated and refund request created"},
-          "403": {"description": "Staff is not assigned to this return task"},
-          "404": {"description": "Contract not found"},
-          "409": {"description": "Customer has not accepted the inspection"}
-        }
-      }
-    },
-    "/api/contracts/{contractId}/return-inspection/evidence": {
-      "get": {
-        "operationId": "Contract_getReturnInspectionEvidence",
-        "tags": ["rental"],
-        "summary": "Get staff inspection photo",
-        "security": [{"bearerAuth": []}],
-        "x-roles": ["CUSTOMER", "STAFF", "FMANAGER"],
-        "parameters": [{"name": "contractId", "in": "path", "required": true, "schema": {"type": "string"}}],
-        "responses": {"200": {"description": "Inspection evidence image"}, "403": {"description": "Outside authorized scope"}, "404": {"description": "Evidence not found"}}
-      }
-    },
-    "/api/return-inspection-reviews": {
-      "get": {
-        "operationId": "ReturnInspectionReview_list",
-        "tags": ["rental"],
-        "summary": "List return inspection disputes",
-        "security": [{"bearerAuth": []}],
-        "x-roles": ["CUSTOMER", "STAFF", "FMANAGER"],
-        "responses": {"200": {"description": "Disputes visible to the authenticated user"}, "403": {"description": "Role not permitted"}}
-      }
-    },
-    "/api/return-inspection-reviews/{id}/decision": {
-      "post": {
-        "operationId": "ReturnInspectionReview_decide",
-        "tags": ["rental"],
-        "summary": "Facility Manager: propose a negotiated deduction",
-        "description": "The proposed deduction cannot exceed the original Staff assessment.",
-        "security": [{"bearerAuth": []}],
-        "x-roles": ["FMANAGER"],
-        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        ],
+        "x-roles": [
+          "STAFF"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["proposedDeduction", "managerNote"],
-                "properties": {"proposedDeduction": {"type": "number"}, "managerNote": {"type": "string"}}
+                "required": [
+                  "contractId"
+                ],
+                "properties": {
+                  "contractId": {
+                    "type": "string"
+                  }
+                }
               }
             }
           }
         },
-        "responses": {"200": {"description": "Offer sent to customer"}, "400": {"description": "Offer exceeds original fee"}, "403": {"description": "Outside facility scope"}, "404": {"description": "Dispute not found"}, "409": {"description": "Dispute is not pending review"}}
+        "responses": {
+          "200": {
+            "description": "Contract terminated and refund request created"
+          },
+          "403": {
+            "description": "Staff is not assigned to this return task"
+          },
+          "404": {
+            "description": "Contract not found"
+          },
+          "409": {
+            "description": "Customer has not accepted the inspection"
+          }
+        }
+      }
+    },
+    "/api/contracts/{contractId}/return-inspection/evidence": {
+      "get": {
+        "operationId": "Contract_getReturnInspectionEvidence",
+        "tags": [
+          "rental"
+        ],
+        "summary": "Get staff inspection photo",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "CUSTOMER",
+          "STAFF",
+          "FMANAGER"
+        ],
+        "parameters": [
+          {
+            "name": "contractId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Inspection evidence image"
+          },
+          "403": {
+            "description": "Outside authorized scope"
+          },
+          "404": {
+            "description": "Evidence not found"
+          }
+        }
+      }
+    },
+    "/api/return-inspection-reviews": {
+      "get": {
+        "operationId": "ReturnInspectionReview_list",
+        "tags": [
+          "rental"
+        ],
+        "summary": "List return inspection disputes",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "CUSTOMER",
+          "STAFF",
+          "FMANAGER"
+        ],
+        "responses": {
+          "200": {
+            "description": "Disputes visible to the authenticated user"
+          },
+          "403": {
+            "description": "Role not permitted"
+          }
+        }
+      }
+    },
+    "/api/return-inspection-reviews/{id}/decision": {
+      "post": {
+        "operationId": "ReturnInspectionReview_decide",
+        "tags": [
+          "rental"
+        ],
+        "summary": "Facility Manager: propose a negotiated deduction",
+        "description": "The proposed deduction cannot exceed the original Staff assessment.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "FMANAGER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "proposedDeduction",
+                  "managerNote"
+                ],
+                "properties": {
+                  "proposedDeduction": {
+                    "type": "number"
+                  },
+                  "managerNote": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Offer sent to customer"
+          },
+          "400": {
+            "description": "Offer exceeds original fee"
+          },
+          "403": {
+            "description": "Outside facility scope"
+          },
+          "404": {
+            "description": "Dispute not found"
+          },
+          "409": {
+            "description": "Dispute is not pending review"
+          }
+        }
       }
     },
     "/api/return-inspection-reviews/{id}/evidence": {
       "get": {
         "operationId": "ReturnInspectionReview_getEvidence",
-        "tags": ["rental"],
+        "tags": [
+          "rental"
+        ],
         "summary": "Get customer dispute photo",
-        "security": [{"bearerAuth": []}],
-        "x-roles": ["CUSTOMER", "STAFF", "FMANAGER"],
-        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
-        "responses": {"200": {"description": "Dispute evidence image"}, "403": {"description": "Outside authorized scope"}, "404": {"description": "Evidence not found"}}
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-roles": [
+          "CUSTOMER",
+          "STAFF",
+          "FMANAGER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dispute evidence image"
+          },
+          "403": {
+            "description": "Outside authorized scope"
+          },
+          "404": {
+            "description": "Evidence not found"
+          }
+        }
       }
     },
     "/api/contracts/verify-pin": {
@@ -8478,6 +8676,397 @@
           }
         }
       }
+    },
+    "/api/contracts/{id}/access-checkin": {
+      "post": {
+        "operationId": "Contract_checkinAccess_104",
+        "tags": [
+          "rental"
+        ],
+        "summary": "Contract: checkinAccess",
+        "description": "Customer check-in to storage unit",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerAccessInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "CUSTOMER",
+          "STAFF",
+          "FMANAGER"
+        ]
+      }
+    },
+    "/api/contracts/{id}/access-checkout": {
+      "post": {
+        "operationId": "Contract_checkoutAccess_105",
+        "tags": [
+          "rental"
+        ],
+        "summary": "Contract: checkoutAccess",
+        "description": "Customer check-out from storage unit",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerAccessInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "CUSTOMER",
+          "STAFF",
+          "FMANAGER"
+        ]
+      }
+    },
+    "/api/contracts/{id}/access-history": {
+      "get": {
+        "operationId": "Contract_accessHistory_106",
+        "tags": [
+          "rental"
+        ],
+        "summary": "Contract: accessHistory",
+        "description": "Get access log history for contract",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "CUSTOMER",
+          "STAFF",
+          "FMANAGER",
+          "OPS_MGR",
+          "ADMIN"
+        ]
+      }
+    },
+    "/api/facilities/{code}/access-logs": {
+      "get": {
+        "operationId": "Facility_accessLogs_107",
+        "tags": [
+          "facility"
+        ],
+        "summary": "Facility: accessLogs",
+        "description": "Get access logs for facility",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "STAFF",
+          "FMANAGER",
+          "OPS_MGR",
+          "ADMIN"
+        ]
+      }
     }
   },
   "components": {
@@ -9736,6 +10325,20 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "CustomerAccessInput": {
+        "type": "object",
+        "properties": {
+          "pin": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
           }
         }
       }

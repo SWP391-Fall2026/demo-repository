@@ -2,6 +2,7 @@ package com.swp391.selfstorage.modules.facility.controller;
 
 import com.swp391.selfstorage.common.web.ApiResponse;
 import com.swp391.selfstorage.modules.facility.service.FacilityService;
+import com.swp391.selfstorage.modules.rental.service.CustomerAccessService;
 import com.swp391.selfstorage.modules.workforce.service.TaskService;
 import java.util.*;
 import java.math.BigDecimal;
@@ -13,15 +14,22 @@ public class FacilityController {
 
   private final FacilityService s;
   private final TaskService tasks;
+  private final CustomerAccessService access;
 
-  public FacilityController(FacilityService s, TaskService tasks) {
+  public FacilityController(FacilityService s, TaskService tasks, CustomerAccessService access) {
     this.s = s;
     this.tasks = tasks;
+    this.access = access;
   }
 
   @GetMapping
   public ApiResponse<?> list() {
     return ApiResponse.ok(s.facilities());
+  }
+
+  @GetMapping("/{code}/access-logs")
+  public ApiResponse<?> accessLogs(@PathVariable String code) {
+    return ApiResponse.ok(access.facilityLogs(code));
   }
 
   @PostMapping

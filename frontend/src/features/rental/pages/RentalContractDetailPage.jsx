@@ -4,6 +4,7 @@ import { useRemote } from "../../../shared/api/use-remote";
 import { display, money } from "../../../shared/lib/format";
 import { rentalApi } from "../api/rental.api";
 import ReturnInspectionResponse from "../components/ReturnInspectionResponse";
+import CustomerAccessHistoryPanel from "../components/CustomerAccessHistoryPanel";
 function formattedDate(value) {
     if (!value)
         return "—";
@@ -101,6 +102,8 @@ export default function RentalContractDetailPage() {
             <div className="wide-info"><small>HIỆN TRẠNG KHO KHI BÀN GIAO</small><strong>{handover ? display(handover.unitConditionNotes) : "Chưa có biên bản bàn giao"}</strong><span>Nhân viên xác nhận bàn giao: {handover?.status === "COMPLETED" ? "Đã xác nhận" : "Chưa xác nhận"}</span></div>
           </div>
         </section>
+
+        <CustomerAccessHistoryPanel contract={contract} />
 
         <section className="contract-panel">
           <header><h2>Hóa đơn hợp đồng &amp; thanh toán</h2><Link to="/invoices/all/pay">Mở thanh toán</Link></header>
