@@ -18,4 +18,6 @@ export const facilityApi = {
     ready: (d) => request(`/facilities/units/${d.code}/ready`, json("POST", d)),
     approveReady: (d) => request(`/facilities/units/${d.code}/ready/approve`, json("POST", d)),
     accessLogs: (code) => request(`/facilities/${encodeURIComponent(code)}/access-logs`),
+    approveAccessRequest: (code, requestId, d = {}) => request(`/facilities/${encodeURIComponent(code)}/access-requests/${encodeURIComponent(requestId)}/approve`, json("POST", d)),
+    rejectAccessRequest: (code, requestId, d = {}) => request(`/facilities/${encodeURIComponent(code)}/access-requests/${encodeURIComponent(requestId)}/reject`, json("POST", d)),
 };

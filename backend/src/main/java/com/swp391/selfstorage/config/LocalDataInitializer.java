@@ -616,6 +616,45 @@ public class LocalDataInitializer implements CommandLineRunner {
       a4.setNotes("Nhập thêm hàng mẫu kinh doanh");
       a4.setCreatedAt(a4.getCheckinAt());
       accessLogs.save(a4);
+
+      // Pending Check-in Request waiting for Manager approval & PIN generation
+      CustomerAccessLog req1 = new CustomerAccessLog();
+      req1.setId("REQ-HN-9001");
+      req1.setContractId("CTR-HN-CG-1001");
+      req1.setUnitCode("HN-CG-001");
+      req1.setFacilityCode("HN-CG");
+      req1.setUserId("LOCAL-customer");
+      req1.setCustomerName("Khách hàng demo");
+      req1.setCustomerPhone("0901234567");
+      req1.setAccessType("ENTRY");
+      req1.setAccessMethod("PIN_CODE");
+      req1.setPurpose("Cất tài liệu và hợp đồng lưu trữ quý 4");
+      req1.setStatus("PENDING_APPROVAL");
+      req1.setExpectedAt(LocalDateTime.now().plusHours(1));
+      req1.setNotes("Khách hẹn vào kho chiều nay");
+      req1.setCreatedAt(LocalDateTime.now().minusMinutes(20));
+      accessLogs.save(req1);
+
+      // Approved Check-in Request with 6-digit PIN ready for customer check-in
+      CustomerAccessLog req2 = new CustomerAccessLog();
+      req2.setId("REQ-HN-9002");
+      req2.setContractId("CTR-HN-CG-1001");
+      req2.setUnitCode("HN-CG-001");
+      req2.setFacilityCode("HN-CG");
+      req2.setUserId("LOCAL-customer");
+      req2.setCustomerName("Khách hàng demo");
+      req2.setCustomerPhone("0901234567");
+      req2.setAccessType("ENTRY");
+      req2.setAccessMethod("PIN_CODE");
+      req2.setPurpose("Lấy kiện hàng mẫu");
+      req2.setAccessPin("889900");
+      req2.setStatus("PIN_ISSUED");
+      req2.setApprovedBy("manager");
+      req2.setApprovedAt(LocalDateTime.now().minusMinutes(10));
+      req2.setExpectedAt(LocalDateTime.now().plusMinutes(30));
+      req2.setNotes("Quản lý đã duyệt cấp mã PIN 889900");
+      req2.setCreatedAt(LocalDateTime.now().minusMinutes(30));
+      accessLogs.save(req2);
     }
   }
 }

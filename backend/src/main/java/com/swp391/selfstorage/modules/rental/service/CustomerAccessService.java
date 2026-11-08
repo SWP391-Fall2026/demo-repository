@@ -43,6 +43,102 @@ public class CustomerAccessService {
   }
 
   @Transactional
+  public CustomerAccessLog createRequest(String contractId, Map<String, Object> body) {
+    var u = actor.require("CUSTOMER", "STAFF", "FMANAGER");
+    Contract c = contracts.findById(contractId).orElseThrow(Inputs::missing);
+    if (!actor.visible(u, c.getUserId(), c.getFacilityCode())) {
+      throw Inputs.missing();
+    }
+
+    if ("OVERDUE".equals(c.getStatus())) {
+      throw Inputs.conflict("Hợp đồng đang bị tạm khóa do nợ cước. Vui lòng thanh toán hóa đơn để tạo yêu cầu vào kho.");
+    }
+
+    LocalDateTime now = LocalDateTime.now(clock);
+    CustomerAccessLog req = new CustomerAccessLog();
+    req.setId("REQ-" + UUID.randomUUID().toString().substring(0, 8));
+    req.setContractId(c.getId());
+    req.setUnitCode(c.getUnitCode());
+    req.setFacilityCode(c.getFacilityCode());
+    req.setUserId(c.getUserId());
+    req.setCustomerName(c.getCustomerName());
+    req.setCustomerPhone(c.getCustomerPhone());
+    req.setAccessType("ENTRY");
+    req.setAccessMethod(textOrDefault(body, "method", "PIN_CODE"));
+    req.setPurpose(textOrDefault(body, "purpose", "Cất/lấy tài sản khoang kho"));
+    req.setStatus("PENDING_APPROVAL");
+    req.setNotes(textOrDefault(body, "notes", "Khách hàng đăng ký vào kho tự phục vụ"));
+    req.setCreatedAt(now);
+
+    String expStr = Inputs.optional(body, "expectedAt");
+    if (!expStr.isBlank()) {
+      try {
+        req.setExpectedAt(LocalDateTime.parse(expStr));
+      } catch (Exception ignored) {
+        req.setExpectedAt(now);
+      }
+    } else {
+      req.setExpectedAt(now);
+    }
+
+    accessLogs.save(req);
+    audit.record("CUSTOMER_ACCESS_REQUEST_CREATED", c.getId(), c.getUnitCode());
+    return req;
+  }
+
+  @Transactional
+  public CustomerAccessLog approveRequest(String facilityCode, String requestId, Map<String, Object> body) {
+    var u = actor.require("STAFF", "FMANAGER", "OPS_MGR", "ADMIN");
+    actor.facility(u, facilityCode);
+
+    CustomerAccessLog req = accessLogs.findById(requestId).orElseThrow(Inputs::missing);
+    if (!Objects.equals(req.getFacilityCode(), facilityCode)) {
+      throw Inputs.missing();
+    }
+
+    String pin = Inputs.optional(body, "pin");
+    if (pin.isBlank() || !pin.matches("\\d{6}")) {
+      pin = String.format("%06d", new java.security.SecureRandom().nextInt(1000000));
+    }
+
+    LocalDateTime now = LocalDateTime.now(clock);
+    req.setAccessPin(pin);
+    req.setStatus("PIN_ISSUED");
+    req.setApprovedBy(u.getUsername() != null ? u.getUsername() : u.getRole());
+    req.setApprovedAt(now);
+
+    String note = Inputs.optional(body, "notes");
+    if (!note.isBlank()) {
+      req.setNotes(req.getNotes() + " | QL: " + note);
+    }
+
+    accessLogs.save(req);
+    audit.record("CUSTOMER_ACCESS_REQUEST_APPROVED", req.getContractId(), req.getUnitCode() + ":" + pin);
+    return req;
+  }
+
+  @Transactional
+  public CustomerAccessLog rejectRequest(String facilityCode, String requestId, Map<String, Object> body) {
+    var u = actor.require("STAFF", "FMANAGER", "OPS_MGR", "ADMIN");
+    actor.facility(u, facilityCode);
+
+    CustomerAccessLog req = accessLogs.findById(requestId).orElseThrow(Inputs::missing);
+    if (!Objects.equals(req.getFacilityCode(), facilityCode)) {
+      throw Inputs.missing();
+    }
+
+    LocalDateTime now = LocalDateTime.now(clock);
+    req.setStatus("REJECTED");
+    req.setDenyReason(textOrDefault(body, "reason", "Quản lý từ chối yêu cầu vào kho lúc này"));
+    req.setApprovedBy(u.getUsername() != null ? u.getUsername() : u.getRole());
+    req.setApprovedAt(now);
+
+    accessLogs.save(req);
+    audit.record("CUSTOMER_ACCESS_REQUEST_REJECTED", req.getContractId(), req.getUnitCode());
+    return req;
+  }
+
+  @Transactional
   public CustomerAccessLog checkin(String contractId, Map<String, Object> body) {
     var u = actor.require("CUSTOMER", "STAFF", "FMANAGER");
     Contract c = contracts.findById(contractId).orElseThrow(Inputs::missing);
@@ -59,7 +155,20 @@ public class CustomerAccessService {
 
     String pin = Inputs.optional(body, "pin");
     boolean pinProvided = !pin.isBlank();
-    boolean pinValid = !pinProvided || Objects.equals(pin, c.getPinCode());
+
+    // Check if there is an issued access PIN request
+    Optional<CustomerAccessLog> issuedOpt = accessLogs.findFirstByContractIdAndStatusInOrderByCreatedAtDesc(
+      c.getId(),
+      List.of("PIN_ISSUED", "PENDING_APPROVAL")
+    );
+
+    boolean pinValid = false;
+    if (issuedOpt.isPresent() && issuedOpt.get().getAccessPin() != null) {
+      pinValid = Objects.equals(pin, issuedOpt.get().getAccessPin());
+    }
+    if (!pinValid && (Objects.equals(pin, c.getPinCode()) || !pinProvided)) {
+      pinValid = true;
+    }
 
     if (!activeStatus || !notExpired || !pinValid) {
       String denyReason = !activeStatus
@@ -84,34 +193,47 @@ public class CustomerAccessService {
       accessLogs.save(failedLog);
 
       if (!pinValid) {
-        throw Inputs.conflict("Mã PIN không chính xác");
+        throw Inputs.conflict("Mã PIN không chính xác hoặc chưa được cấp duyệt");
       }
       throw Inputs.conflict("Hợp đồng chưa sẵn sàng để vào kho: " + denyReason);
     }
 
-    // Close any previous open check-in for this contract automatically
+    // Auto checkout previous session if still open
     accessLogs.findFirstByContractIdAndCheckoutAtIsNullOrderByCheckinAtDesc(c.getId())
       .ifPresent(openLog -> {
         openLog.setCheckoutAt(now);
         long diff = Duration.between(openLog.getCheckinAt(), now).toMinutes();
         openLog.setDurationMinutes(Math.max(1, (int) diff));
+        openLog.setStatus("CHECKED_OUT");
         accessLogs.save(openLog);
       });
 
-    CustomerAccessLog log = new CustomerAccessLog();
-    log.setId("ACC-" + UUID.randomUUID().toString().substring(0, 8));
-    log.setContractId(c.getId());
-    log.setUnitCode(c.getUnitCode());
-    log.setFacilityCode(c.getFacilityCode());
-    log.setUserId(c.getUserId());
-    log.setCustomerName(c.getCustomerName());
-    log.setCustomerPhone(c.getCustomerPhone());
-    log.setAccessType("ENTRY");
-    log.setAccessMethod(textOrDefault(body, "method", "PIN_CODE"));
-    log.setStatus("GRANTED");
-    log.setCheckinAt(now);
-    log.setNotes(textOrDefault(body, "notes", "Check-in mở cửa vào kho tự phục vụ"));
-    log.setCreatedAt(now);
+    CustomerAccessLog log;
+    if (issuedOpt.isPresent() && "PIN_ISSUED".equals(issuedOpt.get().getStatus())) {
+      log = issuedOpt.get();
+      log.setStatus("GRANTED");
+      log.setCheckinAt(now);
+      log.setAccessType("ENTRY");
+      String notes = Inputs.optional(body, "notes");
+      if (!notes.isBlank()) {
+        log.setNotes(notes);
+      }
+    } else {
+      log = new CustomerAccessLog();
+      log.setId("ACC-" + UUID.randomUUID().toString().substring(0, 8));
+      log.setContractId(c.getId());
+      log.setUnitCode(c.getUnitCode());
+      log.setFacilityCode(c.getFacilityCode());
+      log.setUserId(c.getUserId());
+      log.setCustomerName(c.getCustomerName());
+      log.setCustomerPhone(c.getCustomerPhone());
+      log.setAccessType("ENTRY");
+      log.setAccessMethod(textOrDefault(body, "method", "PIN_CODE"));
+      log.setStatus("GRANTED");
+      log.setCheckinAt(now);
+      log.setNotes(textOrDefault(body, "notes", "Check-in mở cửa vào kho tự phục vụ"));
+      log.setCreatedAt(now);
+    }
 
     accessLogs.save(log);
     audit.record("CUSTOMER_ACCESS_CHECKIN", c.getId(), c.getUnitCode());
@@ -133,8 +255,10 @@ public class CustomerAccessService {
     if (openLog.isPresent()) {
       log = openLog.get();
       log.setCheckoutAt(now);
-      long diff = Duration.between(log.getCheckinAt(), now).toMinutes();
+      long diff = Duration.between(log.getCheckinAt() != null ? log.getCheckinAt() : now.minusMinutes(10), now).toMinutes();
       log.setDurationMinutes(Math.max(1, (int) diff));
+      log.setStatus("CHECKED_OUT");
+      log.setAccessPin(null); // Invalidate dynamic PIN on checkout
       String notes = Inputs.optional(body, "notes");
       if (!notes.isBlank()) {
         log.setNotes(notes);
@@ -150,7 +274,7 @@ public class CustomerAccessService {
       log.setCustomerPhone(c.getCustomerPhone());
       log.setAccessType("EXIT");
       log.setAccessMethod(textOrDefault(body, "method", "PIN_CODE"));
-      log.setStatus("GRANTED");
+      log.setStatus("CHECKED_OUT");
       log.setCheckinAt(now.minusMinutes(15));
       log.setCheckoutAt(now);
       log.setDurationMinutes(15);

@@ -32,6 +32,24 @@ public class FacilityController {
     return ApiResponse.ok(access.facilityLogs(code));
   }
 
+  @PostMapping("/{code}/access-requests/{requestId}/approve")
+  public ApiResponse<?> approveAccessRequest(
+    @PathVariable String code,
+    @PathVariable String requestId,
+    @RequestBody(required = false) Map<String, Object> d
+  ) {
+    return ApiResponse.ok(access.approveRequest(code, requestId, d != null ? d : Map.of()));
+  }
+
+  @PostMapping("/{code}/access-requests/{requestId}/reject")
+  public ApiResponse<?> rejectAccessRequest(
+    @PathVariable String code,
+    @PathVariable String requestId,
+    @RequestBody(required = false) Map<String, Object> d
+  ) {
+    return ApiResponse.ok(access.rejectRequest(code, requestId, d != null ? d : Map.of()));
+  }
+
   @PostMapping
   public ApiResponse<?> create(@RequestBody Map<String, Object> d) {
     return ApiResponse.ok(s.create(d));

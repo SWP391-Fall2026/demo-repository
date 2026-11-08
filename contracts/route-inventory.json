@@ -533,5 +533,20 @@
     "method": "get",
     "path": "/api/facilities/{code}/access-logs",
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/contracts/{id}/access-requests",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/ContractController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/facilities/{code}/access-requests/{requestId}/approve",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java"
+  },
+  {
+    "method": "post",
+    "path": "/api/facilities/{code}/access-requests/{requestId}/reject",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java"
   }
 ]

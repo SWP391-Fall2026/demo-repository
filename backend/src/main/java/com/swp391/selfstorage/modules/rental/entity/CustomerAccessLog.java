@@ -35,8 +35,23 @@ public class CustomerAccessLog {
   @Column(name = "access_method", length = 30, nullable = false)
   private String accessMethod = "PIN_CODE"; // PIN_CODE, QR_SCAN, RFID_CARD
 
-  @Column(name = "status", length = 20, nullable = false)
-  private String status = "GRANTED"; // GRANTED, DENIED
+  @Column(name = "status", length = 30, nullable = false)
+  private String status = "PENDING_APPROVAL"; // PENDING_APPROVAL, PIN_ISSUED, GRANTED, CHECKED_OUT, DENIED, REJECTED, AUTO_CHECKED_OUT
+
+  @Column(name = "access_pin", length = 10)
+  private String accessPin;
+
+  @Column(name = "purpose", length = 100)
+  private String purpose;
+
+  @Column(name = "approved_by", length = 100)
+  private String approvedBy;
+
+  @Column(name = "approved_at")
+  private LocalDateTime approvedAt;
+
+  @Column(name = "expected_at")
+  private LocalDateTime expectedAt;
 
   @Column(name = "deny_reason", length = 100)
   private String denyReason;
@@ -136,6 +151,46 @@ public class CustomerAccessLog {
 
   public void setStatus(String status) {
     this.status = status;
+  }
+
+  public String getAccessPin() {
+    return accessPin;
+  }
+
+  public void setAccessPin(String accessPin) {
+    this.accessPin = accessPin;
+  }
+
+  public String getPurpose() {
+    return purpose;
+  }
+
+  public void setPurpose(String purpose) {
+    this.purpose = purpose;
+  }
+
+  public String getApprovedBy() {
+    return approvedBy;
+  }
+
+  public void setApprovedBy(String approvedBy) {
+    this.approvedBy = approvedBy;
+  }
+
+  public LocalDateTime getApprovedAt() {
+    return approvedAt;
+  }
+
+  public void setApprovedAt(LocalDateTime approvedAt) {
+    this.approvedAt = approvedAt;
+  }
+
+  public LocalDateTime getExpectedAt() {
+    return expectedAt;
+  }
+
+  public void setExpectedAt(LocalDateTime expectedAt) {
+    this.expectedAt = expectedAt;
   }
 
   public String getDenyReason() {

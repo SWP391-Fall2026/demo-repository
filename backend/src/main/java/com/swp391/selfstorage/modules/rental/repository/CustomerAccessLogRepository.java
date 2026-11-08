@@ -13,8 +13,12 @@ public interface CustomerAccessLogRepository extends JpaRepository<CustomerAcces
 
   List<CustomerAccessLog> findByFacilityCodeOrderByCreatedAtDesc(String facilityCode);
 
+  List<CustomerAccessLog> findByFacilityCodeAndStatusOrderByCreatedAtDesc(String facilityCode, String status);
+
   List<CustomerAccessLog> findByUserIdOrderByCreatedAtDesc(String userId);
 
   Optional<CustomerAccessLog> findFirstByContractIdAndCheckoutAtIsNullOrderByCheckinAtDesc(String contractId);
+
+  Optional<CustomerAccessLog> findFirstByContractIdAndStatusInOrderByCreatedAtDesc(String contractId, List<String> statuses);
 }
 

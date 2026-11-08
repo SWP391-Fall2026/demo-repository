@@ -169,6 +169,11 @@ public class ContractController {
     return ApiResponse.ok(renewal.confirm(id, d));
   }
 
+  @PostMapping("/{id}/access-requests")
+  public ApiResponse<?> createAccessRequest(@PathVariable String id, @RequestBody(required = false) Map<String, Object> d) {
+    return ApiResponse.ok(customerAccess.createRequest(id, d != null ? d : Map.of()));
+  }
+
   @PostMapping("/{id}/access-checkin")
   public ApiResponse<?> checkinAccess(@PathVariable String id, @RequestBody(required = false) Map<String, Object> d) {
     return ApiResponse.ok(customerAccess.checkin(id, d != null ? d : Map.of()));
