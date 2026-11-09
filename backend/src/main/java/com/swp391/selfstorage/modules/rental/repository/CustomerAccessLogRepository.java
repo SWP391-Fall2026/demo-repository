@@ -19,6 +19,8 @@ public interface CustomerAccessLogRepository extends JpaRepository<CustomerAcces
 
   Optional<CustomerAccessLog> findFirstByContractIdAndCheckoutAtIsNullOrderByCheckinAtDesc(String contractId);
 
+  Optional<CustomerAccessLog> findFirstByContractIdAndCheckinAtIsNotNullAndCheckoutAtIsNullOrderByCheckinAtDesc(String contractId);
+
   Optional<CustomerAccessLog> findFirstByContractIdAndStatusInOrderByCreatedAtDesc(String contractId, List<String> statuses);
 }
 

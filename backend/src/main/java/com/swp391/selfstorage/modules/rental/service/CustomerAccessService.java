@@ -199,13 +199,15 @@ public class CustomerAccessService {
     }
 
     // Auto checkout previous session if still open
-    accessLogs.findFirstByContractIdAndCheckoutAtIsNullOrderByCheckinAtDesc(c.getId())
+    accessLogs.findFirstByContractIdAndCheckinAtIsNotNullAndCheckoutAtIsNullOrderByCheckinAtDesc(c.getId())
       .ifPresent(openLog -> {
-        openLog.setCheckoutAt(now);
-        long diff = Duration.between(openLog.getCheckinAt(), now).toMinutes();
-        openLog.setDurationMinutes(Math.max(1, (int) diff));
-        openLog.setStatus("CHECKED_OUT");
-        accessLogs.save(openLog);
+        if (!Objects.equals(openLog.getId(), issuedOpt.map(CustomerAccessLog::getId).orElse(null))) {
+          openLog.setCheckoutAt(now);
+          long diff = openLog.getCheckinAt() != null ? Duration.between(openLog.getCheckinAt(), now).toMinutes() : 0;
+          openLog.setDurationMinutes(Math.max(1, (int) diff));
+          openLog.setStatus("CHECKED_OUT");
+          accessLogs.save(openLog);
+        }
       });
 
     CustomerAccessLog log;
@@ -249,7 +251,7 @@ public class CustomerAccessService {
     }
 
     LocalDateTime now = LocalDateTime.now(clock);
-    var openLog = accessLogs.findFirstByContractIdAndCheckoutAtIsNullOrderByCheckinAtDesc(c.getId());
+    var openLog = accessLogs.findFirstByContractIdAndCheckinAtIsNotNullAndCheckoutAtIsNullOrderByCheckinAtDesc(c.getId());
 
     CustomerAccessLog log;
     if (openLog.isPresent()) {

@@ -10,6 +10,7 @@
     "build": "npm run build --workspace frontend",
     "test:frontend": "npm run test --workspace frontend",
     "test:backend": "mvn -f backend/pom.xml test",
+    "test:api": "node scripts/test-all-api.mjs",
     "start:backend": "mvn -f backend/pom.xml spring-boot:run",
     "check": "npm run build && npm run test:frontend && npm run check:contract",
     "check:contract": "node scripts/check-contract.mjs",
