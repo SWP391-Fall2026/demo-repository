@@ -44,6 +44,7 @@ Thumbs.db
 /backend/src/main/resources/application-local.properties
 
 # Local artifacts
+.postman/
 .tmp/
 artifacts/*
 !artifacts/README.md
