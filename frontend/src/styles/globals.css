@@ -2,7 +2,7 @@
 :root {
   font-family: "Nunito", system-ui, sans-serif;
   color: #1c344b;
-  background: #f4f7fb;
+  background: #EEF2F7;
   font-synthesis: none;
   font-weight: 400;
   line-height: 1.6;
@@ -245,7 +245,7 @@ p {
 }
 .role-shell {
   min-height: 100vh;
-  background: #f4f7fb;
+  background: #EEF2F7;
 }
 .role-header {
   min-height: 76px;
@@ -444,10 +444,10 @@ p {
 }
 .card {
   background: #fff;
-  border: 1px solid #e3eaf3;
-  border-radius: 10px;
+  border: 1px solid #c0cfe4;
+  border-radius: 12px;
   padding: 26px;
-  box-shadow: 0 3px 12px #193a5d04;
+  box-shadow: 0 2px 10px rgba(25, 58, 93, 0.10);
   margin-bottom: 24px;
 }
 .table-toolbar {
