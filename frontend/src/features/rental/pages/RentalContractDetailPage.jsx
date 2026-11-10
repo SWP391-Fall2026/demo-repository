@@ -5,6 +5,7 @@ import { display, money } from "../../../shared/lib/format";
 import { rentalApi } from "../api/rental.api";
 import ReturnInspectionResponse from "../components/ReturnInspectionResponse";
 import CustomerAccessHistoryPanel from "../components/CustomerAccessHistoryPanel";
+import { getUnitGallery } from "../../../shared/lib/unit-images";
 function formattedDate(value) {
     if (!value)
         return "—";
@@ -36,6 +37,7 @@ export default function RentalContractDetailPage() {
     const { data, error, busy, reload } = useRemote(() => rentalApi.detail(contractId), [contractId]);
     const { data: reviewRows, reload: reloadReviews } = useRemote(rentalApi.returnInspectionReviews);
     const [pinVisible, setPinVisible] = useState(false);
+    const [activePhotoIndex, setActivePhotoIndex] = useState(0);
     if (busy)
         return <main className="page-content"><p>Đang tải chi tiết hợp đồng…</p></main>;
     if (error || !data)
@@ -60,6 +62,8 @@ export default function RentalContractDetailPage() {
     const policies = data.policies && typeof data.policies === "object" ? data.policies : {};
     if (!contract)
         return <main className="page-content"><section className="card error" role="alert">Dữ liệu hợp đồng không hợp lệ.</section></main>;
+    const gallery = getUnitGallery(unit, contract, facility);
+    const activePhoto = gallery[activePhotoIndex] || gallery[0];
     return <main className="page-content contract-detail-page">
     <div className="contract-breadcrumb"><Link to="/rentals">Kho đang thuê</Link> › Chi tiết hợp đồng <strong>{display(contract.unitCode)}</strong></div>
     <header className="contract-detail-heading"><div><h1>Chi tiết kho đang thuê <span className="badge success">{display(contract.status)}</span></h1><p>Thông tin hợp đồng, kho lưu trữ và quyền truy cập của bạn.</p></div><div className="facility-scope"><small>KHU VỰC KIỂM SOÁT</small><strong>{display(facility?.name || contract.facilityCode)} · {display(unit?.floor ? `Tầng ${unit.floor}` : "")}</strong></div></header>
@@ -68,7 +72,42 @@ export default function RentalContractDetailPage() {
       <div className="contract-detail-main">
         <section className="contract-panel">
           <header><h2>Thông tin mặt bằng kho lưu trữ</h2><span>{display(contract.unitCode)}</span></header>
-          <div className="contract-unit-visual">{unit?.imageUrl ? <img src={String(unit.imageUrl)} alt={String(unit.imageAltText || `Ảnh kho ${contract.unitCode}`)}/> : <span>Ảnh kho chưa được cung cấp</span>}</div>
+          <div className="contract-gallery-wrap">
+            <div className="contract-unit-visual" style={{ position: "relative", height: "280px", borderRadius: "12px", overflow: "hidden" }}>
+              <img src={activePhoto.url} alt={String(unit?.imageAltText || activePhoto.label)} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              <div style={{
+                position: "absolute", left: "14px", bottom: "14px", right: "14px",
+                background: "rgba(11, 25, 44, 0.78)", backdropFilter: "blur(6px)",
+                color: "#fff", padding: "10px 14px", borderRadius: "8px",
+                display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px"
+              }}>
+                <div>
+                  <strong style={{ display: "block", fontSize: "13px" }}>{activePhoto.label}</strong>
+                  <span style={{ fontSize: "11.5px", color: "#CBD5E1" }}>{activePhoto.desc}</span>
+                </div>
+                <span style={{ fontSize: "11px", fontWeight: "700", background: "#007791", padding: "4px 10px", borderRadius: "999px", whiteSpace: "nowrap" }}>
+                  {activePhotoIndex + 1} / {gallery.length}
+                </span>
+              </div>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: `repeat(${gallery.length}, 1fr)`, gap: "10px", marginTop: "10px" }}>
+              {gallery.map((photo, idx) => (
+                <button
+                  key={photo.url}
+                  type="button"
+                  onClick={() => setActivePhotoIndex(idx)}
+                  style={{
+                    padding: 0, border: idx === activePhotoIndex ? "2.5px solid #007791" : "1.5px solid #E2E8F0",
+                    borderRadius: "8px", overflow: "hidden", cursor: "pointer", background: "#F8FAFC",
+                    height: "70px", position: "relative", opacity: idx === activePhotoIndex ? 1 : 0.72,
+                    transition: "all 0.15s ease"
+                  }}
+                >
+                  <img src={photo.url} alt={photo.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="contract-info-grid">
             <div><small>CƠ SỞ VẬN HÀNH</small><strong>{display(facility?.name || contract.facilityCode)}</strong><span>{display(facility?.address)}{facility?.city ? `, ${display(facility.city)}` : ""}</span></div>
             <div><small>VỊ TRÍ PHÒNG KHO</small><strong>{display(contract.unitCode)}</strong><span>{display(unit?.floor ? `Tầng ${unit.floor}` : facility?.code)}</span></div>
@@ -103,7 +142,7 @@ export default function RentalContractDetailPage() {
           </div>
         </section>
 
-        <CustomerAccessHistoryPanel contract={contract} />
+        <CustomerAccessHistoryPanel contract={contract} onUpdated={reload} />
 
         <section className="contract-panel">
           <header><h2>Hóa đơn hợp đồng &amp; thanh toán</h2><Link to="/invoices/all/pay">Mở thanh toán</Link></header>

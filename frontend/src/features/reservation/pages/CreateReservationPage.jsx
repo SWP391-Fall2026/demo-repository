@@ -1,8 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { reservationApi } from "../api/reservation.api";
 import { billingApi } from "../../billing/api/billing.api";
+import { facilityApi } from "../../facility/api/facility.api";
 import CustomerRentalGuide from "../components/CustomerRentalGuide";
+
+const FALLBACK_FACILITY_OPTIONS = [
+    { code: "HN-CG", name: "Cơ sở Cầu Giấy" },
+    { code: "HN-NTL", name: "Cơ sở Nam Từ Liêm" },
+    { code: "HCM-TB", name: "Cơ sở Tân Bình" },
+    { code: "HCM-Q7", name: "Cơ sở Quận 7" },
+    { code: "DN-HC", name: "Cơ sở Hải Châu" },
+];
+
 export default function CreateReservationPage() {
     const [params] = useSearchParams();
     const navigate = useNavigate();
@@ -11,7 +21,22 @@ export default function CreateReservationPage() {
     const [checkInDate, setCheckInDate] = useState("");
     const [facilityCode, setFacilityCode] = useState(params.get("facility") || "HN-CG");
     const [unitType, setUnitType] = useState(params.get("type") || "S");
+    const [facilities, setFacilities] = useState(FALLBACK_FACILITY_OPTIONS);
     const unitCode = params.get("unit") || "";
+
+    useEffect(() => {
+        let cancelled = false;
+        facilityApi.facilities()
+            .then((list) => {
+                if (!cancelled && Array.isArray(list) && list.length > 0) {
+                    setFacilities(list.filter((f) => !f.status || String(f.status).toUpperCase() === "ACTIVE"));
+                }
+            })
+            .catch(() => {});
+        return () => {
+            cancelled = true;
+        };
+    }, []);
     async function submit(event) {
         event.preventDefault();
         if (busy)
@@ -66,9 +91,11 @@ export default function CreateReservationPage() {
         {!params.get("facility") && (
           <label>Cơ sở chi nhánh
             <select value={facilityCode} onChange={(e) => setFacilityCode(e.target.value)} required>
-              <option value="HN-CG">Hà Nội - Cầu Giấy (HN-CG)</option>
-              <option value="HCM-Q7">TP.HCM - Quận 7 (HCM-Q7)</option>
-              <option value="HCM-TB">TP.HCM - Tân Bình (HCM-TB)</option>
+              {facilities.map((facility) => (
+                <option key={String(facility.code)} value={String(facility.code)}>
+                  {String(facility.name)} ({String(facility.code)})
+                </option>
+              ))}
             </select>
           </label>
         )}
@@ -91,7 +118,7 @@ export default function CreateReservationPage() {
           <input name="appointmentAt" type="datetime-local" required onChange={(event) => setCheckInDate(event.target.value.slice(0, 10))}/>
         </label>
         {error && <p className="error" role="alert">{error}</p>}
-        <button type="submit" disabled={busy || !facilityCode}>
+        <button className="btn-figma btn-primary-dark" type="submit" disabled={busy || !facilityCode}>
           {busy ? "Đang tạo đơn…" : "Tạo đơn và đặt cọc"}
         </button>
       </form>

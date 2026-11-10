@@ -23,6 +23,31 @@ export default function StaffAssignmentPage() {
         setBusy(false);
     } }
     return <main className="page-content"><header className="page-heading"><div><span className="eyebrow">FACILITY MANAGER · WORKFORCE</span><h1>Phân công nhân viên</h1><p>Nhận request từ khách, gán đúng Staff và cấp credential check-in có thời hạn.</p></div><button className="btn-figma btn-outline btn-sm" onClick={dashboard.reload}>Làm mới</button></header>
+    <section className="card">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
+        <div>
+          <h2 style={{ margin: 0 }}>Danh sách nhân viên cơ sở</h2>
+          <p style={{ margin: "4px 0 0", color: "#64748B", fontSize: "13px" }}>Theo dõi trạng thái nhận việc và số task đang phụ trách của từng nhân viên.</p>
+        </div>
+        <span className="badge">{staffRows.length} nhân viên</span>
+      </div>
+      {dashboard.busy ? <p>Đang tải danh sách nhân viên…</p> : !staffRows.length ? <p>Chưa có nhân viên nào thuộc cơ sở phụ trách.</p> : <div className="staff-roster-grid">{staffRows.map((person) => {
+        const activeCount = taskRows.filter((t) => String(t.staffId) === String(person.id) && !["COMPLETED", "CANCELLED"].includes(String(t.status).toUpperCase())).length;
+        return <article className="staff-roster-card" key={String(person.id)}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px" }}>
+            <div>
+              <strong>{display(person.name)}</strong>
+              <div style={{ fontSize: "12.5px", color: "#64748B" }}>@{display(person.username)}</div>
+            </div>
+            <span className={`badge ${person.canReceiveTasks ? "success" : "danger"}`}>{person.canReceiveTasks ? "Sẵn sàng" : statusLabel(person.status || "INACTIVE")}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12.5px", color: "#334155", marginTop: "4px" }}>
+            <span>Đang phụ trách: <strong>{activeCount} task</strong></span>
+            <span>{person.facilityCode ? `Cơ sở ${display(person.facilityCode)}` : "Nhân viên cơ sở"}</span>
+          </div>
+        </article>;
+      })}</div>}
+    </section>
     <section className="card form-grid"><form onSubmit={rotatePin}><p style={{ margin: 0, color: '#64748B', fontSize: '13.5px' }}>Mã PIN cơ sở do hệ thống sinh ngẫu nhiên, mã hóa bảo mật và chỉ hiển thị một lần duy nhất.</p><button className="btn-figma btn-primary-dark btn-sm" disabled={busy}>{busy ? "Đang xử lý…" : "Cấp mã PIN cơ sở mới"}</button></form>{message && <p className="notice" style={{ marginTop: '10px' }}>{message}</p>}</section>
     {dashboard.error && <section className="card error" role="alert">{dashboard.error}</section>}
     <section className="card"><h2>Yêu cầu từ thẻ hẹn và phân công</h2>{dashboard.busy ? <p>Đang tải…</p> : !taskRows.length ? <p>Chưa có task tại cơ sở phụ trách.</p> : <div className="table-scroll"><table><thead><tr><th>Task / thẻ hẹn</th><th>Khách hàng</th><th>Kho / hợp đồng</th><th>Ngày hẹn · Lý do</th><th>Trạng thái</th><th>Nhân viên</th></tr></thead><tbody>{taskRows.map((task) => <TaskRow key={String(task.id)} task={task} staff={staffRows.filter((person) => person.canReceiveTasks)} onDone={dashboard.reload}/>)}</tbody></table></div>}</section>

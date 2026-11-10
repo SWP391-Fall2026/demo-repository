@@ -128,12 +128,18 @@ export function ResourcePage({
                             <tbody>
                                 {filtered.map((r, i) => (
                                     <tr key={String(r.id ?? r.code ?? i)}>
-                                        {cols.map(([key]) => (
+                                        {cols.map(([key, _label, render]) => (
                                             <td key={key}>
-                                                {/status/i.test(key) ? (
-                                                    <span className={"badge " + statusClass(r[key])}>
-                                                        {statusLabel(r[key])}
-                                                    </span>
+                                                {typeof render === "function" ? (
+                                                    render(r, reload)
+                                                ) : /status/i.test(key) ? (
+                                                    r[key] == null || r[key] === "" ? (
+                                                        <span style={{ color: "#94A3B8" }}>—</span>
+                                                    ) : (
+                                                        <span className={"badge " + statusClass(r[key])}>
+                                                            {statusLabel(r[key])}
+                                                        </span>
+                                                    )
                                                 ) : /amount|price|fee|deposit/i.test(key) ? (
                                                     <strong>{money(r[key])}</strong>
                                                 ) : (

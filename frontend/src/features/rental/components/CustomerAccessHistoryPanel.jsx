@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react";
 import { rentalApi } from "../api/rental.api";
-import { display } from "../../../shared/lib/format";
+import { display, formatDateTime as sharedFormatDateTime } from "../../../shared/lib/format";
 
 function formatDateTime(val) {
-    if (!val) return "—";
-    const d = new Date(val);
-    return isNaN(d.getTime()) ? String(val) : d.toLocaleString("vi-VN");
+    return val ? sharedFormatDateTime(val) : "—";
 }
 
-export default function CustomerAccessHistoryPanel({ contract }) {
+export default function CustomerAccessHistoryPanel({ contract, onUpdated }) {
     const [logs, setLogs] = useState([]);
     const [busy, setBusy] = useState(false);
     const [showRequestForm, setShowRequestForm] = useState(false);
@@ -43,6 +41,24 @@ export default function CustomerAccessHistoryPanel({ contract }) {
     // Request waiting for Manager approval
     const pendingRequest = logs.find((l) => l.status === "PENDING_APPROVAL");
 
+    useEffect(() => {
+        if (!pendingRequest || activeVisit || issuedRequest || !contract?.id) return;
+        const timer = setInterval(() => {
+            loadHistory().then(() => { if (onUpdated) onUpdated(); });
+        }, 8000);
+        return () => clearInterval(timer);
+    }, [pendingRequest?.id, activeVisit?.id, issuedRequest?.id, contract?.id]);
+
+    const appendDigit = (digit) => {
+        setError("");
+        setInputPin((prev) => (prev.length < 6 ? prev + digit : prev));
+    };
+
+    const backspaceDigit = () => {
+        setError("");
+        setInputPin((prev) => prev.slice(0, -1));
+    };
+
     const handleCreateRequest = async (e) => {
         e.preventDefault();
         setBusy(true);
@@ -59,6 +75,7 @@ export default function CustomerAccessHistoryPanel({ contract }) {
             setShowRequestForm(false);
             setRequestNotes("");
             await loadHistory();
+            if (onUpdated) onUpdated();
         } catch (err) {
             setError(err instanceof Error ? err.message : "Không gửi được yêu cầu check-in");
         } finally {
@@ -66,21 +83,27 @@ export default function CustomerAccessHistoryPanel({ contract }) {
         }
     };
 
-    const handleCheckinWithPin = async (pinToUse) => {
+    const handleCheckinWithPin = async () => {
+        if (!/^\d{6}$/.test(inputPin)) {
+            setError("Vui lòng nhập đủ 6 chữ số mã PIN trên bàn phím số để mở cửa vào kho.");
+            return;
+        }
         setBusy(true);
         setError("");
         setMessage("");
         try {
             await rentalApi.checkinAccess(contract.id, {
-                pin: pinToUse || inputPin || issuedRequest?.accessPin || contract.pinCode,
+                pin: inputPin,
                 method: "PIN_CODE",
-                notes: `Khách hàng check-in mở chốt khoang ${contract.unitCode}`
+                notes: `Khách hàng nhập PIN check-in mở chốt khoang ${contract.unitCode}`
             });
-            setMessage("Check-in mở cửa thành công! Chốt khóa phòng kho đã mở.");
+            setMessage("Check-in mở cửa thành công! Trạng thái đang trong kho đã được thông báo về Staff/Quản lý.");
             setInputPin("");
             await loadHistory();
+            if (onUpdated) onUpdated();
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Mã PIN không hợp lệ hoặc check-in thất bại");
+            setError(err instanceof Error ? err.message : "Mã PIN không đúng hoặc check-in thất bại");
+            await loadHistory();
         } finally {
             setBusy(false);
         }
@@ -101,6 +124,7 @@ export default function CustomerAccessHistoryPanel({ contract }) {
             setMessage("Đã hoàn tất check-out rời kho. Mã PIN truy cập đã được hủy an toàn.");
             setCheckoutNotes("");
             await loadHistory();
+            if (onUpdated) onUpdated();
         } catch (err) {
             setError(err instanceof Error ? err.message : "Check-out thất bại");
         } finally {
@@ -254,20 +278,87 @@ export default function CustomerAccessHistoryPanel({ contract }) {
                         </div>
                     </div>
 
-                    <div style={{ background: "#FFFFFF", borderRadius: "10px", padding: "14px 18px", border: "1px solid #E0F2FE", marginBottom: "14px" }}>
-                        <div style={{ fontSize: "13px", color: "#334155", marginBottom: "8px" }}>
-                            📍 <strong>Hướng dẫn vào kho:</strong> Khi bạn đã có mặt tại cơ sở {display(contract.facilityCode)}, bạn có thể nhập 6 số <strong>{issuedRequest.accessPin}</strong> tại bàn phím cửa kho hoặc bấm nút xác nhận check-in ngay dưới đây để mở chốt tự động.
+                    <div style={{ background: "#FFFFFF", borderRadius: "10px", padding: "16px 18px", border: "1px solid #E0F2FE", marginBottom: "14px" }}>
+                        <div style={{ fontSize: "13px", color: "#334155", marginBottom: "10px" }}>
+                            📍 <strong>Yêu cầu bảo mật check-in:</strong> Mỗi lần muốn vào kho, bạn phải nhập đúng <strong>6 chữ số mã PIN</strong> trên bàn phím dưới đây để mở khóa buồng kho. Hệ thống sẽ gửi thông báo trực tiếp tới nhân viên cơ sở.
                         </div>
-                        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                            <button
-                                type="button"
-                                className="btn-figma btn-primary-dark"
-                                onClick={() => handleCheckinWithPin(issuedRequest.accessPin)}
-                                disabled={busy}
-                                style={{ padding: "10px 24px", fontSize: "14px", fontWeight: "800", background: "#0066FF" }}
-                            >
-                                {busy ? "Đang mở chốt…" : "⚡ Check-in mở cửa vào kho ngay"}
-                            </button>
+
+                        <div className="pin-keypad-shell">
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" }}>
+                                <span style={{ fontSize: "12px", fontWeight: "800", color: "#0B192C" }}>BÀN PHÍM NHẬP MÃ PIN VÀO KHO</span>
+                                <span style={{ fontSize: "11px", fontWeight: "700", color: "#0284C7" }}>{inputPin.length}/6 số</span>
+                            </div>
+
+                            <div className="pin-digit-row" aria-label="6 ô hiển thị mã PIN đã nhập">
+                                {[0, 1, 2, 3, 4, 5].map((idx) => {
+                                    const char = inputPin[idx];
+                                    return (
+                                        <span key={idx} className={`pin-digit-cell ${char ? "filled" : ""}`}>
+                                            {char || "•"}
+                                        </span>
+                                    );
+                                })}
+                            </div>
+
+                            <div className="pin-keypad-grid">
+                                {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((digit) => (
+                                    <button
+                                        key={digit}
+                                        type="button"
+                                        className="pin-key-btn"
+                                        onClick={() => appendDigit(digit)}
+                                        disabled={busy || inputPin.length >= 6}
+                                    >
+                                        {digit}
+                                    </button>
+                                ))}
+                                <button
+                                    type="button"
+                                    className="pin-key-btn key-util"
+                                    onClick={() => { setError(""); setInputPin(""); }}
+                                    disabled={busy || inputPin.length === 0}
+                                >
+                                    Xóa hết
+                                </button>
+                                <button
+                                    type="button"
+                                    className="pin-key-btn"
+                                    onClick={() => appendDigit("0")}
+                                    disabled={busy || inputPin.length >= 6}
+                                >
+                                    0
+                                </button>
+                                <button
+                                    type="button"
+                                    className="pin-key-btn key-util"
+                                    onClick={backspaceDigit}
+                                    disabled={busy || inputPin.length === 0}
+                                    aria-label="Xóa một số"
+                                >
+                                    ⌫
+                                </button>
+                            </div>
+
+                            <div style={{ marginTop: "12px", display: "grid", gap: "8px" }}>
+                                <input
+                                    type="password"
+                                    inputMode="numeric"
+                                    maxLength={6}
+                                    value={inputPin}
+                                    onChange={(e) => { setError(""); setInputPin(e.target.value.replace(/\D/g, "").slice(0, 6)); }}
+                                    placeholder="Hoặc gõ nhanh 6 chữ số PIN từ bàn phím…"
+                                    style={{ width: "100%", padding: "8px 12px", borderRadius: "8px", border: "1px solid #CBD5E1", fontSize: "13px", textAlign: "center", letterSpacing: "3px" }}
+                                />
+                                <button
+                                    type="button"
+                                    className="btn-figma btn-primary-dark"
+                                    onClick={handleCheckinWithPin}
+                                    disabled={busy || inputPin.length !== 6}
+                                    style={{ width: "100%" }}
+                                >
+                                    {busy ? "Đang xác thực PIN…" : "🔓 Xác nhận PIN & Mở cửa vào kho"}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
