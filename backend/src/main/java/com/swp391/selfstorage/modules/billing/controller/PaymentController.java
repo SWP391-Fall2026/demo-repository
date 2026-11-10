@@ -44,7 +44,8 @@ public class PaymentController {
 
   @PostMapping("/vnpay/create")
   public ApiResponse<?> createVnPay(@RequestBody Map<String, String> body, HttpServletRequest request) {
-    return ApiResponse.ok(Map.of("paymentUrl", vnPay.createPaymentUrl(body.get("invoiceId"), request.getRemoteAddr())));
+    return ApiResponse.ok(Map.of("paymentUrl", vnPay.createPaymentUrl(
+        body.get("invoiceId"), request.getRemoteAddr(), request.getHeader("Origin"))));
   }
 
   @GetMapping("/vnpay/ipn")

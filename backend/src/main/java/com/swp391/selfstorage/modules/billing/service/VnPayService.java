@@ -37,7 +37,9 @@ public class VnPayService {
   private final Clock clock;
   private final ReservationHoldPolicy holdPolicy;
   private final com.swp391.selfstorage.application.workflow.PaidRentActivationService rentActivation;
+  static final String RETURN_PATH = "/api/payments/vnpay/return";
   private final String url, tmnCode, hashSecret, returnUrl, frontendUrl;
+  private final Set<String> trustedOrigins;
 
   public VnPayService(InvoiceRepository invoices, PaymentRepository payments,
       ReservationRepository reservations, ContractRepository contracts, ActorContext actor, AuditLogService audit, Clock clock,
@@ -45,20 +47,34 @@ public class VnPayService {
       @Value("${vnpay.hash-secret:}") String hashSecret,
       @Value("${vnpay.return-url:}") String returnUrl,
       @Value("${app.frontend-url:http://localhost:5173}") String frontendUrl,
+      @Value("${app.cors.allowed-origins:}") String trustedOrigins,
       ReservationHoldPolicy holdPolicy,
       com.swp391.selfstorage.application.workflow.PaidRentActivationService rentActivation) {
     this.invoices = invoices; this.payments = payments; this.reservations = reservations;
     this.contracts = contracts;
     this.actor = actor; this.audit = audit; this.clock = clock; this.url = url;
-    this.tmnCode = tmnCode; this.hashSecret = hashSecret; this.returnUrl = returnUrl;
+    this.tmnCode = tmnCode; this.hashSecret = hashSecret;
+    this.returnUrl = returnUrl == null ? "" : returnUrl.trim();
     this.frontendUrl = frontendUrl;
+    this.trustedOrigins = new HashSet<>();
+    for (String origin : Objects.toString(trustedOrigins, "").split(",")) {
+      String normalized = stripTrailingSlash(origin.trim());
+      if (!normalized.isEmpty()) this.trustedOrigins.add(normalized);
+    }
     this.holdPolicy = holdPolicy;
     this.rentActivation = rentActivation;
   }
 
+  /**
+   * Builds a signed VNPay URL. When {@code vnpay.return-url} is not configured, the browser
+   * returns through the same web origin that started the payment (Vite proxy or API gateway),
+   * so the customer's session and the result page stay on one origin. The origin must be listed
+   * in {@code app.cors.allowed-origins}; untrusted origins are rejected.
+   */
   @Transactional
-  public String createPaymentUrl(String invoiceId, String ipAddress) {
-    if (url.isBlank() || tmnCode.isBlank() || hashSecret.isBlank() || returnUrl.isBlank())
+  public String createPaymentUrl(String invoiceId, String ipAddress, String clientOrigin) {
+    String effectiveReturnUrl = resolveReturnUrl(clientOrigin);
+    if (url.isBlank() || tmnCode.isBlank() || hashSecret.isBlank() || effectiveReturnUrl == null)
       throw Inputs.conflict("VNPay chưa được cấu hình đầy đủ");
     var user = actor.require("CUSTOMER");
     Invoice invoice = invoices.lockById(invoiceId).orElseThrow(Inputs::missing);
@@ -102,7 +118,7 @@ public class VnPayService {
     params.put("vnp_CurrCode", "VND"); params.put("vnp_TxnRef", paymentId);
     params.put("vnp_OrderInfo", "Thanh toan hoa don " + invoice.getId());
     params.put("vnp_OrderType", "other"); params.put("vnp_Locale", "vn");
-    params.put("vnp_ReturnUrl", returnUrl); params.put("vnp_IpAddr", normalizeIp(ipAddress));
+    params.put("vnp_ReturnUrl", effectiveReturnUrl); params.put("vnp_IpAddr", normalizeIp(ipAddress));
     params.put("vnp_CreateDate", now.atZone(ZoneId.of("Asia/Ho_Chi_Minh")).format(VN_TIME));
     LocalDateTime gatewayExpiry = now.plusMinutes(15);
     if (invoice.getDueAt() != null && invoice.getDueAt().isBefore(gatewayExpiry)) gatewayExpiry = invoice.getDueAt();
@@ -167,8 +183,22 @@ public class VnPayService {
         if (payment != null && "PAID".equals(payment.getStatus())) status = "return";
       }
     }
-    return frontendUrl.replaceAll("/$", "") + "/payment/result?status=" + status
+    // Origin-derived return URLs arrive through the frontend origin, so a relative redirect keeps
+    // the browser on that origin. An explicitly configured return URL (e.g. ngrok to :8080) needs
+    // the absolute frontend URL instead.
+    String base = returnUrl.isBlank() ? "" : stripTrailingSlash(frontendUrl);
+    return base + "/payment/result?status=" + status
       + "&paymentRef=" + encode(Objects.toString(params.get("vnp_TxnRef"), ""));
+  }
+
+  private String resolveReturnUrl(String clientOrigin) {
+    if (!returnUrl.isBlank()) return returnUrl;
+    String origin = stripTrailingSlash(Objects.toString(clientOrigin, "").trim());
+    return trustedOrigins.contains(origin) ? origin + RETURN_PATH : null;
+  }
+
+  private static String stripTrailingSlash(String value) {
+    return value == null ? "" : value.replaceAll("/+$", "");
   }
 
   private boolean validSignature(Map<String, String> input) {

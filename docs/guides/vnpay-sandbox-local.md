@@ -1,5 +1,18 @@
 # VNPay Sandbox qua ngrok
 
+## Chạy local không cần ngrok (mặc định)
+
+Khi **không** đặt `VNPAY_RETURN_URL`, backend tự lấy `Origin` của trình duyệt đã bấm thanh toán (phải nằm trong `app.cors.allowed-origins`) để tạo `vnp_ReturnUrl = <origin>/api/payments/vnpay/return`. Sau khi thanh toán, VNPay đưa trình duyệt về đúng origin đó (Vite `:5173` hoặc gateway `:8000`), request được proxy tới backend, backend xác minh chữ ký và chuyển hướng tương đối tới `/payment/result`. Nhờ vậy phiên đăng nhập (localStorage) không bị mất do lệch cổng hoặc lệch `localhost`/`127.0.0.1`.
+
+```powershell
+npm run start:local   # backend :8080
+npm run dev           # frontend :5173, mở http://localhost:5173
+```
+
+Chế độ này không nhận IPN server-to-server (VNPay không gọi được localhost); hóa đơn được ghi nhận từ browser return có chữ ký hợp lệ.
+
+## Chạy qua ngrok (có IPN)
+
 Backend nhận IPN và browser return tại cùng public URL. Ngrok phải tunnel đến backend (8080), không tunnel riêng frontend.
 
 ```powershell
@@ -12,7 +25,7 @@ Lấy HTTPS URL ngrok, rồi khởi chạy backend với thông tin merchant san
 $env:VNPAY_TMN_CODE = "<sandbox-tmn-code>"
 $env:VNPAY_HASH_SECRET = "<sandbox-hash-secret>"
 $env:VNPAY_RETURN_URL = "https://<ngrok-host>/api/payments/vnpay/return"
-$env:APP_FRONTEND_URL = "http://127.0.0.1:5174"
+$env:APP_FRONTEND_URL = "http://localhost:5173"
 $env:VNPAY_URL = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
 cd backend
 mvn spring-boot:run
