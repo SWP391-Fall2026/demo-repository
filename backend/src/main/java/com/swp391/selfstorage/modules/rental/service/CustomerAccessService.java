@@ -3,6 +3,7 @@ package com.swp391.selfstorage.modules.rental.service;
 import com.swp391.selfstorage.common.security.ActorContext;
 import com.swp391.selfstorage.common.web.Inputs;
 import com.swp391.selfstorage.modules.audit.service.AuditLogService;
+import com.swp391.selfstorage.modules.facility.repository.UnitRepository;
 import com.swp391.selfstorage.modules.rental.entity.Contract;
 import com.swp391.selfstorage.modules.rental.entity.CustomerAccessLog;
 import com.swp391.selfstorage.modules.rental.repository.ContractRepository;
@@ -19,6 +20,7 @@ public class CustomerAccessService {
 
   private final CustomerAccessLogRepository accessLogs;
   private final ContractRepository contracts;
+  private final UnitRepository units;
   private final ActorContext actor;
   private final AuditLogService audit;
   private final Clock clock;
@@ -26,12 +28,14 @@ public class CustomerAccessService {
   public CustomerAccessService(
     CustomerAccessLogRepository accessLogs,
     ContractRepository contracts,
+    UnitRepository units,
     ActorContext actor,
     AuditLogService audit,
     Clock clock
   ) {
     this.accessLogs = accessLogs;
     this.contracts = contracts;
+    this.units = units;
     this.actor = actor;
     this.audit = audit;
     this.clock = clock;
@@ -101,8 +105,9 @@ public class CustomerAccessService {
       pin = String.format("%06d", new java.security.SecureRandom().nextInt(1000000));
     }
 
+    String finalPin = pin;
     LocalDateTime now = LocalDateTime.now(clock);
-    req.setAccessPin(pin);
+    req.setAccessPin(finalPin);
     req.setStatus("PIN_ISSUED");
     req.setApprovedBy(u.getUsername() != null ? u.getUsername() : u.getRole());
     req.setApprovedAt(now);
@@ -113,7 +118,22 @@ public class CustomerAccessService {
     }
 
     accessLogs.save(req);
-    audit.record("CUSTOMER_ACCESS_REQUEST_APPROVED", req.getContractId(), req.getUnitCode() + ":" + pin);
+
+    // Sync re-issued PIN to contract and unit so contract sidebar and check-in simulator stay consistent
+    if (req.getContractId() != null) {
+      contracts.findById(req.getContractId()).ifPresent(contract -> {
+        contract.setPinCode(finalPin);
+        contracts.save(contract);
+      });
+    }
+    if (req.getUnitCode() != null) {
+      units.findById(req.getUnitCode()).ifPresent(unit -> {
+        unit.setPinCode(finalPin);
+        units.save(unit);
+      });
+    }
+
+    audit.record("CUSTOMER_ACCESS_REQUEST_APPROVED", req.getContractId(), req.getUnitCode() + ":" + finalPin);
     return req;
   }
 
@@ -164,9 +184,8 @@ public class CustomerAccessService {
 
     boolean pinValid = false;
     if (issuedOpt.isPresent() && issuedOpt.get().getAccessPin() != null) {
-      pinValid = Objects.equals(pin, issuedOpt.get().getAccessPin());
-    }
-    if (!pinValid && (Objects.equals(pin, c.getPinCode()) || !pinProvided)) {
+      pinValid = pinProvided && Objects.equals(pin, issuedOpt.get().getAccessPin());
+    } else if (Objects.equals(pin, c.getPinCode()) || !pinProvided) {
       pinValid = true;
     }
 

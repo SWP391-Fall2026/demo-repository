@@ -1,5 +1,6 @@
 import { ResourcePage, Form } from "../../../shared/ui/ResourcePage";
 import { facilityApi } from "../api/facility.api";
+import UnitReadinessAction from "../components/UnitReadinessAction";
 
 const unitColumns = [
     ["code", "Mã kho"],
@@ -8,7 +9,7 @@ const unitColumns = [
     ["pricePerMonth", "Giá thuê / tháng"],
     ["floor", "Tầng"],
     ["status", "Trạng thái kho"],
-    ["readinessStatus", "Duyệt sẵn sàng"],
+    ["readinessStatus", "Duyệt sẵn sàng", (row, reload) => <UnitReadinessAction row={row} reload={reload} mode="approve" />],
 ];
 
 export default function ManageUnitsPage() {
@@ -16,7 +17,7 @@ export default function ManageUnitsPage() {
         <ResourcePage
             eyebrow="STORAGE / QUẢN LÝ CƠ SỞ"
             title="Quản lý khoang lưu trữ tại chi nhánh"
-            description="Tạo mới buồng kho vật lý, cập nhật biểu giá cho phép và theo dõi hiện trạng vận hành các khoang tại chi nhánh."
+            description="Tạo mới buồng kho vật lý, cập nhật biểu giá cho phép và theo dõi hiện trạng vận hành. Kho sau trả phòng (CLEANING / MAINTENANCE) sau khi Staff báo hoàn tất vệ sinh sẽ hiện nút 'Duyệt sẵn sàng' ngay trong bảng."
             load={facilityApi.managedUnits}
             columns={unitColumns}
             childrenTitle="Tạo mới & Điều chỉnh biểu giá khoang"

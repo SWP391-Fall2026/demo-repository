@@ -1,12 +1,13 @@
 import { ResourcePage, Form } from "../../../shared/ui/ResourcePage";
 import { facilityApi } from "../api/facility.api";
+import UnitReadinessAction from "../components/UnitReadinessAction";
 
 const readinessColumns = [
     ["code", "Mã kho"],
     ["type", "Loại kho"],
     ["sizeSqm", "Diện tích (m²)"],
     ["status", "Trạng thái hiện tại"],
-    ["readinessStatus", "Duyệt sẵn sàng"],
+    ["readinessStatus", "Duyệt sẵn sàng", (row, reload) => <UnitReadinessAction row={row} reload={reload} mode="approve" />],
     ["pricePerMonth", "Giá thuê / tháng"],
 ];
 

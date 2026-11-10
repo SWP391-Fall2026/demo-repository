@@ -1,11 +1,19 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { facilityApi } from "../../facility/api/facility.api";
 import { workforceApi } from "../../workforce/api/workforce.api";
+import { rentalApi } from "../../rental/api/rental.api";
 import { useRemote } from "../../../shared/api/use-remote";
-import { display } from "../../../shared/lib/format";
+import { display, formatDate, statusLabel } from "../../../shared/lib/format";
 
 export default function FacilityDashboardPage() {
-    const dashboard = useRemote(workforceApi.managerDashboard);
+    const dashboard = useRemote(async () => {
+        const [dash, contracts] = await Promise.all([
+            workforceApi.managerDashboard(),
+            rentalApi.list().catch(() => []),
+        ]);
+        return { ...dash, contracts: Array.isArray(contracts) ? contracts : [] };
+    });
     const [pinMessage, setPinMessage] = useState("");
     const [pinBusy, setPinBusy] = useState(false);
 
@@ -13,6 +21,8 @@ export default function FacilityDashboardPage() {
     const staff = Array.isArray(dashboard.data?.staff) ? dashboard.data.staff : [];
     const units = Array.isArray(dashboard.data?.units) ? dashboard.data.units : [];
     const tasks = Array.isArray(dashboard.data?.tasks) ? dashboard.data.tasks : [];
+    const returnRequests = (Array.isArray(dashboard.data?.contracts) ? dashboard.data.contracts : [])
+        .filter((c) => String(c.status) === "CHECKOUT_REQUESTED");
 
     const activeStaff = staff.filter(
         (person) => String(person.status).toUpperCase() === "ACTIVE"
@@ -52,7 +62,7 @@ export default function FacilityDashboardPage() {
                         {display(facility.name)} · {display(facility.code)}
                     </p>
                 </div>
-                <button className="secondary" onClick={dashboard.reload}>
+                <button className="btn-figma btn-outline btn-sm" onClick={dashboard.reload}>
                     Làm mới
                 </button>
             </header>
@@ -339,10 +349,53 @@ export default function FacilityDashboardPage() {
                         )}
                     </section>
 
+                    {returnRequests.length > 0 && (
+                        <section className="card" style={{ border: "1.5px solid #BFDBFE", background: "#F8FAFC" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px", marginBottom: "12px" }}>
+                                <div>
+                                    <span className="eyebrow">TRẢ KHO / NGHIỆM THU</span>
+                                    <h2 style={{ margin: "2px 0 0" }}>Đơn yêu cầu trả kho mới tại cơ sở ({returnRequests.length})</h2>
+                                </div>
+                                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                                    <Link className="btn-figma btn-primary-dark btn-sm" to="/facility/tasks/assign">Phân công Staff</Link>
+                                    <Link className="btn-figma btn-outline btn-sm" to="/facility/inspections">Danh sách nghiệm thu</Link>
+                                </div>
+                            </div>
+                            <div className="table-scroll">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Hợp đồng</th>
+                                            <th>Khách hàng</th>
+                                            <th>Kho</th>
+                                            <th>Ngày hẹn trả</th>
+                                            <th>Lý do trả</th>
+                                            <th>Trạng thái</th>
+                                            <th>Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {returnRequests.map((c) => (
+                                            <tr key={String(c.id)}>
+                                                <td><strong>{display(c.id)}</strong></td>
+                                                <td>{display(c.customerName)}<br /><small>{display(c.customerPhone)}</small></td>
+                                                <td><strong>{display(c.unitCode)}</strong></td>
+                                                <td>{formatDate(c.checkoutRequestedDate)}</td>
+                                                <td>{display(c.checkoutReason)}</td>
+                                                <td><span className="badge pending">{c.inspectionStatus ? statusLabel(c.inspectionStatus) : "Chờ nghiệm thu"}</span></td>
+                                                <td><Link className="btn-figma btn-outline btn-sm" to={`/facility/inspections/${encodeURIComponent(String(c.id))}`}>Xem phiếu</Link></td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+                    )}
+
                     <section className="card">
-                        <h2>Yêu cầu thẻ hẹn / check-in</h2>
+                        <h2>Yêu cầu thẻ hẹn, check-in &amp; trả kho</h2>
                         {!tasks.length ? (
-                            <p>Chưa có yêu cầu check-in tại cơ sở.</p>
+                            <p>Chưa có yêu cầu tại cơ sở.</p>
                         ) : (
                             <div className="table-scroll">
                                 <table>
@@ -364,7 +417,7 @@ export default function FacilityDashboardPage() {
                                                     <br />
                                                     <small style={{ color: "#64748B" }}>
                                                         {display(
-                                                            task.reservationId || task.title
+                                                            task.reservationId || task.contractId || task.title
                                                         )}
                                                     </small>
                                                 </td>
@@ -378,7 +431,7 @@ export default function FacilityDashboardPage() {
                                                 <td>{display(task.unitCode)}</td>
                                                 <td>
                                                     {display(
-                                                        task.appointmentAt || task.deadline
+                                                        task.appointmentAt || task.deadline || task.dueDate
                                                     )}
                                                 </td>
                                                 <td>
@@ -390,7 +443,7 @@ export default function FacilityDashboardPage() {
                                                 </td>
                                                 <td>
                                                     <span className="badge badge-neutral">
-                                                        {display(task.status)}
+                                                        {statusLabel(task.status)}
                                                     </span>
                                                 </td>
                                             </tr>
