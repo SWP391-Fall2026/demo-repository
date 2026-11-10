@@ -1,6 +1,7 @@
 package com.swp391.selfstorage.modules.identity.service;
 
 import com.swp391.selfstorage.common.security.ActorContext;
+import com.swp391.selfstorage.common.util.ShortIds;
 import com.swp391.selfstorage.common.web.*;
 import com.swp391.selfstorage.modules.audit.service.AuditLogService;
 import com.swp391.selfstorage.modules.facility.repository.FacilityRepository;
@@ -72,7 +73,7 @@ public class UserAdminService {
     if (name.length() < 2 || name.length() > 50) throw Inputs.bad("Họ tên phải có 2–50 ký tự");
     if (!email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) throw Inputs.bad("Email không hợp lệ");
     User u = new User();
-    u.setId("USR-" + UUID.randomUUID());
+    u.setId(ShortIds.next("USR"));
     u.setName(name);
     u.setUsername(username);
     u.setEmail(email);

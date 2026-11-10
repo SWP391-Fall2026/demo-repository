@@ -1,6 +1,7 @@
 package com.swp391.selfstorage.application.workflow;
 
 import com.swp391.selfstorage.common.security.ActorContext;
+import com.swp391.selfstorage.common.util.ShortIds;
 import com.swp391.selfstorage.common.web.*;
 import com.swp391.selfstorage.modules.audit.service.AuditLogService;
 import com.swp391.selfstorage.modules.billing.entity.*;
@@ -114,7 +115,7 @@ public class PayInvoiceWorkflow {
       "STAFF".equals(actor.role(a)) && !"CASH_AT_COUNTER".equals(method)
     ) throw Inputs.bad("Staff chỉ ghi nhận thu tại quầy");
     Payment p = new Payment();
-    p.setId("PAY-" + UUID.randomUUID());
+    p.setId(ShortIds.next("PAY"));
     p.setInvoiceId(i.getId());
     p.setReservationId(i.getReservationId());
     p.setContractId(i.getContractId());
@@ -125,7 +126,7 @@ public class PayInvoiceWorkflow {
     p.setAmount(i.getAmount());
     p.setPaymentMethod(method);
     p.setIdempotencyKey(key);
-    p.setTransactionCode("MOCK-" + UUID.randomUUID());
+    p.setTransactionCode(ShortIds.next("MOCK"));
     p.setCreatedAt(now);
     p.setTimeStr(now.toString());
     boolean failed = Boolean.TRUE.equals(d.get("simulateFailure"));

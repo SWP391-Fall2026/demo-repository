@@ -3,6 +3,7 @@ import { useSession } from "../../identity/session";
 import { facilityApi } from "../api/facility.api";
 import { rentalApi } from "../../rental/api/rental.api";
 import { display, formatDateTime as sharedFormatDateTime } from "../../../shared/lib/format";
+import { usePersistedState } from "../../../shared/lib/persisted-state";
 
 function formatDateTime(val) {
     return val ? sharedFormatDateTime(val) : "—";
@@ -18,8 +19,8 @@ export default function FacilityAccessLogsPage() {
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
     const [lastSyncedAt, setLastSyncedAt] = useState(null);
-    const [searchUnit, setSearchUnit] = useState("");
-    const [statusFilter, setStatusFilter] = useState("ALL");
+    const [searchUnit, setSearchUnit] = usePersistedState("access-logs.search-unit", "");
+    const [statusFilter, setStatusFilter] = usePersistedState("access-logs.status-filter", "ALL");
     const [approvingReq, setApprovingReq] = useState(null);
     const [customPin, setCustomPin] = useState("");
     const [approvalNote, setApprovalNote] = useState("");
@@ -48,7 +49,7 @@ export default function FacilityAccessLogsPage() {
         loadLogs();
         const timer = setInterval(() => {
             loadLogs({ silent: true });
-        }, 8000);
+        }, 15000);
         return () => clearInterval(timer);
     }, [facilityCode]);
 

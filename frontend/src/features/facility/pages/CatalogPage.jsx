@@ -5,6 +5,7 @@ import { useRemote } from "../../../shared/api/use-remote";
 import { useSession } from "../../identity/session";
 import { facilityFilterForSession } from "../lib/catalog-filters";
 import { display, money } from "../../../shared/lib/format";
+import { usePersistedState } from "../../../shared/lib/persisted-state";
 import imgCauGiay from "../../../assets/images/facility_cau_giay.jpg";
 import imgQuan7 from "../../../assets/images/facility_quan_7.jpg";
 import imgTanBinh from "../../../assets/images/facility_tan_binh.jpg";
@@ -24,17 +25,20 @@ export default function CatalogPage() {
     const [searchParams] = useSearchParams();
     const urlFacility = searchParams.get("facility") || "";
     const customerFacilityCode = urlFacility || facilityFilterForSession(session?.user?.role, session?.user?.facilityCode);
-    const [filters, setFilters] = useState({ facilityCode: customerFacilityCode, minSize: "", maxSize: "", minPrice: "", maxPrice: "" });
-    const [appliedFilters, setAppliedFilters] = useState(filters);
+    const defaultFilters = { facilityCode: customerFacilityCode, minSize: "", maxSize: "", minPrice: "", maxPrice: "" };
+    const [filters, setFilters] = usePersistedState("catalog.filters", defaultFilters);
+    const [appliedFilters, setAppliedFilters] = usePersistedState("catalog.applied-filters", defaultFilters);
     const [facilities, setFacilities] = useState([]);
     const { data, error, busy, reload } = useRemote(() => facilityApi.units(appliedFilters), [appliedFilters]);
     const units = Array.isArray(data) ? data : [];
 
     useEffect(() => {
         const activeFacility = urlFacility || customerFacilityCode || "";
-        setFilters((current) => ({ ...current, facilityCode: activeFacility }));
-        setAppliedFilters((current) => ({ ...current, facilityCode: activeFacility }));
-    }, [urlFacility, customerFacilityCode]);
+        if (!activeFacility)
+            return;
+        setFilters((current) => (current.facilityCode === activeFacility ? current : { ...current, facilityCode: activeFacility }));
+        setAppliedFilters((current) => (current.facilityCode === activeFacility ? current : { ...current, facilityCode: activeFacility }));
+    }, [urlFacility, customerFacilityCode, setFilters, setAppliedFilters]);
 
     useEffect(() => {
         facilityApi.facilities().then(setFacilities).catch(() => setFacilities([]));

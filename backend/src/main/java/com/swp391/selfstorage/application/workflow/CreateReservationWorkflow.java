@@ -1,6 +1,7 @@
 package com.swp391.selfstorage.application.workflow;
 
 import com.swp391.selfstorage.common.security.ActorContext;
+import com.swp391.selfstorage.common.util.ShortIds;
 import com.swp391.selfstorage.common.web.*;
 import com.swp391.selfstorage.modules.audit.service.AuditLogService;
 import com.swp391.selfstorage.modules.billing.service.InvoiceService;
@@ -91,7 +92,7 @@ public class CreateReservationWorkflow {
       )
     );
     Reservation r = new Reservation();
-    r.setId("RSV-" + UUID.randomUUID());
+    r.setId(ShortIds.next("RSV"));
     r.setUserId(customer.getId());
     r.setCustomerName(customer.getName());
     r.setCustomerPhone(customer.getPhone());

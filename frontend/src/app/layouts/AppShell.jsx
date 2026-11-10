@@ -150,6 +150,7 @@ export function AppShell() {
             ["/facility/tasks/assign", "Nhân viên"],
             ["/facility/incidents", "Yêu cầu hỗ trợ"],
             ["/facility/contracts", "Hợp đồng"],
+            ["/facility/inspections", "Yêu cầu trả kho"],
             ["/facility/return-inspection-reviews", "Khiếu nại nghiệm thu"],
             ["/facility/overdue-cap", "Trần phí quá hạn"],
             ["/facility/invoices", "Hóa đơn"],

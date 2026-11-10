@@ -5,6 +5,7 @@ import { display, money } from "../../../shared/lib/format";
 import { billingApi } from "../api/billing.api";
 import { reservationApi } from "../../reservation/api/reservation.api";
 import CustomerRentalGuide from "../../reservation/components/CustomerRentalGuide";
+import { usePersistedState } from "../../../shared/lib/persisted-state";
 const dateTime = (value) => {
     if (!value)
         return "Chưa có hạn";
@@ -18,19 +19,22 @@ const statusText = {
 export default function InvoicePaymentPage() {
     const navigate = useNavigate();
     const { invoiceId: routeInvoiceId } = useParams();
-    const { data, error: invoiceError, busy: invoicesBusy, reload } = useRemote(billingApi.invoices);
-    const { data: reservationData, reload: reloadReservations } = useRemote(reservationApi.list);
+    const { data, error: invoiceError, busy: invoicesBusy, refreshing, reload, silentReload } = useRemote(billingApi.invoices);
+    const { data: reservationData, reload: reloadReservations, silentReload: silentReloadReservations } = useRemote(reservationApi.list);
     const invoices = Array.isArray(data) ? data : [];
     const reservations = Array.isArray(reservationData) ? reservationData : [];
-    const [selectedId, setSelectedId] = useState(routeInvoiceId && routeInvoiceId !== "all" ? routeInvoiceId : "");
+    const [selectedId, setSelectedId] = usePersistedState("invoice.selected-id", routeInvoiceId && routeInvoiceId !== "all" ? routeInvoiceId : "");
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
     useEffect(() => { if (routeInvoiceId && routeInvoiceId !== "all")
-        setSelectedId(routeInvoiceId); }, [routeInvoiceId]);
+        setSelectedId(routeInvoiceId); }, [routeInvoiceId, setSelectedId]);
+    const hasPendingInvoice = invoices.some((item) => item.status === "PENDING");
     useEffect(() => {
-        const timer = window.setInterval(() => { reload(); reloadReservations(); }, 20000);
+        if (!hasPendingInvoice)
+            return undefined;
+        const timer = window.setInterval(() => { silentReload(); silentReloadReservations(); }, 30000);
         return () => window.clearInterval(timer);
-    }, [reload, reloadReservations]);
+    }, [hasPendingInvoice, silentReload, silentReloadReservations]);
     const selected = invoices.find((invoice) => invoice.id === selectedId);
     const relatedReservation = selected ? reservations.find((item) => item.id === selected.reservationId) : undefined;
     const grouped = useMemo(() => {
@@ -99,12 +103,12 @@ export default function InvoicePaymentPage() {
         }
     }
     return <main className="page-content invoice-page">
-    <header className="page-heading"><div><span className="eyebrow">HÓA ĐƠN · THANH TOÁN</span><h1>Thanh toán cọc/phí</h1><p>Xem hóa đơn theo từng đơn đặt, trạng thái thanh toán và hạn xử lý.</p></div><button className="secondary" type="button" onClick={() => { reload(); reloadReservations(); }}>Làm mới</button></header>
+    <header className="page-heading"><div><span className="eyebrow">HÓA ĐƠN · THANH TOÁN</span><h1>Thanh toán cọc/phí</h1><p>Xem hóa đơn theo từng đơn đặt, trạng thái thanh toán và hạn xử lý.</p></div><button className="secondary" type="button" disabled={refreshing} onClick={() => { reload(); reloadReservations(); }}>{refreshing ? "Đang làm mới…" : "Làm mới"}</button></header>
     <CustomerRentalGuide active={selected?.invoiceType === "RENT" ? 3 : 2}/>
     {invoiceError && <section className="card error" role="alert">{invoiceError}</section>}
-    {invoicesBusy ? <p>Đang tải hóa đơn…</p> : !invoices.length ? <section className="card empty"><h2>Bạn chưa có hóa đơn</h2><Link to="/storage">Tìm kho để bắt đầu đặt giữ chỗ</Link></section> : <>
+    {invoicesBusy && data === undefined ? <p>Đang tải hóa đơn…</p> : !invoices.length ? <section className="card empty"><h2>Bạn chưa có hóa đơn</h2><Link to="/storage">Tìm kho để bắt đầu đặt giữ chỗ</Link></section> : <>
       <section className="card invoice-history">
-        <div className="section-heading"><div><h2>Hóa đơn của bạn</h2><p>Hóa đơn cọc chờ thanh toán quá 5 phút sẽ tự hủy cùng đơn đặt.</p></div><span className="count">{invoices.length} hóa đơn</span></div>
+        <div className="section-heading"><div><h2>Hóa đơn của bạn</h2><p>Hóa đơn cọc chờ thanh toán quá 30 phút sẽ tự hủy cùng đơn đặt.</p></div><span className="count">{invoices.length} hóa đơn</span></div>
         {grouped.map((group) => <article className="invoice-order" key={group.key}>
           <header><div><strong>Đơn {display(group.reservation?.id || group.invoices[0]?.contractId || group.key)}</strong><span>Cơ sở {display(group.reservation?.facilityCode || group.invoices[0]?.facilityCode)} · {display(group.reservation?.unitCode || group.reservation?.unitType)}</span></div><span className={`badge ${group.reservation?.status === "EXPIRED" ? "danger" : group.reservation?.status === "RESERVED" || group.reservation?.status === "CHECKED_IN" ? "success" : "pending"}`}>{display(group.reservation?.status)}</span></header>
           <div className="invoice-list">{group.invoices.map((item) => <div className={`invoice-row ${selectedId === item.id ? "selected" : ""}`} key={String(item.id)}>

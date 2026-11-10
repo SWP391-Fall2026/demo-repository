@@ -3,6 +3,7 @@ package com.swp391.selfstorage.application.workflow;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swp391.selfstorage.common.security.ActorContext;
 import com.swp391.selfstorage.common.storage.AttachmentStorage;
+import com.swp391.selfstorage.common.util.ShortIds;
 import com.swp391.selfstorage.common.web.Inputs;
 import com.swp391.selfstorage.modules.audit.service.AuditLogService;
 import com.swp391.selfstorage.modules.billing.entity.*;
@@ -100,7 +101,7 @@ public class HandoverReviewWorkflow {
 
   private HandoverReview create(Context context, String kind, String reason, String source, String by) {
     var review = new HandoverReview();
-    review.setId("HREV-" + UUID.randomUUID()); review.setHandoverId(context.handover().getId());
+    review.setId(ShortIds.next("HREV")); review.setHandoverId(context.handover().getId());
     review.setContractId(context.contract().getId()); review.setReservationId(context.reservation().getId());
     review.setFacilityCode(context.contract().getFacilityCode()); review.setUserId(context.contract().getUserId());
     review.setKind(kind); review.setReason(reason); review.setSource(source); review.setRequestedBy(by);
@@ -121,7 +122,7 @@ public class HandoverReviewWorkflow {
     // Retain the original staff photo even when a corrected handover is sent later.
     if (context.handover().getEvidencePath() != null && !context.handover().getEvidencePath().isBlank()) {
       var saved = new HandoverReviewEvidence();
-      saved.setId("HRE-" + UUID.randomUUID()); saved.setReviewId(review.getId());
+      saved.setId(ShortIds.next("HRE")); saved.setReviewId(review.getId());
       saved.setEvidencePath(context.handover().getEvidencePath());
       saved.setContentType(contentType(saved.getEvidencePath())); saved.setNote("Ảnh biên bản tại thời điểm ghi nhận");
       saved.setUploadedBy(context.handover().getStaffId()); saved.setCreatedAt(review.getCreatedAt());
@@ -257,7 +258,7 @@ public class HandoverReviewWorkflow {
       BigDecimal amount = policy.rentRefund(payment.getAmount());
       limits.require(amount, limits.available(amount, committed, BigDecimal.ZERO));
       var refund = new RefundRequest();
-      refund.setId("REF-" + UUID.randomUUID()); refund.setHandoverReviewId(review.getId());
+      refund.setId(ShortIds.next("REF")); refund.setHandoverReviewId(review.getId());
       refund.setIdempotencyKey("HANDOVER:" + review.getId() + ":" + payment.getId());
       refund.setPaymentId(payment.getId()); refund.setReservationId(reservation.getId()); refund.setContractId(contract.getId());
       refund.setUserId(contract.getUserId()); refund.setFacilityCode(contract.getFacilityCode()); refund.setRefundType("RENT");
@@ -306,7 +307,7 @@ public class HandoverReviewWorkflow {
   }
 
   private void saveEvidence(String reviewId, String note, MultipartFile file, String by) {
-    var row = new HandoverReviewEvidence(); row.setId("HRE-" + UUID.randomUUID()); row.setReviewId(reviewId);
+    var row = new HandoverReviewEvidence(); row.setId(ShortIds.next("HRE")); row.setReviewId(reviewId);
     row.setNote(note); row.setUploadedBy(by); row.setCreatedAt(LocalDateTime.now(clock));
     if (file != null && !file.isEmpty()) {
       String path = storage.save(file); row.setEvidencePath(path); row.setContentType(contentType(path));

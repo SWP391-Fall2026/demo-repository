@@ -45,7 +45,7 @@ export default function CustomerAccessHistoryPanel({ contract, onUpdated }) {
         if (!pendingRequest || activeVisit || issuedRequest || !contract?.id) return;
         const timer = setInterval(() => {
             loadHistory().then(() => { if (onUpdated) onUpdated(); });
-        }, 8000);
+        }, 15000);
         return () => clearInterval(timer);
     }, [pendingRequest?.id, activeVisit?.id, issuedRequest?.id, contract?.id]);
 

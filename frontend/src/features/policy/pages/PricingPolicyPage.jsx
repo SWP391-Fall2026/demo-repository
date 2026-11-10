@@ -1,34 +1,21 @@
 import { useRemote } from "../../../shared/api/use-remote";
 import { display } from "../../../shared/lib/format";
+import { formatPolicyValue, policyLabel } from "../../../shared/lib/policy-format";
 import { ResourcePage, Form } from "../../../shared/ui/ResourcePage";
 import { policyApi } from "../api/policy.api";
 
-const policyLabels = {
-    "discount.3": "Chiết khấu kỳ hạn 3 tháng (5%)",
-    "discount.6": "Chiết khấu kỳ hạn 6 tháng (10%)",
-    "discount.12": "Chiết khấu kỳ hạn 12 tháng (15%)",
-    "price.S": "Giá chuẩn buồng kho loại S (2 m²)",
-    "price.M": "Giá chuẩn buồng kho loại M (5 m²)",
-    "price.L": "Giá chuẩn buồng kho loại L (10 m²)",
-    "price.CLIMATE": "Giá chuẩn kho lạnh CLIMATE",
-    "depositMonths": "Số tháng tiền cọc đảm bảo",
-    "reservationHoldDays": "Thời gian giữ chỗ sau khi đặt cọc (ngày)",
-    "refundCancelHours": "Thời gian báo trước hủy để được hoàn cọc (giờ)",
-    "renewalMaxMonths": "Kỳ hạn gia hạn hợp đồng tối đa (tháng)",
-    "gracePeriodDays": "Số ngày ân hạn trước khi phạt quá hạn (ngày)",
-    "cleaningFee": "Phí vệ sinh khoang lưu trữ (VND)",
-    "overdueDailyFee": "Phí phạt quá hạn mỗi ngày (VND)",
-    "newLockFee": "Phí cấp mã khóa / chìa mới (VND)",
-};
+const LEGACY_KEYS = new Set(["basePrices", "durationDiscounts", "extraFees", "depositRule", "generalRules"]);
 
 async function loadPricingPolicies() {
     const data = await policyApi.get();
     if (!data || typeof data !== "object") return [];
-    return Object.entries(data).map(([key, value]) => ({
-        key,
-        name: policyLabels[key] || key,
-        value: Number.isFinite(Number(value)) && (/price|fee/i.test(key) || Number(value) >= 1000) ? Number(value) : value,
-    }));
+    return Object.entries(data)
+        .filter(([key]) => !LEGACY_KEYS.has(key))
+        .map(([key, value]) => ({
+            key,
+            name: policyLabel(key),
+            value: formatPolicyValue(key, value),
+        }));
 }
 
 const policyColumns = [

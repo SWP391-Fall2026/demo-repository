@@ -2,6 +2,7 @@ package com.swp391.selfstorage.application.workflow;
 
 import com.swp391.selfstorage.common.security.ActorContext;
 import com.swp391.selfstorage.common.storage.AttachmentStorage;
+import com.swp391.selfstorage.common.util.ShortIds;
 import com.swp391.selfstorage.common.web.*;
 import com.swp391.selfstorage.modules.audit.service.AuditLogService;
 import com.swp391.selfstorage.modules.billing.service.InvoiceService;
@@ -120,7 +121,7 @@ public class HandoverWorkflow {
     var now = LocalDateTime.now(clock);
     HandoverRecord h = records.findFirstByContractIdOrderByHandoverDateDesc(c.getId()).orElseGet(() -> {
       HandoverRecord created = new HandoverRecord();
-      created.setId("HND-" + UUID.randomUUID()); created.setContractId(c.getId()); created.setReservationId(id);
+      created.setId(ShortIds.next("HND")); created.setContractId(c.getId()); created.setReservationId(id);
       return created;
     });
     boolean repairable = "ISSUE_REPORTED".equals(h.getStatus()) || "ISSUE".equals(h.getConditionStatus());

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useRemote } from "../../../shared/api/use-remote";
 import { display, formatDate, statusClass, statusLabel } from "../../../shared/lib/format";
+import { usePersistedState } from "../../../shared/lib/persisted-state";
 import { rentalApi } from "../api/rental.api";
 
 export default function HandoverPage() {
@@ -20,7 +21,7 @@ export default function HandoverPage() {
     const contracts = Array.isArray(data?.contracts) ? data.contracts : [];
     const eligibleList = Array.isArray(data?.eligible) ? data.eligible : [];
     const pendingPaymentContracts = contracts.filter((row) => String(row.status) === "PENDING_PAYMENT");
-    const [selectedId, setSelectedId] = useState("");
+    const [selectedId, setSelectedId] = usePersistedState("handover.selected-id", "");
     const [error, setError] = useState("");
     const [done, setDone] = useState("");
     const [busy, setBusy] = useState(false);

@@ -2,6 +2,7 @@ package com.swp391.selfstorage.modules.billing.service;
 
 import com.swp391.selfstorage.common.security.ActorContext;
 import com.swp391.selfstorage.common.storage.AttachmentStorage;
+import com.swp391.selfstorage.common.util.ShortIds;
 import com.swp391.selfstorage.common.web.*;
 import com.swp391.selfstorage.modules.audit.service.AuditLogService;
 import com.swp391.selfstorage.modules.billing.entity.*;
@@ -76,7 +77,7 @@ public class RefundExecutionService {
       }
     );
     RefundTransaction e = new RefundTransaction();
-    e.setId("RTX-" + UUID.randomUUID());
+    e.setId(ShortIds.next("RTX"));
     e.setRefundRequestId(id);
     e.setPerformedBy(staff.getId());
     e.setReference(reference);
