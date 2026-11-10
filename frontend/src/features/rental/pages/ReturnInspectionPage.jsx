@@ -108,12 +108,16 @@ export default function ReturnInspectionPage() {
         && !["COMPLETED", "CONFIRMED"].includes(String(contract.inspectionStatus).toUpperCase());
 
     if (!contractId) {
+        const isManager = session?.user?.role === "FMANAGER";
         return <main className="page-content return-inspection-page">
           <header className="page-heading">
-            <div><span className="eyebrow">STAFF / CHECKOUT</span><h1>Yêu cầu trả kho</h1><p>Xem lịch hẹn trả và mở phiếu nghiệm thu cho từng hợp đồng.</p></div>
-            <button className="btn-figma btn-outline btn-sm" type="button" onClick={reload}>Làm mới</button>
+            <div><span className="eyebrow">{isManager ? "FACILITY MANAGER / TRẢ KHO" : "STAFF / CHECKOUT"}</span><h1>Yêu cầu trả kho</h1><p>{isManager ? "Theo dõi yêu cầu trả kho tại cơ sở, phân công Staff kiểm tra và xử lý khiếu nại nghiệm thu." : "Xem lịch hẹn trả và mở phiếu nghiệm thu cho từng hợp đồng."}</p></div>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              {isManager && <Link className="btn-figma btn-primary-dark btn-sm" to="/facility/tasks/assign">Phân công cho Staff</Link>}
+              <button className="btn-figma btn-primary-dark btn-sm" type="button" onClick={reload}>Làm mới</button>
+            </div>
           </header>
-          {error && <section className="card error" role="alert">{error}<button className="btn-figma btn-outline btn-sm" type="button" onClick={reload}>Thử lại</button></section>}
+          {error && <section className="card error" role="alert">{error}<button className="btn-figma btn-primary-dark btn-sm" type="button" onClick={reload}>Thử lại</button></section>}
           {busy ? <section className="card empty">Đang tải yêu cầu trả kho…</section> : !requests.length ? <section className="card empty"><span className="empty-icon">↩</span><h2>Không có yêu cầu trả kho</h2><p>Hiện tại không có yêu cầu trả kho đang chờ xử lý.</p></section> : <>
             <div className="summary-grid inspection-summary">
               <article className="card"><span>Yêu cầu cần xử lý</span><strong>{requests.filter((row) => !row.inspectionStatus).length}</strong></article>
@@ -129,7 +133,7 @@ export default function ReturnInspectionPage() {
                   <td>{display(row.unitCode)}<br /><small>{display(row.facilityCode)}</small></td>
                   <td>{formatDate(row.checkoutRequestedDate)}</td>
                   <td><span className={`badge ${row.inspectionStatus === "CUSTOMER_ACCEPTED" ? "success" : row.inspectionStatus ? "pending" : ""}`}>{inspectionLabels[row.inspectionStatus] || "Chờ nghiệm thu"}</span></td>
-                  <td><Link className="btn-figma btn-primary-dark btn-sm" to={`/facility/inspections/${encodeURIComponent(String(row.id))}`}>Xem chi tiết</Link></td>
+                  <td><div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}><Link className="btn-figma btn-primary-dark btn-sm" to={`/facility/inspections/${encodeURIComponent(String(row.id))}`}>Xem chi tiết</Link>{isManager && !row.inspectionStatus && <Link className="btn-figma btn-primary-dark btn-sm" to="/facility/tasks/assign">Phân công Staff</Link>}</div></td>
                 </tr>)}</tbody>
               </table></div>
             </section>
@@ -137,14 +141,18 @@ export default function ReturnInspectionPage() {
         </main>;
     }
 
+    const isManagerDetail = session?.user?.role === "FMANAGER";
     return <main className="page-content return-inspection-page">
       <header className="page-heading">
-        <div><span className="eyebrow">STAFF / CHECKOUT</span><h1>Chi tiết yêu cầu trả kho</h1><p>Kiểm tra tình trạng kho, lập phiếu và chờ khách xác nhận trước khi hoàn tất hợp đồng.</p></div>
-        <Link className="btn-figma btn-outline btn-sm" to="/facility/inspections">Về danh sách yêu cầu</Link>
+        <div><span className="eyebrow">{isManagerDetail ? "FACILITY MANAGER / TRẢ KHO" : "STAFF / CHECKOUT"}</span><h1>Chi tiết yêu cầu trả kho</h1><p>Kiểm tra tình trạng kho, lập phiếu và chờ khách xác nhận trước khi hoàn tất hợp đồng.</p></div>
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          {isManagerDetail && <Link className="btn-figma btn-primary-dark btn-sm" to="/facility/tasks/assign">Phân công cho Staff</Link>}
+          <Link className="btn-figma btn-primary-dark btn-sm" to="/facility/inspections">Về danh sách yêu cầu</Link>
+        </div>
       </header>
-      {error && <section className="card error" role="alert">{error}<button className="btn-figma btn-outline btn-sm" type="button" onClick={reload}>Thử lại</button></section>}
+      {error && <section className="card error" role="alert">{error}<button className="btn-figma btn-primary-dark btn-sm" type="button" onClick={reload}>Thử lại</button></section>}
       {busy && <section className="card empty">Đang tải chi tiết hợp đồng…</section>}
-      {!busy && !contract && <section className="card empty"><h2>Không tìm thấy yêu cầu trả kho</h2><p>Yêu cầu có thể đã được xử lý hoặc không thuộc phạm vi của bạn.</p><Link className="btn-figma btn-outline btn-sm" to="/facility/inspections">Quay lại danh sách</Link></section>}
+      {!busy && !contract && <section className="card empty"><h2>Không tìm thấy yêu cầu trả kho</h2><p>Yêu cầu có thể đã được xử lý hoặc không thuộc phạm vi của bạn.</p><Link className="btn-figma btn-primary-dark btn-sm" to="/facility/inspections">Quay lại danh sách</Link></section>}
       {contract && <>
         <section className="card inspection-request-card">
           <div className="inspection-card-heading"><div><span className="eyebrow">HỢP ĐỒNG {display(contract.id)}</span><h2>{display(contract.customerName)}</h2><p>{display(contract.facilityCode)} · Kho {display(contract.unitCode)}</p></div>

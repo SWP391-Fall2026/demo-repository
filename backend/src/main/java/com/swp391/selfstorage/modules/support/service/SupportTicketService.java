@@ -1,6 +1,7 @@
 package com.swp391.selfstorage.modules.support.service;
 
 import com.swp391.selfstorage.common.security.ActorContext;
+import com.swp391.selfstorage.common.util.ShortIds;
 import com.swp391.selfstorage.common.web.*;
 import com.swp391.selfstorage.modules.audit.service.AuditLogService;
 import com.swp391.selfstorage.modules.rental.repository.ContractRepository;
@@ -51,7 +52,7 @@ public class SupportTicketService {
       .filter(v -> u.getId().equals(v.getUserId()));
 
     SupportTicket t = new SupportTicket();
-    t.setId("TCK-" + UUID.randomUUID());
+    t.setId(ShortIds.next("TCK"));
     t.setUserId(u.getId());
     t.setCustomerName(u.getName());
 

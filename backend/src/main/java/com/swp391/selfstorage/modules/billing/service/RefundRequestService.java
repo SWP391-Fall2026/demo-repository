@@ -1,6 +1,7 @@
 package com.swp391.selfstorage.modules.billing.service;
 
 import com.swp391.selfstorage.common.security.ActorContext;
+import com.swp391.selfstorage.common.util.ShortIds;
 import com.swp391.selfstorage.common.web.*;
 import com.swp391.selfstorage.modules.audit.service.AuditLogService;
 import com.swp391.selfstorage.modules.billing.entity.*;
@@ -159,7 +160,7 @@ public class RefundRequestService {
       limits.available(base.min(p.getAmount()), completed, reserved)
     );
     RefundRequest r = new RefundRequest();
-    r.setId("REF-" + UUID.randomUUID());
+    r.setId(ShortIds.next("REF"));
     r.setIdempotencyKey(key);
     r.setPaymentId(p.getId());
     r.setReservationId(p.getReservationId());

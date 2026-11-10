@@ -1,6 +1,7 @@
 package com.swp391.selfstorage.application.workflow;
 
 import com.swp391.selfstorage.common.security.ActorContext;
+import com.swp391.selfstorage.common.util.ShortIds;
 import com.swp391.selfstorage.common.web.*;
 import com.swp391.selfstorage.modules.audit.service.AuditLogService;
 import com.swp391.selfstorage.modules.billing.entity.*;
@@ -122,7 +123,7 @@ public class ConfirmInspectionWorkflow {
         || "EVIDENCE_SUBMITTED".equals(r.getStatus()));
     if (exists) return "";
     RefundRequest r = new RefundRequest();
-    r.setId("REF-" + UUID.randomUUID());
+    r.setId(ShortIds.next("REF"));
     r.setIdempotencyKey("INSPECT-" + inspection.getId());
     r.setPaymentId(payment.getId());
     r.setReservationId(payment.getReservationId());

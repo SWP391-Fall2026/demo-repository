@@ -20,17 +20,16 @@ export default function ReservationAppointmentPage() {
     const reservations = useRemote(() => listMode ? reservationApi.list() : reservationApi.get(reservationId), [reservationId]);
     const invoices = useRemote(billingApi.invoices);
     const facilities = useRemote(facilityApi.facilities);
-    const tasks = useRemote(() => {
-        const rows = Array.isArray(reservations.data) ? reservations.data : reservations.data ? [reservations.data] : [];
-        return Promise.all(rows.map(async (row) => [String(row.id), await reservationApi.checkinTask(String(row.id)).catch(() => ({}))]));
-    }, [reservations.data]);
+    const reservationRows = Array.isArray(reservations.data) ? reservations.data : reservations.data ? [reservations.data] : [];
+    const reservationIdsKey = reservationRows.map((row) => `${row.id}:${row.status}:${row.unitCode || ""}`).join("|");
+    const tasks = useRemote(() => Promise.all(reservationRows.map(async (row) => [String(row.id), await reservationApi.checkinTask(String(row.id)).catch(() => ({}))])), [reservationIdsKey]);
     const [requesting, setRequesting] = useState(null);
     const [requestError, setRequestError] = useState("");
     useEffect(() => {
-        const timer = window.setInterval(() => { reservations.reload(); invoices.reload(); tasks.reload(); }, 10000);
+        const timer = window.setInterval(() => { reservations.silentReload(); invoices.silentReload(); tasks.silentReload(); }, 30000);
         return () => window.clearInterval(timer);
-    }, [reservations.reload, invoices.reload, tasks.reload]);
-    if (reservations.busy || invoices.busy)
+    }, [reservations.silentReload, invoices.silentReload, tasks.silentReload]);
+    if ((reservations.busy && reservations.data === undefined) || (invoices.busy && invoices.data === undefined))
         return <main className="page-content"><p>Đang tải thẻ hẹn…</p></main>;
     if (reservations.error)
         return <main className="page-content"><section className="card error" role="alert">{reservations.error}</section></main>;

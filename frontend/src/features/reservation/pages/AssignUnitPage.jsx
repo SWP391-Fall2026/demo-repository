@@ -3,13 +3,14 @@ import { reservationApi } from "../api/reservation.api";
 import { facilityApi } from "../../facility/api/facility.api";
 import { useRemote } from "../../../shared/api/use-remote";
 import { display, money } from "../../../shared/lib/format";
+import { usePersistedState } from "../../../shared/lib/persisted-state";
 
 export default function AssignUnitPage() {
     const reservationsQuery = useRemote(reservationApi.list);
     const unitsQuery = useRemote(facilityApi.managedUnits);
 
     const [busyId, setBusyId] = useState("");
-    const [selectedUnits, setSelectedUnits] = useState({});
+    const [selectedUnits, setSelectedUnits] = usePersistedState("assign-unit.selected-units", {});
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
 

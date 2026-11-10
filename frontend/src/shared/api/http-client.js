@@ -18,6 +18,7 @@ export async function envelope(path, options = {}) {
     try {
         response = await fetch(base + path, {
             ...options,
+            cache: options.cache ?? "no-store",
             headers,
             signal: options.signal ?? AbortSignal.timeout(15000),
         });

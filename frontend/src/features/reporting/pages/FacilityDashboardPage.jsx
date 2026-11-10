@@ -358,7 +358,7 @@ export default function FacilityDashboardPage() {
                                 </div>
                                 <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                                     <Link className="btn-figma btn-primary-dark btn-sm" to="/facility/tasks/assign">Phân công Staff</Link>
-                                    <Link className="btn-figma btn-outline btn-sm" to="/facility/inspections">Danh sách nghiệm thu</Link>
+                                    <Link className="btn-figma btn-primary-dark btn-sm" to="/facility/inspections">Danh sách nghiệm thu</Link>
                                 </div>
                             </div>
                             <div className="table-scroll">
@@ -383,7 +383,7 @@ export default function FacilityDashboardPage() {
                                                 <td>{formatDate(c.checkoutRequestedDate)}</td>
                                                 <td>{display(c.checkoutReason)}</td>
                                                 <td><span className="badge pending">{c.inspectionStatus ? statusLabel(c.inspectionStatus) : "Chờ nghiệm thu"}</span></td>
-                                                <td><Link className="btn-figma btn-outline btn-sm" to={`/facility/inspections/${encodeURIComponent(String(c.id))}`}>Xem phiếu</Link></td>
+                                                <td><Link className="btn-figma btn-primary-dark btn-sm" to={`/facility/inspections/${encodeURIComponent(String(c.id))}`}>Xem phiếu</Link></td>
                                             </tr>
                                         ))}
                                     </tbody>

@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { clearAllPageState } from "../../shared/lib/persisted-state";
 const key = "storage-rental.session";
 const roles = new Set(["CUSTOMER", "STAFF", "FMANAGER", "OPS_MGR", "ADMIN"]);
 export function tokenExpiry(token) {
@@ -66,8 +67,10 @@ export const sessionStore = {
         try {
             if (value)
                 localStorage.setItem(key, JSON.stringify(value));
-            else
+            else {
                 localStorage.removeItem(key);
+                clearAllPageState();
+            }
         }
         catch {
             // Memory session still works when browser storage is unavailable.

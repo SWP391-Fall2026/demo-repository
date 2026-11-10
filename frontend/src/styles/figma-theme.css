@@ -3380,7 +3380,12 @@ tr:hover td {
 .btn-figma,
 a.btn-figma,
 button.btn-figma,
-a.button {
+.button,
+a.button,
+button.secondary,
+.button.secondary,
+a.button.secondary,
+.unit-card .button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -3395,28 +3400,34 @@ a.button {
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
-  border: 1.5px solid #0B192C;
-  background: #0B192C;
+  border: 1.5px solid #0B192C !important;
+  background: #0B192C !important;
   color: #FFFFFF !important;
-  box-shadow: 0 2px 6px rgba(11, 25, 44, 0.12);
+  box-shadow: 0 2px 6px rgba(11, 25, 44, 0.14);
   transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.14s ease, box-shadow 0.16s ease;
   box-sizing: border-box;
 }
 
 .btn-figma:hover:not(:disabled),
 a.btn-figma:hover,
-a.button:hover {
-  background: #1E293B;
-  border-color: #1E293B;
+.button:hover:not(:disabled),
+a.button:hover,
+button.secondary:hover:not(:disabled),
+.button.secondary:hover,
+a.button.secondary:hover,
+.unit-card .button:hover {
+  background: #172B47 !important;
+  border-color: #172B47 !important;
   color: #FFFFFF !important;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(11, 25, 44, 0.18);
+  box-shadow: 0 4px 12px rgba(11, 25, 44, 0.22);
   text-decoration: none;
 }
 
 .btn-figma:disabled,
-button.btn-figma:disabled {
-  opacity: 0.52;
+button.btn-figma:disabled,
+button.secondary:disabled {
+  opacity: 0.55;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
@@ -3426,8 +3437,8 @@ button.btn-figma:disabled {
 .btn-primary-dark,
 a.btn-primary,
 a.btn-primary-dark {
-  background: #0B192C;
-  border-color: #0B192C;
+  background: #0B192C !important;
+  border-color: #0B192C !important;
   color: #FFFFFF !important;
 }
 
@@ -3435,42 +3446,42 @@ a.btn-primary-dark {
 .btn-primary-dark:hover:not(:disabled),
 a.btn-primary:hover,
 a.btn-primary-dark:hover {
-  background: #172B47;
-  border-color: #172B47;
+  background: #172B47 !important;
+  border-color: #172B47 !important;
   color: #FFFFFF !important;
 }
 
 .btn-accent-blue,
 a.btn-accent-blue {
-  background: #0066FF;
-  border-color: #0066FF;
+  background: #0066FF !important;
+  border-color: #0066FF !important;
   color: #FFFFFF !important;
   box-shadow: 0 2px 8px rgba(0, 102, 255, 0.22);
 }
 
 .btn-accent-blue:hover:not(:disabled),
 a.btn-accent-blue:hover {
-  background: #0052CC;
-  border-color: #0052CC;
+  background: #0052CC !important;
+  border-color: #0052CC !important;
   color: #FFFFFF !important;
 }
 
 .btn-outline,
 a.btn-outline,
 button.btn-outline {
-  background: #FFFFFF;
-  border: 1.5px solid #CBD5E1;
-  color: #0F172A !important;
+  background: #FFFFFF !important;
+  border: 1.5px solid #0B192C !important;
+  color: #0B192C !important;
   box-shadow: none;
 }
 
 .btn-outline:hover:not(:disabled),
 a.btn-outline:hover,
 button.btn-outline:hover:not(:disabled) {
-  background: #F8FAFC;
-  border-color: #0B192C;
-  color: #0B192C !important;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+  background: #0B192C !important;
+  border-color: #0B192C !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.14);
 }
 
 .btn-sm,
@@ -3482,27 +3493,12 @@ button.btn-sm {
   border-radius: 8px;
 }
 
-button.secondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 36px;
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: 1.5px solid #CBD5E1;
-  background: #FFFFFF;
-  color: #0F172A;
-  font-weight: 700;
-  font-size: 13px;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-button.secondary:hover:not(:disabled) {
-  background: #F1F5F9;
-  border-color: #0B192C;
+.form-grid .form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
 }
 
 /* Keep table status badges single-line and readable */

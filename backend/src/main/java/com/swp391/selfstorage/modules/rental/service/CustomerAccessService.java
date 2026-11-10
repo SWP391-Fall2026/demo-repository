@@ -1,6 +1,7 @@
 package com.swp391.selfstorage.modules.rental.service;
 
 import com.swp391.selfstorage.common.security.ActorContext;
+import com.swp391.selfstorage.common.util.ShortIds;
 import com.swp391.selfstorage.common.web.Inputs;
 import com.swp391.selfstorage.modules.audit.service.AuditLogService;
 import com.swp391.selfstorage.modules.facility.repository.UnitRepository;
@@ -60,7 +61,7 @@ public class CustomerAccessService {
 
     LocalDateTime now = LocalDateTime.now(clock);
     CustomerAccessLog req = new CustomerAccessLog();
-    req.setId("REQ-" + UUID.randomUUID().toString().substring(0, 8));
+    req.setId(ShortIds.next("REQ"));
     req.setContractId(c.getId());
     req.setUnitCode(c.getUnitCode());
     req.setFacilityCode(c.getFacilityCode());
@@ -195,7 +196,7 @@ public class CustomerAccessService {
         : (!notExpired ? "CONTRACT_EXPIRED" : "WRONG_PIN");
 
       CustomerAccessLog failedLog = new CustomerAccessLog();
-      failedLog.setId("ACC-" + UUID.randomUUID().toString().substring(0, 8));
+      failedLog.setId(ShortIds.next("ACC"));
       failedLog.setContractId(c.getId());
       failedLog.setUnitCode(c.getUnitCode());
       failedLog.setFacilityCode(c.getFacilityCode());
@@ -241,7 +242,7 @@ public class CustomerAccessService {
       }
     } else {
       log = new CustomerAccessLog();
-      log.setId("ACC-" + UUID.randomUUID().toString().substring(0, 8));
+      log.setId(ShortIds.next("ACC"));
       log.setContractId(c.getId());
       log.setUnitCode(c.getUnitCode());
       log.setFacilityCode(c.getFacilityCode());
@@ -286,7 +287,7 @@ public class CustomerAccessService {
       }
     } else {
       log = new CustomerAccessLog();
-      log.setId("ACC-" + UUID.randomUUID().toString().substring(0, 8));
+      log.setId(ShortIds.next("ACC"));
       log.setContractId(c.getId());
       log.setUnitCode(c.getUnitCode());
       log.setFacilityCode(c.getFacilityCode());
@@ -333,7 +334,7 @@ public class CustomerAccessService {
       .orElse(null);
 
     CustomerAccessLog log = new CustomerAccessLog();
-    log.setId("ACC-" + UUID.randomUUID().toString().substring(0, 8));
+    log.setId(ShortIds.next("ACC"));
     log.setUnitCode(unitCode);
     log.setContractId(c != null ? c.getId() : "N/A");
     log.setFacilityCode(c != null ? c.getFacilityCode() : (unitCode.contains("-") ? unitCode.split("-")[0] : "HN-CG"));

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 public class ReservationHoldPolicy {
   private final Duration pendingPaymentHold;
 
-  public ReservationHoldPolicy(@Value("${app.reservation.pending-payment-minutes:5}") long minutes) {
+  public ReservationHoldPolicy(@Value("${app.reservation.pending-payment-minutes:30}") long minutes) {
     if (minutes < 1) throw new IllegalArgumentException("app.reservation.pending-payment-minutes must be positive");
     pendingPaymentHold = Duration.ofMinutes(minutes);
   }

@@ -34,11 +34,11 @@ function policyValue(key, value) {
 }
 export default function RentalContractDetailPage() {
     const { contractId = "" } = useParams();
-    const { data, error, busy, reload } = useRemote(() => rentalApi.detail(contractId), [contractId]);
-    const { data: reviewRows, reload: reloadReviews } = useRemote(rentalApi.returnInspectionReviews);
+    const { data, error, busy, reload, silentReload } = useRemote(() => rentalApi.detail(contractId), [contractId]);
+    const { data: reviewRows, reload: reloadReviews, silentReload: silentReloadReviews } = useRemote(rentalApi.returnInspectionReviews);
     const [pinVisible, setPinVisible] = useState(false);
     const [activePhotoIndex, setActivePhotoIndex] = useState(0);
-    if (busy)
+    if (busy && data === undefined)
         return <main className="page-content"><p>Đang tải chi tiết hợp đồng…</p></main>;
     if (error || !data)
         return <main className="page-content"><section className="card error" role="alert">{error || "Không tìm thấy hợp đồng."}</section><Link to="/rentals">Quay lại kho đang thuê</Link></main>;
@@ -142,7 +142,7 @@ export default function RentalContractDetailPage() {
           </div>
         </section>
 
-        <CustomerAccessHistoryPanel contract={contract} onUpdated={reload} />
+        <CustomerAccessHistoryPanel contract={contract} onUpdated={() => { silentReload(); silentReloadReviews(); }} />
 
         <section className="contract-panel">
           <header><h2>Hóa đơn hợp đồng &amp; thanh toán</h2><Link to="/invoices/all/pay">Mở thanh toán</Link></header>

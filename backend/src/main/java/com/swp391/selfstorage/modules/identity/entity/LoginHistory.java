@@ -1,5 +1,6 @@
 package com.swp391.selfstorage.modules.identity.entity;
 
+import com.swp391.selfstorage.common.util.ShortIds;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -35,7 +36,7 @@ public class LoginHistory {
   private LocalDateTime createdAt = LocalDateTime.now();
 
   public LoginHistory() {
-    this.id = "LOGIN-" + java.util.UUID.randomUUID();
+    this.id = ShortIds.next("LOGIN");
   }
 
   public LoginHistory(
@@ -47,7 +48,7 @@ public class LoginHistory {
     String device,
     String status
   ) {
-    this.id = "LOGIN-" + java.util.UUID.randomUUID();
+    this.id = ShortIds.next("LOGIN");
     this.username = username;
     this.name = name;
     this.role = role;
@@ -71,7 +72,7 @@ public class LoginHistory {
   }
 
   public void setUsername(String username) {
-    this.id = "LOGIN-" + java.util.UUID.randomUUID();
+    this.id = ShortIds.next("LOGIN");
     this.username = username;
   }
 

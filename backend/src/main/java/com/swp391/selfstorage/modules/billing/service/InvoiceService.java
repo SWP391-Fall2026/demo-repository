@@ -1,6 +1,7 @@
 package com.swp391.selfstorage.modules.billing.service;
 
 import com.swp391.selfstorage.common.security.ActorContext;
+import com.swp391.selfstorage.common.util.ShortIds;
 import com.swp391.selfstorage.common.web.*;
 import com.swp391.selfstorage.modules.billing.entity.Invoice;
 import com.swp391.selfstorage.modules.billing.repository.InvoiceRepository;
@@ -49,7 +50,7 @@ public class InvoiceService {
     String snapshot
   ) {
     Invoice i = new Invoice();
-    i.setId("INV-" + UUID.randomUUID());
+    i.setId(ShortIds.next("INV"));
     i.setReservationId(reservation);
     i.setContractId(contract);
     i.setUserId(user);

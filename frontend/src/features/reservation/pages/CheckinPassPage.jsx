@@ -19,9 +19,9 @@ export default function CheckinPassPage() {
     const contracts = useRemote(rentalApi.list);
     const branches = useRemote(facilityApi.facilities);
     useEffect(() => {
-        const timer = window.setInterval(contracts.reload, 10000);
+        const timer = window.setInterval(contracts.silentReload, 30000);
         return () => window.clearInterval(timer);
-    }, [contracts.reload]);
+    }, [contracts.silentReload]);
     if (contracts.busy && contracts.data === undefined)
         return <main className="page-content"><p>Đang tải thẻ Check-in…</p></main>;
     if (contracts.error && contracts.data === undefined)

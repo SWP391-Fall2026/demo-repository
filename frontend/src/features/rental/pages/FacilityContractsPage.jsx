@@ -31,8 +31,8 @@ export default function FacilityContractsPage() {
                     <Link className="btn-figma btn-primary-dark btn-sm" to="/facility/inspections">
                         Danh sách nghiệm thu trả kho
                     </Link>
-                    <button type="button" className="btn-figma btn-outline btn-sm" onClick={reload} disabled={busy}>
-                        Làm mới
+                    <button type="button" className="btn-figma btn-primary-dark btn-sm" onClick={reload} disabled={busy}>
+                        {busy ? "Đang tải…" : "Làm mới"}
                     </button>
                 </div>
             </header>
@@ -111,7 +111,7 @@ export default function FacilityContractsPage() {
                                                     <span style={{ fontSize: "12.5px", color: "#64748B" }}>Đã tất toán</span>
                                                 ) : (
                                                     <Link
-                                                        className="btn-figma btn-outline btn-sm"
+                                                        className="btn-figma btn-primary-dark btn-sm"
                                                         to="/facility/inspections"
                                                     >
                                                         Theo dõi trả kho

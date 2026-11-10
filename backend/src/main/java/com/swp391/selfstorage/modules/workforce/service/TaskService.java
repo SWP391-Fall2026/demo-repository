@@ -1,6 +1,7 @@
 package com.swp391.selfstorage.modules.workforce.service;
 
 import com.swp391.selfstorage.common.security.ActorContext;
+import com.swp391.selfstorage.common.util.ShortIds;
 import com.swp391.selfstorage.common.web.*;
 import com.swp391.selfstorage.modules.audit.service.AuditLogService;
 import com.swp391.selfstorage.modules.identity.repository.UserRepository;
@@ -171,7 +172,7 @@ public class TaskService {
       return tasks.save(task);
     }
     DailyTask task = new DailyTask();
-    task.setId("TSK-" + UUID.randomUUID());
+    task.setId(ShortIds.next("TSK"));
     task.setFacilityCode(facilityCode);
     task.setTitle("Nghiệm thu trả kho: " + contractId + (reason != null && !reason.isBlank() ? " — " + reason : ""));
     task.setTaskType("RETURN");
@@ -208,7 +209,7 @@ public class TaskService {
     String contract
   ) {
     DailyTask t = new DailyTask();
-    t.setId("TSK-" + UUID.randomUUID());
+    t.setId(ShortIds.next("TSK"));
     t.setFacilityCode(facility);
     t.setTitle(title);
     t.setTaskType(type);
@@ -242,7 +243,7 @@ public class TaskService {
       return tasks.save(task);
     }
     DailyTask task = new DailyTask();
-    task.setId("TSK-" + UUID.randomUUID());
+    task.setId(ShortIds.next("TSK"));
     task.setFacilityCode(reservation.getFacilityCode());
     task.setTitle("Xác nhận khách check-in " + reservation.getId());
     task.setTaskType("CHECKIN");

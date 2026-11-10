@@ -2,6 +2,7 @@ package com.swp391.selfstorage.application.workflow;
 
 import com.swp391.selfstorage.common.security.ActorContext;
 import com.swp391.selfstorage.common.storage.AttachmentStorage;
+import com.swp391.selfstorage.common.util.ShortIds;
 import com.swp391.selfstorage.common.web.*;
 import com.swp391.selfstorage.modules.audit.service.AuditLogService;
 import com.swp391.selfstorage.modules.rental.entity.ReturnInspectionDispute;
@@ -159,7 +160,7 @@ public class ReturnInspectionReviewWorkflow {
 
     String evidencePath = storage.saveImage(evidence);
     ReturnInspectionDispute dispute = new ReturnInspectionDispute();
-    dispute.setId("RDIS-" + UUID.randomUUID());
+    dispute.setId(ShortIds.next("RDIS"));
     dispute.setInspectionId(inspection.getId());
     dispute.setContractId(contract.getId());
     dispute.setFacilityCode(contract.getFacilityCode());
