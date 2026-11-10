@@ -1435,10 +1435,15 @@ tr:hover td {
 .catalog-header-bar {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
   gap: 32px;
-  margin-bottom: 32px;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 20px;
+  padding: 36px 40px;
+  margin-bottom: 28px;
   flex-wrap: wrap;
+  box-shadow: 0 2px 10px 0 rgba(15, 23, 42, 0.08);
 }
 
 .catalog-header-bar .header-text {
@@ -1446,29 +1451,34 @@ tr:hover td {
 }
 
 .catalog-main-title {
-  font-size: 32px;
+  font-size: 34px;
   font-weight: 800;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
   color: var(--color-neutral-900);
-  margin: 10px 0 8px;
+  margin: 10px 0 10px;
+  line-height: 1.2;
 }
 
 .catalog-subtitle {
-  font-size: 14.5px;
+  font-size: 15px;
   color: var(--color-neutral-500);
-  line-height: 1.6;
+  line-height: 1.65;
   margin: 0;
+  max-width: 560px;
 }
 
 .facility-quick-picker {
   display: flex;
   gap: 12px;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .facility-quick-picker select {
-  min-width: 260px;
-  height: 44px;
+  min-width: 280px;
+  height: 48px;
+  font-size: 14px;
+  border-radius: 12px !important;
 }
 
 /* Filters Panel */
@@ -3300,4 +3310,21 @@ header {
 .table-scroll table,
 .table-wrapper table {
   border-radius: 0 !important;
+}
+
+/* Eyebrow pill — missing class used in catalog header */
+.eyebrow-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #0066FF;
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  padding: 5px 14px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 10px;
 }
