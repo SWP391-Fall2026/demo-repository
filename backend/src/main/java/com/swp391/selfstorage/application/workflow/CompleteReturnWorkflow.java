@@ -84,11 +84,13 @@ public class CompleteReturnWorkflow {
     if (!goodsCleared) throw Inputs.conflict("Đồ đạc chưa dọn hết, chưa thể nghiệm thu");
     var unit = units.lockByCode(unitCode).orElseThrow(Inputs::missing);
     var now = LocalDateTime.now(clock);
+    if (c.getCheckoutRequestedDate() != null && now.toLocalDate().isBefore(c.getCheckoutRequestedDate()))
+      throw Inputs.conflict("Chưa đến ngày hẹn trả kho");
     String cleanliness = Inputs.text(d, "cleanlinessStatus");
     LocalDateTime deadline = c.getEndAt() != null ? c.getEndAt()
       : (c.getEndDate() != null ? c.getEndDate().atTime(23, 59, 59) : now);
-    BigDecimal monthlyRate = unit.getPricePerMonth() != null
-      ? unit.getPricePerMonth()
+    BigDecimal monthlyRate = c.getMonthlyFee() != null && c.getMonthlyFee().signum() > 0
+      ? c.getMonthlyFee()
       : policy.monthly(unit.getType());
     BigDecimal deductions = fees.calculate(
       deadline,

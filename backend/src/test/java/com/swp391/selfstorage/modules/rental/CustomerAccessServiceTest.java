@@ -43,15 +43,19 @@ class CustomerAccessServiceTest {
     CustomerAccessLog req = new CustomerAccessLog();
     req.setId("REQ-1"); req.setFacilityCode("HN-CG"); req.setContractId("CTR-1"); req.setUnitCode("HN-CG-001");
     req.setStatus("PENDING_APPROVAL"); req.setNotes("Khách yêu cầu vào kho");
-    when(accessLogs.findById("REQ-1")).thenReturn(Optional.of(req));
+    when(accessLogs.findWithLockById("REQ-1")).thenReturn(Optional.of(req));
 
     Contract contract = new Contract();
     contract.setId("CTR-1"); contract.setUnitCode("HN-CG-001"); contract.setPinCode("771239");
+    contract.setFacilityCode("HN-CG"); contract.setStatus("ACTIVE");
+    contract.setEndDate(java.time.LocalDate.of(2026, 12, 1));
     when(contracts.findById("CTR-1")).thenReturn(Optional.of(contract));
+    when(contracts.lockById("CTR-1")).thenReturn(Optional.of(contract));
 
     Unit unit = new Unit();
-    unit.setCode("HN-CG-001"); unit.setPinCode("771239");
+    unit.setCode("HN-CG-001"); unit.setPinCode("771239"); unit.setFacilityCode("HN-CG"); unit.setStatus("occupied");
     when(units.findById("HN-CG-001")).thenReturn(Optional.of(unit));
+    when(units.lockByCode("HN-CG-001")).thenReturn(Optional.of(unit));
 
     CustomerAccessLog approved = service.approveRequest("HN-CG", "REQ-1", Map.of("pin", "621692"));
 
@@ -89,6 +93,42 @@ class CustomerAccessServiceTest {
     CustomerAccessLog granted = service.checkin("CTR-1", Map.of("pin", "621692"));
     assertEquals("GRANTED", granted.getStatus());
     assertNotNull(granted.getCheckinAt());
+  }
+
+  @Test void checkinRejectsMissingPinWithoutAnIssuedRequest() {
+    User customer = new User();
+    customer.setId("USR-CUS"); customer.setRole("CUSTOMER");
+    when(actor.require("CUSTOMER", "STAFF", "FMANAGER")).thenReturn(customer);
+    Contract contract = new Contract();
+    contract.setId("CTR-1"); contract.setUserId("USR-CUS"); contract.setFacilityCode("HN-CG");
+    contract.setUnitCode("HN-CG-001"); contract.setStatus("ACTIVE"); contract.setPinCode("621692");
+    contract.setEndDate(java.time.LocalDate.of(2026, 12, 1));
+    when(contracts.findById("CTR-1")).thenReturn(Optional.of(contract));
+    when(actor.visible(customer, "USR-CUS", "HN-CG")).thenReturn(true);
+    when(accessLogs.findFirstByContractIdAndStatusInOrderByCreatedAtDesc("CTR-1", List.of("PIN_ISSUED", "PENDING_APPROVAL")))
+      .thenReturn(Optional.empty());
+    when(accessLogs.findFirstByContractIdAndCheckinAtIsNotNullAndCheckoutAtIsNullOrderByCheckinAtDesc("CTR-1"))
+      .thenReturn(Optional.empty());
+    when(accessLogs.save(any(CustomerAccessLog.class))).thenAnswer(inv -> inv.getArgument(0));
+
+    assertThrows(ResponseStatusException.class, () -> service.checkin("CTR-1", Map.of()));
+  }
+
+  @Test void approveRequestRejectsStaleRequestAfterContractTermination() {
+    User manager = new User();
+    manager.setId("USR-MGR"); manager.setUsername("manager"); manager.setRole("FMANAGER"); manager.setFacilityCode("HN-CG");
+    when(actor.require("STAFF", "FMANAGER", "OPS_MGR", "ADMIN")).thenReturn(manager);
+    CustomerAccessLog req = new CustomerAccessLog();
+    req.setId("REQ-1"); req.setFacilityCode("HN-CG"); req.setContractId("CTR-1"); req.setUnitCode("HN-CG-001");
+    req.setStatus("PENDING_APPROVAL");
+    when(accessLogs.findWithLockById("REQ-1")).thenReturn(Optional.of(req));
+    Contract contract = new Contract();
+    contract.setId("CTR-1"); contract.setFacilityCode("HN-CG"); contract.setUnitCode("HN-CG-001");
+    contract.setStatus("TERMINATED");
+    when(contracts.lockById("CTR-1")).thenReturn(Optional.of(contract));
+
+    assertThrows(ResponseStatusException.class, () -> service.approveRequest("HN-CG", "REQ-1", Map.of("pin", "621692")));
+    verify(units, never()).lockByCode(any());
   }
 }
 

@@ -55,11 +55,9 @@ public class CustomerAccessService {
       throw Inputs.missing();
     }
 
-    if ("OVERDUE".equals(c.getStatus())) {
-      throw Inputs.conflict("Hợp đồng đang bị tạm khóa do nợ cước. Vui lòng thanh toán hóa đơn để tạo yêu cầu vào kho.");
-    }
-
     LocalDateTime now = LocalDateTime.now(clock);
+    if (!accessAllowed(c, now))
+      throw Inputs.conflict("Hợp đồng không còn hiệu lực truy cập kho");
     CustomerAccessLog req = new CustomerAccessLog();
     req.setId(ShortIds.next("REQ"));
     req.setContractId(c.getId());
@@ -96,10 +94,21 @@ public class CustomerAccessService {
     var u = actor.require("STAFF", "FMANAGER", "OPS_MGR", "ADMIN");
     actor.facility(u, facilityCode);
 
-    CustomerAccessLog req = accessLogs.findById(requestId).orElseThrow(Inputs::missing);
+    CustomerAccessLog req = accessLogs.findWithLockById(requestId).orElseThrow(Inputs::missing);
     if (!Objects.equals(req.getFacilityCode(), facilityCode)) {
       throw Inputs.missing();
     }
+    if (!"PENDING_APPROVAL".equals(req.getStatus()))
+      throw Inputs.conflict("Yêu cầu không còn chờ duyệt");
+    Contract contract = contracts.lockById(req.getContractId()).orElseThrow(Inputs::missing);
+    LocalDateTime now = LocalDateTime.now(clock);
+    if (!Objects.equals(contract.getFacilityCode(), facilityCode)
+        || !Objects.equals(contract.getUnitCode(), req.getUnitCode()) || !accessAllowed(contract, now))
+      throw Inputs.conflict("Hợp đồng không còn hiệu lực truy cập kho");
+    var unit = units.lockByCode(req.getUnitCode()).orElseThrow(Inputs::missing);
+    if (!"occupied".equalsIgnoreCase(unit.getStatus())
+        || !Objects.equals(unit.getFacilityCode(), facilityCode))
+      throw Inputs.conflict("Kho không còn được sử dụng bởi hợp đồng");
 
     String pin = Inputs.optional(body, "pin");
     if (pin.isBlank() || !pin.matches("\\d{6}")) {
@@ -107,7 +116,6 @@ public class CustomerAccessService {
     }
 
     String finalPin = pin;
-    LocalDateTime now = LocalDateTime.now(clock);
     req.setAccessPin(finalPin);
     req.setStatus("PIN_ISSUED");
     req.setApprovedBy(u.getUsername() != null ? u.getUsername() : u.getRole());
@@ -121,20 +129,12 @@ public class CustomerAccessService {
     accessLogs.save(req);
 
     // Sync re-issued PIN to contract and unit so contract sidebar and check-in simulator stay consistent
-    if (req.getContractId() != null) {
-      contracts.findById(req.getContractId()).ifPresent(contract -> {
-        contract.setPinCode(finalPin);
-        contracts.save(contract);
-      });
-    }
-    if (req.getUnitCode() != null) {
-      units.findById(req.getUnitCode()).ifPresent(unit -> {
-        unit.setPinCode(finalPin);
-        units.save(unit);
-      });
-    }
+    contract.setPinCode(finalPin);
+    contracts.save(contract);
+    unit.setPinCode(finalPin);
+    units.save(unit);
 
-    audit.record("CUSTOMER_ACCESS_REQUEST_APPROVED", req.getContractId(), req.getUnitCode() + ":" + finalPin);
+    audit.record("CUSTOMER_ACCESS_REQUEST_APPROVED", req.getContractId(), req.getUnitCode());
     return req;
   }
 
@@ -143,10 +143,12 @@ public class CustomerAccessService {
     var u = actor.require("STAFF", "FMANAGER", "OPS_MGR", "ADMIN");
     actor.facility(u, facilityCode);
 
-    CustomerAccessLog req = accessLogs.findById(requestId).orElseThrow(Inputs::missing);
+    CustomerAccessLog req = accessLogs.findWithLockById(requestId).orElseThrow(Inputs::missing);
     if (!Objects.equals(req.getFacilityCode(), facilityCode)) {
       throw Inputs.missing();
     }
+    if (!"PENDING_APPROVAL".equals(req.getStatus()))
+      throw Inputs.conflict("Yêu cầu không còn chờ duyệt");
 
     LocalDateTime now = LocalDateTime.now(clock);
     req.setStatus("REJECTED");
@@ -184,10 +186,11 @@ public class CustomerAccessService {
     );
 
     boolean pinValid = false;
-    if (issuedOpt.isPresent() && issuedOpt.get().getAccessPin() != null) {
-      pinValid = pinProvided && Objects.equals(pin, issuedOpt.get().getAccessPin());
-    } else if (Objects.equals(pin, c.getPinCode()) || !pinProvided) {
-      pinValid = true;
+    if (issuedOpt.isPresent()) {
+      pinValid = "PIN_ISSUED".equals(issuedOpt.get().getStatus())
+        && pinProvided && Objects.equals(pin, issuedOpt.get().getAccessPin());
+    } else {
+      pinValid = pinProvided && c.getPinCode() != null && Objects.equals(pin, c.getPinCode());
     }
 
     if (!activeStatus || !notExpired || !pinValid) {
@@ -316,6 +319,13 @@ public class CustomerAccessService {
       throw Inputs.missing();
     }
     return accessLogs.findByContractIdOrderByCreatedAtDesc(contractId);
+  }
+
+  private boolean accessAllowed(Contract contract, LocalDateTime now) {
+    LocalDateTime end = contract.getEndAt() != null ? contract.getEndAt()
+      : contract.getEndDate() != null ? contract.getEndDate().atTime(23, 59, 59) : null;
+    return Set.of("ACTIVE", "EXPIRING_SOON", "CHECKOUT_REQUESTED").contains(contract.getStatus())
+      && (end == null || !now.isAfter(end));
   }
 
   public List<CustomerAccessLog> facilityLogs(String facilityCode) {
