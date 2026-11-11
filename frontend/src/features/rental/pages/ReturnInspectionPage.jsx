@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useRemote } from "../../../shared/api/use-remote";
-import { display, money } from "../../../shared/lib/format";
+import { display, formatDate, money } from "../../../shared/lib/format";
 import { rentalApi } from "../api/rental.api";
 import { useSession } from "../../identity/session";
 
@@ -27,12 +27,12 @@ function InspectionEvidence({ contractId }) {
             else URL.revokeObjectURL(value);
         }).catch(() => {
             if (active) setError("Không tải được ảnh hiện trạng đã đính kèm.");
-        }, [contractId]);
+        });
         return () => {
             active = false;
             if (objectUrl) URL.revokeObjectURL(objectUrl);
         };
-    });
+    }, [contractId]);
     if (error) return <p className="error" role="alert">{error}</p>;
     if (!image) return <p className="muted">Đang tải ảnh hiện trạng…</p>;
     return <img className="inspection-evidence" src={image} alt="Ảnh hiện trạng kho đính kèm phiếu nghiệm thu" />;
@@ -108,16 +108,21 @@ export default function ReturnInspectionPage() {
         && !["COMPLETED", "CONFIRMED"].includes(String(contract.inspectionStatus).toUpperCase());
 
     if (!contractId) {
+        const isManager = session?.user?.role === "FMANAGER";
         return <main className="page-content return-inspection-page">
           <header className="page-heading">
-            <div><span className="eyebrow">STAFF / CHECKOUT</span><h1>Yêu cầu trả kho</h1><p>Xem lịch hẹn trả và mở phiếu nghiệm thu cho từng hợp đồng.</p></div>
-            <button className="secondary" type="button" onClick={reload}>Làm mới</button>
+            <div><span className="eyebrow">{isManager ? "FACILITY MANAGER / TRẢ KHO" : "STAFF / CHECKOUT"}</span><h1>Yêu cầu trả kho</h1><p>{isManager ? "Theo dõi yêu cầu trả kho tại cơ sở, phân công Staff kiểm tra và xử lý khiếu nại nghiệm thu." : "Xem lịch hẹn trả và mở phiếu nghiệm thu cho từng hợp đồng."}</p></div>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              {isManager && <Link className="btn-figma btn-primary-dark btn-sm" to="/facility/tasks/assign">Phân công cho Staff</Link>}
+              <button className="btn-figma btn-primary-dark btn-sm" type="button" onClick={reload}>Làm mới</button>
+            </div>
           </header>
-          {error && <section className="card error" role="alert">{error}<button className="secondary" type="button" onClick={reload}>Thử lại</button></section>}
+          {error && <section className="card error" role="alert">{error}<button className="btn-figma btn-primary-dark btn-sm" type="button" onClick={reload}>Thử lại</button></section>}
           {busy ? <section className="card empty">Đang tải yêu cầu trả kho…</section> : !requests.length ? <section className="card empty"><span className="empty-icon">↩</span><h2>Không có yêu cầu trả kho</h2><p>Hiện tại không có yêu cầu trả kho đang chờ xử lý.</p></section> : <>
             <div className="summary-grid inspection-summary">
               <article className="card"><span>Yêu cầu cần xử lý</span><strong>{requests.filter((row) => !row.inspectionStatus).length}</strong></article>
-              <article className="card"><span>Chờ khách xác nhận</span><strong>{requests.filter((row) => row.inspectionStatus === "PENDING_CONFIRM").length}</strong></article>
+              <article className="card"><span>Chờ khách xác nhận</span><strong>{requests.filter((row) => ["PENDING_CONFIRM", "PENDING_CUSTOMER"].includes(row.inspectionStatus)).length}</strong></article>
+              <article className="card"><span>Khách đã xác nhận</span><strong style={{ color: "#15803D" }}>{requests.filter((row) => row.inspectionStatus === "CUSTOMER_ACCEPTED").length}</strong></article>
               <article className="card"><span>Chờ Manager</span><strong>{requests.filter((row) => row.inspectionStatus === "PENDING_MANAGER").length}</strong></article>
             </div>
             <section className="card">
@@ -126,9 +131,9 @@ export default function ReturnInspectionPage() {
                 <tbody>{requests.map((row) => <tr key={String(row.id)}>
                   <td>{display(row.id)}</td><td>{display(row.customerName)}<br /><small>{display(row.customerPhone)}</small></td>
                   <td>{display(row.unitCode)}<br /><small>{display(row.facilityCode)}</small></td>
-                  <td>{display(row.checkoutRequestedDate)}</td>
-                  <td><span className={`badge ${row.inspectionStatus ? "pending" : ""}`}>{inspectionLabels[row.inspectionStatus] || "Chờ nghiệm thu"}</span></td>
-                  <td><Link className="button secondary" to={`/facility/inspections/${encodeURIComponent(String(row.id))}`}>Xem chi tiết</Link></td>
+                  <td>{formatDate(row.checkoutRequestedDate)}</td>
+                  <td><span className={`badge ${row.inspectionStatus === "CUSTOMER_ACCEPTED" ? "success" : row.inspectionStatus ? "pending" : ""}`}>{inspectionLabels[row.inspectionStatus] || "Chờ nghiệm thu"}</span></td>
+                  <td><div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}><Link className="btn-figma btn-primary-dark btn-sm" to={`/facility/inspections/${encodeURIComponent(String(row.id))}`}>Xem chi tiết</Link>{isManager && !row.inspectionStatus && <Link className="btn-figma btn-primary-dark btn-sm" to="/facility/tasks/assign">Phân công Staff</Link>}</div></td>
                 </tr>)}</tbody>
               </table></div>
             </section>
@@ -136,23 +141,27 @@ export default function ReturnInspectionPage() {
         </main>;
     }
 
+    const isManagerDetail = session?.user?.role === "FMANAGER";
     return <main className="page-content return-inspection-page">
       <header className="page-heading">
-        <div><span className="eyebrow">STAFF / CHECKOUT</span><h1>Chi tiết yêu cầu trả kho</h1><p>Kiểm tra tình trạng kho, lập phiếu và chờ khách xác nhận trước khi hoàn tất hợp đồng.</p></div>
-        <Link className="button secondary" to="/facility/inspections">Về danh sách yêu cầu</Link>
+        <div><span className="eyebrow">{isManagerDetail ? "FACILITY MANAGER / TRẢ KHO" : "STAFF / CHECKOUT"}</span><h1>Chi tiết yêu cầu trả kho</h1><p>Kiểm tra tình trạng kho, lập phiếu và chờ khách xác nhận trước khi hoàn tất hợp đồng.</p></div>
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          {isManagerDetail && <Link className="btn-figma btn-primary-dark btn-sm" to="/facility/tasks/assign">Phân công cho Staff</Link>}
+          <Link className="btn-figma btn-primary-dark btn-sm" to="/facility/inspections">Về danh sách yêu cầu</Link>
+        </div>
       </header>
-      {error && <section className="card error" role="alert">{error}<button className="secondary" type="button" onClick={reload}>Thử lại</button></section>}
+      {error && <section className="card error" role="alert">{error}<button className="btn-figma btn-primary-dark btn-sm" type="button" onClick={reload}>Thử lại</button></section>}
       {busy && <section className="card empty">Đang tải chi tiết hợp đồng…</section>}
-      {!busy && !contract && <section className="card empty"><h2>Không tìm thấy yêu cầu trả kho</h2><p>Yêu cầu có thể đã được xử lý hoặc không thuộc phạm vi của bạn.</p><Link className="button secondary" to="/facility/inspections">Quay lại danh sách</Link></section>}
+      {!busy && !contract && <section className="card empty"><h2>Không tìm thấy yêu cầu trả kho</h2><p>Yêu cầu có thể đã được xử lý hoặc không thuộc phạm vi của bạn.</p><Link className="btn-figma btn-primary-dark btn-sm" to="/facility/inspections">Quay lại danh sách</Link></section>}
       {contract && <>
         <section className="card inspection-request-card">
           <div className="inspection-card-heading"><div><span className="eyebrow">HỢP ĐỒNG {display(contract.id)}</span><h2>{display(contract.customerName)}</h2><p>{display(contract.facilityCode)} · Kho {display(contract.unitCode)}</p></div>
-            <span className={`badge ${contract.inspectionStatus ? "pending" : ""}`}>{inspectionLabels[contract.inspectionStatus] || "Chờ nghiệm thu"}</span>
+            <span className={`badge ${contract.inspectionStatus === "CUSTOMER_ACCEPTED" ? "success" : contract.inspectionStatus ? "pending" : ""}`}>{inspectionLabels[contract.inspectionStatus] || "Chờ nghiệm thu"}</span>
           </div>
           <dl className="summary-grid inspection-facts">
             <div><dt>Số điện thoại</dt><dd>{display(contract.customerPhone)}</dd></div>
-            <div><dt>Ngày hẹn trả kho</dt><dd>{display(contract.checkoutRequestedDate)}</dd></div>
-            <div><dt>Ngày kết thúc dự kiến</dt><dd>{display(contract.endAt || contract.endDate)}</dd></div>
+            <div><dt>Ngày hẹn trả kho</dt><dd>{formatDate(contract.checkoutRequestedDate)}</dd></div>
+            <div><dt>Ngày kết thúc dự kiến</dt><dd>{formatDate(contract.endAt || contract.endDate)}</dd></div>
             <div><dt>Tiền cọc</dt><dd>{money(contract.depositFee)}</dd></div>
           </dl>
           <div className="inspection-customer-reason"><strong>Lý do trả kho</strong><p>{display(contract.checkoutReason)}</p></div>
@@ -160,7 +169,7 @@ export default function ReturnInspectionPage() {
             {contract.inspectionDamageNotes && <p>{display(contract.inspectionDamageNotes)}</p>}
             {contract.inspectionEvidenceAvailable && <InspectionEvidence contractId={contract.id} />}
           </div>}
-          {contract.inspectionStatus === "CUSTOMER_ACCEPTED" && session?.user?.role === "STAFF" && <div className="inspection-next-action"><div><strong>Khách đã xác nhận phiếu</strong><p>Hoàn tất nghiệm thu để kết thúc hợp đồng và tạo yêu cầu hoàn cọc.</p></div><button type="button" disabled={busyAction} onClick={() => void completeInspection()}>{busyAction ? "Đang hoàn tất…" : "Hoàn tất nghiệm thu"}</button></div>}
+          {contract.inspectionStatus === "CUSTOMER_ACCEPTED" && session?.user?.role === "STAFF" && <div className="inspection-next-action"><div><strong>Khách đã xác nhận phiếu</strong><p>Hoàn tất nghiệm thu để kết thúc hợp đồng và tạo yêu cầu hoàn cọc.</p></div><button className="btn-figma btn-primary-dark" type="button" disabled={busyAction} onClick={() => void completeInspection()}>{busyAction ? "Đang hoàn tất…" : "Hoàn tất nghiệm thu"}</button></div>}
           {contract.inspectionStatus === "PENDING_MANAGER" && <p className="notice">Khách đã gửi khiếu nại kèm minh chứng; đang chờ quản lý cơ sở xem xét.</p>}
           {contract.inspectionStatus === "PENDING_CUSTOMER" && <p className="notice">Đề xuất phí đã gửi khách hàng; chờ khách xác nhận hoặc gửi khiếu nại tiếp theo.</p>}
           {message && <p role="status" className={message.startsWith("Đã") ? "notice" : "error"}>{message}</p>}
@@ -180,7 +189,7 @@ export default function ReturnInspectionPage() {
             </label>
           </div>
           {message && <p role="status" className={message.startsWith("Đã") ? "notice" : "error"}>{message}</p>}
-          <div className="form-actions"><button disabled={busyAction}>{busyAction ? "Đang gửi…" : "Gửi phiếu cho khách xác nhận"}</button></div>
+          <div className="form-actions"><button className="btn-figma btn-primary-dark" disabled={busyAction}>{busyAction ? "Đang gửi…" : "Gửi phiếu cho khách xác nhận"}</button></div>
         </form>}
       </>}
     </main>;

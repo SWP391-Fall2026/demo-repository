@@ -2,6 +2,7 @@ package com.swp391.selfstorage.application.workflow;
 
 import com.swp391.selfstorage.common.security.ActorContext;
 import com.swp391.selfstorage.common.storage.AttachmentStorage;
+import com.swp391.selfstorage.common.util.ShortIds;
 import com.swp391.selfstorage.common.web.*;
 import com.swp391.selfstorage.modules.audit.service.AuditLogService;
 import com.swp391.selfstorage.modules.facility.repository.UnitRepository;
@@ -115,7 +116,7 @@ public class CompleteReturnWorkflow {
     if (issueNeedsEvidence && (evidence == null || evidence.isEmpty()))
       throw Inputs.bad("Cần đính kèm ảnh khi có vấn đề vệ sinh, sửa chữa hoặc khóa hư");
     InspectionRecord i = new InspectionRecord();
-    i.setId("INS-" + UUID.randomUUID());
+    i.setId(ShortIds.next("INS"));
     i.setContractId(c.getId());
     i.setStaffId(staff.getId());
     i.setInspectionDate(now);

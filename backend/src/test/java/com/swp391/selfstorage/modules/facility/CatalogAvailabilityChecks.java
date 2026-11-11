@@ -19,6 +19,7 @@ import com.swp391.selfstorage.modules.identity.repository.UserRepository;
 import com.swp391.selfstorage.modules.reservation.dto.CreateReservationRequest;
 import com.swp391.selfstorage.modules.reservation.entity.Reservation;
 import com.swp391.selfstorage.modules.reservation.repository.ReservationRepository;
+import com.swp391.selfstorage.modules.reservation.service.ReservationHoldPolicy;
 import com.swp391.selfstorage.modules.reservation.service.ReservationService;
 import java.math.BigDecimal;
 import java.time.*;
@@ -57,6 +58,7 @@ abstract class CatalogAvailabilityChecks {
   @Autowired ReservationRepository reservations;
   @Autowired UserRepository users;
   @Autowired CreateReservationWorkflow createReservation;
+  @Autowired ReservationHoldPolicy holdPolicy;
   @MockBean ActorContext actor;
   @MockBean AuditLogService audit;
   @MockBean PolicyService policy;
@@ -86,17 +88,18 @@ abstract class CatalogAvailabilityChecks {
   }
 
   @Test
-  void pendingHoldExpiresAtExactlyFiveMinutesWithoutWaitingForCleanup() {
+  void pendingHoldExpiresAtConfiguredBoundaryWithoutWaitingForCleanup() {
+    Duration holdDuration = holdPolicy.pendingPaymentHold();
     unit("S-1", FACILITY, "S", "3", "900000", "available");
     Reservation reservation = hold("R-1", FACILITY, "S", "PENDING_PAYMENT",
-        NOW.minusMinutes(5).plusNanos(1_000_000), null);
+        NOW.minus(holdDuration).plusNanos(1_000_000), null);
     assertTrue(catalog().isEmpty());
 
-    reservation.setCreatedAt(NOW.minusMinutes(5));
+    reservation.setCreatedAt(NOW.minus(holdDuration));
     reservations.saveAndFlush(reservation);
     assertEquals(List.of("S-1"), codes(catalog()));
 
-    reservation.setCreatedAt(NOW.minusMinutes(6));
+    reservation.setCreatedAt(NOW.minus(holdDuration).minusMinutes(1));
     reservations.saveAndFlush(reservation);
     assertEquals(List.of("S-1"), codes(catalog()));
   }

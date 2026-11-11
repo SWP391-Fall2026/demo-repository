@@ -1,6 +1,7 @@
 package com.swp391.selfstorage.modules.billing.service;
 
 import com.swp391.selfstorage.common.security.ActorContext;
+import com.swp391.selfstorage.common.util.ShortIds;
 import com.swp391.selfstorage.common.web.Inputs;
 import com.swp391.selfstorage.modules.audit.service.AuditLogService;
 import com.swp391.selfstorage.modules.billing.entity.Invoice;
@@ -98,7 +99,7 @@ public class VnPayService {
         throw Inputs.conflict("Hợp đồng không còn ở trạng thái chờ thanh toán");
       if (rentActivation == null) throw Inputs.conflict("Không thể kích hoạt hợp đồng trước thanh toán");
     }
-    String paymentId = "PAY-" + UUID.randomUUID();
+    String paymentId = ShortIds.next("PAY");
     LocalDateTime now = LocalDateTime.now(clock);
     Payment p = new Payment(); p.setId(paymentId); p.setInvoiceId(invoice.getId());
     p.setReservationId(invoice.getReservationId()); p.setContractId(invoice.getContractId());
@@ -120,7 +121,7 @@ public class VnPayService {
     params.put("vnp_OrderType", "other"); params.put("vnp_Locale", "vn");
     params.put("vnp_ReturnUrl", effectiveReturnUrl); params.put("vnp_IpAddr", normalizeIp(ipAddress));
     params.put("vnp_CreateDate", now.atZone(ZoneId.of("Asia/Ho_Chi_Minh")).format(VN_TIME));
-    LocalDateTime gatewayExpiry = now.plusMinutes(15);
+    LocalDateTime gatewayExpiry = now.plus(holdPolicy.pendingPaymentHold());
     if (invoice.getDueAt() != null && invoice.getDueAt().isBefore(gatewayExpiry)) gatewayExpiry = invoice.getDueAt();
     params.put("vnp_ExpireDate", gatewayExpiry.atZone(ZoneId.of("Asia/Ho_Chi_Minh")).format(VN_TIME));
     String query = query(params);

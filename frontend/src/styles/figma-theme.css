@@ -9,13 +9,32 @@
   --color-navy-surface: #12233B;
   --color-accent-blue: #0066FF;
   --color-accent-hover: #0052CC;
+  --color-brand-blue: #0066FF;
+  --color-brand-blue-soft: #EFF6FF;
+  --color-brand-blue-border: #BFDBFE;
   --color-soft-blue: #EFF6FF;
   --color-soft-blue-border: #BFDBFE;
   --color-text-main: #0F172A;
   --color-text-muted: #475569;
   --color-text-light: #94A3B8;
+  --color-neutral-50: #F8FAFC;
+  --color-neutral-100: #F1F5F9;
+  --color-neutral-200: #E2E8F0;
+  --color-neutral-300: #CBD5E1;
+  --color-neutral-400: #94A3B8;
+  --color-neutral-500: #64748B;
+  --color-neutral-600: #475569;
+  --color-neutral-700: #334155;
+  --color-neutral-800: #1E293B;
+  --color-neutral-900: #0F172A;
   --color-border: #E2E8F0;
   --color-bg-subtle: #F8FAFC;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-full: 9999px;
+  --shadow-card: 0 2px 10px rgba(15, 23, 42, 0.05);
   --font-sans: "Nunito", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
@@ -1912,6 +1931,148 @@ tr:hover td {
   border-radius: var(--radius-full);
 }
 
+/* Customer Rentals Horizontal Bar */
+.customer-rental-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+  width: 100%;
+}
+
+.customer-rental-bar {
+  width: 100%;
+  padding: 22px 28px !important;
+  border-radius: var(--radius-xl);
+  background: #FFFFFF;
+  border: 1px solid var(--color-neutral-200);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.customer-rental-bar-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+}
+
+.customer-rental-bar-identity {
+  min-width: 240px;
+  flex: 1 1 260px;
+}
+
+.customer-rental-bar-badges {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.customer-rental-bar-identity h2 {
+  margin: 0 0 4px 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--color-neutral-900);
+}
+
+.customer-rental-bar-identity p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-neutral-500);
+}
+
+.customer-rental-bar-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 1fr));
+  gap: 20px;
+  padding: 14px 22px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  flex: 1.5 1 380px;
+}
+
+.customer-rental-bar-facts span {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.customer-rental-bar-facts small {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #64748B;
+  letter-spacing: 0.04em;
+}
+
+.customer-rental-bar-facts strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0F172A;
+  white-space: nowrap;
+}
+
+.customer-rental-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.customer-rental-bar-extra {
+  padding-top: 14px;
+  border-top: 1px dashed #E2E8F0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pin-inline-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px;
+  background: #F0F9FF;
+  border: 1px solid #BAE6FD;
+  border-radius: 10px;
+  font-size: 13.5px;
+  color: #0369A1;
+}
+
+.pin-inline-banner .pin-display {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: #0F172A;
+  background: #FFFFFF;
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid #7DD3FC;
+}
+
+.pin-inline-banner small {
+  color: #475569;
+  font-size: 12px;
+}
+
+@media (max-width: 860px) {
+  .customer-rental-bar-facts {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .customer-rental-bar-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+}
+
 /* Customer Rentals Cards */
 .customer-rental-grid {
   display: grid;
@@ -3215,6 +3376,484 @@ tr:hover td {
   background: #FAFAFA;
 }
 
+/* ===== Unified Button System Across All Screens (UI_UX #8, #16) ===== */
+.btn-figma,
+a.btn-figma,
+button.btn-figma,
+.button,
+a.button,
+button.secondary,
+.button.secondary,
+a.button.secondary,
+.unit-card .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  min-height: 40px;
+  border-radius: 10px;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  border: 1.5px solid #0B192C !important;
+  background: #0B192C !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 6px rgba(11, 25, 44, 0.14);
+  transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.14s ease, box-shadow 0.16s ease;
+  box-sizing: border-box;
+}
+
+.btn-figma:hover:not(:disabled),
+a.btn-figma:hover,
+.button:hover:not(:disabled),
+a.button:hover,
+button.secondary:hover:not(:disabled),
+.button.secondary:hover,
+a.button.secondary:hover,
+.unit-card .button:hover {
+  background: #172B47 !important;
+  border-color: #172B47 !important;
+  color: #FFFFFF !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(11, 25, 44, 0.22);
+  text-decoration: none;
+}
+
+.btn-figma:disabled,
+button.btn-figma:disabled,
+button.secondary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-primary,
+.btn-primary-dark,
+a.btn-primary,
+a.btn-primary-dark {
+  background: #0B192C !important;
+  border-color: #0B192C !important;
+  color: #FFFFFF !important;
+}
+
+.btn-primary:hover:not(:disabled),
+.btn-primary-dark:hover:not(:disabled),
+a.btn-primary:hover,
+a.btn-primary-dark:hover {
+  background: #172B47 !important;
+  border-color: #172B47 !important;
+  color: #FFFFFF !important;
+}
+
+.btn-accent-blue,
+a.btn-accent-blue {
+  background: #0066FF !important;
+  border-color: #0066FF !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 8px rgba(0, 102, 255, 0.22);
+}
+
+.btn-accent-blue:hover:not(:disabled),
+a.btn-accent-blue:hover {
+  background: #0052CC !important;
+  border-color: #0052CC !important;
+  color: #FFFFFF !important;
+}
+
+.btn-outline,
+a.btn-outline,
+button.btn-outline {
+  background: #FFFFFF !important;
+  border: 1.5px solid #0B192C !important;
+  color: #0B192C !important;
+  box-shadow: none;
+}
+
+.btn-outline:hover:not(:disabled),
+a.btn-outline:hover,
+button.btn-outline:hover:not(:disabled) {
+  background: #0B192C !important;
+  border-color: #0B192C !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.14);
+}
+
+.btn-sm,
+a.btn-sm,
+button.btn-sm {
+  min-height: 34px;
+  padding: 7px 14px;
+  font-size: 13px;
+  border-radius: 8px;
+}
+
+.form-grid .form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+/* Keep table status badges single-line and readable */
+.badge {
+  white-space: nowrap;
+}
+
+.badge.danger,
+.badge-danger {
+  background: #FEE2E2;
+  color: #B91C1C;
+  border: 1px solid #FECACA;
+}
+
+/* ===== Customer Header Identity Stacking (UI_UX #3) & Map Link Pin (UI_UX #1) ===== */
+.customer-user-identity {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+  min-width: 0;
+}
+
+.customer-user-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0F172A;
+  white-space: nowrap;
+}
+
+.customer-user-role {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 2px;
+  padding: 1px 8px;
+  border-radius: 9999px;
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  color: #1D4ED8;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.nav-map-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #0066FF !important;
+  text-decoration: none;
+  margin-top: 4px;
+}
+
+.nav-map-link:hover {
+  text-decoration: underline;
+  color: #0052CC !important;
+}
+
+/* ===== Staff Check-in Verification Panel (UI_UX #11) ===== */
+.staff-checkin-verify {
+  display: grid;
+  gap: 18px;
+  border: 1.5px solid #BFDBFE;
+  background: #FFFFFF;
+}
+
+.staff-checkin-verify > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.staff-checkin-verify > header h2 {
+  margin: 4px 0 0;
+  font-size: 19px;
+  color: #0F172A;
+}
+
+.staff-checkin-verify > header > strong {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: #F1F5F9;
+  color: #0B192C;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.staff-appointment-doc {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 16px 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.staff-appointment-doc h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: #0F172A;
+}
+
+.staff-appointment-doc ul {
+  margin: 4px 0 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 6px;
+  color: #334155;
+  font-size: 13.5px;
+}
+
+.staff-appointment-facts,
+.staff-checkin-customer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+  gap: 12px;
+}
+
+.staff-appointment-facts > span,
+.staff-checkin-customer > span {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  font-size: 12px;
+  color: #64748B;
+  min-width: 0;
+}
+
+.staff-checkin-customer > span {
+  background: #F8FAFC;
+}
+
+.staff-appointment-facts > span strong,
+.staff-checkin-customer > span strong {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: #0F172A;
+  overflow-wrap: anywhere;
+}
+
+.staff-checkin-customer .pin-display {
+  font-size: 20px;
+  letter-spacing: 0.14em;
+  color: #0066FF;
+}
+
+.staff-checkin-customer small {
+  color: #64748B;
+  font-size: 11.5px;
+}
+
+.check-row {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 10px 14px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0F172A;
+  cursor: pointer;
+}
+
+.check-row input[type="checkbox"] {
+  width: 18px !important;
+  height: 18px !important;
+  margin: 0 !important;
+  flex-shrink: 0;
+  accent-color: #0066FF;
+}
+
+/* ===== Collapsible Action Result / Chi tiết yêu cầu (UI_UX #14) ===== */
+.action-result {
+  grid-column: 1 / -1;
+  margin-top: 12px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.action-result summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 14px;
+  font-weight: 800;
+  color: #0B192C;
+  background: #F1F5F9;
+  transition: background-color 0.15s ease;
+}
+
+.action-result summary:hover {
+  background: #E2E8F0;
+}
+
+.action-result summary::-webkit-details-marker {
+  display: none;
+}
+
+.action-result summary > span::before {
+  content: "▸ ";
+  display: inline-block;
+  margin-right: 4px;
+  transition: transform 0.15s ease;
+}
+
+.action-result[open] summary > span::before {
+  content: "▾ ";
+}
+
+.action-result summary small {
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  padding: 2px 10px;
+  border-radius: 9999px;
+}
+
+.action-result dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px 16px;
+  padding: 14px 16px;
+  margin: 0;
+  background: #FFFFFF;
+}
+
+.action-result dl > div {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #F8FAFC;
+  border: 1px solid #F1F5F9;
+}
+
+.action-result dt {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #64748B;
+}
+
+.action-result dd {
+  margin: 3px 0 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0F172A;
+  overflow-wrap: anywhere;
+}
+
+/* ===== Customer 3x4 PIN Keypad Check-in (UI_UX #4) ===== */
+.pin-keypad-shell {
+  background: #FFFFFF;
+  border: 1.5px solid #BFDBFE;
+  border-radius: 14px;
+  padding: 18px;
+  max-width: 340px;
+  margin-top: 12px;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
+}
+
+.pin-digit-row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin: 12px 0 14px;
+}
+
+.pin-digit-cell {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  border: 1.5px solid #CBD5E1;
+  background: #F8FAFC;
+  font-size: 20px;
+  font-weight: 800;
+  color: #0B192C;
+}
+
+.pin-digit-cell.filled {
+  border-color: #0066FF;
+  background: #EFF6FF;
+  color: #0052CC;
+}
+
+.pin-keypad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.pin-key-btn {
+  height: 46px;
+  border-radius: 10px;
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #0F172A;
+  font-size: 18px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.pin-key-btn:hover:not(:disabled) {
+  background: #EFF6FF;
+  border-color: #0066FF;
+  color: #0052CC;
+}
+
+.pin-key-btn.key-util {
+  font-size: 13px;
+  font-weight: 700;
+  background: #F8FAFC;
+  color: #475569;
+}
+
+/* ===== Staff Roster Grid (UI_UX #6) ===== */
+.staff-roster-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.staff-roster-card {
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 14px;
+  background: #F8FAFC;
+  display: grid;
+  gap: 6px;
+}
 
 /* Eyebrow pill — class used in catalog header */
 .eyebrow-pill {

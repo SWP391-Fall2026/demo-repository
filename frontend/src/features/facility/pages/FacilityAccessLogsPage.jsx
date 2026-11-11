@@ -2,12 +2,11 @@ import { useEffect, useState } from "react";
 import { useSession } from "../../identity/session";
 import { facilityApi } from "../api/facility.api";
 import { rentalApi } from "../../rental/api/rental.api";
-import { display } from "../../../shared/lib/format";
+import { display, formatDateTime as sharedFormatDateTime } from "../../../shared/lib/format";
+import { usePersistedState } from "../../../shared/lib/persisted-state";
 
 function formatDateTime(val) {
-    if (!val) return "—";
-    const d = new Date(val);
-    return isNaN(d.getTime()) ? String(val) : d.toLocaleString("vi-VN");
+    return val ? sharedFormatDateTime(val) : "—";
 }
 
 export default function FacilityAccessLogsPage() {
@@ -19,27 +18,39 @@ export default function FacilityAccessLogsPage() {
     const [actionBusy, setActionBusy] = useState(false);
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
-    const [searchUnit, setSearchUnit] = useState("");
-    const [statusFilter, setStatusFilter] = useState("ALL");
+    const [lastSyncedAt, setLastSyncedAt] = useState(null);
+    const [searchUnit, setSearchUnit] = usePersistedState("access-logs.search-unit", "");
+    const [statusFilter, setStatusFilter] = usePersistedState("access-logs.status-filter", "ALL");
     const [approvingReq, setApprovingReq] = useState(null);
     const [customPin, setCustomPin] = useState("");
     const [approvalNote, setApprovalNote] = useState("");
 
-    const loadLogs = async () => {
-        setBusy(true);
-        setError("");
+    const loadLogs = async ({ silent = false } = {}) => {
+        if (!silent) {
+            setBusy(true);
+            setError("");
+        }
         try {
             const data = await facilityApi.accessLogs(facilityCode);
             setLogs(Array.isArray(data) ? data : []);
+            setLastSyncedAt(new Date());
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Không tải được nhật ký an ninh");
+            if (!silent) {
+                setError(err instanceof Error ? err.message : "Không tải được nhật ký an ninh");
+            }
         } finally {
-            setBusy(false);
+            if (!silent) {
+                setBusy(false);
+            }
         }
     };
 
     useEffect(() => {
         loadLogs();
+        const timer = setInterval(() => {
+            loadLogs({ silent: true });
+        }, 15000);
+        return () => clearInterval(timer);
     }, [facilityCode]);
 
     const activeInFacility = logs.filter((l) => l.status === "GRANTED" && !l.checkoutAt);
@@ -140,16 +151,46 @@ export default function FacilityAccessLogsPage() {
                     </p>
                 </div>
 
-                <button
-                    type="button"
-                    className="btn-figma btn-outline btn-sm"
-                    onClick={loadLogs}
-                    disabled={busy || actionBusy}
-                    style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
-                >
-                    {busy ? "Đang cập nhật…" : "Làm mới dữ liệu"}
-                </button>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                    <span style={{ fontSize: "12px", fontWeight: "700", color: "#16A34A", background: "#F0FDF4", border: "1px solid #BBF7D0", padding: "5px 10px", borderRadius: "9999px" }}>
+                        ● Tự động đồng bộ mỗi 8 giây{lastSyncedAt ? ` · Cập nhật ${sharedFormatDateTime(lastSyncedAt.toISOString())}` : ""}
+                    </span>
+                    <button
+                        type="button"
+                        className="btn-figma btn-outline btn-sm"
+                        onClick={() => loadLogs()}
+                        disabled={busy || actionBusy}
+                        style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+                    >
+                        {busy ? "Đang cập nhật…" : "Làm mới dữ liệu"}
+                    </button>
+                </div>
             </header>
+
+            {(activeInFacility.length > 0 || pendingRequests.length > 0) && (
+                <section className="card" role="status" style={{ padding: "16px 20px", borderRadius: "12px", border: "1.5px solid #38BDF8", background: "#F0F9FF", marginBottom: "20px", display: "grid", gap: "8px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
+                        <strong style={{ color: "#0B192C", fontSize: "14.5px" }}>
+                            🔔 Thông báo theo dõi khách tại cơ sở {display(facilityCode)}
+                        </strong>
+                        <span style={{ fontSize: "12px", fontWeight: "700", color: "#0369A1" }}>
+                            Đang trong kho: {activeInFacility.length} · Chờ cấp PIN: {pendingRequests.length}
+                        </span>
+                    </div>
+                    {activeInFacility.length > 0 && (
+                        <div style={{ fontSize: "13px", color: "#14532D" }}>
+                            <strong>Khách vẫn đang ở trong kho (chưa check-out): </strong>
+                            {activeInFacility.map((v) => `${display(v.customerName)} (Kho ${display(v.unitCode)} · vào lúc ${formatDateTime(v.checkinAt)})`).join(" | ")}
+                        </div>
+                    )}
+                    {pendingRequests.length > 0 && (
+                        <div style={{ fontSize: "13px", color: "#92400E" }}>
+                            <strong>Yêu cầu mới cần cấp PIN: </strong>
+                            {pendingRequests.map((r) => `${display(r.customerName)} (Kho ${display(r.unitCode)})`).join(", ")}
+                        </div>
+                    )}
+                </section>
+            )}
 
             {error && <section className="card error" role="alert" style={{ marginBottom: "20px" }}>{error}</section>}
             {successMessage && <section className="notice" role="status" style={{ background: "#DCFCE7", color: "#166534", padding: "12px 16px", borderRadius: "8px", marginBottom: "20px", fontWeight: "600", fontSize: "13.5px" }}>{successMessage}</section>}

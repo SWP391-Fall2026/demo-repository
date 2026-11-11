@@ -1,25 +1,56 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { reservationApi } from "../api/reservation.api";
 import { billingApi } from "../../billing/api/billing.api";
+import { facilityApi } from "../../facility/api/facility.api";
 import CustomerRentalGuide from "../components/CustomerRentalGuide";
+import { usePersistedState } from "../../../shared/lib/persisted-state";
+
+const FALLBACK_FACILITY_OPTIONS = [
+    { code: "HN-CG", name: "Cơ sở Cầu Giấy" },
+    { code: "HN-NTL", name: "Cơ sở Nam Từ Liêm" },
+    { code: "HCM-TB", name: "Cơ sở Tân Bình" },
+    { code: "HCM-Q7", name: "Cơ sở Quận 7" },
+    { code: "DN-HC", name: "Cơ sở Hải Châu" },
+];
+
 export default function CreateReservationPage() {
     const [params] = useSearchParams();
     const navigate = useNavigate();
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
-    const [checkInDate, setCheckInDate] = useState("");
-    const [facilityCode, setFacilityCode] = useState(params.get("facility") || "HN-CG");
-    const [unitType, setUnitType] = useState(params.get("type") || "S");
+    const [draft, setDraft, resetDraft] = usePersistedState("reservation.create.draft", {
+        facilityCode: "HN-CG",
+        unitType: "S",
+        startDate: "",
+        durationMonths: "1",
+        appointmentAt: "",
+    });
+    const facilityCode = params.get("facility") || draft.facilityCode || "HN-CG";
+    const unitType = params.get("type") || draft.unitType || "S";
+    const checkInDate = String(draft.appointmentAt || "").slice(0, 10);
+    const [facilities, setFacilities] = useState(FALLBACK_FACILITY_OPTIONS);
     const unitCode = params.get("unit") || "";
+
+    useEffect(() => {
+        let cancelled = false;
+        facilityApi.facilities()
+            .then((list) => {
+                if (!cancelled && Array.isArray(list) && list.length > 0) {
+                    setFacilities(list.filter((f) => !f.status || String(f.status).toUpperCase() === "ACTIVE"));
+                }
+            })
+            .catch(() => {});
+        return () => {
+            cancelled = true;
+        };
+    }, []);
     async function submit(event) {
         event.preventDefault();
         if (busy)
             return;
-        const form = event.currentTarget;
-        const data = Object.fromEntries(new FormData(form));
-        const startDate = String(data.startDate ?? "");
-        const appointmentAt = String(data.appointmentAt ?? "");
+        const startDate = String(draft.startDate ?? "");
+        const appointmentAt = String(draft.appointmentAt ?? "");
         const appointmentDate = appointmentAt.slice(0, 10);
         if (startDate < appointmentDate) {
             setError("Ngày bắt đầu thuê không được trước ngày check-in.");
@@ -34,12 +65,13 @@ export default function CreateReservationPage() {
                 startDate,
                 rentalStartAt: startDate === appointmentDate ? appointmentAt : `${startDate}T00:00:00`,
                 appointmentAt,
-                durationMonths: Number(data.durationMonths),
+                durationMonths: Number(draft.durationMonths || 1),
             });
             const invoices = await billingApi.invoices();
             const deposit = invoices.find((invoice) => invoice.reservationId === reservation.id && invoice.invoiceType === "DEPOSIT");
             if (!deposit?.id)
                 throw new Error("Đơn đã tạo nhưng chưa tìm thấy hóa đơn đặt cọc.");
+            resetDraft();
             navigate(`/invoices/${encodeURIComponent(String(deposit.id))}/pay`, { replace: true });
         }
         catch (cause) {
@@ -54,7 +86,7 @@ export default function CreateReservationPage() {
         <div>
           <span className="eyebrow">FLOW 1 / ĐẶT GIỮ CHỖ</span>
           <h1>Đặt cọc kho</h1>
-          <p>Đơn chờ cọc trong 5 phút. Quá hạn, đơn tự hủy và cần đặt lại.</p>
+          <p>Đơn chờ cọc trong 30 phút. Quá hạn, đơn tự hủy và cần đặt lại.</p>
         </div>
       </header>
       <CustomerRentalGuide active={1}/>
@@ -65,16 +97,18 @@ export default function CreateReservationPage() {
       <form className="card form-grid" onSubmit={submit}>
         {!params.get("facility") && (
           <label>Cơ sở chi nhánh
-            <select value={facilityCode} onChange={(e) => setFacilityCode(e.target.value)} required>
-              <option value="HN-CG">Hà Nội - Cầu Giấy (HN-CG)</option>
-              <option value="HCM-Q7">TP.HCM - Quận 7 (HCM-Q7)</option>
-              <option value="HCM-TB">TP.HCM - Tân Bình (HCM-TB)</option>
+            <select value={facilityCode} onChange={(e) => setDraft((prev) => ({ ...prev, facilityCode: e.target.value }))} required>
+              {facilities.map((facility) => (
+                <option key={String(facility.code)} value={String(facility.code)}>
+                  {String(facility.name)} ({String(facility.code)})
+                </option>
+              ))}
             </select>
           </label>
         )}
         {!params.get("type") && (
           <label>Loại kho lưu trữ
-            <select value={unitType} onChange={(e) => setUnitType(e.target.value)} required>
+            <select value={unitType} onChange={(e) => setDraft((prev) => ({ ...prev, unitType: e.target.value }))} required>
               <option value="S">Loại S - Nhỏ (1 - 3 m²)</option>
               <option value="M">Loại M - Vừa (4 - 8 m²)</option>
               <option value="L">Loại L - Lớn (&gt; 8 m²)</option>
@@ -82,16 +116,16 @@ export default function CreateReservationPage() {
           </label>
         )}
         <label>Ngày bắt đầu thuê
-          <input name="startDate" type="date" min={checkInDate || undefined} required/>
+          <input name="startDate" type="date" value={String(draft.startDate || "")} min={checkInDate || undefined} onChange={(event) => setDraft((prev) => ({ ...prev, startDate: event.target.value }))} required/>
         </label>
         <label>Số tháng thuê
-          <input name="durationMonths" type="number" min="1" max="36" defaultValue="1" required/>
+          <input name="durationMonths" type="number" min="1" max="36" value={String(draft.durationMonths || "1")} onChange={(event) => setDraft((prev) => ({ ...prev, durationMonths: event.target.value }))} required/>
         </label>
         <label>Ngày và giờ hẹn check-in
-          <input name="appointmentAt" type="datetime-local" required onChange={(event) => setCheckInDate(event.target.value.slice(0, 10))}/>
+          <input name="appointmentAt" type="datetime-local" value={String(draft.appointmentAt || "")} required onChange={(event) => setDraft((prev) => ({ ...prev, appointmentAt: event.target.value }))}/>
         </label>
         {error && <p className="error" role="alert">{error}</p>}
-        <button type="submit" disabled={busy || !facilityCode}>
+        <button className="btn-figma btn-primary-dark" type="submit" disabled={busy || !facilityCode}>
           {busy ? "Đang tạo đơn…" : "Tạo đơn và đặt cọc"}
         </button>
       </form>

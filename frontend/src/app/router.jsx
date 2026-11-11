@@ -182,7 +182,7 @@ export const routes = [
     {
         path: "/facility/inspections",
         title: "Yêu cầu trả kho",
-        roles: ["STAFF"],
+        roles: ["STAFF", "FMANAGER"],
         element: <ReturnInspectionPage />,
     },
     {

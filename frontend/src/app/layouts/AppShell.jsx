@@ -3,11 +3,21 @@ import { Routes, Route, NavLink, Link, useLocation, Navigate } from "react-route
 import { routes } from "../router";
 import { RoleGuard } from "../guards/RoleGuard";
 import { useSession, sessionStore } from "../../features/identity/session";
+import { facilityApi } from "../../features/facility/api/facility.api";
+
+const FALLBACK_FACILITIES = [
+    { code: "HN-CG", name: "Cơ sở Cầu Giấy", address: "15 Duy Tân, Cầu Giấy", city: "Hà Nội", status: "ACTIVE" },
+    { code: "HN-NTL", name: "Cơ sở Nam Từ Liêm", address: "28 Phạm Hùng, Nam Từ Liêm", city: "Hà Nội", status: "ACTIVE" },
+    { code: "HCM-TB", name: "Cơ sở Tân Bình", address: "45 Cộng Hòa, Tân Bình", city: "TP.HCM", status: "ACTIVE" },
+    { code: "HCM-Q7", name: "Cơ sở Quận 7", address: "128 Nguyễn Thị Thập, Quận 7", city: "TP.HCM", status: "ACTIVE" },
+    { code: "DN-HC", name: "Cơ sở Hải Châu", address: "60 Bạch Đằng, Hải Châu", city: "Đà Nẵng", status: "ACTIVE" },
+];
 
 export function AppShell() {
     const session = useSession(), location = useLocation();
     const [locationsOpen, setLocationsOpen] = useState(false);
     const [rentalsOpen, setRentalsOpen] = useState(false);
+    const [facilities, setFacilities] = useState(FALLBACK_FACILITIES);
     const locationsRef = useRef(null);
     const rentalsRef = useRef(null);
     const locationsTimer = useRef(null);
@@ -41,6 +51,27 @@ export function AppShell() {
         setLocationsOpen(false);
         setRentalsOpen(false);
     }, [location.pathname, location.search]);
+
+    useEffect(() => {
+        let cancelled = false;
+        facilityApi.facilities()
+            .then((list) => {
+                if (!cancelled && Array.isArray(list) && list.length > 0) {
+                    setFacilities(list.filter((f) => !f.status || String(f.status).toUpperCase() === "ACTIVE"));
+                }
+            })
+            .catch(() => {});
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    const facilitiesByCity = facilities.reduce((acc, item) => {
+        const city = item.city || "Khu vực khác";
+        if (!acc[city]) acc[city] = [];
+        acc[city].push(item);
+        return acc;
+    }, {});
 
     useEffect(() => {
         function handleClickOutside(event) {
@@ -100,8 +131,10 @@ export function AppShell() {
         STAFF: [
             ["/facility/tasks/my", "Dashboard / Hàng đợi"],
             ["/facility/reservations/lookup", "Đơn đặt phòng"],
+            ["/facility/no-show", "Xử lý quá hẹn (NO_SHOW)"],
             ["/facility/handovers", "Check-in & Bàn giao"],
             ["/facility/access-logs", "Ra vào cơ sở"],
+            ["/facility/access-simulator", "Kiểm tra PIN cổng"],
             ["/facility/inspections", "Trả kho & Nghiệm thu"],
             ["/facility/refunds/evidence", "Thực hiện hoàn tiền"],
             ["/facility/incidents", "Yêu cầu hỗ trợ"],
@@ -110,13 +143,18 @@ export function AppShell() {
         FMANAGER: [
             ["/facility/overview", "Tổng quan cơ sở"],
             ["/facility/units", "Quản lý kho"],
+            ["/facility/units/ready", "Duyệt kho sẵn sàng"],
             ["/facility/reservations/assign", "Phân bổ kho"],
+            ["/facility/no-show", "Xử lý quá hẹn (NO_SHOW)"],
             ["/facility/access-logs", "Ra vào cơ sở"],
             ["/facility/tasks/assign", "Nhân viên"],
             ["/facility/incidents", "Yêu cầu hỗ trợ"],
             ["/facility/contracts", "Hợp đồng"],
+            ["/facility/inspections", "Yêu cầu trả kho"],
             ["/facility/return-inspection-reviews", "Khiếu nại nghiệm thu"],
+            ["/facility/overdue-cap", "Trần phí quá hạn"],
             ["/facility/invoices", "Hóa đơn"],
+            ["/facility/refunds/approve", "Duyệt yêu cầu hoàn tiền"],
             ["/facility/refunds/confirm", "Xác nhận hoàn tiền"],
             ["/facility/reports", "Báo cáo cơ sở"]
         ],
@@ -331,63 +369,39 @@ export function AppShell() {
 
                                 {locationsOpen && (
                                     <div className="navbar-dropdown-menu locations-dropdown">
-                                        <div className="dropdown-section">
-                                            <div className="dropdown-city-title">HÀ NỘI</div>
-                                            <Link
-                                                to="/storage?facility=HN-CG"
-                                                className="dropdown-location-link"
-                                                onClick={() => setLocationsOpen(false)}
-                                            >
-                                                <span className="location-name">Kho Cầu Giấy</span>
-                                                <span className="location-sub">15 Duy Tân, Q. Cầu Giấy</span>
-                                            </Link>
-                                            <a
-                                                href="https://maps.google.com/?q=15+Duy+Tân+Cầu+Giấy+Hà+Nội"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="dropdown-location-sublink"
-                                                onClick={() => setLocationsOpen(false)}
-                                            >
-                                                Bản đồ kho – 15 Duy Tân
-                                            </a>
-                                        </div>
-
-                                        <div className="dropdown-section">
-                                            <div className="dropdown-city-title">TP. HỒ CHÍ MINH</div>
-                                            <Link
-                                                to="/storage?facility=HCM-TB"
-                                                className="dropdown-location-link"
-                                                onClick={() => setLocationsOpen(false)}
-                                            >
-                                                <span className="location-name">Kho Tân Bình</span>
-                                                <span className="location-sub">45 Cộng Hòa, P. 4, Q. Tân Bình</span>
-                                            </Link>
-                                            <a
-                                                href="https://maps.google.com/?q=45+Cộng+Hòa+Tân+Bình+Hồ+Chí+Minh"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="dropdown-location-sublink"
-                                                onClick={() => setLocationsOpen(false)}
-                                            >
-                                                Bản đồ kho – 45 Cộng Hòa
-                                            </a>
-                                            <Link
-                                                to="/storage?facility=HCM-Q7"
-                                                className="dropdown-location-link"
-                                                onClick={() => setLocationsOpen(false)}
-                                            >
-                                                <span className="location-name">Kho Quận 7</span>
-                                                <span className="location-sub">128 Nguyễn Thị Thập, Q. 7</span>
-                                            </Link>
-                                            <Link
-                                                to="/storage"
-                                                className="dropdown-location-link"
-                                                onClick={() => setLocationsOpen(false)}
-                                            >
-                                                <span className="location-name">Tủ Locker Thủ Đức</span>
-                                                <span className="location-sub">375 Võ Nguyên Giáp, TP. Thủ Đức</span>
-                                            </Link>
-                                        </div>
+                                        {Object.entries(facilitiesByCity).map(([city, cityFacilities]) => (
+                                            <div className="dropdown-section" key={city}>
+                                                <div className="dropdown-city-title">{city.toUpperCase()}</div>
+                                                {cityFacilities.map((facility) => {
+                                                    const mapQuery = [facility.address, facility.city].filter(Boolean).join(", ");
+                                                    return (
+                                                        <div key={facility.code} style={{ marginBottom: "6px" }}>
+                                                            <Link
+                                                                to={`/storage?facility=${encodeURIComponent(facility.code)}`}
+                                                                className="dropdown-location-link"
+                                                                onClick={() => setLocationsOpen(false)}
+                                                            >
+                                                                <span className="location-name">{facility.name} ({facility.code})</span>
+                                                                <span className="location-sub">{facility.address}</span>
+                                                            </Link>
+                                                            <a
+                                                                href={`https://maps.google.com/?q=${encodeURIComponent(mapQuery)}`}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="dropdown-location-sublink nav-map-link"
+                                                                onClick={() => setLocationsOpen(false)}
+                                                            >
+                                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                                                    <circle cx="12" cy="10" r="3"></circle>
+                                                                </svg>
+                                                                <span>Xem bản đồ – {facility.address}</span>
+                                                            </a>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        ))}
 
                                         <div className="dropdown-section-footer">
                                             <Link
@@ -567,9 +581,11 @@ export function AppShell() {
 
                             {session ? (
                                 <div className="nav-account-logged">
-                                    <span className="user-badge">{labels[session.user.role]}</span>
                                     <span className="avatar-circle">{session.user.name?.slice(0, 1) || "K"}</span>
-                                    <span className="user-name">{session.user.name || session.user.username}</span>
+                                    <div className="customer-user-identity">
+                                        <span className="customer-user-name">{session.user.name || session.user.username}</span>
+                                        <span className="customer-user-role">{labels[session.user.role]}</span>
+                                    </div>
                                     <button
                                         type="button"
                                         className="figma-btn figma-btn-outline btn-sm"

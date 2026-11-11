@@ -1,5 +1,7 @@
 package com.swp391.selfstorage.security;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
@@ -119,7 +121,31 @@ public class SecurityConfig {
 
   @Bean
   public PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
+    BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder();
+    return new PasswordEncoder() {
+      @Override
+      public String encode(CharSequence rawPassword) {
+        return rawPassword == null ? "" : rawPassword.toString();
+      }
+
+      @Override
+      public boolean matches(CharSequence rawPassword, String encodedPassword) {
+        if (rawPassword == null || encodedPassword == null) {
+          return false;
+        }
+        if (
+          encodedPassword.startsWith("$2a$") ||
+          encodedPassword.startsWith("$2b$") ||
+          encodedPassword.startsWith("$2y$")
+        ) {
+          return bcrypt.matches(rawPassword, encodedPassword);
+        }
+        return MessageDigest.isEqual(
+          rawPassword.toString().getBytes(StandardCharsets.UTF_8),
+          encodedPassword.getBytes(StandardCharsets.UTF_8)
+        );
+      }
+    };
   }
 
   @Bean

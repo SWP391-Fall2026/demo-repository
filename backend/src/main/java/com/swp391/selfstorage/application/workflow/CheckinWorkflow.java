@@ -1,6 +1,7 @@
 package com.swp391.selfstorage.application.workflow;
 
 import com.swp391.selfstorage.common.security.ActorContext;
+import com.swp391.selfstorage.common.util.ShortIds;
 import com.swp391.selfstorage.common.web.Inputs;
 import com.swp391.selfstorage.modules.billing.service.InvoiceService;
 import com.swp391.selfstorage.modules.billing.repository.InvoiceRepository;
@@ -124,7 +125,7 @@ public class CheckinWorkflow {
       LocalDateTime start = reservation.getRentalStartAt() == null
           ? reservation.getStartDate().atStartOfDay() : reservation.getRentalStartAt();
       Contract offer = new Contract();
-      offer.setId("CTR-" + UUID.randomUUID()); offer.setReservationId(reservation.getId());
+      offer.setId(ShortIds.next("CTR")); offer.setReservationId(reservation.getId());
       offer.setUserId(reservation.getUserId()); offer.setFacilityCode(reservation.getFacilityCode());
       offer.setUnitCode(reservation.getUnitCode()); offer.setCustomerName(reservation.getCustomerName());
       offer.setCustomerPhone(reservation.getCustomerPhone()); offer.setStartAt(start);

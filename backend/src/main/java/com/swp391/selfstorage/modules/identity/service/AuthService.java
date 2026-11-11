@@ -1,5 +1,6 @@
 package com.swp391.selfstorage.modules.identity.service;
 
+import com.swp391.selfstorage.common.util.ShortIds;
 import com.swp391.selfstorage.common.web.ApiResponse;
 import com.swp391.selfstorage.modules.identity.dto.*;
 import com.swp391.selfstorage.modules.identity.entity.LoginHistory;
@@ -92,7 +93,7 @@ public class AuthService {
     String email = cleanIdentity(request.getEmail());
     // Encode the exact validated input. Raw passwords never enter the pending map.
     User candidate = new User();
-    candidate.setId("USR-" + UUID.randomUUID());
+    candidate.setId(ShortIds.next("USR"));
     candidate.setName(request.getName().trim());
     candidate.setUsername(cleanIdentity(request.getUsername()));
     candidate.setEmail(email);
