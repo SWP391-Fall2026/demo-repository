@@ -73,7 +73,8 @@ public class ConfirmInspectionWorkflow {
     c.setPinCode(null);
     contracts.save(c);
     var unit = units.lockByCode(c.getUnitCode()).orElseThrow(Inputs::missing);
-    unit.setStatus("available");
+    unit.setStatus(inspection.getRepairFee() != null && inspection.getRepairFee().signum() > 0
+      ? "maintenance" : "cleaning");
     unit.setTenantName(null);
     unit.setPinCode(null);
     unit.setTemporaryPin(null);
@@ -93,7 +94,7 @@ public class ConfirmInspectionWorkflow {
       "inspectionId", inspection.getId(),
       "status", "COMPLETED",
       "refundRequestId", Objects.toString(refundRequestId, ""),
-      "unitStatus", "available"
+      "unitStatus", unit.getStatus()
     );
   }
 

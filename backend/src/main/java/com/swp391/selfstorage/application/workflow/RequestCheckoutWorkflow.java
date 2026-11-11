@@ -58,10 +58,16 @@ public class RequestCheckoutWorkflow {
       || !invoices.findByContractIdAndInvoiceTypeAndStatus(c.getId(), "OVERDUE", "PENDING").isEmpty()
       || !invoices.findByContractIdAndInvoiceTypeAndStatus(c.getId(), "OVERDUE", "OVERDUE").isEmpty();
     if (unpaid) throw Inputs.conflict("Kho đang có công nợ chưa thanh toán");
+    LocalDate requestedDate;
+    try {
+      requestedDate = LocalDate.parse(Inputs.text(d, "requestedDate"));
+    } catch (java.time.format.DateTimeParseException e) {
+      throw Inputs.bad("Ngày hẹn trả kho không hợp lệ");
+    }
+    if (requestedDate.isBefore(LocalDate.now(clock)))
+      throw Inputs.bad("Ngày hẹn trả kho không được ở quá khứ");
     c.setCheckoutRequestedAt(LocalDateTime.now(clock));
-    c.setCheckoutRequestedDate(
-      LocalDate.parse(Inputs.text(d, "requestedDate"))
-    );
+    c.setCheckoutRequestedDate(requestedDate);
     String reason = Inputs.optional(d, "reason");
     if (reason.isBlank()) reason = "Khách yêu cầu trả kho";
     c.setCheckoutReason(reason);
