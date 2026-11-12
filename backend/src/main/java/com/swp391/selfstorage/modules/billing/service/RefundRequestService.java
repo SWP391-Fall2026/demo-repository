@@ -124,18 +124,18 @@ public class RefundRequestService {
         "Đơn cần được hủy hoặc xác nhận NO_SHOW trước khi yêu cầu hoàn"
       );
       if ("CHECKED_IN".equals(r.getStatus())) {
+        if (!"DEPOSIT".equals(p.getInvoiceType()))
+          throw Inputs.conflict("Sau trả kho chỉ hoàn cọc theo phiếu nghiệm thu");
         var c = contracts
           .findByReservationId(r.getId())
           .filter(v -> "TERMINATED".equals(v.getStatus()))
           .orElseThrow(() ->
             Inputs.conflict("Cần nghiệm thu trả kho trước khi hoàn cọc")
           );
-        if ("DEPOSIT".equals(p.getInvoiceType())) base = inspections
-          .findByContractId(c.getId())
-          .stream()
-          .map(i -> i.getDepositRefundAmount())
-          .findFirst()
-          .orElse(BigDecimal.ZERO);
+        var inspection = inspections.findFirstByContractIdOrderByInspectionDateDesc(c.getId())
+          .filter(i -> "COMPLETED".equals(i.getStatus()))
+          .orElseThrow(() -> Inputs.conflict("Phiếu nghiệm thu chưa hoàn tất"));
+        base = Optional.ofNullable(inspection.getDepositRefundAmount()).orElse(BigDecimal.ZERO);
       }
     }
     var existing = refunds.findByPaymentId(p.getId());

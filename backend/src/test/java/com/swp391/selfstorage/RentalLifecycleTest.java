@@ -309,6 +309,12 @@ class RentalLifecycleTest {
     postAs(
       "customer",
       "/contracts/checkout-request",
+      Map.of("contractId", cid, "requestedDate", LocalDate.now().minusDays(1).toString(), "reason", "Ngày quá khứ"),
+      400
+    );
+    postAs(
+      "customer",
+      "/contracts/checkout-request",
       Map.of("contractId", cid, "requestedDate", LocalDate.now().toString(), "reason", "Kết thúc thuê"),
       200
     );
@@ -416,7 +422,7 @@ class RentalLifecycleTest {
       contracts.findById(cid).orElseThrow().getStatus()
     );
     assertEquals(
-      "available",
+      "cleaning",
       units.findById(unitCode).orElseThrow().getStatus()
     );
     assertNull(units.findById(unitCode).orElseThrow().getTenantName());
@@ -431,6 +437,19 @@ class RentalLifecycleTest {
       "staff",
       "/facilities/units/" + unitCode + "/ready",
       Map.of("notes", "Đã vệ sinh"),
+      200
+    );
+    postAs(
+      "manager",
+      "/facilities/units/" + unitCode + "/ready/approve",
+      Map.of(),
+      200
+    );
+    assertEquals("available", units.findById(unitCode).orElseThrow().getStatus());
+    postAs(
+      "customer",
+      "/refunds",
+      Map.of("paymentId", paidRent.path("id").asText(), "amount", 100000, "reason", "Hoàn tiền thuê sau trả kho"),
       409
     );
     String paymentId = paid.path("id").asText();

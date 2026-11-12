@@ -46,6 +46,10 @@ public class AssignUnitWorkflow {
     this.audit = audit;
   }
 
+  /**
+   * Kiểm tra quyền quản lý và tiền cọc, chọn hoặc xác nhận kho phù hợp,
+   * rồi cập nhật trạng thái kho, đơn đặt, task check-in và nhật ký trong cùng transaction.
+   */
   @Transactional
   public Reservation execute(String id, Map<String, Object> d) {
     var m = actor.require("FMANAGER");
