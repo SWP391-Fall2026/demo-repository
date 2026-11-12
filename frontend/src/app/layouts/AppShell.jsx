@@ -1,20 +1,15 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import { Routes, Route, NavLink, Link, useLocation, Navigate } from "react-router-dom";
 import { routes } from "../router";
 import { RoleGuard } from "../guards/RoleGuard";
 import { useSession, sessionStore } from "../../features/identity/session";
-import { facilityApi } from "../../features/facility/api/facility.api";
-
-const FALLBACK_FACILITIES = [
-    { code: "HN-CG", name: "Cơ sở Cầu Giấy", address: "15 Duy Tân, Cầu Giấy", city: "Hà Nội", status: "ACTIVE" },
-    { code: "HN-NTL", name: "Cơ sở Nam Từ Liêm", address: "28 Phạm Hùng, Nam Từ Liêm", city: "Hà Nội", status: "ACTIVE" },
-    { code: "HCM-TB", name: "Cơ sở Tân Bình", address: "45 Cộng Hòa, Tân Bình", city: "TP.HCM", status: "ACTIVE" },
-    { code: "HCM-Q7", name: "Cơ sở Quận 7", address: "128 Nguyễn Thị Thập, Quận 7", city: "TP.HCM", status: "ACTIVE" },
-    { code: "DN-HC", name: "Cơ sở Hải Châu", address: "60 Bạch Đằng, Hải Châu", city: "Đà Nẵng", status: "ACTIVE" },
-];
+import { identityApi } from "../../features/identity/api/identity.api";
+import { facilityApi, FALLBACK_FACILITIES } from "../../features/facility/api/facility.api";
 
 export function AppShell() {
     const session = useSession(), location = useLocation();
+    const internalRole = session?.user?.role;
+    const isBackoffice = Boolean(internalRole && internalRole !== "CUSTOMER");
     const [locationsOpen, setLocationsOpen] = useState(false);
     const [rentalsOpen, setRentalsOpen] = useState(false);
     const [facilities, setFacilities] = useState(FALLBACK_FACILITIES);
@@ -53,6 +48,8 @@ export function AppShell() {
     }, [location.pathname, location.search]);
 
     useEffect(() => {
+        if (isBackoffice)
+            return;
         let cancelled = false;
         facilityApi.facilities()
             .then((list) => {
@@ -64,7 +61,7 @@ export function AppShell() {
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [isBackoffice]);
 
     const facilitiesByCity = facilities.reduce((acc, item) => {
         const city = item.city || "Khu vực khác";
@@ -99,6 +96,15 @@ export function AppShell() {
     }, [locationsOpen, rentalsOpen]);
 
     const auth = ["/login", "/register", "/verify-otp"].includes(location.pathname);
+    async function handleLogout() {
+        try {
+            if (sessionStore.get()?.token)
+                await identityApi.logout();
+        }
+        finally {
+            sessionStore.set(null);
+        }
+    }
     const labels = {
         CUSTOMER: "Khách hàng",
         STAFF: "Nhân viên cơ sở",
@@ -206,8 +212,6 @@ export function AppShell() {
         },
     };
 
-    const internalRole = session?.user?.role;
-    const isBackoffice = internalRole && internalRole !== "CUSTOMER";
     const roleShell = isBackoffice ? roleShells[internalRole] : null;
 
     if (isBackoffice) {
@@ -226,26 +230,28 @@ export function AppShell() {
     }
 
     const pageRoutes = (
-        <Routes>
-            {routes.map((r) => (
+        <Suspense fallback={<div className="page-content"><p>Đang tải trang…</p></div>}>
+            <Routes>
+                {routes.map((r) => (
+                    <Route
+                        key={r.path}
+                        path={r.path}
+                        element={<RoleGuard roles={r.roles}>{r.element}</RoleGuard>}
+                    />
+                ))}
                 <Route
-                    key={r.path}
-                    path={r.path}
-                    element={<RoleGuard roles={r.roles}>{r.element}</RoleGuard>}
+                    path="*"
+                    element={
+                        <section className="card empty">
+                            <h1>Không tìm thấy trang</h1>
+                            <Link to={isBackoffice ? (links[0]?.[0] || "/admin/overview") : "/"}>
+                                {isBackoffice ? "Về bàn làm việc" : "Về trang chủ"}
+                            </Link>
+                        </section>
+                    }
                 />
-            ))}
-            <Route
-                path="*"
-                element={
-                    <section className="card empty">
-                        <h1>Không tìm thấy trang</h1>
-                        <Link to={isBackoffice ? (links[0]?.[0] || "/admin/overview") : "/"}>
-                            {isBackoffice ? "Về bàn làm việc" : "Về trang chủ"}
-                        </Link>
-                    </section>
-                }
-            />
-        </Routes>
+            </Routes>
+        </Suspense>
     );
 
     if (roleShell) {
@@ -281,7 +287,7 @@ export function AppShell() {
                             <button
                                 type="button"
                                 className="role-logout-btn"
-                                onClick={() => sessionStore.set(null)}
+                                onClick={handleLogout}
                             >
                                 Đăng xuất
                             </button>
@@ -589,7 +595,7 @@ export function AppShell() {
                                     <button
                                         type="button"
                                         className="figma-btn figma-btn-outline btn-sm"
-                                        onClick={() => sessionStore.set(null)}
+                                        onClick={handleLogout}
                                     >
                                         Đăng xuất
                                     </button>

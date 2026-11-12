@@ -25,27 +25,22 @@ public class RentalExpiryJob {
   @Transactional
   public void monitor() {
     var now = LocalDateTime.now(clock);
-    for (var found : contracts.findAll()) {
+    for (var found : contracts.findByStatusInAndEndAtLessThan(List.of("ACTIVE", "EXPIRING_SOON"), now)) {
+      var c = contracts.lockById(found.getId()).orElseThrow();
       if (
-        Set.of("ACTIVE", "EXPIRING_SOON").contains(found.getStatus()) &&
-        found.getEndAt() != null &&
-        now.isAfter(found.getEndAt())
-      ) {
-        var c = contracts.lockById(found.getId()).orElseThrow();
-        if (
-          !Set.of("ACTIVE", "EXPIRING_SOON").contains(c.getStatus()) ||
-          !now.isAfter(c.getEndAt())
-        ) continue;
-        c.setStatus("OVERDUE");
-        c.setPinCode(null);
-        contracts.save(c);
-        units.lockByCode(c.getUnitCode()).ifPresent(u -> {
-          u.setPinCode(null);
-          u.setTemporaryPin(null);
-          u.setTemporaryPinExpiresAt(null);
-          units.save(u);
-        });
-      }
+        !Set.of("ACTIVE", "EXPIRING_SOON").contains(c.getStatus()) ||
+        c.getEndAt() == null ||
+        !now.isAfter(c.getEndAt())
+      ) continue;
+      c.setStatus("OVERDUE");
+      c.setPinCode(null);
+      contracts.save(c);
+      units.lockByCode(c.getUnitCode()).ifPresent(u -> {
+        u.setPinCode(null);
+        u.setTemporaryPin(null);
+        u.setTemporaryPinExpiresAt(null);
+        units.save(u);
+      });
     }
   }
 }

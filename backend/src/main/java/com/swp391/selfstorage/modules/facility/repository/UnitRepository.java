@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 public interface UnitRepository extends JpaRepository<Unit, String> {
   List<Unit> findByFacilityCode(String code);
   List<Unit> findByStatus(String status);
+  List<Unit> findByTypeAndStatusIgnoreCase(String type, String status);
 
   interface AvailableCount {
     String getFacilityCode();

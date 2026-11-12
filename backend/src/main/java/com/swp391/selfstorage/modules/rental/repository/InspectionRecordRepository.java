@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 public interface InspectionRecordRepository
   extends JpaRepository<InspectionRecord, String> {
   Optional<InspectionRecord> findFirstByContractIdOrderByInspectionDateDesc(String contractId);
+  List<InspectionRecord> findByContractIdInOrderByInspectionDateDesc(Collection<String> contractIds);
   List<InspectionRecord> findByContractId(String contractId);
 
   @Query("""

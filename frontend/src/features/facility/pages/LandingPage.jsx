@@ -282,7 +282,7 @@ export default function LandingPage() {
                     {/* Tân Bình */}
                     <div className="figma-card facility-card">
                         <div className="facility-img-box">
-                            <img src={tanBinhImg} alt="Cơ sở Tân Bình - TP. Hồ Chí Minh" />
+                            <img src={tanBinhImg} alt="Cơ sở Tân Bình - TP. Hồ Chí Minh" loading="lazy" decoding="async" />
                             <span className="city-tag">TP. HỒ CHÍ MINH</span>
                         </div>
                         <div className="facility-body">
@@ -302,7 +302,7 @@ export default function LandingPage() {
                     {/* Quận 7 */}
                     <div className="figma-card facility-card">
                         <div className="facility-img-box">
-                            <img src={quan7Img} alt="Cơ sở Quận 7 - TP. Hồ Chí Minh" />
+                            <img src={quan7Img} alt="Cơ sở Quận 7 - TP. Hồ Chí Minh" loading="lazy" decoding="async" />
                             <span className="city-tag">TP. HỒ CHÍ MINH</span>
                         </div>
                         <div className="facility-body">
@@ -322,7 +322,7 @@ export default function LandingPage() {
                     {/* Cầu Giấy */}
                     <div className="figma-card facility-card">
                         <div className="facility-img-box">
-                            <img src={cauGiayImg} alt="Cơ sở Cầu Giấy – Hà Nội" />
+                            <img src={cauGiayImg} alt="Cơ sở Cầu Giấy – Hà Nội" loading="lazy" decoding="async" />
                             <span className="city-tag city-tag-hn">HÀ NỘI</span>
                         </div>
                         <div className="facility-body">
@@ -357,7 +357,7 @@ export default function LandingPage() {
 
                 <div className="standards-layout">
                     <div className="standards-photo-box">
-                        <img src={cleanHallway} alt="Môi trường kho sạch sẽ, đạt chuẩn quốc tế" />
+                        <img src={cleanHallway} alt="Môi trường kho sạch sẽ, đạt chuẩn quốc tế" loading="lazy" decoding="async" />
                         <div className="photo-overlay-card">
                             <span className="badge-live">● THỰC TẾ TẠI CƠ SỞ</span>
                             <h4>Môi trường kho sạch sẽ</h4>

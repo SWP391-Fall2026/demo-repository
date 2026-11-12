@@ -22,13 +22,14 @@ public class PaymentService {
     actor = a;
   }
 
+  @Transactional(readOnly = true)
   public List<Payment> list() {
     var u = actor.require("CUSTOMER", "STAFF", "FMANAGER", "OPS_MGR");
-    return payments
-      .findAll()
-      .stream()
-      .filter(p -> actor.visible(u, p.getUserId(), p.getFacilityCode()))
-      .toList();
+    return switch (actor.role(u)) {
+      case "CUSTOMER" -> payments.findByUserId(u.getId());
+      case "STAFF", "FMANAGER" -> payments.findByFacilityCode(u.getFacilityCode());
+      default -> payments.findAll();
+    };
   }
 
   public Map<String, String> bank() {

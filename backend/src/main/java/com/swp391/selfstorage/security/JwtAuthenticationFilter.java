@@ -17,13 +17,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   private final JwtUtil jwtUtil;
   private final CustomUserDetailsService userDetailsService;
+  private final TokenRevocationService revocation;
 
   public JwtAuthenticationFilter(
     JwtUtil jwtUtil,
-    CustomUserDetailsService userDetailsService
+    CustomUserDetailsService userDetailsService,
+    TokenRevocationService revocation
   ) {
     this.jwtUtil = jwtUtil;
     this.userDetailsService = userDetailsService;
+    this.revocation = revocation;
   }
 
   @Override
@@ -37,13 +40,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         && SecurityContextHolder.getContext().getAuthentication() == null) {
       try {
         String jwt = authHeader.substring(7);
-        String username = jwtUtil.extractUsername(jwt);
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-        if (userDetails.isEnabled() && jwtUtil.validateToken(jwt, userDetails.getUsername())) {
-          UsernamePasswordAuthenticationToken authToken =
-              new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-          authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-          SecurityContextHolder.getContext().setAuthentication(authToken);
+        if (!revocation.isRevoked(jwt)) {
+          String username = jwtUtil.extractUsername(jwt);
+          UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+          if (userDetails.isEnabled() && jwtUtil.validateToken(jwt, userDetails.getUsername())) {
+            UsernamePasswordAuthenticationToken authToken =
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+          }
         }
       } catch (io.jsonwebtoken.JwtException | IllegalArgumentException
           | org.springframework.security.core.userdetails.UsernameNotFoundException ex) {

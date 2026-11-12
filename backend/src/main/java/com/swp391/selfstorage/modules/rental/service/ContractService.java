@@ -3,15 +3,18 @@ package com.swp391.selfstorage.modules.rental.service;
 import com.swp391.selfstorage.common.security.ActorContext;
 import com.swp391.selfstorage.common.web.*;
 import com.swp391.selfstorage.modules.audit.service.AuditLogService;
+import com.swp391.selfstorage.modules.billing.repository.InvoiceRepository;
+import com.swp391.selfstorage.modules.facility.entity.Facility;
+import com.swp391.selfstorage.modules.facility.repository.FacilityRepository;
+import com.swp391.selfstorage.modules.facility.repository.UnitRepository;
+import com.swp391.selfstorage.modules.identity.repository.UserRepository;
+import com.swp391.selfstorage.modules.policy.service.PolicyService;
 import com.swp391.selfstorage.modules.rental.entity.Contract;
+import com.swp391.selfstorage.modules.rental.entity.HandoverRecord;
+import com.swp391.selfstorage.modules.rental.entity.InspectionRecord;
 import com.swp391.selfstorage.modules.rental.repository.ContractRepository;
 import com.swp391.selfstorage.modules.rental.repository.HandoverRecordRepository;
 import com.swp391.selfstorage.modules.rental.repository.InspectionRecordRepository;
-import com.swp391.selfstorage.modules.billing.repository.InvoiceRepository;
-import com.swp391.selfstorage.modules.facility.repository.FacilityRepository;
-import com.swp391.selfstorage.modules.facility.repository.UnitRepository;
-import com.swp391.selfstorage.modules.policy.service.PolicyService;
-import com.swp391.selfstorage.modules.identity.repository.UserRepository;
 import com.swp391.selfstorage.modules.reservation.repository.ReservationRepository;
 import java.math.*;
 import java.time.*;
@@ -48,44 +51,69 @@ public class ContractService {
     this.inspections = inspections;
   }
 
+  private static final Set<String> ACCESSIBLE_STATUSES = Set.of(
+    "ACTIVE", "EXPIRING_SOON", "OVERDUE", "CHECKOUT_REQUESTED"
+  );
+
+  @Transactional(readOnly = true)
   public List<Contract> list() {
     var u = actor.require("CUSTOMER", "STAFF", "FMANAGER");
-    return contracts
-      .findAll()
-      .stream()
-      .filter(c -> actor.visible(u, c.getUserId(), c.getFacilityCode()))
-      .peek(c -> {
-        handovers.findFirstByContractIdOrderByHandoverDateDesc(c.getId()).ifPresent(h -> {
-          c.setHandoverStatus(h.getStatus());
-          c.setHandoverConditionNotes(h.getUnitConditionNotes());
-          c.setHandoverStaffNotes(h.getStaffNotes());
-          c.setHandoverConditionStatus(h.getConditionStatus());
-          c.setHandoverDate(Objects.toString(h.getHandoverDate(), ""));
-          c.setHandoverStaffId(h.getStaffId());
-          c.setHandoverEvidenceAvailable(h.getEvidencePath() != null && !h.getEvidencePath().isBlank());
-        });
-        attachInspection(c);
-        if ("CUSTOMER".equals(actor.role(u))) {
-          if (!Set.of("ACTIVE", "EXPIRING_SOON", "OVERDUE", "CHECKOUT_REQUESTED").contains(c.getStatus())) {
-            c.setPinCode(null);
-          } else {
-            facilities.findById(c.getFacilityCode()).ifPresent(f -> c.setFacilityPin(f.getCheckinPin()));
-          }
+    String role = actor.role(u);
+    List<Contract> rows = "CUSTOMER".equals(role)
+      ? contracts.findByUserId(u.getId())
+      : contracts.findByFacilityCode(u.getFacilityCode());
+    if (rows.isEmpty()) return List.of();
+
+    List<String> contractIds = rows.stream().map(Contract::getId).toList();
+    Map<String, HandoverRecord> handoverMap = new HashMap<>();
+    for (HandoverRecord h : handovers.findByContractIdInOrderByHandoverDateDesc(contractIds)) {
+      handoverMap.putIfAbsent(h.getContractId(), h);
+    }
+    Map<String, InspectionRecord> inspectionMap = new HashMap<>();
+    for (InspectionRecord ins : inspections.findByContractIdInOrderByInspectionDateDesc(contractIds)) {
+      inspectionMap.putIfAbsent(ins.getContractId(), ins);
+    }
+    Map<String, Facility> facilityMap = Map.of();
+    if ("CUSTOMER".equals(role)) {
+      Set<String> activeFacilityCodes = new HashSet<>();
+      for (Contract c : rows) {
+        if (ACCESSIBLE_STATUSES.contains(c.getStatus()) && c.getFacilityCode() != null) {
+          activeFacilityCodes.add(c.getFacilityCode());
         }
-      })
-      .toList();
+      }
+      if (!activeFacilityCodes.isEmpty()) {
+        facilityMap = new HashMap<>();
+        for (Facility f : facilities.findAllById(activeFacilityCodes)) {
+          facilityMap.put(f.getCode(), f);
+        }
+      }
+    }
+
+    for (Contract c : rows) {
+      applyHandover(c, handoverMap.get(c.getId()));
+      applyInspection(c, inspectionMap.get(c.getId()));
+      if ("CUSTOMER".equals(role)) {
+        if (!ACCESSIBLE_STATUSES.contains(c.getStatus())) {
+          c.setPinCode(null);
+        } else {
+          Facility f = facilityMap.get(c.getFacilityCode());
+          if (f != null) c.setFacilityPin(f.getCheckinPin());
+        }
+      }
+    }
+    return rows;
   }
 
+  @Transactional(readOnly = true)
   public Map<String, Object> detail(String id) {
     var customer = actor.require("CUSTOMER");
     Contract contract = contracts.findById(id).orElseThrow(Inputs::missing);
     if (!actor.visible(customer, contract.getUserId(), contract.getFacilityCode())) throw Inputs.missing();
-    boolean accessGranted = Set.of("ACTIVE", "EXPIRING_SOON", "OVERDUE", "CHECKOUT_REQUESTED").contains(contract.getStatus());
+    boolean accessGranted = ACCESSIBLE_STATUSES.contains(contract.getStatus());
     if (!accessGranted) contract.setPinCode(null);
     var facility = facilities.findById(contract.getFacilityCode()).orElse(null);
     var unit = units.findById(contract.getUnitCode()).orElse(null);
-    var invoiceRows = invoices.findAll().stream()
-      .filter(i -> id.equals(i.getContractId()) || Objects.equals(contract.getReservationId(), i.getReservationId()))
+    var invoiceRows = invoices.findByContractOrReservation(id, contract.getReservationId()).stream()
       .map(i -> Map.<String, Object>ofEntries(
         Map.entry("id", Objects.toString(i.getId(), "")),
         Map.entry("invoiceType", Objects.toString(i.getInvoiceType(), "")),
@@ -138,8 +166,9 @@ public class ContractService {
     ));
     response.put("invoices", invoiceRows);
     response.put("policies", policies.get());
-    attachInspection(contract);
-    inspections.findFirstByContractIdOrderByInspectionDateDesc(id).ifPresent(inspection -> {
+    var inspectionOpt = inspections.findFirstByContractIdOrderByInspectionDateDesc(id);
+    applyInspection(contract, inspectionOpt.orElse(null));
+    inspectionOpt.ifPresent(inspection -> {
       Map<String, Object> row = new LinkedHashMap<>();
       row.put("id", inspection.getId());
       row.put("status", inspection.getStatus());
@@ -157,16 +186,26 @@ public class ContractService {
     return response;
   }
 
-  private void attachInspection(Contract c) {
-    inspections.findFirstByContractIdOrderByInspectionDateDesc(c.getId()).ifPresent(inspection -> {
-      c.setInspectionId(inspection.getId());
-      c.setInspectionStatus(inspection.getStatus());
-      c.setInspectionPenaltyFee(inspection.getPenaltyFee());
-      c.setInspectionRefundAmount(inspection.getDepositRefundAmount());
-      c.setInspectionDamageNotes(inspection.getDamageNotes());
-      c.setInspectionCleanlinessStatus(inspection.getCleanlinessStatus());
-      c.setInspectionRepairFee(inspection.getRepairFee());
-      c.setInspectionEvidenceAvailable(inspection.getEvidencePath() != null && !inspection.getEvidencePath().isBlank());
-    });
+  private void applyHandover(Contract c, HandoverRecord h) {
+    if (h == null) return;
+    c.setHandoverStatus(h.getStatus());
+    c.setHandoverConditionNotes(h.getUnitConditionNotes());
+    c.setHandoverStaffNotes(h.getStaffNotes());
+    c.setHandoverConditionStatus(h.getConditionStatus());
+    c.setHandoverDate(Objects.toString(h.getHandoverDate(), ""));
+    c.setHandoverStaffId(h.getStaffId());
+    c.setHandoverEvidenceAvailable(h.getEvidencePath() != null && !h.getEvidencePath().isBlank());
+  }
+
+  private void applyInspection(Contract c, InspectionRecord inspection) {
+    if (inspection == null) return;
+    c.setInspectionId(inspection.getId());
+    c.setInspectionStatus(inspection.getStatus());
+    c.setInspectionPenaltyFee(inspection.getPenaltyFee());
+    c.setInspectionRefundAmount(inspection.getDepositRefundAmount());
+    c.setInspectionDamageNotes(inspection.getDamageNotes());
+    c.setInspectionCleanlinessStatus(inspection.getCleanlinessStatus());
+    c.setInspectionRepairFee(inspection.getRepairFee());
+    c.setInspectionEvidenceAvailable(inspection.getEvidencePath() != null && !inspection.getEvidencePath().isBlank());
   }
 }

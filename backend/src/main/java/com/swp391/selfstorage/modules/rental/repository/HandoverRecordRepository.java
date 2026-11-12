@@ -10,5 +10,6 @@ import org.springframework.data.repository.query.Param;
 public interface HandoverRecordRepository
   extends JpaRepository<HandoverRecord, String> {
   Optional<HandoverRecord> findFirstByContractIdOrderByHandoverDateDesc(String contractId);
+  List<HandoverRecord> findByContractIdInOrderByHandoverDateDesc(Collection<String> contractIds);
   List<HandoverRecord> findByConfirmationDeadlineAtLessThanEqual(LocalDateTime now);
 }

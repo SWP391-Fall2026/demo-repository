@@ -59,13 +59,12 @@ public class RefundRequestService {
     this.handoverReviews = handoverReviews;
   }
 
+  @Transactional(readOnly = true)
   public List<RefundRequest> list() {
     var u = actor.require("CUSTOMER", "STAFF", "FMANAGER");
-    return refunds
-      .findAll()
-      .stream()
-      .filter(r -> actor.visible(u, r.getUserId(), r.getFacilityCode()))
-      .toList();
+    return "CUSTOMER".equals(actor.role(u))
+      ? refunds.findByUserId(u.getId())
+      : refunds.findByFacilityCode(u.getFacilityCode());
   }
 
   @Transactional
@@ -132,9 +131,8 @@ public class RefundRequestService {
             Inputs.conflict("Cần nghiệm thu trả kho trước khi hoàn cọc")
           );
         if ("DEPOSIT".equals(p.getInvoiceType())) base = inspections
-          .findAll()
+          .findByContractId(c.getId())
           .stream()
-          .filter(i -> c.getId().equals(i.getContractId()))
           .map(i -> i.getDepositRefundAmount())
           .findFirst()
           .orElse(BigDecimal.ZERO);

@@ -13,6 +13,9 @@ public interface ReservationRepository
   List<Reservation> findByUserId(String id);
   List<Reservation> findByFacilityCode(String code);
   List<Reservation> findByStatus(String status);
+  List<Reservation> findByStatusAndCreatedAtLessThanEqual(String status, LocalDateTime cutoff);
+  List<Reservation> findByStatusAndReservationExpiresAtLessThanEqual(String status, LocalDateTime now);
+  List<Reservation> findByStatusAndNoShowAlertAtIsNull(String status);
 
   interface HoldCount {
     String getFacilityCode();

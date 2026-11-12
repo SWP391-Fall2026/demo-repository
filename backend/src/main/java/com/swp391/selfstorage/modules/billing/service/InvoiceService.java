@@ -30,13 +30,12 @@ public class InvoiceService {
     actor = a;
   }
 
+  @Transactional(readOnly = true)
   public List<Invoice> list() {
     var u = actor.require("CUSTOMER", "STAFF", "FMANAGER");
-    return repo
-      .findAll()
-      .stream()
-      .filter(i -> actor.visible(u, i.getUserId(), i.getFacilityCode()))
-      .toList();
+    return "CUSTOMER".equals(actor.role(u))
+      ? repo.findByUserId(u.getId())
+      : repo.findByFacilityCode(u.getFacilityCode());
   }
 
   public Invoice issue(

@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
 public interface PaymentRepository extends JpaRepository<Payment, String> {
+  List<Payment> findByUserId(String userId);
+  List<Payment> findByFacilityCode(String facilityCode);
   List<Payment> findByReservationId(String id);
   List<Payment> findByContractId(String id);
   Optional<Payment> findByIdempotencyKey(String key);

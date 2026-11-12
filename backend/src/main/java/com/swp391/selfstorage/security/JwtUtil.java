@@ -36,7 +36,8 @@ public class JwtUtil {
     claims.put("role", role);
     if (facilityCode != null) claims.put("facilityCode", facilityCode);
     Instant issued = clock.instant();
-    return Jwts.builder().subject(username).claims(claims)
+    return Jwts.builder().id(java.util.UUID.randomUUID().toString())
+        .subject(username).claims(claims)
         .issuedAt(Date.from(issued)).expiration(Date.from(issued.plusMillis(expiration)))
         .signWith(key).compact();
   }

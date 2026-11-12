@@ -2,11 +2,20 @@
 // Simulates the full Postman collection execution
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:8080/api';
+const CUSTOMER_USER = process.env.TEST_CUSTOMER_USER || 'customer';
+const CUSTOMER_PASS = process.env.TEST_CUSTOMER_PASS || 'Demo123!';
+const MANAGER_USER = process.env.TEST_MANAGER_USER || 'manager';
+const MANAGER_PASS = process.env.TEST_MANAGER_PASS || 'Demo123!';
+const STAFF_USER = process.env.TEST_STAFF_USER || 'staff';
+const STAFF_PASS = process.env.TEST_STAFF_PASS || 'Demo123!';
+const ADMIN_USER = process.env.TEST_ADMIN_USER || 'admin';
+const ADMIN_PASS = process.env.TEST_ADMIN_PASS || 'Demo123!';
 
 let customerToken = '';
 let managerToken = '';
 let staffToken = '';
 let adminToken = '';
+let targetContractId = 'CTR-HN-CG-1001';
 let accessRequestId = '';
 let accessPin = '778899';
 
@@ -62,7 +71,7 @@ async function run() {
     console.log(`--- [01] Authentication & Multi-Role Login ---`);
     const custLogin = await request('01.1 Customer Login', '/auth/login', {
         method: 'POST',
-        body: { username: 'customer', password: 'Demo123!' },
+        body: { username: CUSTOMER_USER, password: CUSTOMER_PASS },
         expectedStatus: 200
     });
     if (custLogin) customerToken = custLogin.token || (custLogin.data && custLogin.data.token);
@@ -74,21 +83,21 @@ async function run() {
 
     const mgrLogin = await request('01.3 Facility Manager Login', '/auth/login', {
         method: 'POST',
-        body: { username: 'manager', password: 'Demo123!' },
+        body: { username: MANAGER_USER, password: MANAGER_PASS },
         expectedStatus: 200
     });
     if (mgrLogin) managerToken = mgrLogin.token || (mgrLogin.data && mgrLogin.data.token);
 
     const stfLogin = await request('01.4 Staff Login', '/auth/login', {
         method: 'POST',
-        body: { username: 'staff', password: 'Demo123!' },
+        body: { username: STAFF_USER, password: STAFF_PASS },
         expectedStatus: 200
     });
     if (stfLogin) staffToken = stfLogin.token || (stfLogin.data && stfLogin.data.token);
 
     const admLogin = await request('01.5 Admin Login', '/auth/login', {
         method: 'POST',
-        body: { username: 'admin', password: 'Demo123!' },
+        body: { username: ADMIN_USER, password: ADMIN_PASS },
         expectedStatus: 200
     });
     if (admLogin) adminToken = admLogin.token || (admLogin.data && admLogin.data.token);
@@ -106,18 +115,23 @@ async function run() {
 
     // --- 03. Contracts & Customer Rentals ---
     console.log(`\n--- [03] Contracts & Customer Rentals ---`);
-    await request('03.1 List Customer Contracts', '/contracts', {
+    const contractsRes = await request('03.1 List Customer Contracts', '/contracts', {
         headers: { Authorization: `Bearer ${customerToken}` },
         expectedStatus: 200
     });
-    await request('03.2 Get Contract Detail (CTR-HN-CG-1001)', '/contracts/CTR-HN-CG-1001', {
+    const activeContract = Array.isArray(contractsRes?.data)
+        ? contractsRes.data.find((c) => ['ACTIVE', 'EXPIRING_SOON'].includes(String(c.status)))
+        : null;
+    if (activeContract?.id) targetContractId = String(activeContract.id);
+    const targetFacilityCode = activeContract?.facilityCode || 'HN-CG';
+    await request(`03.2 Get Contract Detail (${targetContractId})`, `/contracts/${targetContractId}`, {
         headers: { Authorization: `Bearer ${customerToken}` },
         expectedStatus: 200
     });
 
     // --- 04. Access Control Flow (Check-in & Check-out) ---
     console.log(`\n--- [04] Access Control (Dynamic 6-digit PIN & Check-in / Check-out) ---`);
-    const reqRes = await request('04.1 Customer Request Access', '/contracts/CTR-HN-CG-1001/access-requests', {
+    const reqRes = await request('04.1 Customer Request Access', `/contracts/${targetContractId}/access-requests`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${customerToken}` },
         body: { purpose: 'Cất thêm 2 thùng hàng gia dụng', notes: 'Có mang theo xe kéo hàng' },
@@ -126,7 +140,7 @@ async function run() {
     if (reqRes && reqRes.data) accessRequestId = reqRes.data.id;
 
     if (accessRequestId) {
-        const appRes = await request(`04.2 Manager Approve Request (${accessRequestId})`, `/facilities/HN-CG/access-requests/${accessRequestId}/approve`, {
+        const appRes = await request(`04.2 Manager Approve Request (${accessRequestId})`, `/facilities/${targetFacilityCode}/access-requests/${accessRequestId}/approve`, {
             method: 'POST',
             headers: { Authorization: `Bearer ${managerToken}` },
             body: { pin: '778899', notes: 'Quản lý duyệt và cấp mã PIN 6 số' },
@@ -134,14 +148,14 @@ async function run() {
         });
         if (appRes && appRes.data && appRes.data.accessPin) accessPin = appRes.data.accessPin;
 
-        await request(`04.3 Customer Check-in with PIN (${accessPin})`, '/contracts/CTR-HN-CG-1001/access-checkin', {
+        await request(`04.3 Customer Check-in with PIN (${accessPin})`, `/contracts/${targetContractId}/access-checkin`, {
             method: 'POST',
             headers: { Authorization: `Bearer ${customerToken}` },
             body: { pin: accessPin },
             expectedStatus: 200
         });
 
-        await request('04.4 Customer Safety Check-out', '/contracts/CTR-HN-CG-1001/access-checkout', {
+        await request('04.4 Customer Safety Check-out', `/contracts/${targetContractId}/access-checkout`, {
             method: 'POST',
             headers: { Authorization: `Bearer ${customerToken}` },
             body: { notes: 'Đã khóa cửa kho an toàn' },
@@ -178,6 +192,19 @@ async function run() {
     await request('06.3 System Audit Logs', '/audit-logs', {
         headers: { Authorization: `Bearer ${adminToken}` },
         expectedStatus: 200
+    });
+
+    // --- 07. Server-side Logout & Token Revocation ---
+    console.log(`\n--- [07] Server-side Logout & JWT Revocation ---`);
+    await request('07.1 Customer Logout (/auth/logout)', '/auth/logout', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${customerToken}` },
+        expectedStatus: 200
+    });
+    await request('07.2 Replay Revoked Token Must Return 401', '/auth/me', {
+        headers: { Authorization: `Bearer ${customerToken}` },
+        expectedStatus: 401,
+        expectSuccess: false
     });
 
     console.log(`\n======================================================`);

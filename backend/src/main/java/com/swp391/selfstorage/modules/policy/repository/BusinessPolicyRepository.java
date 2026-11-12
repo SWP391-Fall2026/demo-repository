@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
 public interface BusinessPolicyRepository
-  extends JpaRepository<BusinessPolicy, String> {}
+  extends JpaRepository<BusinessPolicy, String> {
+  List<BusinessPolicy> findByIdStartingWith(String prefix);
+}

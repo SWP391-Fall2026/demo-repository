@@ -14,7 +14,17 @@ public interface InvoiceRepository extends JpaRepository<Invoice, String> {
     String status
   );
   List<Invoice> findByUserId(String id);
+  List<Invoice> findByFacilityCode(String facilityCode);
   List<Invoice> findByReservationId(String id);
+
+  @Query("""
+      select i from Invoice i
+      where i.contractId = :contractId
+         or (:reservationId is not null and i.reservationId = :reservationId)
+      """)
+  List<Invoice> findByContractOrReservation(
+      @Param("contractId") String contractId,
+      @Param("reservationId") String reservationId);
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query("select i from Invoice i where i.reservationId=:reservationId order by i.id")
   List<Invoice> lockByReservationId(@Param("reservationId") String reservationId);

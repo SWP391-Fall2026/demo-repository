@@ -73,13 +73,31 @@ public class PolicyService {
 
   public Optional<BigDecimal> facilityMonthly(String facilityCode, String type) {
     return repo.findById(facilityPriceKey(facilityCode, type))
-      .map(policy -> {
-        try {
-          return new BigDecimal(policy.getPolicyValue());
-        } catch (NumberFormatException e) {
-          throw new IllegalStateException("Invalid stored policy value for facility price", e);
-        }
-      });
+      .map(policy -> parseFacilityPrice(policy));
+  }
+
+  /** Preloads facility price overrides in one query to avoid per-unit lookups in catalog views. */
+  @Transactional(readOnly = true)
+  public Map<String, BigDecimal> facilityPriceMap(String facilityCode) {
+    String prefix = (facilityCode != null && !facilityCode.isBlank())
+      ? "price.facility." + facilityCode + "."
+      : "price.facility.";
+    Map<String, BigDecimal> prices = new HashMap<>();
+    for (BusinessPolicy policy : repo.findByIdStartingWith(prefix)) {
+      String remainder = policy.getId().substring("price.facility.".length());
+      int sep = remainder.lastIndexOf('.');
+      if (sep <= 0 || sep == remainder.length() - 1) continue;
+      prices.put(remainder.substring(0, sep) + "|" + remainder.substring(sep + 1), parseFacilityPrice(policy));
+    }
+    return prices;
+  }
+
+  private BigDecimal parseFacilityPrice(BusinessPolicy policy) {
+    try {
+      return new BigDecimal(policy.getPolicyValue());
+    } catch (NumberFormatException e) {
+      throw new IllegalStateException("Invalid stored policy value for facility price: " + policy.getId(), e);
+    }
   }
 
   public void validatePrice(String type, BigDecimal price) {
@@ -99,6 +117,7 @@ public class PolicyService {
     return value("cap." + facility, new BigDecimal("50"));
   }
 
+  @Transactional(readOnly = true)
   public Map<String, String> get() {
     Map<String, String> result = new TreeMap<>(DEFAULTS);
     repo.findAll().forEach(p -> result.put(p.getId(), p.getPolicyValue()));
@@ -225,14 +244,9 @@ public class PolicyService {
       maximum != null && standardPrice.compareTo(maximum) > 0
     ) throw Inputs.bad("Khoảng giá phải bao gồm giá chuẩn toàn chuỗi");
     String suffix = "." + type;
-    for (BusinessPolicy stored : repo.findAll()) {
-      if (!stored.getId().startsWith("price.facility.") || !stored.getId().endsWith(suffix)) continue;
-      BigDecimal facilityPrice;
-      try {
-        facilityPrice = new BigDecimal(stored.getPolicyValue());
-      } catch (NumberFormatException e) {
-        throw new IllegalStateException("Invalid stored facility price: " + stored.getId(), e);
-      }
+    for (BusinessPolicy stored : repo.findByIdStartingWith("price.facility.")) {
+      if (!stored.getId().endsWith(suffix)) continue;
+      BigDecimal facilityPrice = parseFacilityPrice(stored);
       if (
         minimum != null && facilityPrice.compareTo(minimum) < 0 ||
         maximum != null && facilityPrice.compareTo(maximum) > 0
@@ -243,8 +257,7 @@ public class PolicyService {
   private String propagateUnitPrice(String key, BigDecimal number) {
     if (!key.matches("price\\.(S|M|L|CLIMATE)")) return "";
     String type = key.substring("price.".length());
-    var affected = units.findAll().stream()
-      .filter(unit -> type.equals(unit.getType()) && "available".equalsIgnoreCase(unit.getStatus()))
+    var affected = units.findByTypeAndStatusIgnoreCase(type, "available").stream()
       .peek(unit -> unit.setPricePerMonth(number))
       .toList();
     units.saveAll(affected);
