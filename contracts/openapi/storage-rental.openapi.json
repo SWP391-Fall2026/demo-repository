@@ -7730,6 +7730,43 @@
         }
       }
     },
+    "/api/auth/logout": {
+      "post": {
+        "operationId": "Auth_logout",
+        "tags": [
+          "identity"
+        ],
+        "summary": "Revoke current JWT session",
+        "description": "Revoke the caller's bearer token server-side until its expiration timestamp and record best-effort logout audit.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token revoked and session closed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, expired, or already revoked JWT",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/handover-reviews": {
       "get": {
         "operationId": "HandoverReview_list",

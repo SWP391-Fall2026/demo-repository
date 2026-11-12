@@ -92,11 +92,12 @@ public class HandoverReviewWorkflow {
         : reviews.findByFacilityCodeOrderByCreatedAtDesc(user.getFacilityCode());
   }
 
+  @Transactional(readOnly = true)
   public Map<String, Object> detail(String id) {
     var review = reviews.findById(id).orElseThrow(Inputs::missing);
     visible(review);
     return Map.of("review", review, "evidence", evidence.findByReviewIdOrderByCreatedAtAsc(id),
-        "refunds", refunds.findAll().stream().filter(r -> id.equals(r.getHandoverReviewId())).toList());
+        "refunds", refunds.findByHandoverReviewId(id));
   }
 
   private HandoverReview create(Context context, String kind, String reason, String source, String by) {

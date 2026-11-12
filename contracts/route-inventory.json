@@ -460,6 +460,11 @@
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/AuthController.java"
   },
   {
+    "method": "post",
+    "path": "/api/auth/logout",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/identity/controller/AuthController.java"
+  },
+  {
     "method": "get",
     "path": "/api/handover-reviews",
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/rental/controller/HandoverReviewController.java"

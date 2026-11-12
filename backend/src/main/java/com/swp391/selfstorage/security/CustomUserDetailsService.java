@@ -31,13 +31,9 @@ public class CustomUserDetailsService implements UserDetailsService {
         )
       );
 
-    return new org.springframework.security.core.userdetails.User(
-      user.getUsername(),
-      user.getPassword(),
+    return new ActorUserPrincipal(
+      user,
       "ACTIVE".equalsIgnoreCase(user.getStatus()),
-      true,
-      true,
-      true,
       Collections.singletonList(
         new SimpleGrantedAuthority(
           "ROLE_" +

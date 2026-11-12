@@ -5,6 +5,8 @@ import com.swp391.selfstorage.common.storage.AttachmentStorage;
 import com.swp391.selfstorage.common.util.ShortIds;
 import com.swp391.selfstorage.common.web.*;
 import com.swp391.selfstorage.modules.audit.service.AuditLogService;
+import com.swp391.selfstorage.modules.rental.entity.Contract;
+import com.swp391.selfstorage.modules.rental.entity.InspectionRecord;
 import com.swp391.selfstorage.modules.rental.entity.ReturnInspectionDispute;
 import com.swp391.selfstorage.modules.rental.repository.ContractRepository;
 import com.swp391.selfstorage.modules.rental.repository.InspectionRecordRepository;
@@ -46,13 +48,36 @@ public class ReturnInspectionReviewWorkflow {
     this.clock = clock;
   }
 
+  @Transactional(readOnly = true)
   public List<ReturnInspectionDispute> list() {
     var user = actor.require("CUSTOMER", "STAFF", "FMANAGER");
     List<ReturnInspectionDispute> rows = "CUSTOMER".equals(actor.role(user))
       ? disputes.findByCustomerIdOrderByCreatedAtDesc(user.getId())
       : disputes.findByFacilityCodeOrderByCreatedAtDesc(user.getFacilityCode());
-    rows.forEach(dispute -> {
-      inspections.findById(dispute.getInspectionId()).ifPresent(inspection -> {
+    if (rows.isEmpty()) return rows;
+
+    Set<String> inspectionIds = new HashSet<>();
+    Set<String> contractIds = new HashSet<>();
+    for (ReturnInspectionDispute dispute : rows) {
+      if (dispute.getInspectionId() != null) inspectionIds.add(dispute.getInspectionId());
+      if (dispute.getContractId() != null) contractIds.add(dispute.getContractId());
+    }
+    Map<String, InspectionRecord> inspectionMap = new HashMap<>();
+    if (!inspectionIds.isEmpty()) {
+      for (InspectionRecord inspection : inspections.findAllById(inspectionIds)) {
+        inspectionMap.put(inspection.getId(), inspection);
+      }
+    }
+    Map<String, Contract> contractMap = new HashMap<>();
+    if (!contractIds.isEmpty()) {
+      for (Contract contract : contracts.findAllById(contractIds)) {
+        contractMap.put(contract.getId(), contract);
+      }
+    }
+
+    for (ReturnInspectionDispute dispute : rows) {
+      InspectionRecord inspection = inspectionMap.get(dispute.getInspectionId());
+      if (inspection != null) {
         dispute.setMaximumDeduction(Optional.ofNullable(inspection.getOriginalPenaltyFee())
           .orElse(Optional.ofNullable(inspection.getPenaltyFee()).orElse(BigDecimal.ZERO)));
         dispute.setCurrentDeduction(inspection.getPenaltyFee());
@@ -60,12 +85,13 @@ public class ReturnInspectionReviewWorkflow {
         dispute.setCleanlinessStatus(inspection.getCleanlinessStatus());
         dispute.setDamageNotes(inspection.getDamageNotes());
         dispute.setInspectionEvidenceAvailable(inspection.getEvidencePath() != null);
-      });
-      contracts.findById(dispute.getContractId()).ifPresent(contract -> {
+      }
+      Contract contract = contractMap.get(dispute.getContractId());
+      if (contract != null) {
         dispute.setUnitCode(contract.getUnitCode());
         dispute.setDepositAmount(contract.getDepositFee());
-      });
-    });
+      }
+    }
     return rows;
   }
 

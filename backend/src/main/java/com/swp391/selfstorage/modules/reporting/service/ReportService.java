@@ -42,21 +42,25 @@ public class ReportService {
     actor = a;
   }
 
+  @Transactional(readOnly = true)
   public Map<String, Object> chain() {
     actor.require("OPS_MGR");
     return aggregate(null, null, null, "month");
   }
 
+  @Transactional(readOnly = true)
   public Map<String, Object> facility() {
     var u = actor.require("FMANAGER");
     return aggregate(u.getFacilityCode(), null, null, "month");
   }
 
+  @Transactional(readOnly = true)
   public Map<String, Object> system() {
     actor.require("ADMIN");
     return Map.of("users", users.count(), "facilities", facilities.count());
   }
 
+  @Transactional(readOnly = true)
   public Map<String, Object> revenue(String facilityCode, String from, String to, String granularity) {
     var u = actor.require("OPS_MGR", "FMANAGER", "ADMIN");
     String requested = "OPS_MGR".equals(actor.role(u)) || "ADMIN".equals(actor.role(u)) ? facilityCode : u.getFacilityCode();
@@ -70,6 +74,7 @@ public class ReportService {
     return aggregate(requested, fromDate, toDate, granularity);
   }
 
+  @Transactional(readOnly = true)
   public Map<String, Object> occupancy(String facilityCode) {
     var u = actor.require("OPS_MGR", "FMANAGER", "ADMIN");
     String rawScope = "OPS_MGR".equals(actor.role(u)) || "ADMIN".equals(actor.role(u)) ? facilityCode : u.getFacilityCode();
@@ -77,18 +82,21 @@ public class ReportService {
     if (rawScope != null && "FMANAGER".equals(actor.role(u))) actor.facility(u, rawScope);
     final String scope = rawScope;
     var scopedUnits = scope == null ? units.findAll() : units.findByFacilityCode(scope);
-    return occupancyBreakdown(scope, scopedUnits);
+    return occupancyBreakdown(scope, scopedUnits, facilities.findAll());
   }
 
   private Map<String, Object> occupancyBreakdown(String code,
-      List<com.swp391.selfstorage.modules.facility.entity.Unit> rows) {
+      List<com.swp391.selfstorage.modules.facility.entity.Unit> rows,
+      List<com.swp391.selfstorage.modules.facility.entity.Facility> allFacilities) {
     List<Map<String, Object>> branches = new ArrayList<>();
     Map<String, String> facilityNames = new HashMap<>();
-    facilities.findAll().forEach(f -> facilityNames.put(f.getCode(), f.getName()));
     Set<String> codes = new TreeSet<>();
-    facilities.findAll().stream()
-      .filter(f -> code == null || code.equals(f.getCode()))
-      .forEach(f -> codes.add(f.getCode()));
+    for (var f : allFacilities) {
+      facilityNames.put(f.getCode(), f.getName());
+      if (code == null || code.equals(f.getCode())) {
+        codes.add(f.getCode());
+      }
+    }
     for (var row : rows) if (row.getFacilityCode() != null) codes.add(row.getFacilityCode());
     if (code != null) codes.add(code);
     for (String branch : codes) {
@@ -225,8 +233,9 @@ public class ReportService {
       .stream()
       .filter(u -> "occupied".equalsIgnoreCase(u.getStatus()))
       .count();
+    var allFacilities = facilities.findAll();
     Map<String, Object> m = new LinkedHashMap<>();
-    m.put("totalBranches", code == null ? facilities.count() : 1);
+    m.put("totalBranches", code == null ? allFacilities.size() : 1);
     m.put("totalUnits", rows.size());
     m.put("occupiedUnits", occupied);
     m.put(
@@ -245,7 +254,7 @@ public class ReportService {
         ? 0
         : Math.round((occupied * 10000.0) / rows.size()) / 100.0
     );
-    m.put("occupancyByBranch", occupancyBreakdown(code, rows));
+    m.put("occupancyByBranch", occupancyBreakdown(code, rows, allFacilities));
     m.put("rentalReceipts", rent);
     m.put("renewalReceipts", renewal);
     m.put("depositReceipts", deposit);
@@ -259,7 +268,7 @@ public class ReportService {
     m.put("revenueBySource", revenueBySource(rentByType, penaltyByType, depositDeductions));
     m.put("revenueTimeline", revenueTimeline(paid, completedRefunds, granularity));
     m.put("hasRevenueData", !paid.isEmpty() || !completedRefunds.isEmpty() || depositDeductions.signum() > 0);
-    m.put("hasData", !paid.isEmpty() || !completedRefunds.isEmpty() || !rows.isEmpty() || facilities.count() > 0);
+    m.put("hasData", !paid.isEmpty() || !completedRefunds.isEmpty() || !rows.isEmpty() || !allFacilities.isEmpty());
     return m;
   }
 

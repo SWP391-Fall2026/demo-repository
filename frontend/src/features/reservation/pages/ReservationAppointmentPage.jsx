@@ -21,14 +21,27 @@ export default function ReservationAppointmentPage() {
     const invoices = useRemote(billingApi.invoices);
     const facilities = useRemote(facilityApi.facilities);
     const reservationRows = sortByNewest(Array.isArray(reservations.data) ? reservations.data : reservations.data ? [reservations.data] : []);
-    const reservationIdsKey = reservationRows.map((row) => `${row.id}:${row.status}:${row.unitCode || ""}`).join("|");
-    const tasks = useRemote(() => Promise.all(reservationRows.map(async (row) => [String(row.id), await reservationApi.checkinTask(String(row.id)).catch(() => ({}))])), [reservationIdsKey]);
+    const activeTaskTargets = reservationRows.filter(
+        (row) => row.status === "RESERVED" && row.unitCode && !row.identityVerifiedAt
+    );
+    const hasActiveTaskTargets = activeTaskTargets.length > 0;
+    const reservationIdsKey = activeTaskTargets.map((row) => `${row.id}:${row.unitCode || ""}`).join("|");
+    const tasks = useRemote(
+        () => activeTaskTargets.length
+            ? Promise.all(activeTaskTargets.map(async (row) => [String(row.id), await reservationApi.checkinTask(String(row.id)).catch(() => ({}))]))
+            : Promise.resolve([]),
+        [reservationIdsKey]
+    );
     const [requesting, setRequesting] = useState(null);
     const [requestError, setRequestError] = useState("");
     useEffect(() => {
-        const timer = window.setInterval(() => { reservations.silentReload(); invoices.silentReload(); tasks.silentReload(); }, 30000);
+        const timer = window.setInterval(() => {
+            reservations.silentReload();
+            invoices.silentReload();
+            if (hasActiveTaskTargets) tasks.silentReload();
+        }, 30000);
         return () => window.clearInterval(timer);
-    }, [reservations.silentReload, invoices.silentReload, tasks.silentReload]);
+    }, [reservations.silentReload, invoices.silentReload, tasks.silentReload, hasActiveTaskTargets]);
     if ((reservations.busy && reservations.data === undefined) || (invoices.busy && invoices.data === undefined))
         return <main className="page-content"><p>Đang tải thẻ hẹn…</p></main>;
     if (reservations.error)

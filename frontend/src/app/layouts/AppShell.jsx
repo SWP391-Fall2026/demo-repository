@@ -1,15 +1,18 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import { Routes, Route, NavLink, Link, useLocation, Navigate } from "react-router-dom";
 import { routes } from "../router";
 import { RoleGuard } from "../guards/RoleGuard";
 import { useSession, sessionStore } from "../../features/identity/session";
-import { facilityApi } from "../../features/facility/api/facility.api";
+import { identityApi } from "../../features/identity/api/identity.api";
+import { facilityApi, FALLBACK_FACILITIES } from "../../features/facility/api/facility.api";
 
 export function AppShell() {
     const session = useSession(), location = useLocation();
+    const internalRole = session?.user?.role;
+    const isBackoffice = Boolean(internalRole && internalRole !== "CUSTOMER");
     const [locationsOpen, setLocationsOpen] = useState(false);
     const [rentalsOpen, setRentalsOpen] = useState(false);
-    const [facilities, setFacilities] = useState([]);
+    const [facilities, setFacilities] = useState(FALLBACK_FACILITIES);
     const locationsRef = useRef(null);
     const rentalsRef = useRef(null);
     const locationsTimer = useRef(null);
@@ -45,10 +48,11 @@ export function AppShell() {
     }, [location.pathname, location.search]);
 
     useEffect(() => {
+        if (isBackoffice) return undefined;
         let cancelled = false;
         facilityApi.facilities()
             .then((list) => {
-                if (!cancelled && Array.isArray(list)) {
+                if (!cancelled && Array.isArray(list) && list.length > 0) {
                     setFacilities(list.filter((f) => !f.status || String(f.status).toUpperCase() === "ACTIVE"));
                 }
             })
@@ -56,7 +60,7 @@ export function AppShell() {
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [isBackoffice]);
 
     const facilitiesByCity = facilities.reduce((acc, item) => {
         const city = item.city || "Khu vực khác";
@@ -91,6 +95,15 @@ export function AppShell() {
     }, [locationsOpen, rentalsOpen]);
 
     const auth = ["/login", "/register", "/verify-otp"].includes(location.pathname);
+    async function handleLogout() {
+        try {
+            if (sessionStore.get()?.token)
+                await identityApi.logout();
+        }
+        finally {
+            sessionStore.set(null);
+        }
+    }
     const labels = {
         CUSTOMER: "Khách hàng",
         STAFF: "Nhân viên cơ sở",
@@ -198,8 +211,6 @@ export function AppShell() {
         },
     };
 
-    const internalRole = session?.user?.role;
-    const isBackoffice = internalRole && internalRole !== "CUSTOMER";
     const roleShell = isBackoffice ? roleShells[internalRole] : null;
 
     if (isBackoffice) {
@@ -218,26 +229,28 @@ export function AppShell() {
     }
 
     const pageRoutes = (
-        <Routes>
-            {routes.map((r) => (
+        <Suspense fallback={<div className="page-content"><p>Đang tải trang…</p></div>}>
+            <Routes>
+                {routes.map((r) => (
+                    <Route
+                        key={r.path}
+                        path={r.path}
+                        element={<RoleGuard roles={r.roles}>{r.element}</RoleGuard>}
+                    />
+                ))}
                 <Route
-                    key={r.path}
-                    path={r.path}
-                    element={<RoleGuard roles={r.roles}>{r.element}</RoleGuard>}
+                    path="*"
+                    element={
+                        <section className="card empty">
+                            <h1>Không tìm thấy trang</h1>
+                            <Link to={isBackoffice ? (links[0]?.[0] || "/admin/overview") : "/"}>
+                                {isBackoffice ? "Về bàn làm việc" : "Về trang chủ"}
+                            </Link>
+                        </section>
+                    }
                 />
-            ))}
-            <Route
-                path="*"
-                element={
-                    <section className="card empty">
-                        <h1>Không tìm thấy trang</h1>
-                        <Link to={isBackoffice ? (links[0]?.[0] || "/admin/overview") : "/"}>
-                            {isBackoffice ? "Về bàn làm việc" : "Về trang chủ"}
-                        </Link>
-                    </section>
-                }
-            />
-        </Routes>
+            </Routes>
+        </Suspense>
     );
 
     if (roleShell) {
@@ -273,7 +286,7 @@ export function AppShell() {
                             <button
                                 type="button"
                                 className="role-logout-btn"
-                                onClick={() => sessionStore.set(null)}
+                                onClick={handleLogout}
                             >
                                 Đăng xuất
                             </button>
@@ -361,14 +374,6 @@ export function AppShell() {
 
                                 {locationsOpen && (
                                     <div className="navbar-dropdown-menu locations-dropdown">
-                                        {facilities.length === 0 && (
-                                            <div className="dropdown-section">
-                                                <div className="dropdown-city-title">CHƯA CÓ DANH SÁCH CƠ SỞ</div>
-                                                <Link to="/storage" className="dropdown-location-link" onClick={() => setLocationsOpen(false)}>
-                                                    <span className="location-name">Xem kho còn trống</span>
-                                                </Link>
-                                            </div>
-                                        )}
                                         {Object.entries(facilitiesByCity).map(([city, cityFacilities]) => (
                                             <div className="dropdown-section" key={city}>
                                                 <div className="dropdown-city-title">{city.toUpperCase()}</div>
@@ -589,7 +594,7 @@ export function AppShell() {
                                     <button
                                         type="button"
                                         className="figma-btn figma-btn-outline btn-sm"
-                                        onClick={() => sessionStore.set(null)}
+                                        onClick={handleLogout}
                                     >
                                         Đăng xuất
                                     </button>
@@ -637,8 +642,9 @@ export function AppShell() {
                                 Hệ thống quản lý và cho thuê kho lưu trữ tự phục vụ an toàn, linh hoạt và tiện lợi hàng đầu Việt Nam.
                             </p>
                             <div className="footer-badges">
-                                <span className="footer-pill">Tìm kho theo diện tích</span>
-                                <span className="footer-pill">Quản lý hợp đồng trực tuyến</span>
+                                <span className="footer-pill">🛡️ Bảo vệ 24/7</span>
+                                <span className="footer-pill">❄️ Kiểm soát nhiệt độ</span>
+                                <span className="footer-pill">🔐 Khóa số bảo mật</span>
                             </div>
                         </div>
 
@@ -653,14 +659,14 @@ export function AppShell() {
                             </ul>
                         </div>
 
-                        {/* Col 3: Useful destinations */}
+                        {/* Col 3: Chính sách & Pháp lý */}
                         <div className="footer-col">
-                            <h4>Hướng dẫn</h4>
+                            <h4>Chính sách &amp; Pháp lý</h4>
                             <ul>
-                                <li><a href="/#quy-trinh">Quy trình thuê kho</a></li>
-                                <li><a href="/#cau-hoi">Câu hỏi thường gặp</a></li>
-                                <li><Link to="/storage">Tìm kho còn trống</Link></li>
-                                <li><Link to="/login">Quản lý kho đang thuê</Link></li>
+                                <li><a href="#rules">Tiêu chuẩn sử dụng</a></li>
+                                <li><a href="#privacy">Chính sách bảo mật</a></li>
+                                <li><a href="#terms">Quy định lưu trữ</a></li>
+                                <li><a href="#insurance">Bảo hiểm tài sản</a></li>
                             </ul>
                         </div>
 
@@ -668,15 +674,16 @@ export function AppShell() {
                         <div className="footer-col contact-col">
                             <h4>Hỗ trợ &amp; Liên hệ</h4>
                             <ul>
-                                <li>📞 Liên hệ: <a href="tel:02877700117">028 7770 0117</a></li>
-                                <li><Link to="/login">Đăng nhập để gửi yêu cầu hỗ trợ</Link></li>
+                                <li>📞 Hotline: <strong>1900 6868</strong></li>
+                                <li>✉️ Email: <strong>hotro@storage.vn</strong></li>
+                                <li>🕒 08:00 - 20:00 hàng ngày (Cả T7 &amp; CN)</li>
                             </ul>
                         </div>
                     </div>
 
                     <div className="footer-bottom">
                         <p>© 2026 STORAGE RENTAL. Bản quyền thuộc về Hệ thống Cho thuê Kho Tự Quản Thông Minh.</p>
-                        <span>Kho Gọn Storage</span>
+                        <span>Phiên bản 2.0 · Tiêu chuẩn chất lượng ISO 9001:2026</span>
                     </div>
                 </div>
             </footer>

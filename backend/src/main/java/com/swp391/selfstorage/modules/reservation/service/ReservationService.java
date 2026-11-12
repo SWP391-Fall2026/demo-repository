@@ -33,6 +33,7 @@ public class ReservationService {
     this.units = units;
   }
 
+  @Transactional(readOnly = true)
   public List<Reservation> list() {
     var u = actor.require("CUSTOMER", "STAFF", "FMANAGER");
     var rows = "CUSTOMER".equals(actor.role(u))
@@ -42,6 +43,7 @@ public class ReservationService {
       Comparator.nullsFirst(Comparator.naturalOrder())).reversed()).toList();
   }
 
+  @Transactional(readOnly = true)
   public Reservation get(String id) {
     var u = actor.current();
     var r = repo.findById(id).orElseThrow(Inputs::missing);
@@ -51,6 +53,7 @@ public class ReservationService {
     return r;
   }
 
+  @Transactional(readOnly = true)
   public Map<String, Object> quote(Map<String, Object> d) {
     String type = Inputs.text(d, "unitType");
     int months = Integer.parseInt(

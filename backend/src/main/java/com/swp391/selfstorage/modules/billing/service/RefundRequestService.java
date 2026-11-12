@@ -59,15 +59,14 @@ public class RefundRequestService {
     this.handoverReviews = handoverReviews;
   }
 
+  @Transactional(readOnly = true)
   public List<RefundRequest> list() {
     var u = actor.require("CUSTOMER", "STAFF", "FMANAGER");
-    return refunds
-      .findAll()
-      .stream()
-      .filter(r -> actor.visible(u, r.getUserId(), r.getFacilityCode()))
-      .sorted(Comparator.comparing(RefundRequest::getCreatedAt,
-        Comparator.nullsFirst(Comparator.naturalOrder())).reversed())
-      .toList();
+    List<RefundRequest> rows = "CUSTOMER".equals(actor.role(u))
+      ? refunds.findByUserId(u.getId())
+      : refunds.findByFacilityCode(u.getFacilityCode());
+    return rows.stream().sorted(Comparator.comparing(RefundRequest::getCreatedAt,
+      Comparator.nullsFirst(Comparator.naturalOrder())).reversed()).toList();
   }
 
   @Transactional

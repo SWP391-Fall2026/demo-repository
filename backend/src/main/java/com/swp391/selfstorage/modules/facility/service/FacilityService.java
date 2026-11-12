@@ -45,6 +45,7 @@ public class FacilityService {
     this.clock = clock;
   }
 
+  @Transactional(readOnly = true)
   public List<Facility> facilities() {
     return facilities.findAll();
   }
@@ -57,6 +58,9 @@ public class FacilityService {
     if (facilityCode != null && facilityCode.isBlank()) facilityCode = null;
     var candidates = units.findAvailableForCatalog(facilityCode, minSize, maxSize, null, null);
     if (candidates.isEmpty()) return List.of();
+
+    // Preload facility price overrides in bulk instead of querying business_policy per unit.
+    Map<String, BigDecimal> facilityPrices = policy.facilityPriceMap(facilityCode);
 
     // Holds reserve capacity by facility/type, not a particular unit or a filtered subset.
     Map<String, Map<String, Long>> remaining = new HashMap<>();
@@ -72,38 +76,40 @@ public class FacilityService {
             (type, available) -> Math.max(0L, available - hold.getQuantity()));
       }
     }
-    return candidates
-      .stream()
-      .filter(u -> {
-        var byType = remaining.get(u.getFacilityCode());
-        long available = byType == null ? 0 : byType.getOrDefault(u.getType(), 0L);
-        if (available == 0) return false;
-        byType.put(u.getType(), available - 1);
-        return true;
-      })
-      .filter(u -> {
-        BigDecimal effectivePrice = policy.facilityMonthly(u.getFacilityCode(), u.getType())
-          .orElse(u.getPricePerMonth());
-        return (minPrice == null || effectivePrice.compareTo(minPrice) >= 0)
-          && (maxPrice == null || effectivePrice.compareTo(maxPrice) <= 0);
-      })
-      .map(u -> {
-        Map<String, Object> m = new LinkedHashMap<>();
-        m.put("code", u.getCode());
-        m.put("facilityCode", u.getFacilityCode());
-        m.put("type", u.getType());
-        m.put("sizeDesc", u.getSizeDesc());
-        m.put("sizeSqm", u.getSizeSqm());
-        m.put(
-          "pricePerMonth",
-          policy.facilityMonthly(u.getFacilityCode(), u.getType()).orElse(u.getPricePerMonth())
-        );
-        m.put("status", u.getStatus());
-        m.put("imageUrl", u.getImageUrl());
-        m.put("imageAltText", u.getImageAltText());
-        return m;
-      })
-      .toList();
+    List<Map<String, Object>> items = new ArrayList<>();
+    for (Unit u : candidates) {
+      var byType = remaining.get(u.getFacilityCode());
+      long available = byType == null ? 0 : byType.getOrDefault(u.getType(), 0L);
+      if (available == 0) continue;
+      byType.put(u.getType(), available - 1);
+
+      BigDecimal effectivePrice = resolveEffectivePrice(u, facilityPrices);
+      if ((minPrice != null && effectivePrice.compareTo(minPrice) < 0)
+          || (maxPrice != null && effectivePrice.compareTo(maxPrice) > 0)) {
+        continue;
+      }
+
+      Map<String, Object> m = new LinkedHashMap<>();
+      m.put("code", u.getCode());
+      m.put("facilityCode", u.getFacilityCode());
+      m.put("type", u.getType());
+      m.put("sizeDesc", u.getSizeDesc());
+      m.put("sizeSqm", u.getSizeSqm());
+      m.put("pricePerMonth", effectivePrice);
+      m.put("status", u.getStatus());
+      m.put("imageUrl", u.getImageUrl());
+      m.put("imageAltText", u.getImageAltText());
+      items.add(m);
+    }
+    return items;
+  }
+
+  private BigDecimal resolveEffectivePrice(Unit u, Map<String, BigDecimal> facilityPrices) {
+    if (facilityPrices != null) {
+      BigDecimal override = facilityPrices.get(u.getFacilityCode() + "|" + u.getType());
+      if (override != null) return override;
+    }
+    return u.getPricePerMonth();
   }
 
   private void validateRange(String label, BigDecimal minimum, BigDecimal maximum) {
@@ -115,6 +121,7 @@ public class FacilityService {
     }
   }
 
+  @Transactional(readOnly = true)
   public List<Unit> managed() {
     var u = actor.require("STAFF", "FMANAGER");
     return units.findByFacilityCode(u.getFacilityCode());
@@ -159,10 +166,9 @@ public class FacilityService {
     if (!name.isBlank()) {
       String trimmed = name.trim();
       if (trimmed.length() > 255) throw Inputs.bad("Tên cơ sở tối đa 255 ký tự");
-      boolean duplicate = facilities.findAll().stream().anyMatch(existing ->
-        existing.getName() != null &&
-        trimmed.equalsIgnoreCase(existing.getName().trim()) && !existing.getCode().equals(f.getCode()));
-      if (duplicate) throw Inputs.conflict("Trùng tên cơ sở");
+      if (facilities.existsByNameIgnoreCaseAndCodeNot(trimmed, f.getCode())) {
+        throw Inputs.conflict("Trùng tên cơ sở");
+      }
       f.setName(trimmed);
     } else if (required) throw Inputs.bad("name is required");
     String address = required ? Inputs.text(d, "address") : Inputs.optional(d, "address");
