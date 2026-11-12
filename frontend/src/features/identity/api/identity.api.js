@@ -1,6 +1,7 @@
 import { request, envelope, json } from "../../../shared/api/http-client";
 export const identityApi = {
     login: (data) => envelope("/auth/login", json("POST", data)),
+    logout: () => envelope("/auth/logout", { method: "POST", signal: AbortSignal.timeout(3000) }).catch(() => null),
     sendOtp: (data) => envelope("/auth/send-otp", json("POST", data)),
     resendOtp: (email) => envelope("/auth/resend-otp", json("POST", { email })),
     me: () => request("/auth/me"),

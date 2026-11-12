@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 public interface ContractRepository extends JpaRepository<Contract, String> {
   List<Contract> findByUserId(String id);
   List<Contract> findByFacilityCode(String code);
+  List<Contract> findByStatusInAndEndAtLessThan(Collection<String> statuses, LocalDateTime now);
   List<Contract> findByUnitCodeOrderByCreatedAtDesc(String unit);
   Optional<Contract> findFirstByUnitCodeAndStatusInOrderByCreatedAtDesc(
     String code,

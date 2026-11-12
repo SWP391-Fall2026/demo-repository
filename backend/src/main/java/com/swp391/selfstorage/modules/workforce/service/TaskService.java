@@ -7,11 +7,14 @@ import com.swp391.selfstorage.modules.audit.service.AuditLogService;
 import com.swp391.selfstorage.modules.identity.repository.UserRepository;
 import com.swp391.selfstorage.modules.identity.entity.User;
 import com.swp391.selfstorage.modules.billing.service.InvoiceService;
-import com.swp391.selfstorage.modules.reservation.entity.Reservation;
+import com.swp391.selfstorage.modules.facility.entity.Unit;
 import com.swp391.selfstorage.modules.facility.repository.FacilityRepository;
 import com.swp391.selfstorage.modules.facility.repository.UnitRepository;
+import com.swp391.selfstorage.modules.rental.entity.Contract;
+import com.swp391.selfstorage.modules.rental.entity.InspectionRecord;
 import com.swp391.selfstorage.modules.rental.repository.ContractRepository;
 import com.swp391.selfstorage.modules.rental.repository.InspectionRecordRepository;
+import com.swp391.selfstorage.modules.reservation.entity.Reservation;
 import com.swp391.selfstorage.modules.reservation.repository.ReservationRepository;
 import com.swp391.selfstorage.modules.workforce.entity.DailyTask;
 import com.swp391.selfstorage.modules.workforce.repository.DailyTaskRepository;
@@ -67,31 +70,69 @@ public class TaskService {
     this.passwordEncoder = passwordEncoder;
   }
 
+  @Transactional(readOnly = true)
   public List<DailyTask> list() {
     var u = actor.require("STAFF", "FMANAGER");
     List<DailyTask> rows = "STAFF".equals(actor.role(u))
       ? tasks.findByStaffId(u.getId())
       : tasks.findByFacilityCode(u.getFacilityCode());
-    rows.forEach(this::enrichReturn);
+    Set<String> contractIds = new HashSet<>();
+    Set<String> unitCodes = new HashSet<>();
+    for (DailyTask task : rows) {
+      if ("RETURN".equals(task.getTaskType()) && task.getContractId() != null) {
+        contractIds.add(task.getContractId());
+        if (task.getUnitCode() != null) unitCodes.add(task.getUnitCode());
+      }
+    }
+    if (contractIds.isEmpty()) return rows;
+
+    Map<String, Contract> contractMap = loadContracts(contractIds);
+    Map<String, InspectionRecord> inspectionMap = loadLatestInspections(contractIds);
+    Map<String, Unit> unitMap = new HashMap<>();
+    if (!unitCodes.isEmpty()) {
+      for (Unit unit : units.findAllById(unitCodes)) {
+        unitMap.put(unit.getCode(), unit);
+      }
+    }
+    for (DailyTask task : rows) {
+      if (!"RETURN".equals(task.getTaskType()) || task.getContractId() == null) continue;
+      Contract contract = contractMap.get(task.getContractId());
+      if (contract != null) {
+        task.setCustomerName(contract.getCustomerName());
+        task.setCustomerPhone(contract.getCustomerPhone());
+        task.setCheckoutRequestedDate(contract.getCheckoutRequestedDate());
+        task.setCheckoutReason(contract.getCheckoutReason());
+      }
+      if (task.getUnitCode() != null) {
+        Unit unit = unitMap.get(task.getUnitCode());
+        if (unit != null) task.setUnitType(unit.getType());
+      }
+      InspectionRecord inspection = inspectionMap.get(task.getContractId());
+      if (inspection != null) {
+        task.setInspectionStatus(inspection.getStatus());
+        task.setInspectionPenaltyFee(inspection.getPenaltyFee());
+        task.setInspectionRefundAmount(inspection.getDepositRefundAmount());
+      }
+    }
     return rows;
   }
 
-  private void enrichReturn(DailyTask task) {
-    if (!"RETURN".equals(task.getTaskType()) || task.getContractId() == null) return;
-    contracts.findById(task.getContractId()).ifPresent(contract -> {
-      task.setCustomerName(contract.getCustomerName());
-      task.setCustomerPhone(contract.getCustomerPhone());
-      task.setCheckoutRequestedDate(contract.getCheckoutRequestedDate());
-      task.setCheckoutReason(contract.getCheckoutReason());
-    });
-    if (task.getUnitCode() != null) {
-      units.findById(task.getUnitCode()).ifPresent(unit -> task.setUnitType(unit.getType()));
+  private Map<String, Contract> loadContracts(Collection<String> contractIds) {
+    Map<String, Contract> map = new HashMap<>();
+    if (contractIds.isEmpty()) return map;
+    for (Contract c : contracts.findAllById(contractIds)) {
+      map.put(c.getId(), c);
     }
-    inspections.findFirstByContractIdOrderByInspectionDateDesc(task.getContractId()).ifPresent(inspection -> {
-      task.setInspectionStatus(inspection.getStatus());
-      task.setInspectionPenaltyFee(inspection.getPenaltyFee());
-      task.setInspectionRefundAmount(inspection.getDepositRefundAmount());
-    });
+    return map;
+  }
+
+  private Map<String, InspectionRecord> loadLatestInspections(Collection<String> contractIds) {
+    Map<String, InspectionRecord> map = new HashMap<>();
+    if (contractIds.isEmpty()) return map;
+    for (InspectionRecord inspection : inspections.findByContractIdInOrderByInspectionDateDesc(contractIds)) {
+      map.putIfAbsent(inspection.getContractId(), inspection);
+    }
+    return map;
   }
 
   @Transactional
@@ -220,12 +261,11 @@ public class TaskService {
     t.setDeadline("17:00");
     t.setStatus("PENDING");
     var staff = users
-      .findAll()
+      .findByFacilityCode(facility)
       .stream()
       .filter(
         u ->
           "STAFF".equals(u.getRole()) &&
-          Objects.equals(u.getFacilityCode(), facility) &&
           "ACTIVE".equals(u.getStatus())
       )
       .findFirst();
@@ -338,10 +378,11 @@ public class TaskService {
     units.save(unit);
   }
 
+  @Transactional(readOnly = true)
   public List<Map<String, String>> staffOptions() {
     var manager = actor.require("FMANAGER");
-    return users.findAll().stream()
-      .filter(u -> "STAFF".equals(actor.role(u)) && "ACTIVE".equals(u.getStatus()) && Objects.equals(manager.getFacilityCode(), u.getFacilityCode()))
+    return users.findByFacilityCode(manager.getFacilityCode()).stream()
+      .filter(u -> "STAFF".equals(actor.role(u)) && "ACTIVE".equals(u.getStatus()))
       .map(u -> Map.of("id", u.getId(), "name", u.getName(), "username", u.getUsername()))
       .toList();
   }
@@ -374,12 +415,21 @@ public class TaskService {
           });
     }
     Map<String, Long> taskCounts = new HashMap<>();
+    Set<String> returnContractIds = new HashSet<>();
+    Set<String> reservationIds = new HashSet<>();
     for (DailyTask task : facilityTasks) {
-      if (task.getStaffId() != null && !"COMPLETED".equals(task.getStatus()))
+      if (task.getStaffId() != null && !"COMPLETED".equals(task.getStatus())) {
         taskCounts.merge(task.getStaffId(), 1L, Long::sum);
+      }
+      if ("RETURN".equals(task.getTaskType()) && task.getContractId() != null) {
+        returnContractIds.add(task.getContractId());
+      }
+      if (task.getReservationId() != null) {
+        reservationIds.add(task.getReservationId());
+      }
     }
-    var staff = users.findAll().stream()
-        .filter(user -> "STAFF".equals(actor.role(user)) && Objects.equals(facilityCode, user.getFacilityCode()))
+    var staff = users.findByFacilityCode(facilityCode).stream()
+        .filter(user -> "STAFF".equals(actor.role(user)))
         .map(user -> Map.<String, Object>of(
             "id", user.getId(), "name", Objects.toString(user.getName(), ""),
             "username", Objects.toString(user.getUsername(), ""), "status", Objects.toString(user.getStatus(), ""),
@@ -387,15 +437,31 @@ public class TaskService {
             "openTaskCount", taskCounts.getOrDefault(user.getId(), 0L),
             "canReceiveTasks", "ACTIVE".equalsIgnoreCase(user.getStatus())))
         .toList();
-    var unitRows = units.findByFacilityCode(facilityCode).stream().map(unit -> {
+    List<Unit> unitEntities = units.findByFacilityCode(facilityCode);
+    Map<String, Unit> unitMap = new HashMap<>();
+    LocalDateTime now = LocalDateTime.now(clock);
+    var unitRows = unitEntities.stream().map(unit -> {
+      unitMap.put(unit.getCode(), unit);
       Map<String, Object> row = new LinkedHashMap<>();
       row.put("code", unit.getCode()); row.put("type", unit.getType()); row.put("status", unit.getStatus());
       row.put("size", unit.getSizeDesc());
-      boolean pinValid = unit.getTemporaryPinExpiresAt() != null && unit.getTemporaryPinExpiresAt().isAfter(LocalDateTime.now(clock));
+      boolean pinValid = unit.getTemporaryPinExpiresAt() != null && unit.getTemporaryPinExpiresAt().isAfter(now);
       row.put("temporaryPin", pinValid ? Objects.toString(unit.getTemporaryPin(), "") : "");
       row.put("temporaryPinExpiresAt", pinValid ? unit.getTemporaryPinExpiresAt() : null);
       return row;
     }).toList();
+
+    Map<String, Contract> contractMap = loadContracts(returnContractIds);
+    Map<String, InspectionRecord> inspectionMap = loadLatestInspections(returnContractIds);
+    Map<String, Reservation> reservationMap = new HashMap<>();
+    if (!reservationIds.isEmpty()) {
+      for (Reservation r : reservations.findAllById(reservationIds)) {
+        if (Objects.equals(facilityCode, r.getFacilityCode())) {
+          reservationMap.put(r.getId(), r);
+        }
+      }
+    }
+
     var taskRows = facilityTasks.stream().map(task -> {
       Map<String, Object> row = new LinkedHashMap<>();
       row.put("id", task.getId()); row.put("title", task.getTitle()); row.put("taskType", task.getTaskType());
@@ -405,32 +471,37 @@ public class TaskService {
       row.put("dueDate", task.getDueDate()); row.put("deadline", task.getDeadline());
       row.put("contractId", task.getContractId());
       if ("RETURN".equals(task.getTaskType()) && task.getContractId() != null) {
-        contracts.findById(task.getContractId()).ifPresent(contract -> {
+        Contract contract = contractMap.get(task.getContractId());
+        if (contract != null) {
           row.put("customerName", contract.getCustomerName());
           row.put("customerPhone", contract.getCustomerPhone());
           row.put("checkoutRequestedDate", contract.getCheckoutRequestedDate());
           row.put("checkoutReason", contract.getCheckoutReason());
           row.put("contractStatus", contract.getStatus());
           row.put("depositFee", contract.getDepositFee());
-        });
-        inspections.findFirstByContractIdOrderByInspectionDateDesc(task.getContractId()).ifPresent(inspection -> {
+        }
+        InspectionRecord inspection = inspectionMap.get(task.getContractId());
+        if (inspection != null) {
           row.put("inspectionStatus", inspection.getStatus());
           row.put("inspectionPenaltyFee", inspection.getPenaltyFee());
           row.put("inspectionRefundAmount", inspection.getDepositRefundAmount());
-        });
+        }
       }
-      if (task.getReservationId() != null) reservations.findById(task.getReservationId())
-          .filter(reservation -> Objects.equals(facilityCode, reservation.getFacilityCode())).ifPresent(reservation -> {
-        row.put("customerName", reservation.getCustomerName()); row.put("customerPhone", reservation.getCustomerPhone());
-        row.put("appointmentAt", reservation.getAppointmentAt()); row.put("startDate", reservation.getStartDate());
-        row.put("durationMonths", reservation.getDurationMonths()); row.put("reservationStatus", reservation.getStatus());
-        row.put("unitType", reservation.getUnitType()); row.put("facilityCode", reservation.getFacilityCode());
-        if (task.getUnitCode() == null && reservation.getUnitCode() != null)
-          row.put("unitCode", reservation.getUnitCode());
-      });
-      if (task.getUnitCode() != null && !row.containsKey("unitType"))
-        units.findById(task.getUnitCode()).filter(unit -> Objects.equals(facilityCode, unit.getFacilityCode()))
-            .ifPresent(unit -> row.put("unitType", unit.getType()));
+      if (task.getReservationId() != null) {
+        Reservation reservation = reservationMap.get(task.getReservationId());
+        if (reservation != null) {
+          row.put("customerName", reservation.getCustomerName()); row.put("customerPhone", reservation.getCustomerPhone());
+          row.put("appointmentAt", reservation.getAppointmentAt()); row.put("startDate", reservation.getStartDate());
+          row.put("durationMonths", reservation.getDurationMonths()); row.put("reservationStatus", reservation.getStatus());
+          row.put("unitType", reservation.getUnitType()); row.put("facilityCode", reservation.getFacilityCode());
+          if (task.getUnitCode() == null && reservation.getUnitCode() != null)
+            row.put("unitCode", reservation.getUnitCode());
+        }
+      }
+      if (task.getUnitCode() != null && !row.containsKey("unitType")) {
+        Unit unit = unitMap.get(task.getUnitCode());
+        if (unit != null) row.put("unitType", unit.getType());
+      }
       return row;
     }).toList();
     return Map.of(

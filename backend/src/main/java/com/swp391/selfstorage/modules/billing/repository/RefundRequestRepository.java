@@ -12,6 +12,8 @@ public interface RefundRequestRepository
 {
   List<RefundRequest> findByPaymentId(String id);
   List<RefundRequest> findByUserId(String id);
+  List<RefundRequest> findByFacilityCode(String facilityCode);
+  List<RefundRequest> findByHandoverReviewId(String handoverReviewId);
   List<RefundRequest> findByStatusIgnoreCase(String status);
   List<RefundRequest> findByStatusIgnoreCaseAndFacilityCode(String status, String code);
 

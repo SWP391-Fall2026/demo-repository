@@ -2,6 +2,7 @@ package com.swp391.selfstorage.common.security;
 
 import com.swp391.selfstorage.modules.identity.entity.User;
 import com.swp391.selfstorage.modules.identity.repository.UserRepository;
+import com.swp391.selfstorage.security.ActorUserPrincipal;
 import java.util.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,9 +26,11 @@ public class ActorContext {
       HttpStatus.UNAUTHORIZED,
       "Đăng nhập để tiếp tục"
     );
-    User u = users
-      .findByUsername(a.getName())
-      .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+    User u = a.getPrincipal() instanceof ActorUserPrincipal principal
+      ? principal.getDomainUser()
+      : users
+          .findByUsername(a.getName())
+          .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
     if (
       !"ACTIVE".equalsIgnoreCase(u.getStatus())
     ) throw new ResponseStatusException(

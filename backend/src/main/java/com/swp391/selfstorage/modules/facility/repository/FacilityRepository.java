@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
 public interface FacilityRepository extends JpaRepository<Facility, String> {
+  boolean existsByNameIgnoreCaseAndCodeNot(String name, String code);
+
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query("select f from Facility f where f.code=:code")
   Optional<Facility> lockByCode(@Param("code") String code);

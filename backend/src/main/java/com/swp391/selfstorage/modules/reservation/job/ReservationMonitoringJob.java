@@ -44,35 +44,32 @@ public class ReservationMonitoringJob {
   @Transactional
   public void monitor() {
     var now = LocalDateTime.now(clock);
-    for (var candidate : reservations.findByStatus("PENDING_PAYMENT")) {
-      if (
-        !candidate.getCreatedAt().plus(holdPolicy.pendingPaymentHold()).isAfter(now)
-      ) {
-        var pendingInvoices = invoices.lockByReservationId(candidate.getId());
-        var r = reservations.lockById(candidate.getId()).orElseThrow();
-        if (!"PENDING_PAYMENT".equals(r.getStatus())) continue;
-        r.setStatus("EXPIRED");
-        if (r.getUnitCode() != null) {
-          units.lockByCode(r.getUnitCode()).ifPresent(unit -> {
-            if ("reserved".equals(unit.getStatus()) && r.getId().equals(unit.getHeldByReservationId())) {
-              unit.setStatus("available");
-              unit.setTenantName(null);
-              unit.setHeldByReservationId(null);
-              units.save(unit);
-            }
-          });
-        }
-        reservations.save(r);
-        pendingInvoices.forEach(i -> {
-          if ("PENDING".equals(i.getStatus())) {
-            i.setStatus("CANCELLED");
-            invoices.save(i);
+    var pendingCutoff = now.minus(holdPolicy.pendingPaymentHold());
+    for (var candidate : reservations.findByStatusAndCreatedAtLessThanEqual("PENDING_PAYMENT", pendingCutoff)) {
+      var pendingInvoices = invoices.lockByReservationId(candidate.getId());
+      var r = reservations.lockById(candidate.getId()).orElseThrow();
+      if (!"PENDING_PAYMENT".equals(r.getStatus())
+          || r.getCreatedAt().plus(holdPolicy.pendingPaymentHold()).isAfter(now)) continue;
+      r.setStatus("EXPIRED");
+      if (r.getUnitCode() != null) {
+        units.lockByCode(r.getUnitCode()).ifPresent(unit -> {
+          if ("reserved".equals(unit.getStatus()) && r.getId().equals(unit.getHeldByReservationId())) {
+            unit.setStatus("available");
+            unit.setTenantName(null);
+            unit.setHeldByReservationId(null);
+            units.save(unit);
           }
         });
       }
+      reservations.save(r);
+      pendingInvoices.forEach(i -> {
+        if ("PENDING".equals(i.getStatus())) {
+          i.setStatus("CANCELLED");
+          invoices.save(i);
+        }
+      });
     }
-    for (var candidate : reservations.findByStatus("RESERVED")) {
-      if (candidate.getReservationExpiresAt() == null || candidate.getReservationExpiresAt().isAfter(now)) continue;
+    for (var candidate : reservations.findByStatusAndReservationExpiresAtLessThanEqual("RESERVED", now)) {
       var r = reservations.lockById(candidate.getId()).orElseThrow();
       if (!"RESERVED".equals(r.getStatus()) || r.getReservationExpiresAt() == null
           || r.getReservationExpiresAt().isAfter(now)) continue;
@@ -93,12 +90,10 @@ public class ReservationMonitoringJob {
       audit.recordBackground("RESERVATION_HOLD_EXPIRED", r.getId(), r.getFacilityCode(),
           "Hết thời hạn giữ reservation; chuyển NO_SHOW, giải phóng kho và áp dụng chính sách cọc hiện hành");
     }
-    for (var candidate : reservations.findAll()) {
-      if (
-        rules.eligible(candidate, now) && candidate.getNoShowAlertAt() == null
-      ) {
+    for (var candidate : reservations.findByStatusAndNoShowAlertAtIsNull("RESERVED")) {
+      if (rules.eligible(candidate, now)) {
         var r = reservations.lockById(candidate.getId()).orElseThrow();
-        if (rules.eligible(r, now)) {
+        if (rules.eligible(r, now) && r.getNoShowAlertAt() == null) {
           r.setNoShowAlertAt(now);
           reservations.save(r);
         }

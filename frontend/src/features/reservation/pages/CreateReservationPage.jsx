@@ -2,17 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { reservationApi } from "../api/reservation.api";
 import { billingApi } from "../../billing/api/billing.api";
-import { facilityApi } from "../../facility/api/facility.api";
+import { facilityApi, FALLBACK_FACILITIES } from "../../facility/api/facility.api";
 import CustomerRentalGuide from "../components/CustomerRentalGuide";
 import { usePersistedState } from "../../../shared/lib/persisted-state";
-
-const FALLBACK_FACILITY_OPTIONS = [
-    { code: "HN-CG", name: "Cơ sở Cầu Giấy" },
-    { code: "HN-NTL", name: "Cơ sở Nam Từ Liêm" },
-    { code: "HCM-TB", name: "Cơ sở Tân Bình" },
-    { code: "HCM-Q7", name: "Cơ sở Quận 7" },
-    { code: "DN-HC", name: "Cơ sở Hải Châu" },
-];
 
 export default function CreateReservationPage() {
     const [params] = useSearchParams();
@@ -29,7 +21,7 @@ export default function CreateReservationPage() {
     const facilityCode = params.get("facility") || draft.facilityCode || "HN-CG";
     const unitType = params.get("type") || draft.unitType || "S";
     const checkInDate = String(draft.appointmentAt || "").slice(0, 10);
-    const [facilities, setFacilities] = useState(FALLBACK_FACILITY_OPTIONS);
+    const [facilities, setFacilities] = useState(FALLBACK_FACILITIES);
     const unitCode = params.get("unit") || "";
 
     useEffect(() => {
