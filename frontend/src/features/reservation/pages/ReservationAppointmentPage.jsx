@@ -1,7 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useRemote } from "../../../shared/api/use-remote";
-import { display, money } from "../../../shared/lib/format";
+import { display, money, sortByNewest } from "../../../shared/lib/format";
 import { reservationApi } from "../api/reservation.api";
 import { billingApi } from "../../billing/api/billing.api";
 import { facilityApi } from "../../facility/api/facility.api";
@@ -20,7 +20,7 @@ export default function ReservationAppointmentPage() {
     const reservations = useRemote(() => listMode ? reservationApi.list() : reservationApi.get(reservationId), [reservationId]);
     const invoices = useRemote(billingApi.invoices);
     const facilities = useRemote(facilityApi.facilities);
-    const reservationRows = Array.isArray(reservations.data) ? reservations.data : reservations.data ? [reservations.data] : [];
+    const reservationRows = sortByNewest(Array.isArray(reservations.data) ? reservations.data : reservations.data ? [reservations.data] : []);
     const reservationIdsKey = reservationRows.map((row) => `${row.id}:${row.status}:${row.unitCode || ""}`).join("|");
     const tasks = useRemote(() => Promise.all(reservationRows.map(async (row) => [String(row.id), await reservationApi.checkinTask(String(row.id)).catch(() => ({}))])), [reservationIdsKey]);
     const [requesting, setRequesting] = useState(null);
@@ -33,7 +33,7 @@ export default function ReservationAppointmentPage() {
         return <main className="page-content"><p>Đang tải thẻ hẹn…</p></main>;
     if (reservations.error)
         return <main className="page-content"><section className="card error" role="alert">{reservations.error}</section></main>;
-    const rows = (Array.isArray(reservations.data) ? reservations.data : reservations.data ? [reservations.data] : [])
+    const rows = reservationRows
         .filter((row) => row.status === "RESERVED" || (!listMode && row.status === "CHECKED_IN"));
     const bills = Array.isArray(invoices.data) ? invoices.data : [];
     const branches = Array.isArray(facilities.data) ? facilities.data : [];

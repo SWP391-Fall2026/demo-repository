@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { rentalApi } from "../api/rental.api";
-import { display, formatDateTime as sharedFormatDateTime } from "../../../shared/lib/format";
+import { display, formatDateTime as sharedFormatDateTime, sortByNewest } from "../../../shared/lib/format";
 
 function formatDateTime(val) {
     return val ? sharedFormatDateTime(val) : "—";
@@ -24,7 +24,7 @@ export default function CustomerAccessHistoryPanel({ contract, onUpdated }) {
         if (!contract?.id) return;
         try {
             const data = await rentalApi.accessHistory(contract.id);
-            setLogs(Array.isArray(data) ? data : []);
+            setLogs(sortByNewest(data));
         } catch (err) {
             console.error("Không tải được lịch sử truy cập:", err);
         }

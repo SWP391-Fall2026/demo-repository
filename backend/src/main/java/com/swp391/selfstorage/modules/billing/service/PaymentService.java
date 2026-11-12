@@ -28,6 +28,8 @@ public class PaymentService {
       .findAll()
       .stream()
       .filter(p -> actor.visible(u, p.getUserId(), p.getFacilityCode()))
+      .sorted(Comparator.comparing(Payment::getCreatedAt,
+        Comparator.nullsFirst(Comparator.naturalOrder())).reversed())
       .toList();
   }
 

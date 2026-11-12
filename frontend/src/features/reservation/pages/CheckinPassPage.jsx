@@ -1,7 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import { useEffect } from "react";
 import { useRemote } from "../../../shared/api/use-remote";
-import { display, money } from "../../../shared/lib/format";
+import { display, money, sortByNewest } from "../../../shared/lib/format";
 import { rentalApi } from "../../rental/api/rental.api";
 import { facilityApi } from "../../facility/api/facility.api";
 import CustomerRentalGuide from "../components/CustomerRentalGuide";
@@ -26,7 +26,7 @@ export default function CheckinPassPage() {
         return <main className="page-content"><p>Đang tải thẻ Check-in…</p></main>;
     if (contracts.error && contracts.data === undefined)
         return <main className="page-content"><section className="card error" role="alert">{contracts.error}</section></main>;
-    const matching = (Array.isArray(contracts.data) ? contracts.data : []).filter(contract => !reservationId || reservationId === "all" || contract.reservationId === reservationId);
+    const matching = sortByNewest(contracts.data).filter(contract => !reservationId || reservationId === "all" || contract.reservationId === reservationId);
     const cancelled = matching.filter(contract => contract.status === "TERMINATED" && contract.handoverStatus === "CANCELLED");
     const rows = matching.filter((contract) =>
         ["PENDING_HANDOVER", "ACTIVE", "EXPIRING_SOON", "OVERDUE", "CHECKOUT_REQUESTED"].includes(String(contract.status)));

@@ -1,14 +1,14 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useRemote } from "../../../shared/api/use-remote";
-import { display, formatDate, money, statusClass, statusLabel } from "../../../shared/lib/format";
+import { display, formatDate, money, sortByNewest, statusClass, statusLabel } from "../../../shared/lib/format";
 import { rentalApi } from "../api/rental.api";
 
 export default function FacilityContractsPage() {
     const { data, error, busy, reload } = useRemote(rentalApi.list);
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("ALL");
-    const rows = Array.isArray(data) ? data : [];
+    const rows = sortByNewest(Array.isArray(data) ? data : []);
 
     const visible = useMemo(() => {
         const q = search.trim().toLowerCase();

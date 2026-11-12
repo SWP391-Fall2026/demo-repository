@@ -4,7 +4,7 @@ import { reportingApi } from "../api/reporting.api";
 import { identityApi } from "../../identity/api/identity.api";
 import { facilityApi } from "../../facility/api/facility.api";
 import { auditApi } from "../../audit/api/audit.api";
-import { display, statusClass, statusLabel } from "../../../shared/lib/format";
+import { display, sortByNewest, statusClass, statusLabel } from "../../../shared/lib/format";
 
 function formatLogTime(value) {
     if (!value) return "Vừa xong";
@@ -35,13 +35,13 @@ export default function SystemDashboardPage() {
                 setSystemData(sysRes.value);
             }
             if (usersRes.status === "fulfilled" && Array.isArray(usersRes.value)) {
-                setUsersList(usersRes.value);
+                setUsersList(sortByNewest(usersRes.value));
             }
             if (facRes.status === "fulfilled" && Array.isArray(facRes.value)) {
                 setFacilitiesList(facRes.value);
             }
             if (auditRes.status === "fulfilled" && Array.isArray(auditRes.value)) {
-                setAuditList(auditRes.value);
+                setAuditList(sortByNewest(auditRes.value));
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : "Không thể tải dữ liệu quản trị.");
@@ -97,7 +97,7 @@ export default function SystemDashboardPage() {
     ];
 
     const displayFacilities = facilitiesList;
-    const displayAudit = auditList;
+    const displayAudit = sortByNewest(auditList);
 
     const exportCsv = () => {
         const rows = [

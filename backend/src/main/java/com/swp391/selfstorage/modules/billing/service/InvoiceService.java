@@ -36,6 +36,8 @@ public class InvoiceService {
       .findAll()
       .stream()
       .filter(i -> actor.visible(u, i.getUserId(), i.getFacilityCode()))
+      .sorted(Comparator.comparing(Invoice::getIssuedAt,
+        Comparator.nullsFirst(Comparator.naturalOrder())).reversed())
       .toList();
   }
 

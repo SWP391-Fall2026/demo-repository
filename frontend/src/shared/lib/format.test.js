@@ -1,6 +1,15 @@
 import { describe, it, expect } from "vitest";
-import { display, formatDate, formatDateTime, money, statusClass, statusLabel } from "./format";
+import { display, formatDate, formatDateTime, money, sortByNewest, statusClass, statusLabel } from "./format";
 describe("presentation boundaries", () => {
+    it("shows newer business records first without sorting by contract expiry", () => {
+        const rows = [
+            { id: "old", createdAt: "2026-01-01T09:00:00", endAt: "2027-12-01" },
+            { id: "unknown", endAt: "2030-01-01" },
+            { id: "new", createdAt: "2026-11-13T10:00:00", endAt: "2026-12-01" },
+        ];
+        expect(sortByNewest(rows).map((row) => row.id)).toEqual(["new", "old", "unknown"]);
+        expect(rows[0].id).toBe("old");
+    });
     it("formats VND without fractional amounts", () => {
         expect(money(1450000)).toContain("1.450.000");
     });

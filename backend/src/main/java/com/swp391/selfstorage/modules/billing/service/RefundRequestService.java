@@ -65,6 +65,8 @@ public class RefundRequestService {
       .findAll()
       .stream()
       .filter(r -> actor.visible(u, r.getUserId(), r.getFacilityCode()))
+      .sorted(Comparator.comparing(RefundRequest::getCreatedAt,
+        Comparator.nullsFirst(Comparator.naturalOrder())).reversed())
       .toList();
   }
 

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supportApi } from "../api/support.api";
 import { rentalApi } from "../../rental/api/rental.api";
 import { useRemote } from "../../../shared/api/use-remote";
-import { display } from "../../../shared/lib/format";
+import { display, sortByNewest } from "../../../shared/lib/format";
 
 export default function CustomerSupportPage() {
     const ticketsRemote = useRemote(supportApi.list);
@@ -24,8 +24,8 @@ export default function CustomerSupportPage() {
     const [rating, setRating] = useState(5);
     const [ratingSubmitting, setRatingSubmitting] = useState(false);
 
-    const tickets = Array.isArray(ticketsRemote.data) ? ticketsRemote.data : [];
-    const contracts = Array.isArray(contractsRemote.data) ? contractsRemote.data : [];
+    const tickets = sortByNewest(ticketsRemote.data);
+    const contracts = sortByNewest(contractsRemote.data);
     const activeContracts = contracts.filter((c) =>
         ["ACTIVE", "EXPIRING_SOON", "OVERDUE"].includes(String(c.status).toUpperCase())
     );

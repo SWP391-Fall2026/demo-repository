@@ -35,9 +35,11 @@ public class SupportTicketService {
 
   public List<SupportTicket> list() {
     var u = actor.require("CUSTOMER", "STAFF", "FMANAGER");
-    return "CUSTOMER".equals(actor.role(u))
+    var rows = "CUSTOMER".equals(actor.role(u))
       ? tickets.findByUserId(u.getId())
       : tickets.findByFacilityCode(u.getFacilityCode());
+    return rows.stream().sorted(Comparator.comparing(SupportTicket::getCreatedAt,
+      Comparator.nullsFirst(Comparator.naturalOrder())).reversed()).toList();
   }
 
   @Transactional

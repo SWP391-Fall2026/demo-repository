@@ -54,6 +54,8 @@ public class ContractService {
       .findAll()
       .stream()
       .filter(c -> actor.visible(u, c.getUserId(), c.getFacilityCode()))
+      .sorted(Comparator.comparing(Contract::getCreatedAt,
+        Comparator.nullsFirst(Comparator.naturalOrder())).reversed())
       .peek(c -> {
         handovers.findFirstByContractIdOrderByHandoverDateDesc(c.getId()).ifPresent(h -> {
           c.setHandoverStatus(h.getStatus());

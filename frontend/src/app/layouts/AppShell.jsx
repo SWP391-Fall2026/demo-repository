@@ -5,19 +5,11 @@ import { RoleGuard } from "../guards/RoleGuard";
 import { useSession, sessionStore } from "../../features/identity/session";
 import { facilityApi } from "../../features/facility/api/facility.api";
 
-const FALLBACK_FACILITIES = [
-    { code: "HN-CG", name: "Cơ sở Cầu Giấy", address: "15 Duy Tân, Cầu Giấy", city: "Hà Nội", status: "ACTIVE" },
-    { code: "HN-NTL", name: "Cơ sở Nam Từ Liêm", address: "28 Phạm Hùng, Nam Từ Liêm", city: "Hà Nội", status: "ACTIVE" },
-    { code: "HCM-TB", name: "Cơ sở Tân Bình", address: "45 Cộng Hòa, Tân Bình", city: "TP.HCM", status: "ACTIVE" },
-    { code: "HCM-Q7", name: "Cơ sở Quận 7", address: "128 Nguyễn Thị Thập, Quận 7", city: "TP.HCM", status: "ACTIVE" },
-    { code: "DN-HC", name: "Cơ sở Hải Châu", address: "60 Bạch Đằng, Hải Châu", city: "Đà Nẵng", status: "ACTIVE" },
-];
-
 export function AppShell() {
     const session = useSession(), location = useLocation();
     const [locationsOpen, setLocationsOpen] = useState(false);
     const [rentalsOpen, setRentalsOpen] = useState(false);
-    const [facilities, setFacilities] = useState(FALLBACK_FACILITIES);
+    const [facilities, setFacilities] = useState([]);
     const locationsRef = useRef(null);
     const rentalsRef = useRef(null);
     const locationsTimer = useRef(null);
@@ -56,7 +48,7 @@ export function AppShell() {
         let cancelled = false;
         facilityApi.facilities()
             .then((list) => {
-                if (!cancelled && Array.isArray(list) && list.length > 0) {
+                if (!cancelled && Array.isArray(list)) {
                     setFacilities(list.filter((f) => !f.status || String(f.status).toUpperCase() === "ACTIVE"));
                 }
             })
@@ -369,6 +361,14 @@ export function AppShell() {
 
                                 {locationsOpen && (
                                     <div className="navbar-dropdown-menu locations-dropdown">
+                                        {facilities.length === 0 && (
+                                            <div className="dropdown-section">
+                                                <div className="dropdown-city-title">CHƯA CÓ DANH SÁCH CƠ SỞ</div>
+                                                <Link to="/storage" className="dropdown-location-link" onClick={() => setLocationsOpen(false)}>
+                                                    <span className="location-name">Xem kho còn trống</span>
+                                                </Link>
+                                            </div>
+                                        )}
                                         {Object.entries(facilitiesByCity).map(([city, cityFacilities]) => (
                                             <div className="dropdown-section" key={city}>
                                                 <div className="dropdown-city-title">{city.toUpperCase()}</div>
@@ -606,6 +606,14 @@ export function AppShell() {
                             )}
                         </div>
                     </nav>
+                    {session?.user?.role === "CUSTOMER" && (
+                        <nav className="customer-mobile-nav" aria-label="Điều hướng khách hàng">
+                            <NavLink to="/storage">Tìm kho</NavLink>
+                            <NavLink to="/rentals">Kho đang thuê</NavLink>
+                            <NavLink to="/payments">Thanh toán</NavLink>
+                            <NavLink to="/support">Hỗ trợ</NavLink>
+                        </nav>
+                    )}
                 </div>
             </header>
 
@@ -629,9 +637,8 @@ export function AppShell() {
                                 Hệ thống quản lý và cho thuê kho lưu trữ tự phục vụ an toàn, linh hoạt và tiện lợi hàng đầu Việt Nam.
                             </p>
                             <div className="footer-badges">
-                                <span className="footer-pill">🛡️ Bảo vệ 24/7</span>
-                                <span className="footer-pill">❄️ Kiểm soát nhiệt độ</span>
-                                <span className="footer-pill">🔐 Khóa số bảo mật</span>
+                                <span className="footer-pill">Tìm kho theo diện tích</span>
+                                <span className="footer-pill">Quản lý hợp đồng trực tuyến</span>
                             </div>
                         </div>
 
@@ -646,14 +653,14 @@ export function AppShell() {
                             </ul>
                         </div>
 
-                        {/* Col 3: Chính sách & Pháp lý */}
+                        {/* Col 3: Useful destinations */}
                         <div className="footer-col">
-                            <h4>Chính sách &amp; Pháp lý</h4>
+                            <h4>Hướng dẫn</h4>
                             <ul>
-                                <li><a href="#rules">Tiêu chuẩn sử dụng</a></li>
-                                <li><a href="#privacy">Chính sách bảo mật</a></li>
-                                <li><a href="#terms">Quy định lưu trữ</a></li>
-                                <li><a href="#insurance">Bảo hiểm tài sản</a></li>
+                                <li><a href="/#quy-trinh">Quy trình thuê kho</a></li>
+                                <li><a href="/#cau-hoi">Câu hỏi thường gặp</a></li>
+                                <li><Link to="/storage">Tìm kho còn trống</Link></li>
+                                <li><Link to="/login">Quản lý kho đang thuê</Link></li>
                             </ul>
                         </div>
 
@@ -661,16 +668,15 @@ export function AppShell() {
                         <div className="footer-col contact-col">
                             <h4>Hỗ trợ &amp; Liên hệ</h4>
                             <ul>
-                                <li>📞 Hotline: <strong>1900 6868</strong></li>
-                                <li>✉️ Email: <strong>hotro@storage.vn</strong></li>
-                                <li>🕒 08:00 - 20:00 hàng ngày (Cả T7 &amp; CN)</li>
+                                <li>📞 Liên hệ: <a href="tel:02877700117">028 7770 0117</a></li>
+                                <li><Link to="/login">Đăng nhập để gửi yêu cầu hỗ trợ</Link></li>
                             </ul>
                         </div>
                     </div>
 
                     <div className="footer-bottom">
                         <p>© 2026 STORAGE RENTAL. Bản quyền thuộc về Hệ thống Cho thuê Kho Tự Quản Thông Minh.</p>
-                        <span>Phiên bản 2.0 · Tiêu chuẩn chất lượng ISO 9001:2026</span>
+                        <span>Kho Gọn Storage</span>
                     </div>
                 </div>
             </footer>

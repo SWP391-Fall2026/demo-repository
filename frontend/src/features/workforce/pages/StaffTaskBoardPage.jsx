@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { workforceApi } from "../api/workforce.api";
 import { rentalApi } from "../../rental/api/rental.api";
 import { useRemote } from "../../../shared/api/use-remote";
-import { display, formatDate, statusLabel } from "../../../shared/lib/format";
+import { display, formatDate, sortByNewest, statusLabel } from "../../../shared/lib/format";
 function inspectionLabel(status) {
     if (!status)
         return "Chưa lập phiếu";
@@ -26,8 +26,8 @@ export default function StaffTaskBoardPage() {
             rentalApi.list().catch(() => []),
         ]);
         return {
-            tasks: Array.isArray(taskList) ? taskList : [],
-            contracts: Array.isArray(contractList) ? contractList : [],
+            tasks: sortByNewest(Array.isArray(taskList) ? taskList : []),
+            contracts: sortByNewest(Array.isArray(contractList) ? contractList : []),
         };
     });
     const [activeFilter, setActiveFilter] = useState("ALL");

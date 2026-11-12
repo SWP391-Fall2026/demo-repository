@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useRemote } from "../../../shared/api/use-remote";
-import { display, formatDateTime, money } from "../../../shared/lib/format";
+import { display, formatDateTime, money, sortByNewest } from "../../../shared/lib/format";
 import { usePersistedState } from "../../../shared/lib/persisted-state";
 import { billingApi } from "../api/billing.api";
 import RefundEvidencePanel from "../components/RefundEvidencePanel";
@@ -12,7 +12,7 @@ export default function RefundExecutionPage() {
     const [error, setError] = useState("");
     const [busy, setBusy] = useState(false);
     const [refreshedAt, setRefreshedAt] = useState("");
-    const allRefunds = Array.isArray(refunds.data) ? refunds.data : [];
+    const allRefunds = sortByNewest(refunds.data);
     const rows = allRefunds.filter(row => ["APPROVED", "EVIDENCE_SUBMITTED", "COMPLETED"].includes(row.status));
     const pendingCount = allRefunds.filter(row => row.status === "PENDING").length;
     const selected = rows.find(row => row.id === selectedId);

@@ -24,13 +24,16 @@ export default function CatalogPage() {
     const session = useSession();
     const [searchParams] = useSearchParams();
     const urlFacility = searchParams.get("facility") || "";
+    const requestedType = String(searchParams.get("type") || "").toUpperCase();
     const customerFacilityCode = urlFacility || facilityFilterForSession(session?.user?.role, session?.user?.facilityCode);
     const defaultFilters = { facilityCode: customerFacilityCode, minSize: "", maxSize: "", minPrice: "", maxPrice: "" };
     const [filters, setFilters] = usePersistedState("catalog.filters", defaultFilters);
     const [appliedFilters, setAppliedFilters] = usePersistedState("catalog.applied-filters", defaultFilters);
     const [facilities, setFacilities] = useState([]);
     const { data, error, busy, reload } = useRemote(() => facilityApi.units(appliedFilters), [appliedFilters]);
-    const units = Array.isArray(data) ? data : [];
+    const units = (Array.isArray(data) ? data : []).filter((unit) =>
+        !requestedType || String(unit.type || "").toUpperCase() === requestedType
+    );
 
     useEffect(() => {
         const activeFacility = urlFacility || customerFacilityCode || "";
@@ -67,7 +70,7 @@ export default function CatalogPage() {
             <header className="catalog-header-bar">
                 <div className="header-text">
                     <span className="eyebrow-pill">HỆ THỐNG KHO TỰ PHỤC VỤ 24/7</span>
-                    <h1 className="catalog-main-title">Danh mục cơ sở &amp; kích thước kho lưu trữ</h1>
+                    <h1 className="catalog-main-title">{requestedType ? `Kho loại ${requestedType} còn trống` : "Tìm kho lưu trữ phù hợp"}</h1>
                     <p className="catalog-subtitle">
                         Lưu trữ an toàn, bảo mật bằng mã PIN điện tử, camera an ninh 24/7 và kiểm soát nhiệt độ đạt chuẩn.
                     </p>
@@ -109,8 +112,9 @@ export default function CatalogPage() {
 
                 <div className="filters-grid">
                     <div className="filter-field">
-                        <label>Diện tích từ (m²)</label>
+                        <label htmlFor="catalog-min-size">Diện tích từ (m²)</label>
                         <input
+                            id="catalog-min-size"
                             type="number"
                             min="0"
                             placeholder="vd: 2"
@@ -119,8 +123,9 @@ export default function CatalogPage() {
                         />
                     </div>
                     <div className="filter-field">
-                        <label>Đến (m²)</label>
+                        <label htmlFor="catalog-max-size">Đến (m²)</label>
                         <input
+                            id="catalog-max-size"
                             type="number"
                             min="0"
                             placeholder="vd: 10"
@@ -129,8 +134,9 @@ export default function CatalogPage() {
                         />
                     </div>
                     <div className="filter-field">
-                        <label>Giá từ (VNĐ/tháng)</label>
+                        <label htmlFor="catalog-min-price">Giá từ (VNĐ/tháng)</label>
                         <input
+                            id="catalog-min-price"
                             type="number"
                             min="0"
                             placeholder="vd: 500000"
@@ -139,8 +145,9 @@ export default function CatalogPage() {
                         />
                     </div>
                     <div className="filter-field">
-                        <label>Đến (VNĐ/tháng)</label>
+                        <label htmlFor="catalog-max-price">Đến (VNĐ/tháng)</label>
                         <input
+                            id="catalog-max-price"
                             type="number"
                             min="0"
                             placeholder="vd: 3000000"
@@ -164,7 +171,8 @@ export default function CatalogPage() {
                 <div className="results-toolbar">
                     <div className="results-count">
                         <h2>Khoang kho khả dụng</h2>
-                        <span className="count-badge">{units.length} kho</span>
+                        {!error && !busy && <span className="count-badge">{units.length} kho</span>}
+                        {requestedType && <Link className="catalog-clear-type" to="/storage">Xem mọi loại kho</Link>}
                     </div>
                     <button type="button" className="btn-figma btn-outline btn-sm" onClick={reload}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -192,7 +200,8 @@ export default function CatalogPage() {
                     <div className="clean-card empty-state">
                         <div className="state-icon">📦</div>
                         <h4>Không có kho phù hợp</h4>
-                        <p>Thử điều chỉnh lại bộ lọc diện tích, khoảng giá hoặc chọn cơ sở khác.</p>
+                        <p>Thử điều chỉnh diện tích, giá, cơ sở hoặc xem mọi loại kho.</p>
+                        {requestedType && <Link className="btn-figma btn-outline btn-sm" to="/storage">Xem mọi loại kho</Link>}
                         <button className="btn-figma btn-outline btn-sm" onClick={clearFilters}>Đặt lại bộ lọc</button>
                     </div>
                 ) : (

@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { supportApi } from "../api/support.api";
 import { useRemote } from "../../../shared/api/use-remote";
-import { display } from "../../../shared/lib/format";
+import { display, sortByNewest } from "../../../shared/lib/format";
 
 export default function IncidentDeskPage() {
     const ticketsRemote = useRemote(supportApi.list);
-    const tickets = Array.isArray(ticketsRemote.data) ? ticketsRemote.data : [];
+    const tickets = sortByNewest(ticketsRemote.data);
 
     const [resolvingTicketId, setResolvingTicketId] = useState(null);
     const [resolutionNotes, setResolutionNotes] = useState("");

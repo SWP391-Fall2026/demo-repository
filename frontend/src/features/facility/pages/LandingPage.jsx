@@ -92,7 +92,7 @@ export default function LandingPage() {
                     Không gian lưu trữ cho mọi nhu cầu
                 </h2>
                 <p className="figma-section-desc">
-                    Giải pháp thuê kho tự quản thông minh, bảo mật mã PIN riêng và hỗ trợ ra vào tự do 24/7.
+                    Chọn kích thước phù hợp, xem giá theo từng cơ sở và quản lý yêu cầu thuê trực tuyến.
                 </p>
 
                 <div className="figma-grid-4">
@@ -148,7 +148,7 @@ export default function LandingPage() {
                     Các loại kho lưu trữ
                 </h2>
                 <p className="figma-section-desc">
-                    Bảng giá niêm yết tham khảo công khai, không chi phí ẩn.
+                    Giá thuê thực tế hiển thị theo từng kho còn trống trong danh mục.
                 </p>
 
                 <div className="figma-grid-3 pricing-grid">
@@ -165,8 +165,7 @@ export default function LandingPage() {
                             <p>Vali du lịch, tài liệu, thùng carton, đồ dùng cá nhân.</p>
                         </div>
                         <div className="tier-price">
-                            <strong>650.000 đ</strong>
-                            <span>/ tháng</span>
+                            <strong>Xem giá hiện tại</strong>
                         </div>
                         <Link className="figma-btn figma-btn-outline full-width" to="/storage?type=S">
                             Xem kho
@@ -187,8 +186,7 @@ export default function LandingPage() {
                             <p>Đồ nội thất căn hộ 1-2 phòng ngủ, thiết bị gia dụng, hàng hóa kinh doanh online.</p>
                         </div>
                         <div className="tier-price">
-                            <strong>1.450.000 đ</strong>
-                            <span>/ tháng</span>
+                            <strong>Xem giá hiện tại</strong>
                         </div>
                         <Link className="figma-btn figma-btn-dark full-width" to="/storage?type=M">
                             Xem kho
@@ -208,8 +206,7 @@ export default function LandingPage() {
                             <p>Toàn bộ nội thất nhà phố, hàng tồn kho doanh nghiệp, thiết bị văn phòng.</p>
                         </div>
                         <div className="tier-price">
-                            <strong>2.800.000 đ</strong>
-                            <span>/ tháng</span>
+                            <strong>Xem giá hiện tại</strong>
                         </div>
                         <Link className="figma-btn figma-btn-outline full-width" to="/storage?type=L">
                             Xem kho
@@ -219,7 +216,7 @@ export default function LandingPage() {
             </section>
 
             {/* 4. SECTION: QUY TRÌNH THUÊ KHO */}
-            <section className="figma-section text-center">
+            <section className="figma-section text-center" id="quy-trinh">
                 <div className="figma-pill-badge center">
                     LỘ TRÌNH SỬ DỤNG
                 </div>
@@ -351,15 +348,15 @@ export default function LandingPage() {
                         Không gian lưu trữ tiêu chuẩn &amp; ngăn nắp
                     </h2>
                     <p className="figma-section-desc">
-                        Hình ảnh thực tế ghi nhận từ hệ thống kho tự quản chuẩn quy hoạch.
+                        Tham khảo cách bố trí không gian lưu trữ trước khi chọn kho.
                     </p>
                 </div>
 
                 <div className="standards-layout">
                     <div className="standards-photo-box">
-                        <img src={cleanHallway} alt="Môi trường kho sạch sẽ, đạt chuẩn quốc tế" />
+                        <img src={cleanHallway} alt="Minh họa không gian kho lưu trữ" />
                         <div className="photo-overlay-card">
-                            <span className="badge-live">● THỰC TẾ TẠI CƠ SỞ</span>
+                            <span className="badge-live">MINH HỌA KHÔNG GIAN</span>
                             <h4>Môi trường kho sạch sẽ</h4>
                             <p>
                                 Lối đi rộng rãi, sàn bê tông tăng cứng công nghiệp, hệ thống đèn LED chiếu sáng đầy đủ và kiểm soát bụi bẩn định kỳ.
@@ -404,7 +401,7 @@ export default function LandingPage() {
             </section>
 
             {/* 7. SECTION: CÂU HỎI THƯỜNG GẶP (FAQS) */}
-            <section className="figma-section bg-subtle text-center">
+            <section className="figma-section bg-subtle text-center" id="cau-hoi">
                 <div className="figma-pill-badge center">
                     GIẢI ĐÁP THẮC MẮC
                 </div>
@@ -446,7 +443,7 @@ export default function LandingPage() {
                             </button>
                             {openFaq === 1 && (
                                 <div className="faq-answer">
-                                    Chỉ mất từ 3-5 phút thực hiện trực tuyến. Bạn chọn buồng kho, đặt giữ chỗ, thanh toán tiền cọc và sẽ nhận ngay Thẻ Check-in QR điện tử cùng lịch hẹn nhận kho trực tiếp tại cơ sở.
+                                    Bạn chọn buồng kho, gửi yêu cầu đặt giữ chỗ và thanh toán tiền cọc theo hướng dẫn. Sau khi đơn được xác nhận, hệ thống hiển thị thông tin hẹn nhận kho.
                                 </div>
                             )}
                         </div>
@@ -480,7 +477,7 @@ export default function LandingPage() {
                             </button>
                             {openFaq === 3 && (
                                 <div className="faq-answer">
-                                    Khi bạn tạo yêu cầu trả kho trên hệ thống, nhân viên cơ sở sẽ cùng bạn nghiệm thu hiện trạng buồng kho. Tiền cọc sẽ được hoàn trả tự động về tài khoản ngân hàng của bạn trong vòng 3-5 ngày làm việc.
+                                    Sau khi gửi yêu cầu trả kho, nhân viên cơ sở nghiệm thu hiện trạng. Số tiền cọc có thể hoàn được xác định sau khi đối chiếu công nợ và phí phát sinh. Bạn theo dõi yêu cầu hoàn tiền trong tài khoản.
                                 </div>
                             )}
                         </div>

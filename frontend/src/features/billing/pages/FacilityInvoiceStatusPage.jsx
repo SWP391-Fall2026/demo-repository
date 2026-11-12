@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 import { billingApi } from "../api/billing.api";
 import { useRemote } from "../../../shared/api/use-remote";
-import { display, formatDateTime, money, statusClass, statusLabel } from "../../../shared/lib/format";
+import { display, formatDateTime, money, sortByNewest, statusClass, statusLabel } from "../../../shared/lib/format";
 export default function FacilityInvoiceStatusPage() {
     const { data, error, busy, reload } = useRemote(billingApi.invoices);
     const [status, setStatus] = useState("ALL");
-    const rows = Array.isArray(data) ? data : [];
+    const rows = sortByNewest(data);
     const visible = useMemo(() => rows.filter((row) => status === "ALL" || row.status === status), [rows, status]);
     const pending = rows.filter((row) => row.status === "PENDING").length;
     const paid = rows.filter((row) => row.status === "PAID").length;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRemote } from "../../../shared/api/use-remote";
-import { display, money } from "../../../shared/lib/format";
+import { display, money, sortByNewest } from "../../../shared/lib/format";
 import { rentalApi } from "../api/rental.api";
 
 function DisputeEvidence({ id }) {
@@ -65,7 +65,7 @@ export default function ReturnInspectionReviewPage() {
     const { data, error, busy, reload } = useRemote(rentalApi.returnInspectionReviews);
     const [saving, setSaving] = useState("");
     const [message, setMessage] = useState("");
-    const rows = Array.isArray(data) ? data : [];
+    const rows = sortByNewest(data);
 
     async function decide(event, dispute) {
         event.preventDefault();

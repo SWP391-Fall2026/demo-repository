@@ -73,7 +73,8 @@ public class TaskService {
       ? tasks.findByStaffId(u.getId())
       : tasks.findByFacilityCode(u.getFacilityCode());
     rows.forEach(this::enrichReturn);
-    return rows;
+    return rows.stream().sorted(Comparator.comparing(DailyTask::getCreatedAt,
+      Comparator.nullsFirst(Comparator.naturalOrder())).reversed()).toList();
   }
 
   private void enrichReturn(DailyTask task) {
@@ -396,9 +397,13 @@ public class TaskService {
       row.put("temporaryPinExpiresAt", pinValid ? unit.getTemporaryPinExpiresAt() : null);
       return row;
     }).toList();
-    var taskRows = facilityTasks.stream().map(task -> {
+    var taskRows = facilityTasks.stream()
+      .sorted(Comparator.comparing(DailyTask::getCreatedAt,
+        Comparator.nullsFirst(Comparator.naturalOrder())).reversed())
+      .map(task -> {
       Map<String, Object> row = new LinkedHashMap<>();
       row.put("id", task.getId()); row.put("title", task.getTitle()); row.put("taskType", task.getTaskType());
+      row.put("createdAt", task.getCreatedAt());
       row.put("status", task.getStatus()); row.put("staffId", task.getStaffId()); row.put("staff", task.getStaff());
       row.put("reservationId", task.getReservationId()); row.put("unitCode", task.getUnitCode());
       row.put("facilityCode", task.getFacilityCode());

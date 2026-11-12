@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useRemote } from "../../../shared/api/use-remote";
-import { display, money } from "../../../shared/lib/format";
+import { display, money, sortByNewest } from "../../../shared/lib/format";
 import { billingApi } from "../api/billing.api";
 import RefundEvidencePanel from "../components/RefundEvidencePanel";
 
@@ -10,7 +10,7 @@ export default function RefundConfirmationPage() {
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
-    const rows = (Array.isArray(refunds.data) ? refunds.data : []).filter(row => ["EVIDENCE_SUBMITTED", "COMPLETED"].includes(row.status));
+    const rows = sortByNewest(refunds.data).filter(row => ["EVIDENCE_SUBMITTED", "COMPLETED"].includes(row.status));
     const selected = rows.find(row => row.id === selectedId);
     async function confirm(event) {
         event.preventDefault();

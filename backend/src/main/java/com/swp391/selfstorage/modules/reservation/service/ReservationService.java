@@ -35,9 +35,11 @@ public class ReservationService {
 
   public List<Reservation> list() {
     var u = actor.require("CUSTOMER", "STAFF", "FMANAGER");
-    return "CUSTOMER".equals(actor.role(u))
+    var rows = "CUSTOMER".equals(actor.role(u))
       ? repo.findByUserId(u.getId())
       : repo.findByFacilityCode(u.getFacilityCode());
+    return rows.stream().sorted(Comparator.comparing(Reservation::getCreatedAt,
+      Comparator.nullsFirst(Comparator.naturalOrder())).reversed()).toList();
   }
 
   public Reservation get(String id) {

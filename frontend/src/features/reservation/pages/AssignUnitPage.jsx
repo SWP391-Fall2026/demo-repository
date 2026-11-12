@@ -2,7 +2,7 @@ import { useState } from "react";
 import { reservationApi } from "../api/reservation.api";
 import { facilityApi } from "../../facility/api/facility.api";
 import { useRemote } from "../../../shared/api/use-remote";
-import { display, money } from "../../../shared/lib/format";
+import { display, money, sortByNewest } from "../../../shared/lib/format";
 import { usePersistedState } from "../../../shared/lib/persisted-state";
 
 export default function AssignUnitPage() {
@@ -14,9 +14,7 @@ export default function AssignUnitPage() {
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
 
-    const reservations = Array.isArray(reservationsQuery.data)
-        ? reservationsQuery.data.filter((r) => r.status === "RESERVED")
-        : [];
+    const reservations = sortByNewest(reservationsQuery.data).filter((r) => r.status === "RESERVED");
 
     const units = Array.isArray(unitsQuery.data) ? unitsQuery.data : [];
 

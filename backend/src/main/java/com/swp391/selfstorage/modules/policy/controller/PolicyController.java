@@ -25,7 +25,7 @@ public class PolicyController {
 
   @GetMapping("/history")
   public ApiResponse<?> history() {
-    return ApiResponse.ok(history.findByActionOrderByIdDesc("UPDATE_POLICY"));
+    return ApiResponse.ok(history.findByActionOrderByCreatedAtDescIdDesc("UPDATE_POLICY"));
   }
 
   @PatchMapping

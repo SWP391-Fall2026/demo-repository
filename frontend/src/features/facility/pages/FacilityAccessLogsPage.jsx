@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "../../identity/session";
 import { facilityApi } from "../api/facility.api";
 import { rentalApi } from "../../rental/api/rental.api";
-import { display, formatDateTime as sharedFormatDateTime } from "../../../shared/lib/format";
+import { display, formatDateTime as sharedFormatDateTime, sortByNewest } from "../../../shared/lib/format";
 import { usePersistedState } from "../../../shared/lib/persisted-state";
 
 function formatDateTime(val) {
@@ -32,7 +32,7 @@ export default function FacilityAccessLogsPage() {
         }
         try {
             const data = await facilityApi.accessLogs(facilityCode);
-            setLogs(Array.isArray(data) ? data : []);
+            setLogs(sortByNewest(data));
             setLastSyncedAt(new Date());
         } catch (err) {
             if (!silent) {
