@@ -15,6 +15,9 @@ body {
   margin: 0;
   overflow-x: hidden;
 }
+html {
+  scroll-behavior: smooth;
+}
 a {
   color: #285fe2;
   text-decoration: none;
@@ -46,6 +49,14 @@ button:disabled {
 button:hover,
 .button:hover {
   filter: brightness(1.12);
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #7aa7ff;
+  outline-offset: 2px;
 }
 button.secondary,
 .button.secondary {

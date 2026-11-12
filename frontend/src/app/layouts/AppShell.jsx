@@ -48,8 +48,7 @@ export function AppShell() {
     }, [location.pathname, location.search]);
 
     useEffect(() => {
-        if (isBackoffice)
-            return;
+        if (isBackoffice) return undefined;
         let cancelled = false;
         facilityApi.facilities()
             .then((list) => {
@@ -612,6 +611,14 @@ export function AppShell() {
                             )}
                         </div>
                     </nav>
+                    {session?.user?.role === "CUSTOMER" && (
+                        <nav className="customer-mobile-nav" aria-label="Điều hướng khách hàng">
+                            <NavLink to="/storage">Tìm kho</NavLink>
+                            <NavLink to="/rentals">Kho đang thuê</NavLink>
+                            <NavLink to="/payments">Thanh toán</NavLink>
+                            <NavLink to="/support">Hỗ trợ</NavLink>
+                        </nav>
+                    )}
                 </div>
             </header>
 

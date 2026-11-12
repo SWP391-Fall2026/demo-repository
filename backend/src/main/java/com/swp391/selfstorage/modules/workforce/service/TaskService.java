@@ -84,7 +84,7 @@ public class TaskService {
         if (task.getUnitCode() != null) unitCodes.add(task.getUnitCode());
       }
     }
-    if (contractIds.isEmpty()) return rows;
+    if (contractIds.isEmpty()) return newestFirst(rows);
 
     Map<String, Contract> contractMap = loadContracts(contractIds);
     Map<String, InspectionRecord> inspectionMap = loadLatestInspections(contractIds);
@@ -114,7 +114,12 @@ public class TaskService {
         task.setInspectionRefundAmount(inspection.getDepositRefundAmount());
       }
     }
-    return rows;
+    return newestFirst(rows);
+  }
+
+  private List<DailyTask> newestFirst(List<DailyTask> rows) {
+    return rows.stream().sorted(Comparator.comparing(DailyTask::getCreatedAt,
+      Comparator.nullsFirst(Comparator.naturalOrder())).reversed()).toList();
   }
 
   private Map<String, Contract> loadContracts(Collection<String> contractIds) {
@@ -462,9 +467,11 @@ public class TaskService {
       }
     }
 
-    var taskRows = facilityTasks.stream().map(task -> {
+    var taskRows = facilityTasks.stream().sorted(Comparator.comparing(DailyTask::getCreatedAt,
+      Comparator.nullsFirst(Comparator.naturalOrder())).reversed()).map(task -> {
       Map<String, Object> row = new LinkedHashMap<>();
       row.put("id", task.getId()); row.put("title", task.getTitle()); row.put("taskType", task.getTaskType());
+      row.put("createdAt", task.getCreatedAt());
       row.put("status", task.getStatus()); row.put("staffId", task.getStaffId()); row.put("staff", task.getStaff());
       row.put("reservationId", task.getReservationId()); row.put("unitCode", task.getUnitCode());
       row.put("facilityCode", task.getFacilityCode());

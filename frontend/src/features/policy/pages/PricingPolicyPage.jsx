@@ -1,5 +1,5 @@
 import { useRemote } from "../../../shared/api/use-remote";
-import { display } from "../../../shared/lib/format";
+import { display, sortByNewest } from "../../../shared/lib/format";
 import { formatPolicyValue, policyLabel } from "../../../shared/lib/policy-format";
 import { ResourcePage, Form } from "../../../shared/ui/ResourcePage";
 import { policyApi } from "../api/policy.api";
@@ -73,7 +73,7 @@ export default function PricingPolicyPage() {
 
 function PolicyHistory() {
     const history = useRemote(policyApi.history);
-    const rows = Array.isArray(history.data) ? history.data : [];
+    const rows = sortByNewest(history.data);
     if (history.busy) return <p style={{ padding: "16px", color: "#64748B" }}>Đang tải lịch sử điều chỉnh…</p>;
     if (history.error) return <p className="error alert-banner alert-danger">{history.error}</p>;
     if (!rows.length) return <p style={{ padding: "16px", color: "#64748B" }}>Chưa có lần đổi chính sách nào.</p>;

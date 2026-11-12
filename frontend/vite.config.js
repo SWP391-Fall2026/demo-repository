@@ -6,7 +6,9 @@ export default defineConfig(({ mode }) => ({
         port: 5173,
         proxy: {
             "/api": {
-                target: loadEnv(mode, ".", "").BACKEND_URL || "http://127.0.0.1:8080",
+                // `loadEnv` reads .env files, but not arbitrary process variables.
+                // Keep shell based local overrides working for isolated test servers.
+                target: process.env.BACKEND_URL || loadEnv(mode, ".", "").BACKEND_URL || "http://127.0.0.1:8080",
                 changeOrigin: true,
             },
         },

@@ -43,12 +43,15 @@ public class UserAdminService {
 
   public List<UserDto> list() {
     actor.require("ADMIN");
-    return users.findAll().stream().map(UserDto::new).toList();
+    return users.findAll().stream()
+      .sorted(Comparator.comparing(User::getCreatedAt,
+        Comparator.nullsFirst(Comparator.naturalOrder())).reversed())
+      .map(UserDto::new).toList();
   }
 
   public List<LoginHistory> history() {
     actor.require("ADMIN");
-    return history.findAllByOrderByIdDesc();
+    return history.findAllByOrderByCreatedAtDescIdDesc();
   }
 
   @Transactional

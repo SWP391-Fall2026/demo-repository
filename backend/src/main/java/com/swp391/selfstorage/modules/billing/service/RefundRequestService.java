@@ -62,9 +62,11 @@ public class RefundRequestService {
   @Transactional(readOnly = true)
   public List<RefundRequest> list() {
     var u = actor.require("CUSTOMER", "STAFF", "FMANAGER");
-    return "CUSTOMER".equals(actor.role(u))
+    List<RefundRequest> rows = "CUSTOMER".equals(actor.role(u))
       ? refunds.findByUserId(u.getId())
       : refunds.findByFacilityCode(u.getFacilityCode());
+    return rows.stream().sorted(Comparator.comparing(RefundRequest::getCreatedAt,
+      Comparator.nullsFirst(Comparator.naturalOrder())).reversed()).toList();
   }
 
   @Transactional

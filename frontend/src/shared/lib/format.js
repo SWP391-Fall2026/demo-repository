@@ -49,6 +49,33 @@ export function display(value) {
     return str;
 }
 
+// Keep operational lists predictable: newest activity first. The first
+// available timestamp is used, while records without timestamps keep their
+// relative position after timestamped records.
+const NEWEST_FIELDS = [
+    "createdAt", "submittedAt", "requestedAt", "issuedAt", "updatedAt",
+    "paidAt", "completedAt", "decidedAt", "inspectionDate", "checkinAt",
+    "checkoutAt",
+];
+
+export function sortByNewest(rows) {
+    if (!Array.isArray(rows)) return [];
+    return rows
+        .map((row, index) => {
+            const field = NEWEST_FIELDS.find((key) => row?.[key] != null && row[key] !== "");
+            const time = field ? Date.parse(String(row[field])) : Number.NaN;
+            return { row, index, time };
+        })
+        .sort((a, b) => {
+            const aValid = Number.isFinite(a.time);
+            const bValid = Number.isFinite(b.time);
+            if (aValid && bValid && a.time !== b.time) return b.time - a.time;
+            if (aValid !== bValid) return aValid ? -1 : 1;
+            return a.index - b.index;
+        })
+        .map(({ row }) => row);
+}
+
 const statusTranslations = {
     ACTIVE: "Đang hoạt động",
     AVAILABLE: "Còn trống",

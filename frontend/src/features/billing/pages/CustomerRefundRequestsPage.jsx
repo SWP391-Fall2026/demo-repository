@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Form } from "../../../shared/ui/ResourcePage";
 import { useRemote } from "../../../shared/api/use-remote";
-import { display, money } from "../../../shared/lib/format";
+import { display, money, sortByNewest } from "../../../shared/lib/format";
 import { billingApi } from "../api/billing.api";
 import RefundEvidencePanel from "../components/RefundEvidencePanel";
 const statuses = { PENDING: "Chờ phê duyệt", APPROVED: "Đã duyệt · chờ Staff thực hiện", EVIDENCE_SUBMITTED: "Staff đã gửi bằng chứng · chờ Manager xác nhận", COMPLETED: "Đã hoàn tiền", REJECTED: "Đã từ chối", CANCELLED: "Đã hủy yêu cầu" };
@@ -9,7 +9,7 @@ export default function CustomerRefundRequestsPage() {
     const [message, setMessage] = useState("");
     const refunds = useRemote(billingApi.refunds);
     const [selectedId, setSelectedId] = useState("");
-    const rows = Array.isArray(refunds.data) ? refunds.data : [];
+    const rows = sortByNewest(refunds.data);
     const selected = rows.find(row => row.id === selectedId);
     return (<main className="page-content"><header className="page-heading"><div><h1>Yêu cầu hoàn tiền của tôi</h1><p>Theo dõi yêu cầu và xem bằng chứng chuyển tiền Staff đã gửi cho khoản hoàn của bạn.</p></div><button className="secondary" onClick={refunds.reload}>Làm mới</button></header>
       {refunds.error && <p className="error" role="alert">{refunds.error}</p>}

@@ -39,7 +39,7 @@ export async function envelope(path, options = {}) {
         const isHtml = contentType.toLowerCase().includes("text/html")
             || /^\s*<!doctype\s+html|^\s*<html[\s>]/i.test(responseText);
         throw new ApiError(response.status >= 500 || isHtml
-            ? "Backend chưa sẵn sàng hoặc proxy gặp lỗi. Kiểm tra backend tại http://127.0.0.1:8080."
+            ? "Không tải được dữ liệu. Vui lòng thử lại sau ít phút."
             : "Máy chủ trả JSON không hợp lệ.", response.status);
     }
     if (!response.ok || !result.success) {

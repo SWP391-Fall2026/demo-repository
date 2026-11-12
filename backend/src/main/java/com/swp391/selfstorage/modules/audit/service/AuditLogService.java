@@ -20,7 +20,7 @@ public class AuditLogService {
 
   public List<AuditLog> getLogs() {
     actor.require("ADMIN");
-    return logs.findAllByOrderByIdDesc();
+    return logs.findAllByOrderByCreatedAtDescIdDesc();
   }
 
   public void record(String action, String entity, String detail) {

@@ -4,7 +4,7 @@ import { facilityApi } from "../../facility/api/facility.api";
 import { workforceApi } from "../../workforce/api/workforce.api";
 import { rentalApi } from "../../rental/api/rental.api";
 import { useRemote } from "../../../shared/api/use-remote";
-import { display, formatDate, statusLabel } from "../../../shared/lib/format";
+import { display, formatDate, sortByNewest, statusLabel } from "../../../shared/lib/format";
 
 export default function FacilityDashboardPage() {
     const dashboard = useRemote(async () => {
@@ -12,7 +12,7 @@ export default function FacilityDashboardPage() {
             workforceApi.managerDashboard(),
             rentalApi.list().catch(() => []),
         ]);
-        return { ...dash, contracts: Array.isArray(contracts) ? contracts : [] };
+        return { ...dash, contracts: sortByNewest(contracts) };
     });
     const [pinMessage, setPinMessage] = useState("");
     const [pinBusy, setPinBusy] = useState(false);
@@ -20,9 +20,8 @@ export default function FacilityDashboardPage() {
     const facility = dashboard.data?.facility || {};
     const staff = Array.isArray(dashboard.data?.staff) ? dashboard.data.staff : [];
     const units = Array.isArray(dashboard.data?.units) ? dashboard.data.units : [];
-    const tasks = Array.isArray(dashboard.data?.tasks) ? dashboard.data.tasks : [];
-    const returnRequests = (Array.isArray(dashboard.data?.contracts) ? dashboard.data.contracts : [])
-        .filter((c) => String(c.status) === "CHECKOUT_REQUESTED");
+    const tasks = sortByNewest(dashboard.data?.tasks);
+    const returnRequests = sortByNewest(dashboard.data?.contracts).filter((c) => String(c.status) === "CHECKOUT_REQUESTED");
 
     const activeStaff = staff.filter(
         (person) => String(person.status).toUpperCase() === "ACTIVE"

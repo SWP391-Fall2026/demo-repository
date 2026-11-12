@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useRemote } from "../../../shared/api/use-remote";
-import { display, formatDate, money } from "../../../shared/lib/format";
+import { display, formatDate, money, sortByNewest } from "../../../shared/lib/format";
 import { rentalApi } from "../api/rental.api";
 import { useSession } from "../../identity/session";
 
@@ -42,7 +42,7 @@ export default function ReturnInspectionPage() {
     const { contractId = "" } = useParams();
     const session = useSession();
     const { data, error, busy, reload } = useRemote(rentalApi.list);
-    const rows = Array.isArray(data) ? data : [];
+    const rows = sortByNewest(data);
     const contract = rows.find((row) => String(row.id) === contractId) || rows.find((row) => String(row.unitCode) === contractId);
     const requests = rows.filter((row) => String(row.status).toUpperCase() === "CHECKOUT_REQUESTED"
         || waitingStatuses.has(String(row.inspectionStatus).toUpperCase()));

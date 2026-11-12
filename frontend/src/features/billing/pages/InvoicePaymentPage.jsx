@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useRemote } from "../../../shared/api/use-remote";
-import { display, money } from "../../../shared/lib/format";
+import { display, money, sortByNewest } from "../../../shared/lib/format";
 import { billingApi } from "../api/billing.api";
 import { reservationApi } from "../../reservation/api/reservation.api";
 import CustomerRentalGuide from "../../reservation/components/CustomerRentalGuide";
@@ -21,7 +21,7 @@ export default function InvoicePaymentPage() {
     const { invoiceId: routeInvoiceId } = useParams();
     const { data, error: invoiceError, busy: invoicesBusy, refreshing, reload, silentReload } = useRemote(billingApi.invoices);
     const { data: reservationData, reload: reloadReservations, silentReload: silentReloadReservations } = useRemote(reservationApi.list);
-    const invoices = Array.isArray(data) ? data : [];
+    const invoices = sortByNewest(data);
     const reservations = Array.isArray(reservationData) ? reservationData : [];
     const [selectedId, setSelectedId] = usePersistedState("invoice.selected-id", routeInvoiceId && routeInvoiceId !== "all" ? routeInvoiceId : "");
     const [busy, setBusy] = useState(false);

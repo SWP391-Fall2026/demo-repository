@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useRemote } from "../../../shared/api/use-remote";
-import { display, formatDate, money } from "../../../shared/lib/format";
+import { display, formatDate, money, sortByNewest } from "../../../shared/lib/format";
 import { rentalApi } from "../api/rental.api";
 import ReturnInspectionResponse from "../components/ReturnInspectionResponse";
 const activeStatuses = ["ACTIVE", "EXPIRING_SOON", "OVERDUE", "CHECKOUT_REQUESTED"];
@@ -21,7 +21,7 @@ const inspectionLabels = {
     COMPLETED: "Hoàn tất",
 };
 export default function MyRentalsPage() {
-    const loadRentals = () => rentalApi.list().then((rows) => rows.filter((row) => activeStatuses.includes(String(row.status))));
+    const loadRentals = () => rentalApi.list().then((rows) => sortByNewest(rows.filter((row) => activeStatuses.includes(String(row.status)))));
     const { data, error: rentalsError, busy: rentalsBusy, reload } = useRemote(loadRentals);
     const { data: reviews, reload: reloadReviews } = useRemote(rentalApi.returnInspectionReviews);
     const [visible, setVisible] = useState(null);

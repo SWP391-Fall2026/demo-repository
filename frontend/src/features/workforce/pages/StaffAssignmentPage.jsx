@@ -3,11 +3,11 @@ import { workforceApi } from "../api/workforce.api";
 import { facilityApi } from "../../facility/api/facility.api";
 import { useRemote } from "../../../shared/api/use-remote";
 import { useSession } from "../../identity/session";
-import { display, statusClass, statusLabel } from "../../../shared/lib/format";
+import { display, sortByNewest, statusClass, statusLabel } from "../../../shared/lib/format";
 export default function StaffAssignmentPage() {
     const session = useSession();
     const dashboard = useRemote(workforceApi.managerDashboard);
-    const taskRows = Array.isArray(dashboard.data?.tasks) ? dashboard.data.tasks : [];
+    const taskRows = sortByNewest(Array.isArray(dashboard.data?.tasks) ? dashboard.data.tasks : []);
     const staffRows = Array.isArray(dashboard.data?.staff) ? dashboard.data.staff : [];
     const facilityInfo = dashboard.data?.facility;
     const branchLabel = facilityInfo?.name

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useRemote } from "../api/use-remote";
-import { display, money, statusClass, statusLabel } from "../lib/format";
+import { display, money, sortByNewest, statusClass, statusLabel } from "../lib/format";
 import { fieldLabel } from "../lib/field-labels";
 import { ReloadContext } from "./resource-context";
 export { Form } from "./Form";
@@ -17,7 +17,7 @@ export function ResourcePage({
 }) {
     const { data, error, busy, reload } = useRemote(load);
     const [search, setSearch] = useState("");
-    const rows = Array.isArray(data) ? data : data ? [data] : [];
+    const rows = sortByNewest(Array.isArray(data) ? data : data ? [data] : []);
     const cols =
         columns ??
         Object.keys(rows[0] ?? {})

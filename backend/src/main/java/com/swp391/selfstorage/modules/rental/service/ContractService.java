@@ -101,7 +101,8 @@ public class ContractService {
         }
       }
     }
-    return rows;
+    return rows.stream().sorted(Comparator.comparing(Contract::getCreatedAt,
+      Comparator.nullsFirst(Comparator.naturalOrder())).reversed()).toList();
   }
 
   @Transactional(readOnly = true)

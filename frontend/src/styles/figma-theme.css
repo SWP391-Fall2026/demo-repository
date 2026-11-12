@@ -1439,6 +1439,50 @@ tr:hover td {
   }
 }
 
+.catalog-clear-type {
+  margin-left: 10px;
+  color: var(--color-accent-blue);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.customer-mobile-nav {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .customer-mobile-nav {
+    display: flex;
+    flex: 0 0 100%;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 4px 0;
+  }
+
+  .customer-mobile-nav a {
+    flex: 0 0 auto;
+    padding: 9px 11px;
+    border-radius: 8px;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .customer-mobile-nav a.active {
+    color: #0b4ca6;
+    background: #e9f2ff;
+  }
+}
+
+#quy-trinh,
+#cau-hoi {
+  scroll-margin-top: 90px;
+}
+
+.empty-state .btn-figma + .btn-figma {
+  margin-left: 8px;
+}
+
 
 
 /* ==============================================================================
@@ -2228,6 +2272,7 @@ tr:hover td {
   padding: 40px clamp(24px, 5vw, 64px);
   background: #FFFFFF;
   overflow-y: auto;
+  scrollbar-gutter: stable;
 }
 
 .auth-top-nav {
@@ -2483,6 +2528,13 @@ tr:hover td {
   gap: 8px;
   font-size: 12px;
   color: #94A3B8;
+  text-align: center;
+}
+
+.auth-register-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
 }
 
 /* Right Showcase Side */
@@ -2599,6 +2651,50 @@ tr:hover td {
   .auth-form-side {
     padding: 32px 20px;
     min-height: 100vh;
+  }
+}
+
+@media (max-width: 560px) {
+  .auth-form-side {
+    padding: 24px 16px;
+  }
+
+  .auth-top-nav {
+    margin-bottom: 22px;
+  }
+
+  .auth-back-link span {
+    display: none;
+  }
+
+  .auth-title {
+    font-size: 26px;
+  }
+
+  .demo-accounts-box {
+    padding: 11px;
+  }
+
+  .demo-accounts-title {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .demo-chip-btn {
+    flex: 1 1 calc(50% - 6px);
+    min-height: 38px;
+  }
+
+  .auth-register-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .auth-footer-security {
+    align-items: flex-start;
+    font-size: 11px;
+    line-height: 1.45;
   }
 }
 

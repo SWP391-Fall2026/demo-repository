@@ -33,6 +33,8 @@ import org.springframework.test.web.servlet.*;
 )
 class RentalLifecycleTest {
 
+  private static final ZoneId APP_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
+
   @Test
   void concurrentRefundRequestsReserveOriginalPaymentQuota() throws Exception {
     var start = LocalDateTime.now().plusDays(3).withNano(0);
@@ -309,13 +311,13 @@ class RentalLifecycleTest {
     postAs(
       "customer",
       "/contracts/checkout-request",
-      Map.of("contractId", cid, "requestedDate", LocalDate.now().minusDays(1).toString(), "reason", "Ngày quá khứ"),
+      Map.of("contractId", cid, "requestedDate", LocalDate.now(APP_ZONE).minusDays(1).toString(), "reason", "Ngày quá khứ"),
       400
     );
     postAs(
       "customer",
       "/contracts/checkout-request",
-      Map.of("contractId", cid, "requestedDate", LocalDate.now().toString(), "reason", "Kết thúc thuê"),
+      Map.of("contractId", cid, "requestedDate", LocalDate.now(APP_ZONE).toString(), "reason", "Kết thúc thuê"),
       200
     );
     assertEquals(pin, contracts.findById(cid).orElseThrow().getPinCode());

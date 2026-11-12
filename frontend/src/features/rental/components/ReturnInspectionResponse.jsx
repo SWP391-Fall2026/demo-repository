@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { display, money } from "../../../shared/lib/format";
+import { display, money, sortByNewest } from "../../../shared/lib/format";
 import { rentalApi } from "../api/rental.api";
 
 function DisputeEvidence({ review }) {
@@ -85,7 +85,7 @@ export default function ReturnInspectionResponse({ contractId, status, reviews, 
         }
     }
 
-    const reviewHistory = Array.isArray(reviews) ? reviews : reviews ? [reviews] : [];
+    const reviewHistory = sortByNewest(Array.isArray(reviews) ? reviews : reviews ? [reviews] : []);
     const review = reviewHistory[0];
     return <section className="customer-inspection-panel">
       {inspectionImageError && <p className="error" role="alert">{inspectionImageError}</p>}

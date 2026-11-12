@@ -208,7 +208,7 @@ export default function AuthPage() {
                     </p>
 
                     {/* Quick Demo Accounts Helper (Only on Login) */}
-                    {!register && !challenge && (
+                    {import.meta.env.DEV && !register && !challenge && (
                         <div className="demo-accounts-box">
                             <div className="demo-accounts-title">
                                 <span>⚡ Tài khoản thử nghiệm (1-click):</span>
@@ -246,7 +246,7 @@ export default function AuthPage() {
                         {challenge ? (
                             <>
                                 <div>
-                                    <label style={{ display: "block", fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>
+                                    <label htmlFor="auth-code" style={{ display: "block", fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>
                                         Mã xác minh (6 số)
                                     </label>
                                     <div className="input-icon-wrapper">
@@ -257,6 +257,7 @@ export default function AuthPage() {
                                             </svg>
                                         </span>
                                         <input
+                                            id="auth-code"
                                             name="code"
                                             className="input-with-icon"
                                             inputMode="numeric"
@@ -283,41 +284,41 @@ export default function AuthPage() {
                             <>
                                 {register && (
                                     <>
-                                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+                                        <div className="auth-register-grid">
                                             <div>
-                                                <label style={{ display: "block", fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>
+                                                <label htmlFor="auth-name" style={{ display: "block", fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>
                                                     Họ và tên
                                                 </label>
-                                                <input name="name" className="input-with-icon" style={{ paddingLeft: "14px" }} placeholder="Nguyễn Văn A" autoComplete="name" required />
+                                                <input id="auth-name" name="name" className="input-with-icon" style={{ paddingLeft: "14px" }} placeholder="Nguyễn Văn A" autoComplete="name" required />
                                             </div>
                                             <div>
-                                                <label style={{ display: "block", fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>
+                                                <label htmlFor="auth-phone" style={{ display: "block", fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>
                                                     Số điện thoại
                                                 </label>
-                                                <input name="phone" type="tel" className="input-with-icon" style={{ paddingLeft: "14px" }} placeholder="0901234567" autoComplete="tel" required />
+                                                <input id="auth-phone" name="phone" type="tel" className="input-with-icon" style={{ paddingLeft: "14px" }} placeholder="0901234567" autoComplete="tel" required />
                                             </div>
                                         </div>
 
-                                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+                                        <div className="auth-register-grid">
                                             <div>
-                                                <label style={{ display: "block", fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>
+                                                <label htmlFor="auth-email" style={{ display: "block", fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>
                                                     Email
                                                 </label>
-                                                <input name="email" type="email" className="input-with-icon" style={{ paddingLeft: "14px" }} placeholder="example@email.com" autoComplete="email" required />
+                                                <input id="auth-email" name="email" type="email" className="input-with-icon" style={{ paddingLeft: "14px" }} placeholder="example@email.com" autoComplete="email" required />
                                             </div>
                                             <div>
-                                                <label style={{ display: "block", fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>
+                                                <label htmlFor="auth-cccd" style={{ display: "block", fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>
                                                     Số CCCD / CMND
                                                 </label>
-                                                <input name="cccd" className="input-with-icon" style={{ paddingLeft: "14px" }} placeholder="12 số căn cước" inputMode="numeric" required />
+                                                <input id="auth-cccd" name="cccd" className="input-with-icon" style={{ paddingLeft: "14px" }} placeholder="12 số căn cước" inputMode="numeric" required />
                                             </div>
                                         </div>
 
                                         <div>
-                                            <label style={{ display: "block", fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>
+                                            <label htmlFor="auth-facility" style={{ display: "block", fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>
                                                 Cơ sở gần bạn nhất (không bắt buộc)
                                             </label>
-                                            <select name="facilityCode" defaultValue="" className="input-with-icon" style={{ paddingLeft: "14px" }}>
+                                            <select id="auth-facility" name="facilityCode" defaultValue="" className="input-with-icon" style={{ paddingLeft: "14px" }}>
                                                 <option value="">-- Chọn chi nhánh quan tâm --</option>
                                                 {facilities.map((facility) => (
                                                     <option key={String(facility.code)} value={String(facility.code)}>
@@ -331,7 +332,7 @@ export default function AuthPage() {
                                 )}
 
                                 <div>
-                                    <label style={{ display: "block", fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>
+                                    <label htmlFor="auth-username" style={{ display: "block", fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>
                                         {register ? "Tên đăng nhập" : "Tên đăng nhập hoặc email"}
                                     </label>
                                     <div className="input-icon-wrapper">
@@ -342,6 +343,7 @@ export default function AuthPage() {
                                             </svg>
                                         </span>
                                         <input
+                                            id="auth-username"
                                             name="username"
                                             className="input-with-icon"
                                             autoComplete="username"
@@ -354,7 +356,7 @@ export default function AuthPage() {
                                 </div>
 
                                 <div>
-                                    <label style={{ display: "block", fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>
+                                    <label htmlFor="auth-password" style={{ display: "block", fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>
                                         Mật khẩu
                                     </label>
                                     <div className="input-icon-wrapper">
@@ -365,6 +367,7 @@ export default function AuthPage() {
                                             </svg>
                                         </span>
                                         <input
+                                            id="auth-password"
                                             name="password"
                                             type={showPassword ? "text" : "password"}
                                             className="input-with-icon"
@@ -397,7 +400,7 @@ export default function AuthPage() {
 
                                 {register && (
                                     <div>
-                                        <label style={{ display: "block", fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>
+                                        <label htmlFor="auth-confirm-password" style={{ display: "block", fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>
                                             Nhập lại mật khẩu
                                         </label>
                                         <div className="input-icon-wrapper">
@@ -408,6 +411,7 @@ export default function AuthPage() {
                                                 </svg>
                                             </span>
                                             <input
+                                                id="auth-confirm-password"
                                                 name="confirmPassword"
                                                 type={showPassword ? "text" : "password"}
                                                 className="input-with-icon"
@@ -486,7 +490,7 @@ export default function AuthPage() {
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                         <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                     </svg>
-                    <span>Mã hóa bảo mật SSL 256-bit · Tiêu chuẩn an toàn quốc tế ISO 27001</span>
+                    <span>Thông tin tài khoản chỉ dùng để quản lý dịch vụ kho của bạn.</span>
                 </div>
             </div>
 
@@ -500,7 +504,7 @@ export default function AuthPage() {
                     <div className="auth-glass-card">
                         <div className="auth-glass-tag">✓ HỆ THỐNG KHO TỰ QUẢN TIÊU CHUẨN</div>
                         <h2 className="auth-glass-title">
-                            Lưu trữ tự phục vụ thông minh, an toàn và bảo mật tối đa
+                            Quản lý việc thuê kho thuận tiện tại một nơi
                         </h2>
 
                         <div className="auth-glass-features">
@@ -508,36 +512,22 @@ export default function AuthPage() {
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                                     <polyline points="20 6 9 17 4 12" />
                                 </svg>
-                                <span>Mã PIN điện tử cá nhân hóa tự vào kho 24/7, không cần nhân viên trực.</span>
+                                <span>Theo dõi kho đang thuê và thông tin ra vào trong tài khoản.</span>
                             </div>
                             <div className="auth-glass-feature-item">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                                     <polyline points="20 6 9 17 4 12" />
                                 </svg>
-                                <span>Hệ thống giám sát đa lớp bằng camera AI, kiểm soát nhiệt độ & độ ẩm đạt chuẩn.</span>
+                                <span>Xem hợp đồng, hóa đơn và lịch sử thanh toán trực tuyến.</span>
                             </div>
                             <div className="auth-glass-feature-item">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                                     <polyline points="20 6 9 17 4 12" />
                                 </svg>
-                                <span>Minh bạch tuyệt đối: Đặt giữ chỗ trực tuyến, hợp đồng số & hoàn cọc tự động.</span>
+                                <span>Gửi yêu cầu trả kho, hỗ trợ và hoàn tiền theo từng bước.</span>
                             </div>
                         </div>
 
-                        <div className="auth-glass-stats">
-                            <div className="auth-stat-item">
-                                <strong>3+ Cơ sở</strong>
-                                <span>TP.HCM & Hà Nội</span>
-                            </div>
-                            <div className="auth-stat-item">
-                                <strong>100%</strong>
-                                <span>Tự động hóa</span>
-                            </div>
-                            <div className="auth-stat-item">
-                                <strong>5.000+ m²</strong>
-                                <span>Kho bãi đạt chuẩn</span>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>

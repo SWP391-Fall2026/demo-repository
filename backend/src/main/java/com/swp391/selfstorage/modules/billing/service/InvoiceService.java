@@ -33,9 +33,11 @@ public class InvoiceService {
   @Transactional(readOnly = true)
   public List<Invoice> list() {
     var u = actor.require("CUSTOMER", "STAFF", "FMANAGER");
-    return "CUSTOMER".equals(actor.role(u))
+    List<Invoice> rows = "CUSTOMER".equals(actor.role(u))
       ? repo.findByUserId(u.getId())
       : repo.findByFacilityCode(u.getFacilityCode());
+    return rows.stream().sorted(Comparator.comparing(Invoice::getIssuedAt,
+      Comparator.nullsFirst(Comparator.naturalOrder())).reversed()).toList();
   }
 
   public Invoice issue(
