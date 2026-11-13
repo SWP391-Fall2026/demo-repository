@@ -75,8 +75,7 @@ public class SecurityConfig {
             HttpMethod.GET,
             "/api/facilities",
             "/api/facilities/units",
-            "/api/facilities/unit-types",
-            "/api/files/**"
+            "/api/facilities/unit-types"
           )
           .permitAll()
           .requestMatchers(HttpMethod.GET, "/api/policies/history")
