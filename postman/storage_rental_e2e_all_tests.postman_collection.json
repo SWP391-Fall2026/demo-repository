@@ -40,6 +40,56 @@
       "key": "access_pin",
       "value": "778899",
       "type": "string"
+    },
+    {
+      "key": "customer_username",
+      "value": "customer",
+      "type": "string"
+    },
+    {
+      "key": "customer_password",
+      "value": "Demo123!",
+      "type": "string"
+    },
+    {
+      "key": "manager_username",
+      "value": "manager",
+      "type": "string"
+    },
+    {
+      "key": "manager_password",
+      "value": "Demo123!",
+      "type": "string"
+    },
+    {
+      "key": "staff_username",
+      "value": "staff",
+      "type": "string"
+    },
+    {
+      "key": "staff_password",
+      "value": "Demo123!",
+      "type": "string"
+    },
+    {
+      "key": "admin_username",
+      "value": "admin",
+      "type": "string"
+    },
+    {
+      "key": "admin_password",
+      "value": "Demo123!",
+      "type": "string"
+    },
+    {
+      "key": "contract_id",
+      "value": "CTR-HN-CG-1001",
+      "type": "string"
+    },
+    {
+      "key": "facility_code",
+      "value": "HN-CG",
+      "type": "string"
     }
   ],
   "item": [
@@ -81,7 +131,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"customer\",\n  \"password\": \"Demo123!\"\n}"
+              "raw": "{\n  \"username\": \"{{customer_username}}\",\n  \"password\": \"{{customer_password}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/login",
@@ -165,7 +215,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"manager\",\n  \"password\": \"Demo123!\"\n}"
+              "raw": "{\n  \"username\": \"{{manager_username}}\",\n  \"password\": \"{{manager_password}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/login",
@@ -209,7 +259,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"staff\",\n  \"password\": \"Demo123!\"\n}"
+              "raw": "{\n  \"username\": \"{{staff_username}}\",\n  \"password\": \"{{staff_password}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/login",
@@ -253,7 +303,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"Demo123!\"\n}"
+              "raw": "{\n  \"username\": \"{{admin_username}}\",\n  \"password\": \"{{admin_password}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/login",
@@ -322,13 +372,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/facilities/units?facilityCode=HN-CG",
+              "raw": "{{baseUrl}}/facilities/units?facilityCode={{facility_code}}",
               "host": ["{{baseUrl}}"],
               "path": ["facilities", "units"],
               "query": [
                 {
                   "key": "facilityCode",
-                  "value": "HN-CG"
+                  "value": "{{facility_code}}"
                 }
               ]
             }
@@ -443,7 +493,25 @@
                   "pm.test(\"Returns customer contracts\", function () {",
                   "    pm.expect(jsonData.success).to.eql(true);",
                   "    pm.expect(jsonData.data).to.be.an(\"array\");",
-                  "});"
+                  "});",
+                  "if (Array.isArray(jsonData.data) && jsonData.data.length > 0) {",
+                  "    var preferredFacility = pm.variables.get(\"facility_code\");",
+                  "    var isActive = function (c) { return c && (c.status === \"ACTIVE\" || c.status === \"EXPIRING_SOON\"); };",
+                  "    var matchFacility = function (c) {",
+                  "        var code = c && (c.facilityCode || (c.facility && c.facility.code));",
+                  "        return !preferredFacility || code === preferredFacility;",
+                  "    };",
+                  "    var chosen = jsonData.data.find(function (c) { return isActive(c) && matchFacility(c); })",
+                  "        || jsonData.data.find(isActive)",
+                  "        || jsonData.data[0];",
+                  "    if (chosen && chosen.id) {",
+                  "        pm.collectionVariables.set(\"contract_id\", chosen.id);",
+                  "    }",
+                  "    var chosenFacility = chosen && (chosen.facilityCode || (chosen.facility && chosen.facility.code));",
+                  "    if (chosenFacility) {",
+                  "        pm.collectionVariables.set(\"facility_code\", chosenFacility);",
+                  "    }",
+                  "}"
                 ],
                 "type": "text/javascript"
               }
@@ -470,7 +538,7 @@
           }
         },
         {
-          "name": "03.2 - Get Specific Contract (CTR-HN-CG-1001)",
+          "name": "03.2 - Get Specific Contract ({{contract_id}})",
           "event": [
             {
               "listen": "test",
@@ -482,7 +550,8 @@
                   "var jsonData = pm.response.json();",
                   "pm.test(\"Contract ID matches\", function () {",
                   "    pm.expect(jsonData.success).to.eql(true);",
-                  "    pm.expect(jsonData.data.id).to.eql(\"CTR-HN-CG-1001\");",
+                  "    var returnedId = (jsonData.data && jsonData.data.contract && jsonData.data.contract.id) || (jsonData.data && jsonData.data.id);",
+                  "    pm.expect(returnedId).to.eql(pm.variables.get(\"contract_id\"));",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -503,9 +572,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/contracts/CTR-HN-CG-1001",
+              "raw": "{{baseUrl}}/contracts/{{contract_id}}",
               "host": ["{{baseUrl}}"],
-              "path": ["contracts", "CTR-HN-CG-1001"]
+              "path": ["contracts", "{{contract_id}}"]
             }
           }
         }
@@ -562,9 +631,9 @@
               "raw": "{\n  \"purpose\": \"Cất thêm thùng hàng gia dụng tự phục vụ\",\n  \"notes\": \"Có mang theo xe kéo hàng mini\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/contracts/CTR-HN-CG-1001/access-requests",
+              "raw": "{{baseUrl}}/contracts/{{contract_id}}/access-requests",
               "host": ["{{baseUrl}}"],
-              "path": ["contracts", "CTR-HN-CG-1001", "access-requests"]
+              "path": ["contracts", "{{contract_id}}", "access-requests"]
             }
           }
         },
@@ -617,9 +686,9 @@
               "raw": "{\n  \"pin\": \"778899\",\n  \"notes\": \"Quản lý cơ sở đã duyệt yêu cầu vào kho\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/facilities/HN-CG/access-requests/{{access_request_id}}/approve",
+              "raw": "{{baseUrl}}/facilities/{{facility_code}}/access-requests/{{access_request_id}}/approve",
               "host": ["{{baseUrl}}"],
-              "path": ["facilities", "HN-CG", "access-requests", "{{access_request_id}}", "approve"]
+              "path": ["facilities", "{{facility_code}}", "access-requests", "{{access_request_id}}", "approve"]
             }
           }
         },
@@ -667,9 +736,9 @@
               "raw": "{\n  \"pin\": \"{{access_pin}}\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/contracts/CTR-HN-CG-1001/access-checkin",
+              "raw": "{{baseUrl}}/contracts/{{contract_id}}/access-checkin",
               "host": ["{{baseUrl}}"],
-              "path": ["contracts", "CTR-HN-CG-1001", "access-checkin"]
+              "path": ["contracts", "{{contract_id}}", "access-checkin"]
             }
           }
         },
@@ -718,9 +787,9 @@
               "raw": "{\n  \"notes\": \"Khách hàng xác nhận đã khóa cửa kho an toàn và không bỏ quên đồ ngoài hành lang\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/contracts/CTR-HN-CG-1001/access-checkout",
+              "raw": "{{baseUrl}}/contracts/{{contract_id}}/access-checkout",
               "host": ["{{baseUrl}}"],
-              "path": ["contracts", "CTR-HN-CG-1001", "access-checkout"]
+              "path": ["contracts", "{{contract_id}}", "access-checkout"]
             }
           }
         },
@@ -759,9 +828,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/facilities/HN-CG/access-logs",
+              "raw": "{{baseUrl}}/facilities/{{facility_code}}/access-logs",
               "host": ["{{baseUrl}}"],
-              "path": ["facilities", "HN-CG", "access-logs"]
+              "path": ["facilities", "{{facility_code}}", "access-logs"]
             }
           }
         }

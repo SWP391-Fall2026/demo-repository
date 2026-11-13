@@ -1,6 +1,7 @@
 package com.swp391.selfstorage.common.web;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.Map;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse<T> {
@@ -12,6 +13,7 @@ public class ApiResponse<T> {
   private Integer count;
   private String code;
   private String email;
+  private Map<String, String> errors;
 
   public ApiResponse() {}
 
@@ -54,6 +56,15 @@ public class ApiResponse<T> {
 
   public static <T> ApiResponse<T> error(String message) {
     return new ApiResponse<>(false, message);
+  }
+
+  public static <T> ApiResponse<T> validationError(
+    String message,
+    Map<String, String> errors
+  ) {
+    ApiResponse<T> resp = new ApiResponse<>(false, message);
+    resp.setErrors(errors == null || errors.isEmpty() ? null : errors);
+    return resp;
   }
 
   public boolean isSuccess() {
@@ -110,5 +121,13 @@ public class ApiResponse<T> {
 
   public void setEmail(String email) {
     this.email = email;
+  }
+
+  public Map<String, String> getErrors() {
+    return errors;
+  }
+
+  public void setErrors(Map<String, String> errors) {
+    this.errors = errors;
   }
 }
