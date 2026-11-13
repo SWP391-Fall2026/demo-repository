@@ -38,6 +38,7 @@ public class VnPayService {
   private final Clock clock;
   private final ReservationHoldPolicy holdPolicy;
   private final com.swp391.selfstorage.application.workflow.PaidRentActivationService rentActivation;
+  private final com.swp391.selfstorage.application.workflow.PaidInvoiceFulfillmentService fulfillment;
   static final String RETURN_PATH = "/api/payments/vnpay/return";
   private final String url, tmnCode, hashSecret, returnUrl, frontendUrl;
   private final Set<String> trustedOrigins;
@@ -50,7 +51,8 @@ public class VnPayService {
       @Value("${app.frontend-url:http://localhost:5173}") String frontendUrl,
       @Value("${app.cors.allowed-origins:}") String trustedOrigins,
       ReservationHoldPolicy holdPolicy,
-      com.swp391.selfstorage.application.workflow.PaidRentActivationService rentActivation) {
+      com.swp391.selfstorage.application.workflow.PaidRentActivationService rentActivation,
+      com.swp391.selfstorage.application.workflow.PaidInvoiceFulfillmentService fulfillment) {
     this.invoices = invoices; this.payments = payments; this.reservations = reservations;
     this.contracts = contracts;
     this.actor = actor; this.audit = audit; this.clock = clock; this.url = url;
@@ -64,6 +66,7 @@ public class VnPayService {
     }
     this.holdPolicy = holdPolicy;
     this.rentActivation = rentActivation;
+    this.fulfillment = fulfillment;
   }
 
   /**
@@ -98,6 +101,11 @@ public class VnPayService {
       if (!"PENDING_PAYMENT".equals(contracts.findByReservationId(r.getId()).map(c -> c.getStatus()).orElse("")))
         throw Inputs.conflict("Hợp đồng không còn ở trạng thái chờ thanh toán");
       if (rentActivation == null) throw Inputs.conflict("Không thể kích hoạt hợp đồng trước thanh toán");
+    } else if ("RENEW".equals(invoice.getInvoiceType()) || "OVERDUE".equals(invoice.getInvoiceType())) {
+      var contract = contracts.lockById(invoice.getContractId()).orElseThrow(Inputs::missing);
+      if (!Set.of("ACTIVE", "EXPIRING_SOON", "OVERDUE").contains(contract.getStatus())
+          || contract.getCheckoutRequestedAt() != null)
+        throw Inputs.conflict("Hợp đồng không thể gia hạn");
     }
     String paymentId = ShortIds.next("PAY");
     LocalDateTime now = LocalDateTime.now(clock);
@@ -139,6 +147,7 @@ public class VnPayService {
     if (invoice == null) return response("01", "Invoice not found");
     if (!"PENDING".equals(payment.getStatus()))
       return response("PAID".equals(payment.getStatus()) ? "00" : "02", "Order already processed");
+    if (!"PENDING".equals(invoice.getStatus())) return response("02", "Invoice already processed");
     String amount = incoming.get("vnp_Amount");
     String expected = invoice.getAmount().multiply(BigDecimal.valueOf(100)).toBigIntegerExact().toString();
     if (!expected.equals(amount) || !txnRef.equals(payment.getTransactionCode()) ||
@@ -158,15 +167,15 @@ public class VnPayService {
           return response("04", "Rent preconditions not met");
         if (!"PENDING_PAYMENT".equals(contracts.findByReservationId(rentReservation.getId()).map(c -> c.getStatus()).orElse("")))
           return response("04", "Contract payment preconditions not met");
+      } else if ("RENEW".equals(invoice.getInvoiceType()) || "OVERDUE".equals(invoice.getInvoiceType())) {
+        var contract = contracts.lockById(invoice.getContractId()).orElse(null);
+        if (contract == null || !Set.of("ACTIVE", "EXPIRING_SOON", "OVERDUE").contains(contract.getStatus())
+            || contract.getCheckoutRequestedAt() != null)
+          return response("04", "Renewal preconditions not met");
       }
       payment.setStatus("PAID"); invoice.setStatus("PAID");
-      if (depositReservation != null) {
-        depositReservation.setStatus("RESERVED");
-        depositReservation.setReservationExpiresAt(holdPolicy.reservationExpiry(
-            LocalDateTime.now(clock), depositReservation.getReservationHoldDaysSnapshot()));
-        reservations.save(depositReservation);
-      }
-      if (rentReservation != null) rentActivation.activate(invoice, rentReservation);
+      payment.setPaidAt(LocalDateTime.now(clock));
+      fulfillment.complete(invoice, payment.getPaidAt());
       audit.recordSystem("PAYMENT_PAID", payment.getId(), "VNPAY " + invoice.getInvoiceType() + " " + invoice.getAmount());
     } else payment.setStatus("FAILED");
     payments.save(payment); invoices.save(invoice);

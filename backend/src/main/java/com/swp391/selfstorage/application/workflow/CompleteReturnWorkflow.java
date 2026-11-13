@@ -128,8 +128,11 @@ public class CompleteReturnWorkflow {
     i.setRepairFee(repairFee);
     i.setPenaltyFee(deductions);
     i.setOriginalPenaltyFee(deductions);
+    BigDecimal deposit = Optional.ofNullable(c.getDepositFee()).orElse(BigDecimal.ZERO);
+    i.setDepositDeductionAmount(deductions.min(deposit));
+    i.setOutstandingFeeAmount(deductions.subtract(i.getDepositDeductionAmount()));
     i.setDepositRefundAmount(
-      c.getDepositFee().subtract(deductions).max(BigDecimal.ZERO)
+      deposit.subtract(i.getDepositDeductionAmount())
     );
     i.setIsCleared(
       "CLEAN".equals(cleanliness) && !lockDamaged
@@ -151,7 +154,9 @@ public class CompleteReturnWorkflow {
       "inspectionId",
       i.getId(),
       "deductions",
-      deductions,
+      i.getDepositDeductionAmount(),
+      "outstandingFee",
+      i.getOutstandingFeeAmount(),
       "refundableDeposit",
       i.getDepositRefundAmount(),
       "evidenceAvailable",

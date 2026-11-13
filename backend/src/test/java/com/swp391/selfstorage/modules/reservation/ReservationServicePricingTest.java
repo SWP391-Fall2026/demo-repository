@@ -28,6 +28,7 @@ class ReservationServicePricingTest {
     units = mock(UnitRepository.class);
     policies = mock(PolicyService.class);
     when(policies.value(anyString(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+    when(policies.discount(anyInt())).thenReturn(BigDecimal.ZERO);
     reservations = new ReservationService(
       mock(ReservationRepository.class),
       mock(ActorContext.class),

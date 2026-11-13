@@ -78,8 +78,8 @@ public class SecurityConfig {
             "/api/facilities/unit-types"
           )
           .permitAll()
-          .requestMatchers(HttpMethod.GET, "/api/policies/**")
-          .permitAll()
+          .requestMatchers(HttpMethod.GET, "/api/policies/history")
+          .hasAnyAuthority("ROLE_OPS_MGR", "ROLE_ADMIN")
           .requestMatchers(
             "/swagger-ui/**",
             "/swagger-ui.html",

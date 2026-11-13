@@ -315,6 +315,7 @@ public class LocalDataInitializer implements CommandLineRunner {
       p1.setStatus("PAID");
       p1.setTimeStr(LocalDateTime.now().minusDays(10).toString());
       p1.setCreatedAt(LocalDateTime.now().minusDays(10));
+      p1.setPaidAt(p1.getCreatedAt());
       payments.save(p1);
 
       Payment p2 = new Payment();
@@ -332,6 +333,7 @@ public class LocalDataInitializer implements CommandLineRunner {
       p2.setStatus("PAID");
       p2.setTimeStr(LocalDateTime.now().minusDays(10).toString());
       p2.setCreatedAt(LocalDateTime.now().minusDays(10));
+      p2.setPaidAt(p2.getCreatedAt());
       payments.save(p2);
 
       Payment p3 = new Payment();
@@ -348,6 +350,7 @@ public class LocalDataInitializer implements CommandLineRunner {
       p3.setStatus("PAID");
       p3.setTimeStr(LocalDateTime.now().minusHours(2).toString());
       p3.setCreatedAt(LocalDateTime.now().minusHours(2));
+      p3.setPaidAt(p3.getCreatedAt());
       payments.save(p3);
 
       Payment p4 = new Payment();
@@ -365,6 +368,7 @@ public class LocalDataInitializer implements CommandLineRunner {
       p4.setStatus("PAID");
       p4.setTimeStr(LocalDateTime.now().minusDays(5).toString());
       p4.setCreatedAt(LocalDateTime.now().minusDays(5));
+      p4.setPaidAt(p4.getCreatedAt());
       payments.save(p4);
     }
 

@@ -42,6 +42,12 @@ public class Payment {
   @Column(name = "created_at")
   private LocalDateTime createdAt = LocalDateTime.now();
 
+  @Column(name = "paid_at")
+  private LocalDateTime paidAt;
+
+  public LocalDateTime getPaidAt() { return paidAt; }
+  public void setPaidAt(LocalDateTime value) { paidAt = value; }
+
   public Payment() {}
 
   public String getId() {

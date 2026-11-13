@@ -70,6 +70,7 @@ class ReportServiceTest {
     InspectionRecord completedInspection = new InspectionRecord();
     completedInspection.setStatus("COMPLETED");
     completedInspection.setPenaltyFee(new BigDecimal("50"));
+    completedInspection.setDepositDeductionAmount(new BigDecimal("50"));
     completedInspection.setCompletedAt(LocalDateTime.of(2026, 10, 12, 10, 0));
     when(inspections.findByContractFacilityCode(null)).thenReturn(List.of(completedInspection));
 
@@ -109,6 +110,18 @@ class ReportServiceTest {
     assertEquals("Central", branch.get("facilityName"));
   }
 
+  @Test
+  void usesSettlementDateWhenGatewayConfirmsNextMonth() {
+    Payment payment = payment("RENT", "1000", LocalDateTime.of(2026, 10, 31, 23, 50));
+    payment.setPaidAt(LocalDateTime.of(2026, 11, 1, 0, 5));
+    when(payments.findByStatusIgnoreCase("PAID")).thenReturn(List.of(payment));
+    when(units.findAll()).thenReturn(List.of());
+    when(refunds.findByStatusIgnoreCase("COMPLETED")).thenReturn(List.of());
+    when(inspections.findByContractFacilityCode(null)).thenReturn(List.of());
+    assertEquals(BigDecimal.ZERO, reports.revenue(null, "2026-10-01", "2026-10-31", "month").get("rentalReceipts"));
+    assertEquals(new BigDecimal("1000"), reports.revenue(null, "2026-11-01", "2026-11-30", "month").get("rentalReceipts"));
+  }
+
   private Facility facility(String code, String name) {
     Facility facility = new Facility();
     facility.setCode(code);
@@ -129,6 +142,7 @@ class ReportServiceTest {
     payment.setInvoiceType(type);
     payment.setAmount(new BigDecimal(amount));
     payment.setCreatedAt(createdAt);
+    payment.setPaidAt(createdAt);
     return payment;
   }
 

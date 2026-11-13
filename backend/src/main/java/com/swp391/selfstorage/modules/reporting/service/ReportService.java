@@ -63,6 +63,8 @@ public class ReportService {
   @Transactional(readOnly = true)
   public Map<String, Object> revenue(String facilityCode, String from, String to, String granularity) {
     var u = actor.require("OPS_MGR", "FMANAGER", "ADMIN");
+    if ("FMANAGER".equals(actor.role(u)) && facilityCode != null && !facilityCode.isBlank())
+      actor.facility(u, facilityCode);
     String requested = "OPS_MGR".equals(actor.role(u)) || "ADMIN".equals(actor.role(u)) ? facilityCode : u.getFacilityCode();
     if (requested != null && requested.isBlank()) requested = null;
     if (requested != null && "FMANAGER".equals(actor.role(u))) actor.facility(u, requested);
@@ -75,8 +77,30 @@ public class ReportService {
   }
 
   @Transactional(readOnly = true)
+  public String exportCsv(String facilityCode, String from, String to, String granularity) {
+    Map<String, Object> data = revenue(facilityCode, from, to, granularity);
+    StringBuilder csv = new StringBuilder("source,source_id,invoice_id,payment_id,contract_id,reservation_id,facility_code,type,amount,occurred_at,time_estimated\r\n");
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> transactions = (List<Map<String, Object>>) data.get("transactions");
+    for (var row : transactions) {
+      String[] fields = { "source", "sourceId", "invoiceId", "paymentId", "contractId",
+          "reservationId", "facilityCode", "type", "amount", "occurredAt", "timeEstimated" };
+      for (int index = 0; index < fields.length; index++) {
+        if (index > 0) csv.append(',');
+        String value = Objects.toString(row.get(fields[index]), "");
+        if (!value.isEmpty() && "=+-@".indexOf(value.charAt(0)) >= 0) value = "'" + value;
+        csv.append('"').append(value.replace("\"", "\"\"")).append('"');
+      }
+      csv.append("\r\n");
+    }
+    return "\uFEFF" + csv;
+  }
+
+  @Transactional(readOnly = true)
   public Map<String, Object> occupancy(String facilityCode) {
     var u = actor.require("OPS_MGR", "FMANAGER", "ADMIN");
+    if ("FMANAGER".equals(actor.role(u)) && facilityCode != null && !facilityCode.isBlank())
+      actor.facility(u, facilityCode);
     String rawScope = "OPS_MGR".equals(actor.role(u)) || "ADMIN".equals(actor.role(u)) ? facilityCode : u.getFacilityCode();
     if (rawScope != null && rawScope.isBlank()) rawScope = null;
     if (rawScope != null && "FMANAGER".equals(actor.role(u))) actor.facility(u, rawScope);
@@ -136,8 +160,8 @@ public class ReportService {
     Map<String, BigDecimal> receipts = new TreeMap<>();
     Map<String, BigDecimal> refundsByBucket = new TreeMap<>();
     for (var p : paid) {
-      if (p.getCreatedAt() == null || "DEPOSIT".equalsIgnoreCase(p.getInvoiceType())) continue;
-      String bucket = period(p.getCreatedAt().toLocalDate(), mode);
+      if (paymentTime(p) == null || "DEPOSIT".equalsIgnoreCase(p.getInvoiceType())) continue;
+      String bucket = period(paymentTime(p).toLocalDate(), mode);
       BigDecimal amount = p.getAmount() == null ? BigDecimal.ZERO : p.getAmount();
       receipts.merge(bucket, amount, BigDecimal::add);
     }
@@ -171,6 +195,10 @@ public class ReportService {
     };
   }
 
+  private java.time.LocalDateTime paymentTime(com.swp391.selfstorage.modules.billing.entity.Payment payment) {
+    return payment.getPaidAt() != null ? payment.getPaidAt() : payment.getCreatedAt();
+  }
+
   private LocalDate parseDate(String value, String field) {
     if (value == null || value.isBlank()) return null;
     try {
@@ -192,7 +220,7 @@ public class ReportService {
       ? payments.findByStatusIgnoreCase("PAID")
       : payments.findByStatusIgnoreCaseAndFacilityCode("PAID", code);
     var paid = candidatePaid.stream()
-      .filter(p -> inRange(p.getCreatedAt() == null ? null : p.getCreatedAt().toLocalDate(), from, to))
+      .filter(p -> inRange(paymentTime(p) == null ? null : paymentTime(p).toLocalDate(), from, to))
       .toList();
     Map<String, BigDecimal> rentByType = new LinkedHashMap<>();
     Map<String, BigDecimal> penaltyByType = new LinkedHashMap<>();
@@ -213,7 +241,7 @@ public class ReportService {
     BigDecimal depositDeductions = scopedInspections.stream()
       .filter(i -> "COMPLETED".equalsIgnoreCase(i.getStatus()))
       .filter(i -> i.getCompletedAt() != null && inRange(i.getCompletedAt().toLocalDate(), from, to))
-      .map(i -> i.getPenaltyFee() == null ? BigDecimal.ZERO : i.getPenaltyFee())
+      .map(i -> i.getDepositDeductionAmount() == null ? BigDecimal.ZERO : i.getDepositDeductionAmount())
       .reduce(BigDecimal.ZERO, BigDecimal::add);
     var candidateRefunds = code == null
       ? refunds.findByStatusIgnoreCase("COMPLETED")
@@ -265,8 +293,39 @@ public class ReportService {
     m.put("rentalRefunds", rentalRefunds);
     m.put("grossOperatingReceipts", rent.add(renewal).add(penalty));
     m.put("netOperatingReceipts", rent.add(renewal).add(penalty).subtract(rentalRefunds));
+    m.put("recognizedOperatingRevenue", rent.add(renewal).add(penalty).add(depositDeductions).subtract(rentalRefunds));
+    m.put("occupancyAsOf", java.time.LocalDateTime.now());
     m.put("revenueBySource", revenueBySource(rentByType, penaltyByType, depositDeductions));
     m.put("revenueTimeline", revenueTimeline(paid, completedRefunds, granularity));
+    List<Map<String, Object>> transactions = new ArrayList<>();
+    for (var p : paid) {
+      Map<String, Object> row = new LinkedHashMap<>();
+      row.put("source", "PAYMENT"); row.put("sourceId", p.getId());
+      row.put("invoiceId", p.getInvoiceId()); row.put("paymentId", p.getId());
+      row.put("contractId", p.getContractId()); row.put("reservationId", p.getReservationId());
+      row.put("facilityCode", p.getFacilityCode()); row.put("type", p.getInvoiceType());
+      row.put("amount", p.getAmount()); row.put("occurredAt", paymentTime(p));
+      row.put("timeEstimated", p.getPaidAt() == null);
+      transactions.add(row);
+    }
+    for (var r : completedRefunds) {
+      Map<String, Object> row = new LinkedHashMap<>();
+      row.put("source", "REFUND"); row.put("sourceId", r.getId());
+      row.put("paymentId", r.getPaymentId()); row.put("contractId", r.getContractId());
+      row.put("facilityCode", r.getFacilityCode()); row.put("type", r.getRefundType());
+      row.put("amount", r.getApprovedAmount()); row.put("occurredAt", r.getCompletedAt());
+      transactions.add(row);
+    }
+    for (var i : scopedInspections) {
+      if (!"COMPLETED".equalsIgnoreCase(i.getStatus()) || i.getCompletedAt() == null
+          || !inRange(i.getCompletedAt().toLocalDate(), from, to)) continue;
+      Map<String, Object> row = new LinkedHashMap<>();
+      row.put("source", "DEPOSIT_DEDUCTION"); row.put("sourceId", i.getId());
+      row.put("contractId", i.getContractId()); row.put("type", "DEPOSIT_DEDUCTION");
+      row.put("amount", i.getDepositDeductionAmount()); row.put("occurredAt", i.getCompletedAt());
+      transactions.add(row);
+    }
+    m.put("transactions", transactions);
     m.put("hasRevenueData", !paid.isEmpty() || !completedRefunds.isEmpty() || depositDeductions.signum() > 0);
     m.put("hasData", !paid.isEmpty() || !completedRefunds.isEmpty() || !rows.isEmpty() || !allFacilities.isEmpty());
     return m;
