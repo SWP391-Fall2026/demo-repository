@@ -212,7 +212,10 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ApiResponse<?>> notReadable(
     HttpMessageNotReadableException e
   ) {
-    Throwable cause = e.getMostSpecificCause();
+    Throwable cause = e.getCause();
+    while (cause != null && !(cause instanceof MismatchedInputException)) {
+      cause = cause.getCause();
+    }
     if (cause instanceof InvalidFormatException ife) {
       String field = extractJsonPath(ife);
       String expected = ife.getTargetType() != null
