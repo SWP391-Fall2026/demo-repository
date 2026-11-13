@@ -126,8 +126,10 @@ public class ReturnInspectionReviewWorkflow {
     dispute.setStatus("OFFERED");
     disputes.save(dispute);
     inspection.setPenaltyFee(deduction);
-    inspection.setDepositRefundAmount(Optional.ofNullable(contract.getDepositFee()).orElse(BigDecimal.ZERO)
-      .subtract(deduction).max(BigDecimal.ZERO));
+    BigDecimal deposit = Optional.ofNullable(contract.getDepositFee()).orElse(BigDecimal.ZERO);
+    inspection.setDepositDeductionAmount(deduction.min(deposit));
+    inspection.setOutstandingFeeAmount(deduction.subtract(inspection.getDepositDeductionAmount()));
+    inspection.setDepositRefundAmount(deposit.subtract(inspection.getDepositDeductionAmount()));
     inspection.setStatus("PENDING_CUSTOMER");
     inspections.save(inspection);
     audit.record("RETURN_INSPECTION_MANAGER_OFFER", dispute.getId(),

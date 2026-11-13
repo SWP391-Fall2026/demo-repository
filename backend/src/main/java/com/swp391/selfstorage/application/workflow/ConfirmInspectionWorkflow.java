@@ -6,6 +6,7 @@ import com.swp391.selfstorage.common.web.*;
 import com.swp391.selfstorage.modules.audit.service.AuditLogService;
 import com.swp391.selfstorage.modules.billing.entity.*;
 import com.swp391.selfstorage.modules.billing.repository.*;
+import com.swp391.selfstorage.modules.billing.service.InvoiceService;
 import com.swp391.selfstorage.modules.facility.repository.UnitRepository;
 import com.swp391.selfstorage.modules.rental.repository.*;
 import com.swp391.selfstorage.modules.workforce.service.TaskService;
@@ -27,6 +28,7 @@ public class ConfirmInspectionWorkflow {
   private final AuditLogService audit;
   private final TaskService tasks;
   private final Clock clock;
+  private final InvoiceService invoiceService;
 
   public ConfirmInspectionWorkflow(
     ContractRepository c,
@@ -37,7 +39,8 @@ public class ConfirmInspectionWorkflow {
     ActorContext a,
     AuditLogService au,
     TaskService t,
-    Clock cl
+    Clock cl,
+    InvoiceService invoiceService
   ) {
     contracts = c;
     inspections = i;
@@ -48,6 +51,7 @@ public class ConfirmInspectionWorkflow {
     audit = au;
     tasks = t;
     clock = cl;
+    this.invoiceService = invoiceService;
   }
 
   @Transactional
@@ -67,6 +71,12 @@ public class ConfirmInspectionWorkflow {
     inspection.setStatus("COMPLETED");
     inspection.setCompletedAt(now);
     inspections.save(inspection);
+    if (inspection.getOutstandingFeeAmount() != null && inspection.getOutstandingFeeAmount().signum() > 0) {
+      var extra = invoiceService.issue(c.getReservationId(), c.getId(), c.getUserId(),
+          c.getFacilityCode(), "EXTRA", inspection.getOutstandingFeeAmount(), null,
+          "inspection:" + inspection.getId());
+      extra.setDescription("Phí nghiệm thu vượt tiền cọc " + inspection.getId());
+    }
     c.setInspectionConfirmedAt(now);
     c.setStatus("TERMINATED");
     c.setTerminatedAt(now);

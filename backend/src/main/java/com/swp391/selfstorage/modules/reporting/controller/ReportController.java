@@ -3,6 +3,7 @@ package com.swp391.selfstorage.modules.reporting.controller;
 import com.swp391.selfstorage.common.web.ApiResponse;
 import com.swp391.selfstorage.modules.reporting.service.ReportService;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.*;
 
 @RestController
 public class ReportController {
@@ -31,6 +32,19 @@ public class ReportController {
     @RequestParam(required = false) String granularity
   ) {
     return ApiResponse.ok(s.revenue(facilityCode, from, to, granularity));
+  }
+
+  @GetMapping("/api/reports/export")
+  public ResponseEntity<String> export(
+    @RequestParam(required = false) String facilityCode,
+    @RequestParam(required = false) String from,
+    @RequestParam(required = false) String to,
+    @RequestParam(required = false) String granularity
+  ) {
+    return ResponseEntity.ok()
+      .contentType(new MediaType("text", "csv", java.nio.charset.StandardCharsets.UTF_8))
+      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=transactions.csv")
+      .body(s.exportCsv(facilityCode, from, to, granularity));
   }
 
   @GetMapping("/api/reports/occupancy")

@@ -33,7 +33,7 @@ export default function RenewalQuotePage() {
       {quote && (<section className="card">
           <h2>Báo giá gia hạn</h2>
           <p>
-            Giá tháng: <strong>{money(quote.monthlyRate)}</strong> · Phí quá
+            Giá tháng sau chiết khấu: <strong>{money(quote.monthlyRate)}</strong> · Giảm {Number(quote.discountRate || 0) * 100}% · Phí quá
             hạn: {money(quote.overdueFee)}
           </p>
           <p>

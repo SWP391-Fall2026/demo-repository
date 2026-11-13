@@ -45,7 +45,9 @@ class VnPayServiceTest {
   private VnPayService service(String configuredReturnUrl) {
     return new VnPayService(invoices, payments, reservations, contracts, actor, audit, clock,
         "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html", TMN, SECRET, configuredReturnUrl,
-        "http://localhost:5173", ORIGINS, new ReservationHoldPolicy(5), null);
+        "http://localhost:5173", ORIGINS, new ReservationHoldPolicy(5), null,
+        new com.swp391.selfstorage.application.workflow.PaidInvoiceFulfillmentService(
+            invoices, reservations, contracts, null, new ReservationHoldPolicy(5), null));
   }
 
   private void stubPendingDeposit() {

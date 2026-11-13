@@ -29,6 +29,7 @@ public class PayInvoiceWorkflow {
   private final Clock clock;
   private final ReservationHoldPolicy holdPolicy;
   private final PaidRentActivationService rentActivation;
+  private final PaidInvoiceFulfillmentService fulfillment;
 
   public PayInvoiceWorkflow(
     InvoiceRepository i,
@@ -40,7 +41,8 @@ public class PayInvoiceWorkflow {
     AuditLogService au,
     Clock cl,
     ReservationHoldPolicy holdPolicy,
-    PaidRentActivationService rentActivation
+    PaidRentActivationService rentActivation,
+    PaidInvoiceFulfillmentService fulfillment
   ) {
     invoices = i;
     payments = p;
@@ -52,6 +54,7 @@ public class PayInvoiceWorkflow {
     clock = cl;
     this.holdPolicy = holdPolicy;
     this.rentActivation = rentActivation;
+    this.fulfillment = fulfillment;
   }
 
   @Transactional
@@ -96,13 +99,13 @@ public class PayInvoiceWorkflow {
       if (contracts.findByReservationId(r.getId()).filter(c -> "PENDING_PAYMENT".equals(c.getStatus()) && c.getPinCode() == null).isEmpty())
         throw Inputs.conflict("Chưa có hợp đồng chờ thanh toán hoặc hợp đồng không còn hợp lệ");
     }
-    if ("RENEW".equals(i.getInvoiceType())) {
+    if ("RENEW".equals(i.getInvoiceType()) || "OVERDUE".equals(i.getInvoiceType())) {
       var c = contracts
         .lockById(i.getContractId())
         .orElseThrow(Inputs::missing);
-      if (
-        "TERMINATED".equals(c.getStatus()) || c.getCheckoutRequestedAt() != null
-      ) throw Inputs.conflict("Hợp đồng không thể gia hạn");
+      if (!Set.of("ACTIVE", "EXPIRING_SOON", "OVERDUE").contains(c.getStatus())
+          || c.getCheckoutRequestedAt() != null)
+        throw Inputs.conflict("Hợp đồng không thể gia hạn");
     }
     String method = Inputs.text(d, "paymentMethod");
     if (
@@ -131,6 +134,7 @@ public class PayInvoiceWorkflow {
     p.setTimeStr(now.toString());
     boolean failed = Boolean.TRUE.equals(d.get("simulateFailure"));
     p.setStatus(failed ? "FAILED" : "PAID");
+    if (!failed) p.setPaidAt(now);
     try {
       payments.saveAndFlush(p);
     } catch (org.springframework.dao.DataIntegrityViolationException e) {
@@ -145,40 +149,7 @@ public class PayInvoiceWorkflow {
     if (!failed) {
       i.setStatus("PAID");
       invoices.save(i);
-      if ("DEPOSIT".equals(i.getInvoiceType())) {
-        var r = reservations.lockById(i.getReservationId()).orElseThrow();
-        r.setStatus("RESERVED");
-        r.setReservationExpiresAt(holdPolicy.reservationExpiry(now, r.getReservationHoldDaysSnapshot()));
-        reservations.save(r);
-      }
-      if ("RENT".equals(i.getInvoiceType())) {
-        var r = reservations.lockById(i.getReservationId()).orElseThrow(Inputs::missing);
-        rentActivation.activate(i, r);
-      }
-      if ("RENEW".equals(i.getInvoiceType())) {
-        var c = contracts
-          .lockById(i.getContractId())
-          .orElseThrow(Inputs::missing);
-        int months = parseRenewalMonths(i);
-        var start = c.getEndAt().isAfter(now) ? c.getEndAt() : now;
-        c.setEndAt(start.plusMonths(months));
-        c.setEndDate(c.getEndAt().toLocalDate());
-        c.setMonthlyFee(parseMonthlySnapshot(i));
-        c.setStatus("ACTIVE");
-        if (c.getPinCode() == null) c.setPinCode(
-          String.format(
-            "%06d",
-            new java.security.SecureRandom().nextInt(1000000)
-          )
-        );
-        var unit = units
-          .lockByCode(c.getUnitCode())
-          .orElseThrow(Inputs::missing);
-        unit.setPinCode(c.getPinCode());
-        units.save(unit);
-        c.setLastRenewalAt(now);
-        contracts.save(c);
-      }
+      fulfillment.complete(i, now);
     }
     audit.record(
       failed ? "PAYMENT_FAILED" : "PAYMENT_PAID",

@@ -84,7 +84,7 @@ export default function CreateReservationPage() {
       <CustomerRentalGuide active={1}/>
       {unitCode && <section className="card">
         <p>Kho đã chọn: <strong>{unitCode}</strong> · loại {unitType} · cơ sở {facilityCode}</p>
-        <p>Đơn được giữ theo cơ sở và loại kho; quản lý cơ sở gán mã kho cụ thể sau khi đặt cọc.</p>
+        <p>Giá áp dụng theo loại kho tại cơ sở; quản lý cơ sở gán mã kho cụ thể sau khi đặt cọc.</p>
       </section>}
       <form className="card form-grid" onSubmit={submit}>
         {!params.get("facility") && (

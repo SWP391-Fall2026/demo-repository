@@ -1,5 +1,7 @@
 # Chuyển database đang sử dụng
 
+> Flow 4: migration 024 bổ sung `payments.paid_at`; migration 025 tách số khấu trừ cọc thực và phí còn phải thu trên `inspection_records`. Chỉ chạy sau khi kiểm tra schema và backup trên bản sao. Không suy đoán thời điểm thu tiền hay số khấu trừ cho dữ liệu lịch sử; báo cáo đánh dấu `timeEstimated` khi phải dùng `created_at` cũ. Ứng dụng mặc định `ddl-auto=validate`, nên cần áp dụng hai migration trước khi chạy bản backend này trên PostgreSQL.
+
 > Migration 016 đã xóa bảng legacy rỗng `staff_tasks` trên staging ngày 26/10/2026 theo yêu cầu người dùng; backend dùng `daily_tasks`. Backup/restore rehearsal, Hibernate validate và kiểm tra dữ liệu không đổi đạt. Xem [báo cáo](../testing/staff-tasks-retirement-20261026.md). Không chạy lại 016 nếu bảng đã vắng mặt.
 
 > Đối chiếu live 26/10/2026: staging hiện có đủ tác động schema của migration 002–015, Hibernate validate 18 Entity PASS, không còn phần cần áp dụng. Xem [coverage report](../testing/supabase-migration-coverage-20261026.md). Không replay 001 hoặc UPDATE toàn bảng trong 011; không suy ra lịch sử chạy file từ tên migration.

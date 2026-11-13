@@ -27,6 +27,7 @@ function toCsv(data) {
         "grossOperatingReceipts",
         "rentalRefunds",
         "netOperatingReceipts",
+        "recognizedOperatingRevenue",
         "depositReceipts",
         "depositRefunds",
         "depositDeductions",
@@ -49,7 +50,12 @@ function toCsv(data) {
             branch.occupancyRate,
         ]);
     }
-    return [header, ...rows].map((row) => row.map(csvCell).join(",")).join("\r\n");
+    const detailColumns = ["source", "source_id", "invoice_id", "payment_id", "contract_id", "reservation_id", "type", "occurred_at", "time_estimated"];
+    const transactionRows = (data?.transactions ?? []).map((row) => ["transaction", "", row.facilityCode, "", row.source, row.amount, "", "", "", "", "", "", row.source, row.sourceId, row.invoiceId, row.paymentId, row.contractId, row.reservationId, row.type, row.occurredAt, row.timeEstimated]);
+    const columns = [...header, ...detailColumns];
+    return [columns, ...rows, ...transactionRows]
+        .map((row) => Array.from({ length: columns.length }, (_, index) => csvCell(row[index])).join(","))
+        .join("\r\n");
 }
 
 function BarChart({ rows }) {
@@ -141,7 +147,7 @@ export function RevenueReport({ title, fixedFacility }) {
                     <div className="metric-grid financial-summary">
                         <article className="card metric financial-summary-primary"><span>Doanh thu vận hành thuần</span><strong>{money(data.netOperatingReceipts)}</strong><small>Không bao gồm tiền cọc</small></article>
                         <article className="card financial-deposit-summary"><span>Tiền cọc (tách khỏi doanh thu)</span><div><small>Đã thu</small><strong>{money(data.depositReceipts)}</strong></div><div><small>Đã hoàn</small><strong>{money(data.depositRefunds)}</strong></div><div><small>Khấu trừ sau nghiệm thu</small><strong>{money(data.depositDeductions)}</strong></div></article>
-                        <article className="card metric financial-summary-occupancy"><span>Tỷ lệ lấp đầy</span><strong>{display(data.occupancyRate)}%</strong><small>Kho đang thuê / toàn bộ kho vật lý</small></article>
+                        <article className="card metric financial-summary-occupancy"><span>Tỷ lệ lấp đầy</span><strong>{display(data.occupancyRate)}%</strong><small>Tại thời điểm xem · {display(data.occupancyAsOf)}</small></article>
                     </div>
                     <section className="card">
                         <h2>Tóm tắt thu vận hành</h2>
@@ -153,6 +159,7 @@ export function RevenueReport({ title, fixedFacility }) {
                                 <tr><td>Phụ phí đã thu</td><td>{money(data.penaltyReceipts)}</td><td>Doanh thu vận hành</td></tr>
                                 <tr><td>Hoàn tiền thuê</td><td>{money(data.rentalRefunds)}</td><td>Đã thực hiện</td></tr>
                                 <tr><td>Thu vận hành gộp</td><td>{money(data.grossOperatingReceipts)}</td><td>Không gồm tiền cọc</td></tr>
+                                <tr><td>Doanh thu ghi nhận gồm khấu trừ cọc</td><td>{money(data.recognizedOperatingRevenue)}</td><td>Không đồng nghĩa dòng tiền thu trong kỳ</td></tr>
                             </tbody>
                         </table></div>
                     </section>

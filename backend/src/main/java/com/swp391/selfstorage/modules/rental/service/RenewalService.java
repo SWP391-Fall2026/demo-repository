@@ -59,15 +59,22 @@ public class RenewalService {
       throw Inputs.bad("Thông số renewalMaxMonths không hợp lệ");
     }
     if (
-      "TERMINATED".equals(c.getStatus()) || months < 1 || months > maxMonths
+      !Set.of("ACTIVE", "EXPIRING_SOON", "OVERDUE").contains(c.getStatus()) ||
+        c.getCheckoutRequestedAt() != null || months < 1 || months > maxMonths
     ) throw Inputs.bad("Không thể gia hạn");
     var unit = units.findById(c.getUnitCode()).orElseThrow(Inputs::missing);
-    var rate = unit.getPricePerMonth();
+    var baseRate = policy.facilityMonthly(c.getFacilityCode(), unit.getType())
+      .orElseGet(() -> policy.monthly(unit.getType()));
+    BigDecimal discount = policy.discount(months);
+    var rate = baseRate.multiply(BigDecimal.ONE.subtract(discount)).setScale(0, RoundingMode.HALF_UP);
+    LocalDateTime deadline = c.getEndAt() != null ? c.getEndAt()
+      : c.getEndDate() != null ? c.getEndDate().atTime(23, 59, 59) : null;
+    if (deadline == null) throw Inputs.conflict("Hợp đồng chưa có ngày kết thúc hợp lệ");
     var overdue = fees.calculate(
-      c.getEndAt(),
+      deadline,
       LocalDateTime.now(clock),
       policy.fee("overdueDailyFee"),
-      rate,
+      c.getMonthlyFee() != null && c.getMonthlyFee().signum() > 0 ? c.getMonthlyFee() : baseRate,
       policy.cap(c.getFacilityCode()),
       graceDays()
     );
@@ -78,6 +85,8 @@ public class RenewalService {
       months,
       "monthlyRate",
       rate,
+      "discountRate",
+      discount,
       "overdueFee",
       overdue,
       "totalAmount",
@@ -136,7 +145,7 @@ public class RenewalService {
         "OVERDUE",
         overdue,
         null,
-        "overdue-for-renewal:" + months
+        "overdue-for-renewal:" + i.getId()
       );
       late.setDescription("OVERDUE:" + id);
       audit.record("ISSUE_OVERDUE_FOR_RENEWAL", late.getId(), overdue.toPlainString());

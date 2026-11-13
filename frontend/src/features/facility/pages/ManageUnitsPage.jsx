@@ -17,7 +17,7 @@ export default function ManageUnitsPage() {
         <ResourcePage
             eyebrow="STORAGE / QUẢN LÝ CƠ SỞ"
             title="Quản lý khoang lưu trữ tại chi nhánh"
-            description="Tạo mới buồng kho vật lý, cập nhật biểu giá cho phép và theo dõi hiện trạng vận hành. Kho sau trả phòng (CLEANING / MAINTENANCE) sau khi Staff báo hoàn tất vệ sinh sẽ hiện nút 'Duyệt sẵn sàng' ngay trong bảng."
+            description="Giá áp dụng theo loại kho tại cơ sở. Khi lưu giá mới, mọi kho cùng loại tại cơ sở được đồng bộ; hợp đồng đã ký giữ giá đã chốt. Theo dõi hiện trạng vận hành và duyệt kho sau vệ sinh tại đây."
             load={facilityApi.managedUnits}
             columns={unitColumns}
             childrenTitle="Tạo mới & Điều chỉnh biểu giá khoang"
@@ -58,11 +58,11 @@ export default function ManageUnitsPage() {
 
             <div style={{ paddingTop: "20px", borderTop: "1px solid #E2E8F0" }}>
                 <h3 style={{ fontSize: "15px", fontWeight: "700", color: "#0B192C", margin: "0 0 12px" }}>
-                    Cập nhật giá thuê khoang (trong biên độ cho phép)
+                    Cập nhật giá theo loại kho tại cơ sở (trong biên độ cho phép)
                 </h3>
                 <Form
                     fields={[
-                        { name: "code", label: "Mã kho cần đổi giá", required: true },
+                        { name: "code", label: "Mã kho đại diện cho loại cần đổi giá", required: true },
                         {
                             name: "pricePerMonth",
                             label: "Giá thuê tháng mới (VND)",

@@ -553,5 +553,10 @@
     "method": "post",
     "path": "/api/facilities/{code}/access-requests/{requestId}/reject",
     "source": "backend/src/main/java/com/swp391/selfstorage/modules/facility/controller/FacilityController.java"
+  },
+  {
+    "method": "get",
+    "path": "/api/reports/export",
+    "source": "backend/src/main/java/com/swp391/selfstorage/modules/reporting/controller/ReportController.java"
   }
 ]

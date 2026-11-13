@@ -76,14 +76,10 @@ public class ReservationService {
     }
     BigDecimal rate = facility.isBlank()
       ? policy.monthly(type)
-      : policy.facilityMonthly(facility, type).orElseGet(() ->
-          availableUnits.stream()
-            .map(u -> u.getPricePerMonth())
-            .min(BigDecimal::compareTo)
-            .orElseThrow(() -> Inputs.conflict("Loại kho đã hết chỗ")));
+      : policy.facilityMonthly(facility, type).orElseGet(() -> policy.monthly(type));
     BigDecimal monthly = rate,
       deposit = monthly.multiply(policy.value("depositMonths", BigDecimal.ONE));
-    BigDecimal discount = policy.value("discount." + months, BigDecimal.ZERO);
+    BigDecimal discount = policy.discount(months);
     monthly = monthly
       .multiply(BigDecimal.ONE.subtract(discount))
       .setScale(0, RoundingMode.HALF_UP);

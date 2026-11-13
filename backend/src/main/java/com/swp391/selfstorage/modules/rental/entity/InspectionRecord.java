@@ -36,6 +36,17 @@ public class InspectionRecord {
   @Column(name = "penalty_fee")
   private BigDecimal penaltyFee;
 
+  @Column(name = "deposit_deduction_amount")
+  private BigDecimal depositDeductionAmount;
+
+  @Column(name = "outstanding_fee_amount")
+  private BigDecimal outstandingFeeAmount;
+
+  public BigDecimal getDepositDeductionAmount() { return depositDeductionAmount; }
+  public void setDepositDeductionAmount(BigDecimal value) { depositDeductionAmount = value; }
+  public BigDecimal getOutstandingFeeAmount() { return outstandingFeeAmount; }
+  public void setOutstandingFeeAmount(BigDecimal value) { outstandingFeeAmount = value; }
+
   @Column(name = "original_penalty_fee")
   private BigDecimal originalPenaltyFee;
 

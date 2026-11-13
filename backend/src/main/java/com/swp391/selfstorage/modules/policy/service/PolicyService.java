@@ -71,9 +71,26 @@ public class PolicyService {
     return value(key, new BigDecimal(DEFAULTS.getOrDefault(key, "1450000")));
   }
 
+  public BigDecimal discount(int months) {
+    String key = "discount." + months;
+    return value(key, new BigDecimal(DEFAULTS.getOrDefault(key, "0")));
+  }
+
   public Optional<BigDecimal> facilityMonthly(String facilityCode, String type) {
     return repo.findById(facilityPriceKey(facilityCode, type))
       .map(policy -> parseFacilityPrice(policy));
+  }
+
+  @Transactional
+  public void setManagerFacilityPrice(String facilityCode, String type, BigDecimal price, String managerId) {
+    validatePrice(type, price);
+    String key = facilityPriceKey(facilityCode, type);
+    put(key, price.toPlainString(), managerId);
+    var matching = units.findByFacilityCode(facilityCode).stream()
+      .filter(unit -> type.equals(unit.getType())).toList();
+    matching.forEach(unit -> unit.setPricePerMonth(price));
+    units.saveAll(matching);
+    audit.record("UPDATE_POLICY", key, "Giá theo loại tại cơ sở: " + price);
   }
 
   /** Preloads facility price overrides in one query to avoid per-unit lookups in catalog views. */
@@ -163,8 +180,9 @@ public class PolicyService {
         key.startsWith("price.")) && number.compareTo(BigDecimal.ZERO) < 0
     ) throw Inputs.bad("Khung giá không hợp lệ");
     if (
-      key.startsWith("discount.") && number.compareTo(BigDecimal.ONE) >= 0
-    ) throw Inputs.bad("Tỷ lệ giảm giá phải nhỏ hơn 1");
+      key.startsWith("discount.") &&
+        (number.signum() < 0 || number.compareTo(BigDecimal.ONE) >= 0)
+    ) throw Inputs.bad("Tỷ lệ giảm giá phải từ 0 đến dưới 1");
     if (key.matches("price\\.(S|M|L|CLIMATE)")) {
       validatePrice(key.substring("price.".length()), number);
     }
@@ -196,7 +214,7 @@ public class PolicyService {
     String oldValue = repo.findById(key).map(BusinessPolicy::getPolicyValue).orElse(null);
     put(key, price.toPlainString(), u.getId());
     var affected = units.findByFacilityCode(facilityCode).stream()
-      .filter(unit -> type.equals(unit.getType()) && "available".equalsIgnoreCase(unit.getStatus()))
+      .filter(unit -> type.equals(unit.getType()))
       .peek(unit -> unit.setPricePerMonth(price))
       .toList();
     units.saveAll(affected);
@@ -204,7 +222,7 @@ public class PolicyService {
       "UPDATE_POLICY",
       key,
       "Giá cũ: " + Objects.toString(oldValue, "chưa cấu hình") + " → giá mới: "
-        + price.toPlainString() + "; đồng bộ " + affected.size() + " kho available"
+        + price.toPlainString() + "; đồng bộ " + affected.size() + " kho"
     );
     return get();
   }
@@ -252,15 +270,24 @@ public class PolicyService {
         maximum != null && facilityPrice.compareTo(maximum) > 0
       ) throw Inputs.bad("Khoảng giá mới không bao gồm giá đã cấu hình tại cơ sở");
     }
+    for (var unit : units.findAll()) {
+      if (!type.equals(unit.getType())) continue;
+      BigDecimal price = unit.getPricePerMonth();
+      if (price != null && ((minimum != null && price.compareTo(minimum) < 0)
+          || (maximum != null && price.compareTo(maximum) > 0)))
+        throw Inputs.bad("Khoảng giá mới không bao gồm giá kho đã lưu");
+    }
   }
 
   private String propagateUnitPrice(String key, BigDecimal number) {
     if (!key.matches("price\\.(S|M|L|CLIMATE)")) return "";
     String type = key.substring("price.".length());
-    var affected = units.findByTypeAndStatusIgnoreCase(type, "available").stream()
+    var affected = units.findAll().stream()
+      .filter(unit -> type.equals(unit.getType())
+          && facilityMonthly(unit.getFacilityCode(), type).isEmpty())
       .peek(unit -> unit.setPricePerMonth(number))
       .toList();
     units.saveAll(affected);
-    return "; đồng bộ " + affected.size() + " kho available loại " + type;
+    return "; đồng bộ " + affected.size() + " kho chưa có giá cơ sở loại " + type;
   }
 }

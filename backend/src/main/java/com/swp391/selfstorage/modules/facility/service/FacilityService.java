@@ -109,7 +109,8 @@ public class FacilityService {
       BigDecimal override = facilityPrices.get(u.getFacilityCode() + "|" + u.getType());
       if (override != null) return override;
     }
-    return u.getPricePerMonth();
+    BigDecimal standard = policy.monthly(u.getType());
+    return standard == null ? u.getPricePerMonth() : standard;
   }
 
   private void validateRange(String label, BigDecimal minimum, BigDecimal maximum) {
@@ -233,11 +234,17 @@ public class FacilityService {
     u.setSizeDesc(u.getSizeSqm() + " m²");
     u.setPricePerMonth(Inputs.money(d.get("pricePerMonth")));
     policy.validatePrice(u.getType(), u.getPricePerMonth());
+    var existingFacilityPrice = policy.facilityMonthly(a.getFacilityCode(), u.getType());
+    if (existingFacilityPrice.isPresent()
+        && existingFacilityPrice.get().compareTo(u.getPricePerMonth()) != 0)
+      throw Inputs.bad("Giá kho mới phải bằng giá loại kho đang áp dụng tại cơ sở");
     u.setFloor(Integer.valueOf(Objects.toString(d.getOrDefault("floor", 0))));
     setImageLink(u, d);
     u.setStatus("available");
     u.setPinCode(null);
     units.save(u);
+    if (existingFacilityPrice.isEmpty())
+      policy.setManagerFacilityPrice(a.getFacilityCode(), u.getType(), u.getPricePerMonth(), a.getId());
     audit.record("CREATE_UNIT", code, "Tạo kho tại chi nhánh");
     return u;
   }
@@ -251,6 +258,7 @@ public class FacilityService {
       var price = Inputs.money(d.get("pricePerMonth"));
       policy.validatePrice(u.getType(), price);
       u.setPricePerMonth(price);
+      policy.setManagerFacilityPrice(a.getFacilityCode(), u.getType(), price, a.getId());
     }
     if (d.containsKey("floor")) u.setFloor(
       Integer.valueOf(Inputs.text(d, "floor"))

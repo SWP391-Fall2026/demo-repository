@@ -148,7 +148,7 @@ export default function LandingPage() {
                     Các loại kho lưu trữ
                 </h2>
                 <p className="figma-section-desc">
-                    Bảng giá niêm yết tham khảo công khai, không chi phí ẩn.
+                    Giá thuê được hiển thị theo từng cơ sở khi bạn chọn kho.
                 </p>
 
                 <div className="figma-grid-3 pricing-grid">
@@ -165,8 +165,7 @@ export default function LandingPage() {
                             <p>Vali du lịch, tài liệu, thùng carton, đồ dùng cá nhân.</p>
                         </div>
                         <div className="tier-price">
-                            <strong>650.000 đ</strong>
-                            <span>/ tháng</span>
+                            <strong>Xem giá tại cơ sở</strong>
                         </div>
                         <Link className="figma-btn figma-btn-outline full-width" to="/storage?type=S">
                             Xem kho
@@ -187,8 +186,7 @@ export default function LandingPage() {
                             <p>Đồ nội thất căn hộ 1-2 phòng ngủ, thiết bị gia dụng, hàng hóa kinh doanh online.</p>
                         </div>
                         <div className="tier-price">
-                            <strong>1.450.000 đ</strong>
-                            <span>/ tháng</span>
+                            <strong>Xem giá tại cơ sở</strong>
                         </div>
                         <Link className="figma-btn figma-btn-dark full-width" to="/storage?type=M">
                             Xem kho
@@ -208,8 +206,7 @@ export default function LandingPage() {
                             <p>Toàn bộ nội thất nhà phố, hàng tồn kho doanh nghiệp, thiết bị văn phòng.</p>
                         </div>
                         <div className="tier-price">
-                            <strong>2.800.000 đ</strong>
-                            <span>/ tháng</span>
+                            <strong>Xem giá tại cơ sở</strong>
                         </div>
                         <Link className="figma-btn figma-btn-outline full-width" to="/storage?type=L">
                             Xem kho
