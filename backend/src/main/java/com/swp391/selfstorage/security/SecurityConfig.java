@@ -80,6 +80,16 @@ public class SecurityConfig {
           .permitAll()
           .requestMatchers(HttpMethod.GET, "/api/policies/**")
           .permitAll()
+          .requestMatchers(
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/swagger-dark.css",
+            "/api-docs",
+            "/api-docs/**",
+            "/v3/api-docs",
+            "/v3/api-docs/**"
+          )
+          .permitAll()
           .requestMatchers("/error")
           .permitAll()
           .anyRequest()
