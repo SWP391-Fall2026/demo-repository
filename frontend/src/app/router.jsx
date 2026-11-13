@@ -258,7 +258,7 @@ export const routes = [
     {
         path: "/facility/contracts",
         title: "Hợp đồng cơ sở",
-        roles: ["FMANAGER"],
+        roles: ["FMANAGER", "STAFF"],
         element: <FacilityContractsPage />,
         legacy: "SCR-M05",
     },

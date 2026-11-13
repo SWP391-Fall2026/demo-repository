@@ -136,6 +136,7 @@ export function AppShell() {
         STAFF: [
             ["/facility/tasks/my", "Dashboard / Hàng đợi"],
             ["/facility/reservations/lookup", "Đơn đặt phòng"],
+            ["/facility/contracts", "Hợp đồng"],
             ["/facility/no-show", "Xử lý quá hẹn (NO_SHOW)"],
             ["/facility/handovers", "Check-in & Bàn giao"],
             ["/facility/access-logs", "Ra vào cơ sở"],
