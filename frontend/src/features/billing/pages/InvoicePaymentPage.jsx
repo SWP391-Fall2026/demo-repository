@@ -4,6 +4,7 @@ import { useRemote } from "../../../shared/api/use-remote";
 import { display, money, sortByNewest } from "../../../shared/lib/format";
 import { billingApi } from "../api/billing.api";
 import { reservationApi } from "../../reservation/api/reservation.api";
+import { rentalApi } from "../../rental/api/rental.api";
 import CustomerRentalGuide from "../../reservation/components/CustomerRentalGuide";
 import { usePersistedState } from "../../../shared/lib/persisted-state";
 const dateTime = (value) => {
@@ -21,8 +22,10 @@ export default function InvoicePaymentPage() {
     const { invoiceId: routeInvoiceId } = useParams();
     const { data, error: invoiceError, busy: invoicesBusy, refreshing, reload, silentReload } = useRemote(billingApi.invoices);
     const { data: reservationData, reload: reloadReservations, silentReload: silentReloadReservations } = useRemote(reservationApi.list);
+    const { data: contractData, reload: reloadContracts, silentReload: silentReloadContracts } = useRemote(rentalApi.list);
     const invoices = sortByNewest(data);
     const reservations = Array.isArray(reservationData) ? reservationData : [];
+    const contracts = Array.isArray(contractData) ? contractData : [];
     const [selectedId, setSelectedId] = usePersistedState("invoice.selected-id", routeInvoiceId && routeInvoiceId !== "all" ? routeInvoiceId : "");
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
@@ -32,24 +35,37 @@ export default function InvoicePaymentPage() {
     useEffect(() => {
         if (!hasPendingInvoice)
             return undefined;
-        const timer = window.setInterval(() => { silentReload(); silentReloadReservations(); }, 30000);
+        const timer = window.setInterval(() => {
+            silentReload();
+            silentReloadReservations();
+            silentReloadContracts?.();
+        }, 30000);
         return () => window.clearInterval(timer);
-    }, [hasPendingInvoice, silentReload, silentReloadReservations]);
+    }, [hasPendingInvoice, silentReload, silentReloadReservations, silentReloadContracts]);
     const selected = invoices.find((invoice) => invoice.id === selectedId);
     const relatedReservation = selected ? reservations.find((item) => item.id === selected.reservationId) : undefined;
+    const relatedContract = selected ? contracts.find((item) => item.id === selected.contractId) : undefined;
     const grouped = useMemo(() => {
         const groups = new Map();
         for (const invoice of invoices) {
             const key = String(invoice.reservationId || invoice.contractId || invoice.id);
-            const group = groups.get(key) || { reservation: reservations.find((item) => item.id === invoice.reservationId), invoices: [] };
+            const group = groups.get(key) || {
+                reservation: reservations.find((item) => item.id === invoice.reservationId),
+                contract: contracts.find((item) => item.id === invoice.contractId),
+                invoices: []
+            };
             group.invoices.push(invoice);
             groups.set(key, group);
         }
         return [...groups.entries()].map(([key, group]) => ({ key, ...group }));
-    }, [invoices, reservations]);
+    }, [invoices, reservations, contracts]);
     const isDeposit = selected?.invoiceType === "DEPOSIT";
-    const canPay = selected?.status === "PENDING" && ((isDeposit && relatedReservation?.status === "PENDING_PAYMENT") ||
-        (selected?.invoiceType === "RENT" && relatedReservation?.status === "RESERVED" && Boolean(relatedReservation?.unitCode)));
+    const isContractInvoice = ["RENEW", "OVERDUE", "RENEWAL_RENTAL"].includes(String(selected?.invoiceType)) || Boolean(selected?.contractId);
+    const canPay = selected?.status === "PENDING" && (
+        isContractInvoice ||
+        (isDeposit && relatedReservation?.status === "PENDING_PAYMENT") ||
+        (selected?.invoiceType === "RENT" && relatedReservation?.status === "RESERVED" && Boolean(relatedReservation?.unitCode))
+    );
     async function pay() {
         if (!selected || busy)
             return;
@@ -112,7 +128,7 @@ export default function InvoicePaymentPage() {
         {grouped.map((group) => <article className="invoice-order" key={group.key}>
           <header><div><strong>Đơn {display(group.reservation?.id || group.invoices[0]?.contractId || group.key)}</strong><span>Cơ sở {display(group.reservation?.facilityCode || group.invoices[0]?.facilityCode)} · {display(group.reservation?.unitCode || group.reservation?.unitType)}</span></div><span className={`badge ${group.reservation?.status === "EXPIRED" ? "danger" : group.reservation?.status === "RESERVED" || group.reservation?.status === "CHECKED_IN" ? "success" : "pending"}`}>{display(group.reservation?.status)}</span></header>
           <div className="invoice-list">{group.invoices.map((item) => <div className={`invoice-row ${selectedId === item.id ? "selected" : ""}`} key={String(item.id)}>
-            <div className="invoice-kind"><strong>{item.invoiceType === "DEPOSIT" ? "Tiền đặt cọc" : item.invoiceType === "RENT" ? "Tiền thuê kỳ đầu" : `Khoản thu ${display(item.invoiceType)}`}</strong><small>{display(item.id)}</small></div>
+            <div className="invoice-kind"><strong>{item.invoiceType === "DEPOSIT" ? "Tiền đặt cọc" : item.invoiceType === "RENT" ? "Tiền thuê kỳ đầu" : item.invoiceType === "RENEW" ? "Phí gia hạn" : item.invoiceType === "OVERDUE" ? "Phí phạt quá hạn" : `Khoản thu ${display(item.invoiceType)}`}</strong><small>{display(item.id)}</small></div>
             <div className="invoice-amount"><strong>{money(item.amount)}</strong><small>Hạn: {dateTime(item.dueAt)}</small></div>
             <span className={`badge ${item.status === "PAID" ? "success" : item.status === "PENDING" ? "pending" : "danger"}`}>{statusText[String(item.status)] || display(item.status)}</span>
             <button type="button" className="secondary invoice-select" onClick={() => { setSelectedId(String(item.id)); setError(""); }}>Xem chi tiết</button>
@@ -120,8 +136,18 @@ export default function InvoicePaymentPage() {
         </article>)}
       </section>
       {selected && <section className="card invoice-detail" aria-label="Chi tiết hóa đơn">
-        <div className="section-heading"><div><span className="eyebrow">CHI TIẾT HÓA ĐƠN</span><h2>{isDeposit ? "Tiền đặt cọc cho đơn mới" : selected.invoiceType === "RENT" ? "Tiền thuê kỳ đầu" : display(selected.invoiceType)}</h2></div><span className={`badge ${selected.status === "PAID" ? "success" : selected.status === "PENDING" ? "pending" : "danger"}`}>{statusText[String(selected.status)] || display(selected.status)}</span></div>
-        <dl><div><dt>Mã hóa đơn</dt><dd>{display(selected.id)}</dd></div><div><dt>Mã đơn</dt><dd>{display(selected.reservationId || selected.contractId)}</dd></div><div><dt>Khách hàng</dt><dd>{display(grouped.find((g) => g.key === String(selected.reservationId || selected.contractId || selected.id))?.reservation?.customerName)}</dd></div><div><dt>Cơ sở</dt><dd>{display(selected.facilityCode)}</dd></div><div><dt>Loại kho</dt><dd>{display(relatedReservation?.unitType)}</dd></div><div><dt>Kho được gán</dt><dd>{display(relatedReservation?.unitCode)}</dd></div><div><dt>Số tiền</dt><dd><strong>{money(selected.amount)}</strong></dd></div><div><dt>Ngày lập</dt><dd>{dateTime(selected.issuedAt)}</dd></div><div><dt>Hạn thanh toán</dt><dd>{dateTime(selected.dueAt)}</dd></div></dl>
+        <div className="section-heading"><div><span className="eyebrow">CHI TIẾT HÓA ĐƠN</span><h2>{isDeposit ? "Tiền đặt cọc cho đơn mới" : selected.invoiceType === "RENT" ? "Tiền thuê kỳ đầu" : selected.invoiceType === "RENEW" ? "Phí gia hạn hợp đồng" : selected.invoiceType === "OVERDUE" ? "Phí phạt quá hạn" : display(selected.invoiceType)}</h2></div><span className={`badge ${selected.status === "PAID" ? "success" : selected.status === "PENDING" ? "pending" : "danger"}`}>{statusText[String(selected.status)] || display(selected.status)}</span></div>
+        <dl>
+          <div><dt>Mã hóa đơn</dt><dd>{display(selected.id)}</dd></div>
+          <div><dt>Mã đơn</dt><dd>{display(selected.reservationId || selected.contractId)}</dd></div>
+          <div><dt>Khách hàng</dt><dd>{display(relatedReservation?.customerName || relatedContract?.customerName || grouped.find((g) => g.key === String(selected.reservationId || selected.contractId || selected.id))?.reservation?.customerName || "Khách hàng")}</dd></div>
+          <div><dt>Cơ sở</dt><dd>{display(selected.facilityCode || relatedReservation?.facilityCode || relatedContract?.facilityCode)}</dd></div>
+          <div><dt>Loại kho</dt><dd>{display(relatedReservation?.unitType || relatedContract?.unitCode)}</dd></div>
+          <div><dt>Kho được gán</dt><dd>{display(relatedReservation?.unitCode || relatedContract?.unitCode)}</dd></div>
+          <div><dt>Số tiền</dt><dd><strong>{money(selected.amount)}</strong></dd></div>
+          <div><dt>Ngày lập</dt><dd>{dateTime(selected.issuedAt)}</dd></div>
+          <div><dt>Hạn thanh toán</dt><dd>{dateTime(selected.dueAt)}</dd></div>
+        </dl>
         {error && <p className="error" role="alert">{error}</p>}
         {selected.status === "PENDING" && canPay && <div className="invoice-pay-action">
           <p>Hỗ trợ thanh toán qua cổng VNPay Sandbox hoặc Mô phỏng VietQR / Mock Card:</p>
