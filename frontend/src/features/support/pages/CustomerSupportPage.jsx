@@ -131,7 +131,7 @@ export default function CustomerSupportPage() {
                 </article>
             </section>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(380px, 1fr))", gap: "28px", alignItems: "start" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 380px), 1fr))", gap: "28px", alignItems: "start" }}>
                 {/* Form tạo ticket */}
                 <section className="card" style={{ padding: "24px" }}>
                     <h2 style={{ fontSize: "18px", fontWeight: 800, marginBottom: "16px", color: "#0F172A" }}>Gửi phiếu hỗ trợ mới</h2>

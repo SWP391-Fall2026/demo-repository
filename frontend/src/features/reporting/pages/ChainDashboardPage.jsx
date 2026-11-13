@@ -34,7 +34,7 @@ export default function ChainDashboardPage() {
       <header className="page-heading">
         <div>
           <span className="eyebrow">STORAGE / ĐIỀU HÀNH KINH DOANH</span>
-          <h1>Business Overview</h1>
+          <h1>Tổng quan kinh doanh</h1>
           <p>Tổng quan hoạt động kinh doanh và tình trạng phân bổ năng lực khoang lưu trữ chuỗi.</p>
         </div>
         <button className="secondary" type="button" onClick={reload}>Làm mới dữ liệu</button>

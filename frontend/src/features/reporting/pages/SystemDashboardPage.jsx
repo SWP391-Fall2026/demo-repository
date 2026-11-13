@@ -544,7 +544,7 @@ export default function SystemDashboardPage() {
             <div
                 style={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(420px, 1fr))",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 420px), 1fr))",
                     gap: "24px",
                     marginBottom: "32px",
                 }}

@@ -174,7 +174,12 @@ export default function AuthPage() {
                 {/* Top Nav with Brand & Back to Home */}
                 <div className="auth-top-nav">
                     <Link className="figma-brand" to="/">
-                        <span className="brand-logo-icon">▦</span>
+                        <span className="brand-logo-icon" aria-hidden="true">
+                            <svg viewBox="0 0 32 32" fill="none" focusable="false">
+                                <rect x="5" y="5" width="22" height="22" rx="4" stroke="currentColor" strokeWidth="2" />
+                                <path d="M11 5v22M21 5v22M5 12h22M5 20h22" stroke="currentColor" strokeWidth="1.7" />
+                            </svg>
+                        </span>
                         <div className="brand-text">
                             <span className="brand-title">STORAGE</span>
                             <span className="brand-sub">HỆ THỐNG KHO TỰ QUẢN</span>

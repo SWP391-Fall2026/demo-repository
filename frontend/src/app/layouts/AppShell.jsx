@@ -6,12 +6,22 @@ import { useSession, sessionStore } from "../../features/identity/session";
 import { identityApi } from "../../features/identity/api/identity.api";
 import { facilityApi, FALLBACK_FACILITIES } from "../../features/facility/api/facility.api";
 
+function BrandMark({ light = false }) {
+    return <span className={`brand-logo-icon${light ? " light" : ""}`} aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none" focusable="false">
+            <rect x="5" y="5" width="22" height="22" rx="4" stroke="currentColor" strokeWidth="2" />
+            <path d="M11 5v22M21 5v22M5 12h22M5 20h22" stroke="currentColor" strokeWidth="1.7" />
+        </svg>
+    </span>;
+}
+
 export function AppShell() {
     const session = useSession(), location = useLocation();
     const internalRole = session?.user?.role;
     const isBackoffice = Boolean(internalRole && internalRole !== "CUSTOMER");
     const [locationsOpen, setLocationsOpen] = useState(false);
     const [rentalsOpen, setRentalsOpen] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [facilities, setFacilities] = useState(FALLBACK_FACILITIES);
     const locationsRef = useRef(null);
     const rentalsRef = useRef(null);
@@ -45,6 +55,7 @@ export function AppShell() {
         if (rentalsTimer.current) clearTimeout(rentalsTimer.current);
         setLocationsOpen(false);
         setRentalsOpen(false);
+        setMobileMenuOpen(false);
     }, [location.pathname, location.search]);
 
     useEffect(() => {
@@ -259,7 +270,7 @@ export function AppShell() {
                 <header className="role-header">
                     <div className="role-header-brand-box">
                         <Link className="figma-brand" to={links[0]?.[0] || "/admin/overview"}>
-                            <span className="brand-logo-icon light">▦</span>
+                            <BrandMark light />
                             <div className="brand-text light">
                                 <span className="brand-title">STORAGE</span>
                                 <span className="brand-sub">HỆ THỐNG KHO TỰ QUẢN</span>
@@ -331,14 +342,25 @@ export function AppShell() {
             <header className="figma-topbar">
                 <div className="topbar-container">
                     <Link className="figma-brand" to="/">
-                        <span className="brand-logo-icon">▦</span>
+                        <BrandMark />
                         <div className="brand-text">
                             <span className="brand-title">STORAGE</span>
                             <span className="brand-sub">KHO GỌN - HỆ THỐNG KHO TỰ QUẢN</span>
                         </div>
                     </Link>
 
-                    <nav className="figma-navbar">
+                    <button
+                        type="button"
+                        className="mobile-menu-toggle"
+                        aria-controls="consumer-navigation"
+                        aria-expanded={mobileMenuOpen}
+                        onClick={() => setMobileMenuOpen((open) => !open)}
+                    >
+                        <span aria-hidden="true">{mobileMenuOpen ? "×" : "☰"}</span>
+                        <span>Menu</span>
+                    </button>
+
+                    <nav id="consumer-navigation" className={`figma-navbar ${mobileMenuOpen ? "mobile-open" : ""}`} aria-label="Điều hướng chính">
                         <div className="nav-menu">
                             {/* 1. ĐỊA ĐIỂM KHO DROPDOWN (MyStorage Style) */}
                             <div
@@ -632,7 +654,7 @@ export function AppShell() {
                         {/* Col 1: Brand Info */}
                         <div className="footer-col brand-col">
                             <div className="footer-brand">
-                                <span className="brand-logo-icon light">▦</span>
+                                <BrandMark light />
                                 <div className="brand-text light">
                                     <span className="brand-title">STORAGE</span>
                                     <span className="brand-sub">KHO GỌN THÔNG MINH</span>

@@ -93,13 +93,13 @@ export function RevenueReport({ title, fixedFacility }) {
                 <div>
                     <span className="eyebrow">STORAGE / BÁO CÁO</span>
                     <h1>{title}</h1>
-                    <p>Lọc theo thời gian (yyyy-MM-dd), chi nhánh và kỳ day/month/quarter. Xuất CSV khi có dữ liệu.</p>
+                    <p>Lọc theo khoảng ngày, chi nhánh và kỳ báo cáo. Xuất CSV khi có dữ liệu.</p>
                 </div>
                 <button className="secondary" onClick={reload}>Cập nhật</button>
             </header>
             <section className="card">
                 <form
-                    className="inline-form"
+                    className="inline-form report-filter-form"
                     onSubmit={(e) => {
                         e.preventDefault();
                         const fd = new FormData(e.currentTarget);
@@ -111,10 +111,10 @@ export function RevenueReport({ title, fixedFacility }) {
                         });
                     }}
                 >
-                    {!fixedFacility && <input name="facilityCode" placeholder="Mã chi nhánh (trống = toàn chuỗi)" defaultValue={filters.facilityCode} />}
-                    <input name="from" placeholder="Từ (yyyy-MM-dd)" defaultValue={filters.from} />
-                    <input name="to" placeholder="Đến (yyyy-MM-dd)" defaultValue={filters.to} />
-                    <select name="granularity" defaultValue={filters.granularity} className="form-select-clean">
+                    {!fixedFacility && <input name="facilityCode" aria-label="Mã chi nhánh" placeholder="Mã chi nhánh (trống = toàn chuỗi)" defaultValue={filters.facilityCode} />}
+                    <input name="from" aria-label="Từ ngày, định dạng năm-tháng-ngày" placeholder="Từ (yyyy-MM-dd)" defaultValue={filters.from} />
+                    <input name="to" aria-label="Đến ngày, định dạng năm-tháng-ngày" placeholder="Đến (yyyy-MM-dd)" defaultValue={filters.to} />
+                    <select name="granularity" aria-label="Kỳ báo cáo" defaultValue={filters.granularity} className="form-select-clean">
                         <option value="day">Theo ngày</option>
                         <option value="month">Theo tháng</option>
                         <option value="quarter">Theo quý</option>
